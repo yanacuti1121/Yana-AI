@@ -1,0 +1,120 @@
+:root[data-theme="dark"] {
+  color: #e6edf8;
+  background: #090d14;
+  color-scheme: dark;
+  --surface: #111722;
+  --card: #151d29;
+  --border: #2b3850;
+  --muted: #9aa8bd;
+  --accent: #ef8faf;
+  --accent-soft: #442b3a;
+  --green: #78d9b0;
+}
+
+:root[data-theme="dark"] body {
+  color: #e6edf8;
+  background: #090d14;
+}
+
+.app[data-theme="dark"] {
+  --editor-foreground: #dbe5f5;
+  --editor-background: #101722;
+  --editor-caret: #f39cbb;
+  --editor-gutter: #708099;
+  --editor-gutter-background: #0d131d;
+  --editor-border: #2a3850;
+  --editor-active-line: #1c2738;
+  --editor-selection: #70465f;
+  color: #e6edf8;
+  background:
+    radial-gradient(circle at 12% 5%, #7c62ff2b, transparent 28rem),
+    radial-gradient(circle at 92% 10%, #e76d9a21, transparent 26rem), #090d14;
+}
+
+.app[data-theme="dark"] .workspace,
+.app[data-theme="dark"] .main-column {
+  background: transparent;
+}
+
+.app[data-theme="dark"] .titlebar,
+.app[data-theme="dark"] .sidebar,
+.app[data-theme="dark"] .center,
+.app[data-theme="dark"] .inspector,
+.app[data-theme="dark"] .terminal-dock,
+.app[data-theme="dark"] .settings-container,
+.app[data-theme="dark"] .project-switch,
+.app[data-theme="dark"] .runtime-chip,
+.app[data-theme="dark"] .card,
+.app[data-theme="dark"] .provider-card,
+.app[data-theme="dark"] .local-runtime-card,
+.app[data-theme="dark"] .composer,
+.app[data-theme="dark"] .composer-toolbar,
+.app[data-theme="dark"] .composer-shortcuts,
+.app[data-theme="dark"] .global-search,
+.app[data-theme="dark"] .settings-shortcut {
+  border-color: rgba(159, 181, 219, 0.18);
+  background: rgba(14, 20, 31, var(--glass-panel-alpha));
+  backdrop-filter: blur(var(--glass-effective-blur)) saturate(132%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.055),
+    0 16px 38px rgba(0, 0, 0, var(--glass-shadow-opacity));
+}
+
+.app[data-theme="dark"] .inspector-tabs,
+.app[data-theme="dark"] .tabs,
+.app[data-theme="dark"] .terminal-tabs,
+.app[data-theme="dark"] .terminal-toolbar,
+.app[data-theme="dark"] .pane-caption,
+.app[data-theme="dark"] .statusbar {
+  border-color: rgba(159, 181, 219, 0.14);
+  background: rgba(10, 15, 24, 0.72);
+}
+
+.app[data-theme="dark"] input,
+.app[data-theme="dark"] textarea,
+.app[data-theme="dark"] select,
+.app[data-theme="dark"] .command-search,
+.app[data-theme="dark"] .editor-host {
+  border-color: #2b3a53;
+  color: #e6edf8;
+  background: #101722;
+}
+
+.app[data-theme="dark"] .sidebar nav button.selected,
+.app[data-theme="dark"] .sidebar-bottom > button.selected,
+.app[data-theme="dark"] .sidebar button.current,
+.app[data-theme="dark"] .recent button.current,
+.app[data-theme="dark"] .tabs button.active,
+.app[data-theme="dark"] .tree-item.current,
+.app[data-theme="dark"] .terminal-tab.active,
+.app[data-theme="dark"] .file-tree .current {
+  color: #ffd4e1;
+  border-color: #70465f;
+  background: rgba(111, 63, 91, 0.6);
+  box-shadow: inset 3px 0 #ee8eae;
+}
+
+.app[data-theme="dark"] .message-actions button {
+  color: #ffd1df;
+  border-color: #3b4a63;
+  background: rgba(20, 29, 43, 0.92);
+}
+
+.app[data-theme="dark"] .message-actions button:hover:not(:disabled) {
+  color: #fff;
+  border-color: #87506e;
+  background: #3e2635;
+}
+
+.app[data-theme="dark"] .range-setting input[type="range"] {
+  accent-color: #ef8faf;
+}
+
+.account-entry-shell[data-theme="dark"] .account-google-card {
+  border-color: rgba(159, 181, 219, 0.18);
+  background: rgba(14, 20, 31, var(--glass-panel-alpha));
+  backdrop-filter: blur(var(--glass-effective-blur)) saturate(132%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.055),
+    0 20px 50px rgba(0, 0, 0, var(--glass-shadow-opacity));
+}

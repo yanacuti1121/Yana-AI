@@ -193,6 +193,18 @@ test("account logout clears the local profile and deletes its file", (context) =
   assert.ok(!fs.existsSync(file));
   assert.throws(() => account.logout(), /No account configured/);
 });
+test("GitHub identity account remains unlocked after reopening", (context) => {
+  const root = fixture(context);
+  const account = new AccountStore(root);
+  const status = account.useGithub({
+    account_id: "octo-123",
+    display_name: "octocat",
+    status: "connected",
+  });
+  assert.equal(status.mode, "github");
+  assert.equal(status.displayName, "octocat");
+  assert.equal(new AccountStore(root).status().locked, false);
+});
 test("project memory reads empty before first write, persists after, and caps size", (context) => {
   const root = fixture(context);
   const memory = new ProjectMemory();
@@ -262,7 +274,12 @@ test("portable backup contains only allowlisted local state", (context) => {
       },
     ],
     profile: { provider: "openai", model: "model", baseUrl: "" },
-    preferences: { locale: "vi" },
+    preferences: {
+      locale: "vi",
+      theme: "light",
+      glassOpacity: 84,
+      glassBlur: 18,
+    },
     layout: { sidebar: 250, inspector: 330, dock: 280 },
     designs: {
       "/tmp/project": {
@@ -658,10 +675,26 @@ test("atomic workspace persistence survives reopening", (context) => {
   });
   const reopened = new Store(root);
   assert.equal(reopened.value.chats[0].messages[0].content, "안녕");
-  reopened.save({ preferences: { locale: "ko" } });
+  reopened.save({
+    preferences: {
+      locale: "ko",
+      theme: "dark",
+      glassOpacity: 72,
+      glassBlur: 12,
+    },
+  });
   assert.equal(new Store(root).value.preferences.locale, "ko");
+  assert.equal(new Store(root).value.preferences.theme, "dark");
   assert.throws(
-    () => reopened.save({ preferences: { locale: "unsupported" } }),
+    () =>
+      reopened.save({
+        preferences: {
+          locale: "unsupported",
+          theme: "dark",
+          glassOpacity: 72,
+          glassBlur: 12,
+        },
+      }),
     /preferences/,
   );
   assert.equal(

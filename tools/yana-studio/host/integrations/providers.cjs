@@ -42,7 +42,7 @@ async function requestJson(url, options = {}, acceptedErrors = []) {
   }
 }
 const GOOGLE_CLIENT =
-  "1038154369971-1tosihoaiiud0q6kt0avvm9c7fk35ibd.apps.googleusercontent.com";
+  "185309186279-o4uhmptdte7nvhbsdj96r84bahtnu35k.apps.googleusercontent.com";
 class GoogleOAuthProvider {
   constructor(clientId = GOOGLE_CLIENT, request = requestJson) {
     this.clientId = clientId;
@@ -307,11 +307,21 @@ const definitions = [
     key: "github:account",
     provider: "github",
     name: "GitHub",
-    purpose: "integration",
+    purpose: "authentication",
     scopes: ["read:user"],
     enabled: false,
     setup:
-      "Cần đăng ký public flow hoặc trusted token broker; không đóng gói client secret.",
+      "Cần GitHub OAuth app bật Device flow. Chỉ dùng để nhận diện hồ sơ, không có quyền repository.",
+  },
+  {
+    key: "github:repositories",
+    provider: "github",
+    name: "GitHub repositories",
+    purpose: "integration",
+    scopes: ["repo"],
+    enabled: false,
+    setup:
+      "Kết nối riêng cho repository. GitHub sẽ yêu cầu quyền repo khi anh chủ động bấm Connect.",
   },
   {
     key: "slack:workspace",

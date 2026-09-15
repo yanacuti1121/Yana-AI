@@ -29,6 +29,20 @@ export function Settings({
   const [busy, setBusy] = useState(false);
   const [section, setSection] = useState("account");
   const t = translate(state.preferences.locale);
+  const previewPreferences = (patch: Partial<State["preferences"]>) =>
+    onState({
+      ...state,
+      preferences: { ...state.preferences, ...patch },
+    });
+  const persistPreferences = (patch: Partial<State["preferences"]>) =>
+    void run(async () => {
+      onState(
+        await window.studio.savePreferences({
+          ...state.preferences,
+          ...patch,
+        }),
+      );
+    });
   const run = async (work: () => Promise<void>) => {
     setBusy(true);
     try {
@@ -53,7 +67,7 @@ export function Settings({
       <div className="button-row">
         {[
           ["account", t("account")],
-          ["appearance", t("language")],
+          ["appearance", t("appearance")],
           ["models", t("modelRuntime")],
           ["usage", t("usage")],
           ["connections", t("connections")],
@@ -80,19 +94,84 @@ export function Settings({
         />
       ) : section === "appearance" ? (
         <div className="card settings-card settings-language">
-          <h2>{t("language")}</h2>
+          <h2>{t("appearance")}</h2>
+          <p className="muted">{t("appearanceDescription")}</p>
+          <label>
+            {t("themeLabel")}
+            <select
+              value={state.preferences.theme}
+              onChange={(event) =>
+                persistPreferences({
+                  theme: event.target.value as "light" | "dark",
+                })
+              }
+            >
+              <option value="light">{t("themeLight")}</option>
+              <option value="dark">{t("themeDark")}</option>
+            </select>
+          </label>
+          <h3 className="appearance-section-title">{t("liquidGlassTitle")}</h3>
+          <p className="muted">{t("liquidGlassDescription")}</p>
+          <label className="range-setting">
+            <span>
+              {t("glassOpacityLabel")}
+              <output>{state.preferences.glassOpacity}%</output>
+            </span>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={state.preferences.glassOpacity}
+              onChange={(event) =>
+                previewPreferences({ glassOpacity: Number(event.target.value) })
+              }
+              onPointerUp={(event) =>
+                persistPreferences({
+                  glassOpacity: Number(event.currentTarget.value),
+                })
+              }
+              onBlur={(event) =>
+                persistPreferences({
+                  glassOpacity: Number(event.currentTarget.value),
+                })
+              }
+            />
+          </label>
+          <label className="range-setting">
+            <span>
+              {t("glassBlurLabel")}
+              <output>{state.preferences.glassBlur}px</output>
+            </span>
+            <input
+              type="range"
+              min="0"
+              max="32"
+              value={state.preferences.glassBlur}
+              onChange={(event) =>
+                previewPreferences({ glassBlur: Number(event.target.value) })
+              }
+              onPointerUp={(event) =>
+                persistPreferences({
+                  glassBlur: Number(event.currentTarget.value),
+                })
+              }
+              onBlur={(event) =>
+                persistPreferences({
+                  glassBlur: Number(event.currentTarget.value),
+                })
+              }
+            />
+          </label>
+          <hr />
+          <h3>{t("language")}</h3>
           <p className="muted">{t("languageDescription")}</p>
           <label>
             {t("languageLabel")}
             <select
               value={state.preferences.locale}
               onChange={(event) =>
-                void run(async () => {
-                  onState(
-                    await window.studio.savePreferences({
-                      locale: event.target.value as "vi" | "ko" | "en",
-                    }),
-                  );
+                persistPreferences({
+                  locale: event.target.value as "vi" | "ko" | "en",
                 })
               }
             >

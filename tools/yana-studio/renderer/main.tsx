@@ -14,6 +14,7 @@ import {
   FolderOpen,
   GitBranch,
   GitCompareArrows,
+  LayoutDashboard,
   ListTodo,
   LayoutTemplate,
   Maximize2,
@@ -22,9 +23,9 @@ import {
   MonitorSmartphone,
   PanelBottom,
   PanelLeft,
+  Pencil,
   Plus,
   RefreshCw,
-  RotateCcw,
   Search,
   Settings2,
   Shield,
@@ -55,12 +56,15 @@ import { Devices } from "./Devices";
 import { Permissions } from "./Permissions";
 import "./style.css";
 import "./light-theme.css";
+import "./dark-theme.css";
 import { translate } from "./i18n";
 import { renderMarkdown } from "./markdown";
-import { AccountUnlock } from "./AccountSettings";
+import { AccountSettings, AccountUnlock } from "./AccountSettings";
 import { GovernancePopover } from "./GovernancePopover";
 import { DesignCanvas } from "./DesignCanvas";
 import { WelcomeOnboarding } from "./WelcomeOnboarding";
+import { StudioHome } from "./StudioHome";
+import { EntryWelcome } from "./EntryWelcome";
 
 const Terminal = lazy(() =>
   import("./Terminal").then((module) => ({ default: module.Terminal })),
@@ -76,6 +80,7 @@ const emptyGit: GitState = {
   error: "",
 };
 type Surface =
+  | "home"
   | "chat"
   | "files"
   | "design"
@@ -91,7 +96,7 @@ function App() {
   const [project, setProject] = useState<Project | null>(null);
   const [chats, setChats] = useState<Chat[]>([]);
   const [chatId, setChatId] = useState("");
-  const [surface, setSurface] = useState<Surface>("terminal");
+  const [surface, setSurface] = useState<Surface>("home");
   const [git, setGit] = useState<GitState>(emptyGit);
   const [entries, setEntries] = useState<FileEntry[]>([]);
   const [filePage, setFilePage] = useState<FilePage | null>(null);
@@ -134,6 +139,7 @@ function App() {
   const [query, setQuery] = useState("");
   const [notice, setNotice] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showEntryWelcome, setShowEntryWelcome] = useState(true);
   const [layout, setLayout] = useState<Layout>({
     sidebar: 250,
     inspector: 330,
@@ -190,6 +196,10 @@ function App() {
       ),
     );
   }, []);
+  useEffect(() => {
+    document.documentElement.dataset.theme =
+      state?.preferences.theme || "light";
+  }, [state?.preferences.theme]);
   useEffect(() => {
     if (!project) return;
     let active = true;
@@ -328,7 +338,7 @@ function App() {
       active = false;
     };
   }, [project?.root]);
-  const switchProject = (next: Project, landing: Surface = "chat") => {
+  const switchProject = (next: Project, landing: Surface = "home") => {
     if (
       dirty &&
       !window.confirm(
@@ -638,7 +648,9 @@ function App() {
       const document = await window.studio.readFile(project.root, path);
       const used = current.reduce((sum, file) => sum + file.bytes, 0);
       if (used + document.bytes > MAX_ATTACH_BYTES) {
-        setNotice(translate(state?.preferences.locale ?? "vi")("attachTooLarge"));
+        setNotice(
+          translate(state?.preferences.locale ?? "vi")("attachTooLarge"),
+        );
         return;
       }
       setAttachments({
@@ -760,6 +772,59 @@ function App() {
         onError={setNotice}
       />
     );
+  const entryStyle = {
+    "--glass-opacity": String(state.preferences.glassOpacity / 100),
+    "--glass-panel-alpha": String(
+      0.98 - (state.preferences.glassOpacity / 100) * 0.8,
+    ),
+    "--glass-effective-blur": `${Math.round(
+      (state.preferences.glassBlur * state.preferences.glassOpacity) / 100,
+    )}px`,
+    "--glass-shadow-opacity": String(
+      (state.preferences.glassOpacity / 100) * 0.18,
+    ),
+  } as React.CSSProperties;
+  if (!state.account.configured && showEntryWelcome)
+    return (
+      <EntryWelcome
+        locale={state.preferences.locale}
+        theme={state.preferences.theme}
+        style={entryStyle}
+        onLocaleChange={async (locale) => {
+          setState(
+            await window.studio.savePreferences({
+              ...state.preferences,
+              locale,
+            }),
+          );
+        }}
+        onContinue={() => setShowEntryWelcome(false)}
+      />
+    );
+  if (!state.account.configured)
+    return (
+      <main
+        className="account-entry-shell"
+        data-theme={state.preferences.theme}
+        style={entryStyle}
+      >
+        <AccountSettings
+          state={state}
+          locale={state.preferences.locale}
+          onState={setState}
+          onError={setNotice}
+          onLocaleChange={async (locale) => {
+            setState(
+              await window.studio.savePreferences({
+                ...state.preferences,
+                locale,
+              }),
+            );
+          }}
+        />
+        {notice && <p className="account-entry-notice">{notice}</p>}
+      </main>
+    );
   if (
     state.account.configured &&
     (!state.onboardingCompleted || showOnboarding)
@@ -776,27 +841,40 @@ function App() {
           const selected = await window.studio.openProject();
           if (selected) await switchProject(selected);
         }}
+        onLocaleChange={async (locale) => {
+          setState(
+            await window.studio.savePreferences({
+              ...state.preferences,
+              locale,
+            }),
+          );
+        }}
       />
     );
   const t = translate(state.preferences.locale);
   const commands = [
+    {
+      label: t("studioHome"),
+      icon: LayoutDashboard,
+      action: () => setSurface("home"),
+    },
     { label: t("cmdOpenProject"), icon: FolderOpen, action: openProject },
     { label: t("cmdNewChat"), icon: MessageSquare, action: newChat },
     { label: t("cmdNewTerminal"), icon: TerminalSquare, action: addTerminal },
-    { label: "Files & Editor", icon: Files, action: () => setSurface("files") },
+    { label: t("files"), icon: Files, action: () => setSurface("files") },
     {
-      label: "Design Canvas",
+      label: t("designCanvas"),
       icon: LayoutTemplate,
       action: () => setSurface("design"),
     },
-    { label: "Tasks", icon: ListTodo, action: () => setSurface("tasks") },
+    { label: t("tasks"), icon: ListTodo, action: () => setSurface("tasks") },
     {
-      label: "Devices",
+      label: t("devices"),
       icon: MonitorSmartphone,
       action: () => setSurface("devices"),
     },
     {
-      label: "Permissions",
+      label: t("permissions"),
       icon: Shield,
       action: () => setSurface("permissions"),
     },
@@ -835,11 +913,23 @@ function App() {
   return (
     <div
       className="app"
+      data-theme={state.preferences.theme}
       style={
         {
           "--sidebar": `${layout.sidebar}px`,
           "--inspector": `${layout.inspector}px`,
           "--dock": `${layout.dock}px`,
+          "--glass-opacity": String(state.preferences.glassOpacity / 100),
+          "--glass-panel-alpha": String(
+            0.98 - (state.preferences.glassOpacity / 100) * 0.8,
+          ),
+          "--glass-effective-blur": `${Math.round(
+            (state.preferences.glassBlur * state.preferences.glassOpacity) /
+              100,
+          )}px`,
+          "--glass-shadow-opacity": String(
+            (state.preferences.glassOpacity / 100) * 0.18,
+          ),
         } as React.CSSProperties
       }
     >
@@ -853,7 +943,7 @@ function App() {
           <Folder size={14} />
           <span>{project?.name || t("noWorkspace")}</span>
           <ChevronRight size={12} />
-          <span className="muted">{git.branch || "Local"}</span>
+          <span className="muted">{git.branch || t("localBranch")}</span>
         </div>
         <button className="global-search" onClick={() => setPalette(true)}>
           <Search size={14} />
@@ -883,6 +973,13 @@ function App() {
           </button>
           <div className="section-label">{t("workspace")}</div>
           <nav>
+            <button
+              className={surface === "home" ? "selected" : ""}
+              onClick={() => setSurface("home")}
+            >
+              <LayoutDashboard size={17} />
+              <span>{t("studioHome")}</span>
+            </button>
             <button
               className={surface === "chat" ? "selected" : ""}
               onClick={openChat}
@@ -917,21 +1014,21 @@ function App() {
               onClick={() => setSurface("tasks")}
             >
               <ListTodo size={17} />
-              <span>Tasks</span>
+              <span>{t("tasks")}</span>
             </button>
             <button
               className={surface === "devices" ? "selected" : ""}
               onClick={() => setSurface("devices")}
             >
               <MonitorSmartphone size={17} />
-              <span>Devices</span>
+              <span>{t("devices")}</span>
             </button>
             <button
               className={surface === "permissions" ? "selected" : ""}
               onClick={() => setSurface("permissions")}
             >
               <Shield size={17} />
-              <span>Permissions</span>
+              <span>{t("permissions")}</span>
             </button>
             <button
               onClick={() => {
@@ -966,15 +1063,13 @@ function App() {
               ))
             ) : (
               <p className="empty-small">
-                {project
-                  ? t("noGitWorktrees")
-                  : t("openProjectForBranches")}
+                {project ? t("noGitWorktrees") : t("openProjectForBranches")}
               </p>
             )}
           </div>
           <div className="section-label">
             {t("recentProjects")}{" "}
-            <button onClick={openProject} aria-label="Open project">
+            <button onClick={openProject} aria-label={t("openProjectAria")}>
               <Plus size={14} />
             </button>
           </div>
@@ -1017,7 +1112,7 @@ function App() {
         <div
           className="resize-handle side"
           role="separator"
-          aria-label="Resize sidebar"
+          aria-label={t("resizeSidebar")}
           onPointerDown={(event) => resize("sidebar", event)}
         />
         {surface === "settings" && (
@@ -1051,11 +1146,11 @@ function App() {
             <section className="center" hidden={expanded}>
               <div className="tabs">
                 <button
-                  className={surface === "chat" ? "active" : ""}
-                  onClick={openChat}
+                  className={surface === "home" ? "active" : ""}
+                  onClick={() => setSurface("home")}
                 >
-                  <MessageSquare size={14} />
-                  <span className="tab-label">Workspace</span>
+                  <LayoutDashboard size={14} />
+                  <span className="tab-label">Studio Home</span>
                 </button>
                 {localChats.slice(-8).map((item) => (
                   <button
@@ -1097,7 +1192,27 @@ function App() {
                   <Plus size={15} />
                 </button>
               </div>
-              {surface === "tasks" ? (
+              {surface === "home" ? (
+                <StudioHome
+                  state={state}
+                  project={project}
+                  git={git}
+                  chats={chats}
+                  terminals={terminals}
+                  onOpenProject={openProject}
+                  onSelectProject={(item) =>
+                    void run(async () =>
+                      switchProject(
+                        await window.studio.recentProject(item.root),
+                      ),
+                    )
+                  }
+                  onOpenChat={openChat}
+                  onOpenFiles={() => setSurface("files")}
+                  onOpenDesign={() => setSurface("design")}
+                  onOpenTasks={() => setSurface("tasks")}
+                />
+              ) : surface === "tasks" ? (
                 <Tasks root={project?.root || ""} onError={setNotice} />
               ) : surface === "devices" ? (
                 <Devices onError={setNotice} />
@@ -1331,11 +1446,13 @@ function App() {
                       <div className="conversation-title">
                         <span className="eyebrow">{t("sessionEyebrow")}</span>
                         <strong>
-                          {chat?.title || project?.name || "Workspace"}
+                          {chat?.title ||
+                            project?.name ||
+                            t("currentWorkspace")}
                         </strong>
                         <small>
-                          {git.branch || "Local"} · {chat?.messages.length || 0}{" "}
-                          {t("messagesSuffix")}
+                          {git.branch || t("localBranch")} ·{" "}
+                          {chat?.messages.length || 0} {t("messagesSuffix")}
                         </small>
                       </div>
                       <div className="conversation-heading-actions">
@@ -1408,7 +1525,9 @@ function App() {
                         <div className="message-content">
                           <div className="message-label">
                             <strong>
-                              {message.role === "user" ? t("userLabel") : "Yana"}
+                              {message.role === "user"
+                                ? t("userLabel")
+                                : "Yana"}
                             </strong>
                             <span>
                               {message.role === "assistant"
@@ -1416,31 +1535,34 @@ function App() {
                                 : "Human"}
                             </span>
                             <div className="message-actions">
-                              {visibleMessageContent(message) && (
-                                <button
-                                  aria-label={t("copyMessageAria")}
-                                  title={t("copyTitle")}
-                                  onClick={() =>
-                                    void copyMessage(
-                                      visibleMessageContent(message),
-                                    )
-                                  }
-                                >
-                                  <Copy size={12} />
-                                </button>
-                              )}
+                              {message.role === "assistant" &&
+                                visibleMessageContent(message) && (
+                                  <button
+                                    aria-label={t("copyResponseAria")}
+                                    title={t("copyTitle")}
+                                    onClick={() =>
+                                      void copyMessage(
+                                        visibleMessageContent(message),
+                                      )
+                                    }
+                                  >
+                                    <Copy size={12} />
+                                    <span>{t("copyTitle")}</span>
+                                  </button>
+                                )}
                               {message.role === "user" &&
                                 visibleMessageContent(message) && (
                                   <button
-                                    aria-label={t("reuseAria")}
-                                    title={t("reuseTitle")}
+                                    aria-label={t("editQuestionAria")}
+                                    title={t("editQuestionTitle")}
                                     onClick={() =>
                                       reuseMessage(
                                         visibleMessageContent(message),
                                       )
                                     }
                                   >
-                                    <RotateCcw size={12} />
+                                    <Pencil size={12} />
+                                    <span>{t("editQuestionTitle")}</span>
                                   </button>
                                 )}
                             </div>
@@ -1786,7 +1908,7 @@ function App() {
               className="resize-handle horizontal"
               hidden={!dock || expanded}
               role="separator"
-              aria-label="Resize terminal dock"
+              aria-label={t("resizeTerminalDock")}
               onPointerDown={(event) => resize("dock", event)}
             />
             <section
@@ -1994,117 +2116,9 @@ function App() {
           <div
             className="resize-handle side inspector-resize"
             role="separator"
-            aria-label="Resize inspector"
+            aria-label={t("resizeInspector")}
             onPointerDown={(event) => resize("inspector", event)}
           />
-          <aside className="inspector" hidden>
-            <div className="inspector-heading">
-              <span>Workspace</span>
-              <button
-                title="Refresh Git"
-                disabled={!project}
-                onClick={() =>
-                  void run(async () => {
-                    if (project)
-                      setGit(await window.studio.gitStatus(project.root));
-                  })
-                }
-              >
-                <RefreshCw size={14} />
-              </button>
-            </div>
-            <section>
-              <div className="section-label">PROJECT</div>
-              <div className="card project-card">
-                <Folder size={22} />
-                <div>
-                  <strong>{project?.name || "Chưa mở project"}</strong>
-                  <small>{project?.root || "Chọn folder trên máy"}</small>
-                </div>
-              </div>
-              <div className="project-facts">
-                <span>
-                  <GitBranch size={13} /> {git.branch || "—"}
-                </span>
-                <span>{git.changes.length} changes</span>
-              </div>
-            </section>
-            <section>
-              <div className="section-label">
-                CHANGES <span className="count">{git.changes.length}</span>
-              </div>
-              {git.error ? (
-                <p className="muted empty-small">{git.error}</p>
-              ) : git.changes.length ? (
-                <div className="changes-list">
-                  {git.changes.map((change) => (
-                    <button
-                      key={change.path}
-                      title={change.path}
-                      onClick={() => void showDiff(change.path)}
-                    >
-                      <FileCode2 size={13} />
-                      <span>{change.path}</span>
-                      <code>{change.status.trim()}</code>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <p className="empty-small">
-                  {project ? "Không có thay đổi Git." : "Chưa có project."}
-                </p>
-              )}
-            </section>
-            <section>
-              <div className="section-label">
-                ACTIVITY{" "}
-                <span className="live-label">
-                  <Circle size={7} /> Runtime
-                </span>
-              </div>
-              {chat?.events.length ? (
-                <div className="activity-list">
-                  {chat.events
-                    .slice(-8)
-                    .reverse()
-                    .map((event, index) => (
-                      <div key={index}>
-                        <time>
-                          {event.time
-                            ? new Date(event.time).toLocaleTimeString("vi", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })
-                            : ""}
-                        </time>
-                        <span>
-                          {event.kind?.replaceAll("_", " ")}
-                          <small>{event.tool || event.summary || ""}</small>
-                        </span>
-                      </div>
-                    ))}
-                </div>
-              ) : (
-                <p className="empty-small">
-                  Chưa có sự kiện runtime. Không suy diễn tiến độ từ nội dung
-                  chat hoặc terminal.
-                </p>
-              )}
-            </section>
-            <section className="authority-note">
-              <Shield size={16} />
-              <div>
-                <strong>Human-governed</strong>
-                <p>AI không sử dụng shell của anh để vượt qua phê duyệt.</p>
-                {chat?.usage && (
-                  <small>
-                    Input {chat.usage.input.toLocaleString()} · Output{" "}
-                    {chat.usage.output.toLocaleString()} tokens
-                  </small>
-                )}
-              </div>
-            </section>
-          </aside>
           <WorkspaceInspector
             state={state}
             project={project}

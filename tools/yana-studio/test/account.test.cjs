@@ -97,7 +97,7 @@ test("useGoogle requires an already-connected Google identity and cannot double-
   const store = new AccountStore(directory);
   assert.throws(
     () => store.useGoogle({ status: "not_connected" }),
-    /Connect Google Account first/,
+    /Connect an identity provider first/,
   );
   const status = store.useGoogle({
     status: "connected",

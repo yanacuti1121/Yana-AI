@@ -29,19 +29,24 @@ class IntegrationManager {
   }
   enableGithub(clientId) {
     this.adapters.set("github", new GitHubDeviceProvider(clientId));
-    const entry = this.definition("github:account");
-    entry.enabled = true;
-    entry.setup =
-      "GitHub OAuth app phải bật Device flow. Scope hiện tại chỉ đọc hồ sơ, chưa cấp quyền repository.";
+    for (const entry of this.catalog.filter(
+      (candidate) => candidate.provider === "github",
+    ))
+      entry.enabled = true;
   }
   configureGithub(clientId) {
     new GitHubDeviceProvider(clientId);
     if (
-      this.pending.has("github:account") ||
-      this.refreshing.has("github:account")
+      [...this.pending.keys(), ...this.refreshing.keys()].some((key) =>
+        key.startsWith("github:"),
+      )
     )
       throw new Error("connection_in_progress");
-    if (this.store.read("github:account"))
+    if (
+      this.catalog
+        .filter((entry) => entry.provider === "github")
+        .some((entry) => this.store.read(entry.key))
+    )
       throw new Error("disconnect_before_changing_client");
     this.store.write("github:configuration", {
       tokens: {},

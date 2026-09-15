@@ -372,6 +372,17 @@ app.whenReady().then(() => {
     changed: () => emit("integrations:update", integrations.list()),
   });
   register("integrationList", () => integrations.list());
+  register(
+    "openGithubOAuthHelp",
+    async () => shell.openExternal("https://github.com/settings/developers"),
+    { allowLocked: true },
+  );
+  register(
+    "openGoogleOAuthHelp",
+    async () =>
+      shell.openExternal("https://console.cloud.google.com/auth/audience"),
+    { allowLocked: true },
+  );
   register("integrationConfigureGithub", (clientId) =>
     integrations.configureGithub(clientId),
   );
@@ -425,20 +436,23 @@ app.whenReady().then(() => {
   terminals = new Terminals(pty.spawn, emit);
   register("bootstrap", publicState, { allowLocked: true });
   register(
-    "accountCreateLocal",
-    (value) => {
-      accounts.createLocal(value);
-      return publicState();
-    },
-    { allowLocked: true },
-  );
-  register(
     "accountUseGoogle",
     () => {
       const connection = integrations
         .list()
         .find((item) => item.key === "google:identity");
       accounts.useGoogle(connection);
+      return publicState();
+    },
+    { allowLocked: true },
+  );
+  register(
+    "accountUseGithub",
+    () => {
+      const connection = integrations
+        .list()
+        .find((item) => item.key === "github:account");
+      accounts.useGithub(connection);
       return publicState();
     },
     { allowLocked: true },
@@ -761,9 +775,26 @@ app.whenReady().then(() => {
     return next;
   });
   register("savePreferences", (preferences) => {
-    if (!preferences || !["vi", "ko", "en"].includes(preferences.locale))
+    if (
+      !preferences ||
+      !["vi", "ko", "en"].includes(preferences.locale) ||
+      !["light", "dark"].includes(preferences.theme) ||
+      !Number.isSafeInteger(preferences.glassOpacity) ||
+      preferences.glassOpacity < 0 ||
+      preferences.glassOpacity > 100 ||
+      !Number.isSafeInteger(preferences.glassBlur) ||
+      preferences.glassBlur < 0 ||
+      preferences.glassBlur > 32
+    )
       throw new Error("Invalid interface preferences");
-    store.save({ preferences: { locale: preferences.locale } });
+    store.save({
+      preferences: {
+        locale: preferences.locale,
+        theme: preferences.theme,
+        glassOpacity: preferences.glassOpacity,
+        glassBlur: preferences.glassBlur,
+      },
+    });
     return publicState();
   });
   register("completeOnboarding", () => {

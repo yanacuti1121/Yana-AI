@@ -52,7 +52,12 @@ export type DiffComment = {
 };
 export type Profile = { provider: string; model: string; baseUrl: string };
 export type Layout = { sidebar: number; inspector: number; dock: number };
-export type Preferences = { locale: "vi" | "ko" | "en" };
+export type Preferences = {
+  locale: "vi" | "ko" | "en";
+  theme: "light" | "dark";
+  glassOpacity: number;
+  glassBlur: number;
+};
 export type CanvasPartKind =
   | "button"
   | "text"
@@ -372,7 +377,7 @@ export type State = {
   account: {
     configured: boolean;
     locked: boolean;
-    mode: "none" | "local" | "google";
+    mode: "none" | "local" | "google" | "github";
     email: string;
     displayName: string;
   };
@@ -452,17 +457,15 @@ declare global {
       exportPortableData(): Promise<string | null>;
       choosePortableData(): Promise<State>;
       importPortableData(file: File): Promise<State>;
-      accountCreateLocal(value: {
-        email: string;
-        displayName: string;
-        password: string;
-      }): Promise<State>;
       accountUseGoogle(): Promise<State>;
+      accountUseGithub(): Promise<State>;
       accountUnlock(password: string): Promise<State>;
       accountLock(): Promise<State>;
       accountLogout(): Promise<State>;
       systemOverview(projectRoot: string): Promise<SystemOverview>;
       integrationList(): Promise<IntegrationConnection[]>;
+      openGithubOAuthHelp(): Promise<void>;
+      openGoogleOAuthHelp(): Promise<void>;
       integrationConfigureGithub(
         clientId: string,
       ): Promise<IntegrationConnection[]>;

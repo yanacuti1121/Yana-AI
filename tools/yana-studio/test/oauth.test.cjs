@@ -269,8 +269,10 @@ test("provider revoke clears only the revoked key, not sibling connections on th
 test("GitHub public configuration enables device flow and preserves existing credentials", () => {
   const { manager, store } = fixture();
   assert.equal(manager.definition("github:account").enabled, false);
+  assert.equal(manager.definition("github:repositories").enabled, false);
   manager.configureGithub("public-client-one");
   assert.equal(manager.definition("github:account").enabled, true);
+  assert.equal(manager.definition("github:repositories").enabled, true);
   assert.equal(
     store.read("github:configuration").connection.client_id,
     "public-client-one",
