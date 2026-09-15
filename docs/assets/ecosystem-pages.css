@@ -43,6 +43,26 @@ button, summary { font: inherit; }
 .mega-link:hover { background: #f2f5ff; }
 .mega-link i { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 12px; background: linear-gradient(145deg,var(--sky),var(--lilac)); font-style: normal; font-weight: 900; }
 .mega-link strong { display: block; font-size: 14px; }.mega-link small { display: block; color: var(--muted); font-size: 12px; }
+.site-nav.global-nav { grid-template-columns: auto minmax(0,1fr) auto; }
+.global-nav .menu-button { grid-column: 2; justify-self: end; }
+.global-nav .nav-links { position: static; gap: 4px; }
+.global-nav .nav-links > a, .global-nav-group > summary { display: inline-flex; align-items: center; min-height: 38px; padding: 0 10px; border-radius: 10px; color: inherit; font-weight: 680; cursor: pointer; list-style: none; }
+.global-nav .nav-links > a:hover, .global-nav .nav-links > a.is-current, .global-nav-group[open] > summary { color: var(--blue-dark); background: #f0f3ff; }
+.global-nav-group { position: static; }
+.global-nav-group > summary::-webkit-details-marker { display: none; }
+.global-nav-group > summary::after { content: "⌄"; margin-left: 6px; color: var(--muted); font-size: 14px; transition: transform .18s ease; }
+.global-nav-group[open] > summary::after { transform: rotate(180deg); }
+.global-mega-panel { position: absolute; top: calc(100% + 1px); left: 50%; z-index: 60; width: min(1000px,calc(100vw - 48px)); display: grid; grid-template-columns: minmax(210px,1.15fr) repeat(2,minmax(170px,.92fr)); gap: 24px; padding: 28px; transform: translateX(-50%); border: 1px solid var(--line); border-radius: 0 0 24px 24px; background: rgba(255,255,255,.98); box-shadow: var(--shadow); }
+.global-mega-intro { padding: 8px 12px 8px 2px; }
+.global-mega-intro small { color: var(--blue-dark); font-size: 10px; font-weight: 850; letter-spacing: .12em; }
+.global-mega-intro h3 { max-width:11ch; margin: 10px 0 0; font-size: 29px; line-height: 1.02; letter-spacing: -.055em; }
+.global-mega-column { display: grid; align-content: start; gap: 4px; }
+.global-mega-link { display: grid; gap: 3px; padding: 10px 12px; border-radius: 12px; }
+.global-mega-link:hover, .global-mega-link.is-current { background: #f1f4ff; }
+.global-mega-link strong { font-size: 13px; line-height: 1.3; }
+.global-mega-link small { color: var(--muted); font-size: 11px; line-height: 1.4; }
+.global-language-link { margin-left: 3px; border: 1px solid var(--line); }
+@media(max-width:900px){.site-nav.global-nav{grid-template-columns:auto auto 1fr}.global-nav .menu-button{grid-column:auto;justify-self:auto}.global-nav .nav-links{position:absolute;gap:4px}.global-nav .nav-links.open{display:flex}.global-nav .nav-links>a,.global-nav-group>summary{justify-content:space-between}.global-nav-group{position:relative;width:100%}.global-mega-panel{position:static;width:100%;grid-template-columns:1fr;margin-top:4px;padding:16px;transform:none;border-radius:16px;box-shadow:none;background:#f7f8fc}.global-mega-intro{padding:4px 8px 8px}.global-mega-intro h3{max-width:none;font-size:22px}.global-mega-column{gap:2px}.global-language-link{margin-left:0}.global-nav .nav-actions{justify-self:end}}
 .hero { min-height: calc(100vh - 68px); display: grid; place-items: center; padding: 88px 24px 0; overflow: hidden; background: radial-gradient(circle at 15% 20%,rgba(177,222,255,.82),transparent 34%), radial-gradient(circle at 82% 22%,rgba(184,173,255,.74),transparent 37%), linear-gradient(135deg,#f4f9ff 0%,#eef0ff 100%); }
 .hero-inner { width: min(1180px,100%); text-align: center; }
 .eyebrow { margin: 0 0 16px; color: #4c5bc6; font-size: 12px; font-weight: 850; letter-spacing: .15em; text-transform: uppercase; }
@@ -412,3 +432,5 @@ a.product-card:hover, .product-card:hover { transform: translateY(-8px); box-sha
 @media(max-width:980px){.home-page .home-hero,.home-control,.home-studio{grid-template-columns:minmax(0,1fr)}.home-page .home-hero{padding-top:86px}.home-hero-copy{max-width:700px;min-width:0}.home-hero-visual{min-width:0;min-height:430px;max-width:590px;width:100%;margin:auto}.home-control-intro{max-width:650px}.home-control{gap:48px}.home-proof-grid,.home-product-grid{grid-template-columns:1fr}.home-proof-grid article,.home-product-grid a{min-height:auto;padding:24px 0;border-right:0;border-bottom:1px solid #d9d7d2}.home-proof-grid h3{margin-top:26px}.home-product-grid a{grid-template-columns:auto 1fr auto}.home-product-grid a:last-child{border-bottom:0}.home-studio-copy{max-width:650px}}
 @media(max-width:700px){.home-page .site-nav{grid-template-columns:auto auto 1fr;column-gap:12px}.home-page .home-brand span:last-child{display:inline}.home-page .nav-links{background:#12162d;border-color:rgba(255,255,255,.12);box-shadow:0 20px 50px rgba(0,0,0,.28)}.home-page .nav-links a{color:#d7d9e8}.home-page .home-hero{display:block;min-height:auto;padding-inline:22px}.home-hero-copy{width:min(100%,400px);max-width:min(100%,400px)}.home-page .home-hero h1{font-size:clamp(42px,12vw,54px);letter-spacing:-.062em}.home-lede{max-width:100%;font-size:16px;overflow-wrap:break-word}.home-trust-list{display:grid;grid-template-columns:1fr 1fr;gap:14px}.home-trust-list div{min-width:0}.home-trust-list div:last-child{grid-column:span 2}.home-hero-visual{min-height:340px;margin-top:48px}.home-window,.home-window-chat{min-width:0}.home-window{transform:none}.home-window-body{grid-template-columns:42px minmax(0,1fr)}.home-window-body aside{gap:15px}.home-window-chat{padding:24px 19px}.home-window-chat h2{font-size:22px}.float-model{display:none}.float-control{left:-7px;bottom:12px}.orbit-one{width:360px;height:360px}.orbit-two{width:280px;height:280px}.home-page .section{width:min(100% - 40px,1180px)}.home-control{padding-inline:22px}.home-control-map{padding:19px 14px}.control-source,.control-target{gap:6px}.control-source span,.control-target span{padding:6px 7px;font-size:10px}.home-studio-shot{border-radius:14px}.home-final{padding-inline:22px}.home-page .footer-inner{width:min(100% - 40px,1180px)}}
 @media(prefers-reduced-motion:reduce){.home-page *{scroll-behavior:auto!important;transition:none!important}}
+.home-page .global-mega-panel,.home-page .global-mega-panel a{color:var(--ink)}
+.home-page .global-mega-panel .global-mega-intro h3{color:var(--ink)}

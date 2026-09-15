@@ -21,11 +21,13 @@
     state.lang = lang;
     localStorage.setItem("yana-ecosystem-lang", lang);
     document.documentElement.lang = lang;
-    document.querySelectorAll("[data-i18n]").forEach((node) => {
-      const value = t(node.dataset.i18n);
-      if (value !== undefined) node.innerHTML = value;
-    });
-    document.querySelectorAll(".lang-btn").forEach((button) => button.classList.toggle("active", button.dataset.lang === lang));
+    if (window.PAGE_I18N) {
+      document.querySelectorAll("[data-i18n]").forEach((node) => {
+        const value = t(node.dataset.i18n);
+        if (value !== undefined) node.innerHTML = value;
+      });
+      document.querySelectorAll(".lang-btn").forEach((button) => button.classList.toggle("active", button.dataset.lang === lang));
+    }
     renderReleaseSurfaces();
   }
 
@@ -106,8 +108,8 @@
     banner.append(info, all); root.append(banner);
 
     const platform = detectedPlatform();
-    const grid = document.createElement("div"); grid.className = "grid three";
-    const labels = { mac: "macOS", windows: "Windows", linux: "Linux" };
+    const grid = document.createElement("div"); grid.className = "download-grid";
+    const labels = { mac: "macOS" };
     Object.entries(labels).forEach(([key, label]) => {
       const card = document.createElement("article"); card.className = `os-card${platform === key ? " recommended" : ""}`;
       const head = document.createElement("div"); head.className = "os-title";
@@ -167,16 +169,186 @@
     }
   }
 
-  document.querySelector(".menu-button")?.addEventListener("click", (event) => {
-    const links = document.querySelector(".nav-links");
-    const open = links?.classList.toggle("open");
-    event.currentTarget.setAttribute("aria-expanded", String(Boolean(open)));
-  });
-  document.querySelectorAll(".nav-links a").forEach((link) => link.addEventListener("click", () => {
-    document.querySelector(".nav-links")?.classList.remove("open");
-    document.querySelector(".menu-button")?.setAttribute("aria-expanded", "false");
-  }));
-  document.querySelectorAll(".lang-btn").forEach((button) => button.addEventListener("click", () => setLang(button.dataset.lang)));
+  function currentPage() {
+    const name = window.location.pathname.split("/").pop();
+    return name || "index.html";
+  }
+
+  function sharedNavigation() {
+    const nav = document.querySelector(".site-nav");
+    if (!nav) return;
+
+    const language = document.documentElement.lang.slice(0, 2);
+    if (language !== "vi" && language !== "en") return;
+
+    const isVietnamese = language === "vi";
+    const page = currentPage();
+    const languagePair = {
+      "index.html": "en.html", "en.html": "index.html",
+      "studio.html": "studio-en.html", "studio-en.html": "studio.html",
+      "runtime.html": "runtime-en.html", "runtime-en.html": "runtime.html",
+      "wheelbot.html": "wheelbot-en.html", "wheelbot-en.html": "wheelbot.html",
+      "ecosystem.html": "ecosystem-en.html", "ecosystem-en.html": "ecosystem.html",
+      "models.html": "models-en.html", "models-en.html": "models.html",
+      "agents-skills.html": "agents-skills-en.html", "agents-skills-en.html": "agents-skills.html",
+      "connectors.html": "connectors-en.html", "connectors-en.html": "connectors.html",
+      "missions.html": "missions-en.html", "missions-en.html": "missions.html",
+      "continuity.html": "continuity-en.html", "continuity-en.html": "continuity.html",
+      "design.html": "design-en.html", "design-en.html": "design.html",
+      "governance.html": "governance-en.html", "governance-en.html": "governance.html",
+      "evidence.html": "evidence-en.html", "evidence-en.html": "evidence.html",
+      "safety.html": "safety-en.html", "safety-en.html": "safety.html",
+      "architecture.html": "architecture-en.html", "architecture-en.html": "architecture.html",
+      "download.html": "download-en.html", "download-en.html": "download.html"
+    };
+
+    const copy = isVietnamese ? {
+      home: "Trang chủ", open: "Mở menu", close: "Đóng menu", language: "EN", cta: "Tải Studio",
+      products: "Sản phẩm", platform: "Nền tảng", trust: "Trust", resources: "Tài nguyên",
+      productsEyebrow: "KHÁM PHÁ YANA", productsTitle: "Những bề mặt để làm việc.",
+      platformEyebrow: "NỀN TẢNG", platformTitle: "Mọi lớp bên dưới Studio.",
+      trustEyebrow: "QUYỀN & BẰNG CHỨNG", trustTitle: "Nhìn rõ ranh giới kiểm soát.",
+      resourcesEyebrow: "TÀI LIỆU & CẬP NHẬT", resourcesTitle: "Theo dõi nguồn chính thức.",
+      studio: "Yana Studio", studioDetail: "Workspace trực quan cho AI có kiểm soát",
+      runtime: "Yana Runtime", runtimeDetail: "Control plane và thực thi có giới hạn",
+      wheelbot: "Yana Wheelbot", wheelbotDetail: "Ranh giới AI vật lý",
+      download: "Tải Studio", downloadDetail: "Bộ cài macOS Apple Silicon",
+      ecosystem: "Hệ sinh thái", ecosystemDetail: "Xem các bề mặt Yana",
+      models: "Models & Providers", modelsDetail: "Catalog cloud và local",
+      agents: "Agents & Skills", agentsDetail: "Tác vụ, agent và skill",
+      missions: "Missions", missionsDetail: "Điều phối công việc AI",
+      continuity: "Continuity", continuityDetail: "Context qua nhiều phiên",
+      connectors: "Connectors", connectorsDetail: "Kết nối có quyền riêng",
+      design: "Design Canvas", designDetail: "Bề mặt thiết kế thử nghiệm",
+      governance: "Governance", governanceDetail: "Con người giữ quyền quyết định",
+      safety: "Safety / Guardrails", safetyDetail: "Luật bảo vệ và chặn rủi ro",
+      evidence: "Evidence & Audit", evidenceDetail: "Dấu vết và bằng chứng",
+      architecture: "Kiến trúc", architectureDetail: "Từ bề mặt tới Runtime",
+      releases: "GitHub Releases", releasesDetail: "Bản phát hành thực tế",
+      roadmap: "Roadmap", roadmapDetail: "Hướng phát triển chính thức",
+      security: "Security", securityDetail: "Chính sách bảo mật",
+      source: "GitHub", sourceDetail: "Mã nguồn Yana"
+    } : {
+      home: "Home", open: "Open menu", close: "Close menu", language: "VI", cta: "Get Studio",
+      products: "Products", platform: "Platform", trust: "Trust", resources: "Resources",
+      productsEyebrow: "EXPLORE YANA", productsTitle: "The surfaces where work happens.",
+      platformEyebrow: "THE PLATFORM", platformTitle: "Everything beneath Studio.",
+      trustEyebrow: "AUTHORITY & EVIDENCE", trustTitle: "Make control boundaries visible.",
+      resourcesEyebrow: "DOCUMENTATION & UPDATES", resourcesTitle: "Follow the official source.",
+      studio: "Yana Studio", studioDetail: "Visual workspace for governed AI",
+      runtime: "Yana Runtime", runtimeDetail: "Control plane and bounded execution",
+      wheelbot: "Yana Wheelbot", wheelbotDetail: "The physical-AI boundary",
+      download: "Download Studio", downloadDetail: "Apple Silicon macOS installer",
+      ecosystem: "Ecosystem", ecosystemDetail: "See Yana's real surfaces",
+      models: "Models & Providers", modelsDetail: "Cloud and local catalog",
+      agents: "Agents & Skills", agentsDetail: "Tasks, agents and skills",
+      missions: "Missions", missionsDetail: "Coordinate AI work",
+      continuity: "Continuity", continuityDetail: "Context across sessions",
+      connectors: "Connectors", connectorsDetail: "Separately governed connections",
+      design: "Design Canvas", designDetail: "Experimental design surface",
+      governance: "Governance", governanceDetail: "Human authority stays explicit",
+      safety: "Safety / Guardrails", safetyDetail: "Protective policy and limits",
+      evidence: "Evidence & Audit", evidenceDetail: "Records and evidence",
+      architecture: "Architecture", architectureDetail: "From surfaces to Runtime",
+      releases: "GitHub Releases", releasesDetail: "Actual published releases",
+      roadmap: "Roadmap", roadmapDetail: "Official development direction",
+      security: "Security", securityDetail: "Security policy",
+      source: "GitHub", sourceDetail: "Yana source code"
+    };
+
+    const route = (vi, en) => isVietnamese ? vi : en;
+    const item = (href, title, detail, selected = false) =>
+      `<a class="global-mega-link${selected ? " is-current" : ""}" href="${href}"${selected ? " aria-current=\"page\"" : ""}><strong>${title}</strong><small>${detail}</small></a>`;
+    const panel = (eyebrow, title, columns) =>
+      `<div class="global-mega-panel"><div class="global-mega-intro"><small>${eyebrow}</small><h3>${title}</h3></div>${columns.map((column) => `<div class="global-mega-column">${column}</div>`).join("")}</div>`;
+    const group = (label, key, eyebrow, title, columns) =>
+      `<details class="global-nav-group" data-nav-group="${key}"><summary>${label}</summary>${panel(eyebrow, title, columns)}</details>`;
+    const pageIs = (...pages) => pages.includes(page);
+
+    const productLinks = [
+      item(route("studio.html", "studio-en.html"), copy.studio, copy.studioDetail, pageIs("studio.html", "studio-en.html")),
+      item(route("runtime.html", "runtime-en.html"), copy.runtime, copy.runtimeDetail, pageIs("runtime.html", "runtime-en.html")),
+      item(route("wheelbot.html", "wheelbot-en.html"), copy.wheelbot, copy.wheelbotDetail, pageIs("wheelbot.html", "wheelbot-en.html"))
+    ].join("");
+    const platformLinks = [
+      item(route("models.html", "models-en.html"), copy.models, copy.modelsDetail, pageIs("models.html", "models-en.html")),
+      item(route("agents-skills.html", "agents-skills-en.html"), copy.agents, copy.agentsDetail, pageIs("agents-skills.html", "agents-skills-en.html")),
+      item(route("missions.html", "missions-en.html"), copy.missions, copy.missionsDetail, pageIs("missions.html", "missions-en.html")),
+      item(route("continuity.html", "continuity-en.html"), copy.continuity, copy.continuityDetail, pageIs("continuity.html", "continuity-en.html")),
+      item(route("connectors.html", "connectors-en.html"), copy.connectors, copy.connectorsDetail, pageIs("connectors.html", "connectors-en.html")),
+      item(route("design.html", "design-en.html"), copy.design, copy.designDetail, pageIs("design.html", "design-en.html"))
+    ];
+    const trustLinks = [
+      item(route("governance.html", "governance-en.html"), copy.governance, copy.governanceDetail, pageIs("governance.html", "governance-en.html")),
+      item(route("safety.html", "safety-en.html"), copy.safety, copy.safetyDetail, pageIs("safety.html", "safety-en.html")),
+      item(route("evidence.html", "evidence-en.html"), copy.evidence, copy.evidenceDetail, pageIs("evidence.html", "evidence-en.html")),
+      item(route("architecture.html", "architecture-en.html"), copy.architecture, copy.architectureDetail, pageIs("architecture.html", "architecture-en.html"))
+    ];
+    const resourceLinks = [
+      item(route("download.html", "download-en.html"), copy.download, copy.downloadDetail, pageIs("download.html", "download-en.html")),
+      item(route("ecosystem.html", "ecosystem-en.html"), copy.ecosystem, copy.ecosystemDetail, pageIs("ecosystem.html", "ecosystem-en.html")),
+      item("https://github.com/yanacuti1121/Yana-AI/releases", copy.releases, copy.releasesDetail),
+      item("https://github.com/yanacuti1121/Yana-AI/blob/main/ROADMAP.md", copy.roadmap, copy.roadmapDetail),
+      item("https://github.com/yanacuti1121/Yana-AI/blob/main/SECURITY.md", copy.security, copy.securityDetail),
+      item("https://github.com/yanacuti1121/Yana-AI", copy.source, copy.sourceDetail)
+    ];
+    const brand = document.body.classList.contains("home-page")
+      ? `<a class="brand home-brand" href="${route("index.html", "en.html")}" aria-label="Yana ${copy.home}"><span class="home-brand-mark" aria-hidden="true">Y</span><span>Yana</span></a>`
+      : `<a class="brand" href="${route("index.html", "en.html")}" aria-label="Yana ${copy.home}"><img src="yana-logo.png" alt=""><span>Yana</span></a>`;
+
+    nav.classList.add("global-nav");
+    nav.setAttribute("aria-label", isVietnamese ? "Điều hướng chính" : "Primary navigation");
+    nav.innerHTML = `${brand}<button class="menu-button" type="button" aria-label="${copy.open}" aria-expanded="false">☰</button><div class="nav-links global-nav-links"><a class="global-home-link${pageIs("index.html", "en.html") ? " is-current" : ""}" href="${route("index.html", "en.html")}"${pageIs("index.html", "en.html") ? " aria-current=\"page\"" : ""}>${copy.home}</a>${group(copy.products, "products", copy.productsEyebrow, copy.productsTitle, [productLinks, item(route("download.html", "download-en.html"), copy.download, copy.downloadDetail), item(route("ecosystem.html", "ecosystem-en.html"), copy.ecosystem, copy.ecosystemDetail)])}${group(copy.platform, "platform", copy.platformEyebrow, copy.platformTitle, [platformLinks.slice(0, 3).join(""), platformLinks.slice(3).join("")])}${group(copy.trust, "trust", copy.trustEyebrow, copy.trustTitle, [trustLinks.slice(0, 2).join(""), trustLinks.slice(2).join("")])}${group(copy.resources, "resources", copy.resourcesEyebrow, copy.resourcesTitle, [resourceLinks.slice(0, 2).join(""), resourceLinks.slice(2, 4).join(""), resourceLinks.slice(4).join("")])}<a class="global-language-link" href="${languagePair[page] || route("en.html", "index.html")}" lang="${isVietnamese ? "en" : "vi"}">${copy.language}</a></div><div class="nav-actions"><a class="nav-cta" href="${route("download.html", "download-en.html")}">${copy.cta}<span aria-hidden="true">↗</span></a></div>`;
+
+    const menuButton = nav.querySelector(".menu-button");
+    const links = nav.querySelector(".nav-links");
+    const groups = [...nav.querySelectorAll(".global-nav-group")];
+    const closeGroups = (except) => groups.forEach((group) => {
+      if (group !== except) group.removeAttribute("open");
+    });
+    const closeAll = () => {
+      closeGroups();
+      links.classList.remove("open");
+      menuButton.setAttribute("aria-expanded", "false");
+    };
+
+    menuButton.addEventListener("click", () => {
+      const isOpen = links.classList.toggle("open");
+      menuButton.setAttribute("aria-expanded", String(isOpen));
+      menuButton.setAttribute("aria-label", isOpen ? copy.close : copy.open);
+    });
+    groups.forEach((group) => {
+      group.addEventListener("toggle", () => {
+        if (group.open) closeGroups(group);
+      });
+      if (window.matchMedia("(hover: hover)").matches) {
+        let closeTimer;
+        group.addEventListener("pointerenter", () => {
+          window.clearTimeout(closeTimer);
+          closeGroups(group);
+          group.open = true;
+        });
+        group.addEventListener("pointerleave", () => {
+          closeTimer = window.setTimeout(() => group.removeAttribute("open"), 120);
+        });
+      }
+    });
+    document.addEventListener("pointerdown", (event) => {
+      if (!nav.contains(event.target)) closeAll();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeAll();
+        menuButton.focus();
+      }
+    });
+  }
+
+  sharedNavigation();
+
+  if (window.PAGE_I18N) {
+    document.querySelectorAll(".lang-btn").forEach((button) => button.addEventListener("click", () => setLang(button.dataset.lang)));
+  }
   const documentLanguage = document.documentElement.lang.slice(0, 2);
   const preferred = window.PAGE_I18N
     ? (localStorage.getItem("yana-ecosystem-lang") || ({ vi: "vi", ko: "ko", zh: "zh" }[navigator.language.slice(0, 2)] || "en"))

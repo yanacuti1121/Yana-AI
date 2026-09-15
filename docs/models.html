@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Models & Providers — provider-neutral theo thiết kế</title>
-  <meta name="description" content="7 provider thật, local và cloud. Chọn provider, Yana tự dùng model mặc định của provider đó.">
+  <meta name="description" content="19 provider trong catalog runtime hiện tại, gồm dịch vụ local và cloud. Chọn provider, Yana tự dùng model mặc định của provider đó.">
   <link rel="icon" href="yana-logo.png"><link rel="stylesheet" href="assets/ecosystem-pages.css">
 </head>
 <body>
 <nav class="site-nav"><a class="brand" href="index.html"><img src="yana-logo.png" alt="Yana"><span>Yana</span></a><button class="menu-button" aria-label="Mở menu" aria-expanded="false">☰</button><div class="nav-links"><a href="index.html">Tổng quan</a><a href="ecosystem.html">Hệ sinh thái</a><a href="models.html" aria-current="page">Models</a><a href="runtime.html">Runtime</a><a href="governance.html">Governance</a><a href="en.html">EN</a></div><div class="nav-actions"><a class="nav-cta" href="download.html">Dùng Yana</a></div></nav>
 <main>
   <section class="hero"><div class="hero-inner"><p class="eyebrow">MODELS & PROVIDERS</p><h1>Đổi model.<br>Không đổi hệ thống.</h1><p class="hero-copy">Yana không khoá vào một model. Provider là một lớp trừu tượng có thể thay — authority, context và evidence sống ngoài model, không phụ thuộc model nào đang chạy.</p><div class="hero-actions"><a class="button" href="download.html">Cài Yana</a><a class="button light" href="runtime.html">Xem Runtime</a></div></div></section>
-  <section class="section" id="providers"><div class="section-head"><p class="eyebrow">7 PROVIDER THẬT</p><h2>Local và cloud, cùng một hợp đồng.</h2><p>Mỗi provider implement cùng một interface (<code>ChatProvider</code>) — model đổi, cách Yana nói chuyện với nó không đổi.</p></div><div class="control-grid" style="grid-template-columns:repeat(4,1fr);width:100%;max-width:none;margin:0">
+  <section class="section" id="providers"><div class="section-head"><p class="eyebrow">19 PROVIDER TRONG CATALOG</p><h2>Local và cloud, cùng một hợp đồng.</h2><p>Catalog runtime hiện đăng ký 19 provider. Mỗi provider implement cùng một interface (<code>ChatProvider</code>) — model đổi, cách Yana nói chuyện với nó không đổi. Khả dụng thực tế còn phụ thuộc credential hoặc dịch vụ anh cấu hình.</p></div><div class="control-grid" style="grid-template-columns:repeat(4,1fr);width:100%;max-width:none;margin:0">
     <div class="control-col"><h3>Anthropic</h3><div class="control-tags"><span>cloud</span></div></div>
     <div class="control-col"><h3>OpenAI</h3><div class="control-tags"><span>cloud</span></div></div>
     <div class="control-col"><h3>Gemini</h3><div class="control-tags"><span>cloud</span></div></div>
@@ -18,7 +18,18 @@
     <div class="control-col"><h3>DeepSeek</h3><div class="control-tags"><span>cloud</span></div></div>
     <div class="control-col"><h3>OpenRouter</h3><div class="control-tags"><span>cloud · gateway</span></div></div>
     <div class="control-col"><h3>Ollama</h3><div class="control-tags"><span>local</span></div></div>
-    <div class="control-col"><h3>+ tự thêm</h3><div class="control-tags"><span>local model tuỳ chỉnh</span></div></div>
+    <div class="control-col"><h3>xAI</h3><div class="control-tags"><span>cloud</span></div></div>
+    <div class="control-col"><h3>Novita</h3><div class="control-tags"><span>cloud</span></div></div>
+    <div class="control-col"><h3>NVIDIA</h3><div class="control-tags"><span>cloud</span></div></div>
+    <div class="control-col"><h3>MiniMax</h3><div class="control-tags"><span>cloud</span></div></div>
+    <div class="control-col"><h3>GLM</h3><div class="control-tags"><span>cloud</span></div></div>
+    <div class="control-col"><h3>Hugging Face</h3><div class="control-tags"><span>cloud</span></div></div>
+    <div class="control-col"><h3>9Router</h3><div class="control-tags"><span>gateway cục bộ</span></div></div>
+    <div class="control-col"><h3>Kimi</h3><div class="control-tags"><span>cloud</span></div></div>
+    <div class="control-col"><h3>LM Studio</h3><div class="control-tags"><span>local</span></div></div>
+    <div class="control-col"><h3>llama.cpp</h3><div class="control-tags"><span>local</span></div></div>
+    <div class="control-col"><h3>TurboFieldfare</h3><div class="control-tags"><span>endpoint cấu hình</span></div></div>
+    <div class="control-col"><h3>AirLLM</h3><div class="control-tags"><span>endpoint cấu hình</span></div></div>
   </div></section>
   <section class="section feature" id="default-model"><div class="feature-copy"><p class="eyebrow">TỰ CHỌN MODEL THEO PROVIDER</p><h2>Chọn provider —<br>Yana tự biết dùng model nào.</h2><p>Mỗi provider tự khai báo model mặc định của mình. Chọn "Anthropic", Yana tự dùng model Anthropic phù hợp nhất — không cần tự tra catalog, không cần nhớ tên model chính xác.</p></div><div class="feature-visual"><div class="visual-window"><div class="visual-row"><strong>Chọn provider</strong><span>ví dụ: Anthropic</span></div><div class="visual-row"><strong>Yana tự chọn</strong><span>model mặc định của provider đó</span></div><div class="visual-row"><strong>Muốn đổi model?</strong><span>Model Manager trong Studio</span></div></div></div></section>
   <section class="section" id="local"><div class="section-head"><p class="eyebrow">LOCAL-FIRST</p><h2>Ollama không phải hạng hai.</h2><p>Provider local đi qua cùng authority model với provider cloud — không có đường tắt riêng cho local, không có luật riêng cho cloud.</p></div></section>

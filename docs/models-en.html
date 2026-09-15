@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Models & Providers — provider-neutral by design</title>
-  <meta name="description" content="7 real providers, local and cloud. Pick a provider, Yana automatically uses that provider's default model.">
+  <meta name="description" content="19 providers in the current runtime catalog, spanning local and cloud services. Pick a provider and Yana automatically uses that provider's default model.">
   <link rel="icon" href="yana-logo.png"><link rel="stylesheet" href="assets/ecosystem-pages.css">
 </head>
 <body>
 <nav class="site-nav"><a class="brand" href="en.html"><img src="yana-logo.png" alt="Yana"><span>Yana</span></a><button class="menu-button" aria-label="Open menu" aria-expanded="false">☰</button><div class="nav-links"><a href="en.html">Overview</a><a href="ecosystem-en.html">Ecosystem</a><a href="models-en.html" aria-current="page">Models</a><a href="runtime-en.html">Runtime</a><a href="governance-en.html">Governance</a><a href="index.html">VI</a></div><div class="nav-actions"><a class="nav-cta" href="download-en.html">Get Yana</a></div></nav>
 <main>
   <section class="hero"><div class="hero-inner"><p class="eyebrow">MODELS & PROVIDERS</p><h1>Change the model.<br>Not the system.</h1><p class="hero-copy">Yana doesn't lock into one model. The provider is a replaceable abstraction — authority, context and evidence live outside the model, independent of whichever one is running.</p><div class="hero-actions"><a class="button" href="download-en.html">Install Yana</a><a class="button light" href="runtime-en.html">See Runtime</a></div></div></section>
-  <section class="section" id="providers"><div class="section-head"><p class="eyebrow">7 REAL PROVIDERS</p><h2>Local and cloud, one shared contract.</h2><p>Every provider implements the same interface (<code>ChatProvider</code>) — the model changes, how Yana talks to it doesn't.</p></div><div class="control-grid" style="grid-template-columns:repeat(4,1fr);width:100%;max-width:none;margin:0">
+  <section class="section" id="providers"><div class="section-head"><p class="eyebrow">19 CATALOGUED PROVIDERS</p><h2>Local and cloud, one shared contract.</h2><p>The runtime catalog currently registers 19 providers. Every provider implements the same interface (<code>ChatProvider</code>) — the model changes, how Yana talks to it doesn't. Availability still depends on the credential or service you configure.</p></div><div class="control-grid" style="grid-template-columns:repeat(4,1fr);width:100%;max-width:none;margin:0">
     <div class="control-col"><h3>Anthropic</h3><div class="control-tags"><span>cloud</span></div></div>
     <div class="control-col"><h3>OpenAI</h3><div class="control-tags"><span>cloud</span></div></div>
     <div class="control-col"><h3>Gemini</h3><div class="control-tags"><span>cloud</span></div></div>
@@ -18,7 +18,18 @@
     <div class="control-col"><h3>DeepSeek</h3><div class="control-tags"><span>cloud</span></div></div>
     <div class="control-col"><h3>OpenRouter</h3><div class="control-tags"><span>cloud · gateway</span></div></div>
     <div class="control-col"><h3>Ollama</h3><div class="control-tags"><span>local</span></div></div>
-    <div class="control-col"><h3>+ bring your own</h3><div class="control-tags"><span>custom local model</span></div></div>
+    <div class="control-col"><h3>xAI</h3><div class="control-tags"><span>cloud</span></div></div>
+    <div class="control-col"><h3>Novita</h3><div class="control-tags"><span>cloud</span></div></div>
+    <div class="control-col"><h3>NVIDIA</h3><div class="control-tags"><span>cloud</span></div></div>
+    <div class="control-col"><h3>MiniMax</h3><div class="control-tags"><span>cloud</span></div></div>
+    <div class="control-col"><h3>GLM</h3><div class="control-tags"><span>cloud</span></div></div>
+    <div class="control-col"><h3>Hugging Face</h3><div class="control-tags"><span>cloud</span></div></div>
+    <div class="control-col"><h3>9Router</h3><div class="control-tags"><span>local gateway</span></div></div>
+    <div class="control-col"><h3>Kimi</h3><div class="control-tags"><span>cloud</span></div></div>
+    <div class="control-col"><h3>LM Studio</h3><div class="control-tags"><span>local</span></div></div>
+    <div class="control-col"><h3>llama.cpp</h3><div class="control-tags"><span>local</span></div></div>
+    <div class="control-col"><h3>TurboFieldfare</h3><div class="control-tags"><span>configured endpoint</span></div></div>
+    <div class="control-col"><h3>AirLLM</h3><div class="control-tags"><span>configured endpoint</span></div></div>
   </div></section>
   <section class="section feature" id="default-model"><div class="feature-copy"><p class="eyebrow">PER-PROVIDER DEFAULT MODEL</p><h2>Pick a provider —<br>Yana already knows which model to use.</h2><p>Every provider declares its own default model. Pick "Anthropic" and Yana automatically uses the right Anthropic model — no catalog lookup, no need to remember an exact model name.</p></div><div class="feature-visual"><div class="visual-window"><div class="visual-row"><strong>Pick a provider</strong><span>e.g. Anthropic</span></div><div class="visual-row"><strong>Yana auto-picks</strong><span>that provider's default model</span></div><div class="visual-row"><strong>Want a different model?</strong><span>Model Manager, inside Studio</span></div></div></div></section>
   <section class="section" id="local"><div class="section-head"><p class="eyebrow">LOCAL-FIRST</p><h2>Ollama isn't a second-class citizen.</h2><p>Local providers go through the same authority model as cloud providers — no separate shortcut for local, no separate rules for cloud.</p></div></section>
