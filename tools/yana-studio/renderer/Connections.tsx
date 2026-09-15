@@ -40,7 +40,7 @@ export function Connections({ locale }: { locale: Locale }) {
           </p>
           {item.display_name && <p>{item.display_name}</p>}
           {item.setup && <p className="muted">{item.setup}</p>}
-          {item.provider === "github" && (
+          {item.key === "github:account" && (
             <details>
               <summary>{t("githubOauthConfigSummary")}</summary>
               <label>
@@ -56,7 +56,11 @@ export function Connections({ locale }: { locale: Locale }) {
                 disabled={
                   !githubClientId.trim() ||
                   item.status === "connecting" ||
-                  Boolean(item.account_id)
+                  items.some(
+                    (connection) =>
+                      connection.provider === "github" &&
+                      Boolean(connection.account_id),
+                  )
                 }
                 onClick={async () => {
                   try {
@@ -75,6 +79,9 @@ export function Connections({ locale }: { locale: Locale }) {
               </button>
               {item.account_id && <p>{t("disconnectBeforeChangeClientId")}</p>}
             </details>
+          )}
+          {item.key === "github:repositories" && (
+            <p className="muted">{t("githubRepositoryScopeNote")}</p>
           )}
           {item.user_code && (
             <p role="status">

@@ -52,7 +52,79 @@ export type DiffComment = {
 };
 export type Profile = { provider: string; model: string; baseUrl: string };
 export type Layout = { sidebar: number; inspector: number; dock: number };
-export type Preferences = { locale: "vi" | "ko" | "en" };
+export type AuxiliaryFlowId =
+  | "imageAnalysis"
+  | "contextCompression"
+  | "skillSearch"
+  | "smartApproval"
+  | "mcpRouting"
+  | "codeReview"
+  | "triageSpec"
+  | "kanbanSplit"
+  | "profileDescription"
+  | "curator";
+export type MoAModelRef = { provider: string; model: string };
+export type MoAReferenceModel = MoAModelRef & { id: string; enabled: boolean };
+export type MoAPreset = {
+  id: string;
+  name: string;
+  enabled: boolean;
+  referenceModels: MoAReferenceModel[];
+  aggregator: MoAModelRef;
+  contextWindow: "auto";
+  fallbackModels: MoAModelRef[];
+};
+export type MixtureOfAgentsConfig = {
+  presets: MoAPreset[];
+  defaultPresetId: string;
+};
+export type TitleModelConfig = {
+  enabled: boolean;
+  useMainModel: boolean;
+  provider: string;
+  model: string;
+};
+export type MoAStep = {
+  kind: "reference" | "aggregator" | "fallback";
+  provider: string;
+  model: string;
+  ok: boolean;
+  message: string;
+  reason?: string;
+};
+export type MoARunResult = {
+  ok: boolean;
+  steps: MoAStep[];
+  finalOutput: string | null;
+};
+export type LiquidGlassConfig = {
+  transparency: number;
+  frost: number;
+  tintHue: number;
+  tintSaturation: number;
+  tintBrightness: number;
+  tintStrength: number;
+  highlight: number;
+  edgeOpacity: number;
+  shadowOpacity: number;
+  shadowRadius: number;
+  glowStrength: number;
+  rippleOpacity: number;
+  rippleAmplitude: number;
+  rippleSpeed: number;
+  parallaxDepth: number;
+  animatedRipples: boolean;
+  pointerParallax: boolean;
+  ambientGlow: boolean;
+  respectAccessibility: boolean;
+};
+export type Preferences = {
+  locale: "vi" | "ko" | "en";
+  theme: "light" | "dark";
+  glassOpacity: number;
+  glassBlur: number;
+  liquidGlass: LiquidGlassConfig;
+};
 export type CanvasPartKind =
   | "button"
   | "text"
@@ -244,6 +316,7 @@ export type Chat = {
   usage?: { input: number; output: number };
   usageHistory?: TokenUsageRecord[];
   continuity?: ContinuityRetrieval;
+  titleGenerated?: boolean;
 };
 // Mirrors src/task.rs's Task + the additive blocked/blocked_by fields
 // cmd_task_list --json emits (Yana Studio architecture audit, Phase 1 —
@@ -364,6 +437,9 @@ export type State = {
   hasKey: boolean;
   configuredProviders: string[];
   providerCatalog: ProviderCatalogEntry[];
+  auxiliaryFlows: AuxiliaryFlowId[];
+  mixtureOfAgents: MixtureOfAgentsConfig;
+  titleModel: TitleModelConfig;
   credentialStorage: string;
   warning: string;
   version: string;
@@ -372,7 +448,7 @@ export type State = {
   account: {
     configured: boolean;
     locked: boolean;
-    mode: "none" | "local" | "google";
+    mode: "none" | "local" | "google" | "github";
     email: string;
     displayName: string;
   };
@@ -452,17 +528,15 @@ declare global {
       exportPortableData(): Promise<string | null>;
       choosePortableData(): Promise<State>;
       importPortableData(file: File): Promise<State>;
-      accountCreateLocal(value: {
-        email: string;
-        displayName: string;
-        password: string;
-      }): Promise<State>;
       accountUseGoogle(): Promise<State>;
+      accountUseGithub(): Promise<State>;
       accountUnlock(password: string): Promise<State>;
       accountLock(): Promise<State>;
       accountLogout(): Promise<State>;
       systemOverview(projectRoot: string): Promise<SystemOverview>;
       integrationList(): Promise<IntegrationConnection[]>;
+      openGithubOAuthHelp(): Promise<void>;
+      openGoogleOAuthHelp(): Promise<void>;
       integrationConfigureGithub(
         clientId: string,
       ): Promise<IntegrationConnection[]>;
@@ -517,10 +591,23 @@ declare global {
       clearProviderKey(provider: string): Promise<State>;
       discoverModels(profile: Profile, key: string): Promise<string[]>;
       inspectLocalModels(): Promise<LocalModelRuntime[]>;
+      previewAutoProfile(): Promise<Profile>;
+      saveMixtureOfAgents(config: MixtureOfAgentsConfig): Promise<State>;
+      runMixtureOfAgentsPreset(
+        presetId: string,
+        promptText: string,
+        projectRoot: string,
+      ): Promise<MoARunResult>;
+      saveTitleModel(config: TitleModelConfig): Promise<State>;
       chooseRuntime(): Promise<string | null>;
       newChat(root: string): Promise<Chat>;
       removeChat(id: string): Promise<boolean>;
-      sendChat(id: string, task: string, userInput?: string): Promise<boolean>;
+      sendChat(
+        id: string,
+        task: string,
+        userInput?: string,
+        profileOverride?: Profile,
+      ): Promise<boolean>;
       stopChat(id: string): Promise<boolean>;
       decideApproval(id: string, decision: boolean): Promise<boolean>;
       taskList(root: string): Promise<Task[]>;

@@ -3,6 +3,90 @@ const path = require("node:path");
 const crypto = require("node:crypto");
 const { profileInput } = require("./runtime.cjs");
 const { CANVAS_PART_KINDS } = require("./canvas-ai.cjs");
+const {
+  defaultMixtureOfAgents,
+  defaultTitleModel,
+  isValidMoAConfig,
+  isValidTitleModelConfig,
+} = require("./model-orchestration.cjs");
+
+const DEFAULT_LIQUID_GLASS = {
+  transparency: 0.9,
+  frost: 0.18,
+  tintHue: 0.63,
+  tintSaturation: 0.52,
+  tintBrightness: 0.92,
+  tintStrength: 0.16,
+  highlight: 0.74,
+  edgeOpacity: 0.52,
+  shadowOpacity: 0.34,
+  shadowRadius: 28,
+  glowStrength: 0.24,
+  rippleOpacity: 0.22,
+  rippleAmplitude: 4,
+  rippleSpeed: 0.58,
+  parallaxDepth: 11,
+  animatedRipples: true,
+  pointerParallax: true,
+  ambientGlow: true,
+  respectAccessibility: true,
+};
+
+const DEFAULT_PREFERENCES = {
+  locale: "vi",
+  theme: "light",
+  glassOpacity: 0,
+  glassBlur: 18,
+  liquidGlass: DEFAULT_LIQUID_GLASS,
+};
+
+function preferencesWithDefaults(preferences) {
+  if (preferences === undefined) return { ...DEFAULT_PREFERENCES };
+  if (
+    !preferences ||
+    typeof preferences !== "object" ||
+    Array.isArray(preferences)
+  )
+    return preferences;
+  return { ...DEFAULT_PREFERENCES, ...preferences };
+}
+
+// Liquid Glass -- a separate, richer material system from the
+// glassOpacity/glassBlur "Độ tương phản giao diện" fields above. Bounds
+// mirror renderer/Settings.tsx's slider min/max so a stored value always
+// round-trips through the UI without clamping surprises. rippleSpeed
+// allows 0 (below the 0.1 slider floor) because the "solid, minimal
+// effects" preset stores rippleSpeed: 0 while ripples are disabled --
+// the slider itself is hidden whenever animatedRipples is false, so 0
+// is never reachable through the UI but must still be a legal saved value.
+function isValidLiquidGlass(value) {
+  const num = (input, low, high) =>
+    typeof input === "number" && Number.isFinite(input) && input >= low && input <= high;
+  const bool = (input) => typeof input === "boolean";
+  return (
+    value &&
+    typeof value === "object" &&
+    num(value.transparency, 0, 0.96) &&
+    num(value.frost, 0, 1) &&
+    num(value.tintHue, 0, 1) &&
+    num(value.tintSaturation, 0, 1) &&
+    num(value.tintBrightness, 0, 1) &&
+    num(value.tintStrength, 0, 0.55) &&
+    num(value.highlight, 0, 1) &&
+    num(value.edgeOpacity, 0, 1) &&
+    num(value.shadowOpacity, 0, 0.75) &&
+    num(value.shadowRadius, 0, 54) &&
+    num(value.glowStrength, 0, 0.65) &&
+    num(value.rippleOpacity, 0, 0.55) &&
+    num(value.rippleAmplitude, 0, 14) &&
+    num(value.rippleSpeed, 0, 1.6) &&
+    num(value.parallaxDepth, 0, 24) &&
+    bool(value.animatedRipples) &&
+    bool(value.pointerParallax) &&
+    bool(value.ambientGlow) &&
+    bool(value.respectAccessibility)
+  );
+}
 
 function validateState(value) {
   const text = (input) => typeof input === "string";
@@ -137,6 +221,8 @@ function validateState(value) {
         Array.isArray(chat.events) &&
         chat.events.every((event) => event && text(event.type)) &&
         typeof chat.running === "boolean" &&
+        (chat.titleGenerated === undefined ||
+          typeof chat.titleGenerated === "boolean") &&
         usage(chat.usage) &&
         usageHistory(chat.usageHistory) &&
         continuity(chat.continuity),
@@ -146,7 +232,15 @@ function validateState(value) {
   profileInput(value.profile);
   if (
     !value.preferences ||
-    !["vi", "ko", "en"].includes(value.preferences.locale)
+    !["vi", "ko", "en"].includes(value.preferences.locale) ||
+    !["light", "dark"].includes(value.preferences.theme) ||
+    !Number.isSafeInteger(value.preferences.glassOpacity) ||
+    value.preferences.glassOpacity < 0 ||
+    value.preferences.glassOpacity > 100 ||
+    !Number.isSafeInteger(value.preferences.glassBlur) ||
+    value.preferences.glassBlur < 0 ||
+    value.preferences.glassBlur > 32 ||
+    !isValidLiquidGlass(value.preferences.liquidGlass)
   )
     throw new Error("Invalid interface preferences");
   if (typeof value.onboardingCompleted !== "boolean")
@@ -166,6 +260,10 @@ function validateState(value) {
     (value.runtime && !path.isAbsolute(value.runtime))
   )
     throw new Error("Invalid runtime path");
+  if (!isValidMoAConfig(value.mixtureOfAgents))
+    throw new Error("Invalid Mixture of Agents configuration");
+  if (!isValidTitleModelConfig(value.titleModel))
+    throw new Error("Invalid title model configuration");
   if (value.encryptedKey !== undefined && !text(value.encryptedKey))
     throw new Error("Invalid encrypted credential");
 }
@@ -179,11 +277,13 @@ class Store {
       projects: [],
       chats: [],
       profile: { provider: "ollama", model: "", baseUrl: "" },
-      preferences: { locale: "vi" },
+      preferences: { ...DEFAULT_PREFERENCES },
       onboardingCompleted: false,
       layout: { sidebar: 250, inspector: 330, dock: 280 },
       designs: {},
       runtime: "",
+      mixtureOfAgents: defaultMixtureOfAgents(),
+      titleModel: defaultTitleModel(),
     };
     this.warning = "";
     if (fs.existsSync(this.file)) {
@@ -191,7 +291,11 @@ class Store {
         if (fs.statSync(this.file).size > 12 * 1024 * 1024)
           throw new Error("state is too large");
         const parsed = JSON.parse(fs.readFileSync(this.file, "utf8"));
-        const next = { ...this.value, ...parsed };
+        const next = {
+          ...this.value,
+          ...parsed,
+          preferences: preferencesWithDefaults(parsed.preferences),
+        };
         validateState(next);
         this.value = next;
       } catch (error) {
@@ -202,7 +306,15 @@ class Store {
     }
   }
   save(patch) {
-    const next = { ...this.value, ...patch, schema: 1 };
+    const next = {
+      ...this.value,
+      ...patch,
+      preferences:
+        patch.preferences === undefined
+          ? this.value.preferences
+          : preferencesWithDefaults(patch.preferences),
+      schema: 1,
+    };
     validateState(next);
     const payload = JSON.stringify(next);
     if (Buffer.byteLength(payload) > 10 * 1024 * 1024)
@@ -224,4 +336,4 @@ class Store {
     return this.value;
   }
 }
-module.exports = { Store };
+module.exports = { Store, DEFAULT_LIQUID_GLASS, isValidLiquidGlass };

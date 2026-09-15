@@ -111,6 +111,19 @@ fs.writeFileSync(
     },
     layout: { sidebar: 250, inspector: 330, dock: 280 },
     runtime,
+    onboardingCompleted: true,
+  }),
+);
+fs.mkdirSync(path.join(data, "account-v1"));
+fs.writeFileSync(
+  path.join(data, "account-v1", "account-v1.json"),
+  JSON.stringify({
+    schema: 1,
+    mode: "google",
+    accountId: "ui-test-google-user",
+    email: "studio-test@example.test",
+    displayName: "Studio Test User",
+    createdAt: Date.now(),
   }),
 );
 let application;
@@ -146,6 +159,11 @@ try {
   });
   page.on("pageerror", (error) => failures.push(error.message));
   await expect(page.locator(".title-brand")).toContainText("Yana Studio");
+  await expect(page.getByTestId("studio-home")).toBeVisible();
+  await page
+    .locator(".sidebar nav")
+    .getByRole("button", { name: "Terminal", exact: true })
+    .click();
   const showTerminal = page.getByRole("button", { name: "Hiện terminal" });
   if (await showTerminal.isVisible()) await showTerminal.click();
   await page.getByRole("button", { name: "New terminal", exact: true }).click();
@@ -247,10 +265,10 @@ try {
     .click();
   await expect(page.locator(".terminal-pane:visible")).toHaveCount(0);
   await expect(
-    page.getByRole("heading", { name: "Tài khoản local-first" }),
+    page.getByRole("heading", { name: "Studio Test User" }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Model & Runtime", exact: true })
+    .getByRole("button", { name: "Mô hình & Điều phối", exact: true })
     .click();
   await expect(page.getByText(/19 provider chính thức/)).toBeVisible();
   await expect(
@@ -290,7 +308,10 @@ try {
     page.getByRole("heading", { name: /Google Account/ }),
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: /Gmail/ })).toBeVisible();
-  await page.getByRole("button", { name: "Quyền hạn", exact: true }).click();
+  await page
+    .locator(".settings-page")
+    .getByRole("button", { name: "Quyền hạn", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", { name: "Capability registry" }),
   ).toBeVisible();
@@ -319,7 +340,7 @@ try {
     page.getByText("yana-ai doctor --fix", { exact: true }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Giao diện & Ngôn ngữ", exact: true })
+    .getByRole("button", { name: "Giao diện", exact: true })
     .click();
   await page.getByLabel("Ngôn ngữ hiển thị").selectOption("ko");
   await expect(
@@ -560,48 +581,15 @@ try {
     .locator(".sidebar-bottom")
     .getByRole("button", { name: "Cài đặt", exact: true })
     .click();
-  await page.getByLabel("Tên hiển thị").fill("Local User");
-  await page.getByLabel("Email").fill("local-user@example.test");
-  await page.getByLabel("Mật khẩu").fill("studio-password-2026");
-  await page.getByRole("button", { name: "Tạo hồ sơ local" }).click();
-  await expect(
-    page.getByRole("heading", { name: /quyền quyết định vẫn thuộc về anh/ }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Tiếp tục" }).click();
-  await expect(page.getByText("Design Canvas", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Tiếp tục" }).click();
-  await expect(
-    page.getByText("AI đề xuất. Yana kiểm tra. Anh phê duyệt."),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Tiếp tục" }).click();
-  await page.getByRole("button", { name: "Vào Workspace" }).click();
-  await expect(page.locator(".app")).toBeVisible();
-  await page
-    .locator(".sidebar-bottom")
-    .getByRole("button", { name: "Cài đặt", exact: true })
-    .click();
   await expect(
     page.getByRole("button", { name: "Xem lại giới thiệu Studio" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Khóa Studio" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Yana Studio đã khóa" }),
-  ).toBeVisible();
-  await page.getByLabel("Mật khẩu").fill("studio-password-2026");
-  await page.getByRole("button", { name: "Mở khóa" }).click();
-  await expect(page.locator(".app")).toBeVisible();
   await closeApplication();
   application = null;
-  page = await launch(".account-lock");
-  await expect(
-    page.getByRole("heading", { name: "Yana Studio đã khóa" }),
-  ).toBeVisible();
-  await page.getByLabel("Mật khẩu").fill("studio-password-2026");
-  await page.getByRole("button", { name: "Mở khóa" }).click();
-  await expect(page.locator(".app")).toBeVisible();
+  page = await launch();
   await expect(page.locator(".recent")).toContainText("Workspace");
   console.log(
-    "PASS Electron UI + actual Rust runtime: tab identity, Settings survival, split, resize persistence, Design Canvas persistence and chat prompt bridge, file edit/save, streaming, message reuse, history, stop, reopen, local account lock and unlock. Provider is an explicit local test stub, not a real model.",
+    "PASS Electron UI + actual Rust runtime: tab identity, Settings survival, split, resize persistence, Design Canvas persistence and chat prompt bridge, file edit/save, streaming, message reuse, history, stop, and reopen. Provider is an explicit local test stub, not a real model.",
   );
 } catch (error) {
   if (application) {

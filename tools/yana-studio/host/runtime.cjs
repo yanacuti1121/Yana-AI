@@ -6,6 +6,26 @@ const { providerById } = require("./model-catalog.cjs");
 function profileInput(input) {
   if (!input || typeof input.provider !== "string")
     throw new Error("Unsupported provider");
+  // "auto" is a Studio-only sentinel, not a real catalog provider -- it is
+  // resolved to a concrete provider/model right before a turn is sent (see
+  // main.cjs's launchTurn), not here. Accept it as-is so it round-trips
+  // through save/validate like any other profile.
+  if (input.provider === "auto") return { provider: "auto", model: "", baseUrl: "" };
+  // "mixture-of-agents" is another Studio-only sentinel: `model` holds a
+  // MoA preset id, not a catalog model id. Shape-only check here (non-empty
+  // string) -- whether that id actually names an existing, enabled preset
+  // is a deeper check only main.cjs can make (it has store access), same
+  // division of labor as the "auto" sentinel above.
+  if (input.provider === "mixture-of-agents") {
+    if (
+      typeof input.model !== "string" ||
+      !input.model ||
+      input.model.length > 200 ||
+      /[\r\n\0]/.test(input.model)
+    )
+      throw new Error("Invalid Mixture of Agents preset id");
+    return { provider: "mixture-of-agents", model: input.model, baseUrl: "" };
+  }
   const provider = providerById(input.provider);
   if (
     typeof input.model !== "string" ||
