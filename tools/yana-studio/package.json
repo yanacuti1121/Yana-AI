@@ -2,6 +2,12 @@
   "name": "yana-studio",
   "productName": "Yana Studio",
   "version": "1.5.3",
+  "description": "Yana Studio — AI-native code editor",
+  "homepage": "https://yana.vutam.link",
+  "author": {
+    "name": "Vũ Văn Tâm",
+    "email": "phamlongh230@gmail.com"
+  },
   "private": true,
   "type": "module",
   "main": "host/main.cjs",
