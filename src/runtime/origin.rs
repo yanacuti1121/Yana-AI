@@ -14,6 +14,12 @@ pub(crate) enum TurnOrigin {
     Governor,
     Subagent,
     Api,
+    /// A call arriving through `yana-rt mcp` (Program J's own MCP stdio
+    /// server, `src/mcp.rs`) rather than through Yana's own chat/TUI —
+    /// the connected client is whatever generic MCP client invoked it
+    /// (Claude Code, or any other), not one of the named IDE integrations
+    /// above.
+    Mcp,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
