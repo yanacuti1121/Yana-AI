@@ -448,7 +448,16 @@ impl ChatProvider for OpenAiCompatProvider {
             );
         }
 
-        let agent = super::provider::build_agent();
+        // Local providers get no receive-side deadline (see
+        // `build_local_agent`'s doc comment) — a local model can
+        // legitimately take minutes to produce output, and there's no
+        // "dead endpoint" case here that `timeout_connect` doesn't already
+        // catch. Cloud providers keep the fast-fail 90s/300s deadlines.
+        let agent = if matches!(self.runtime_kind(), RuntimeKind::Local) {
+            super::provider::build_local_agent()
+        } else {
+            super::provider::build_agent()
+        };
         let mut req = agent
             .post(self.url.as_str())
             .header("content-type", "application/json");

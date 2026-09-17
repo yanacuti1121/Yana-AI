@@ -312,6 +312,33 @@ pub fn build_agent() -> ureq::Agent {
     ureq::Agent::new_with_config(config)
 }
 
+/// Same fast-fail connect behavior as `build_agent()`, but with no deadline
+/// on receiving the response or its body — for a local/loopback provider
+/// (`ChatProvider::runtime_kind() == RuntimeKind::Local`) only.
+///
+/// `build_agent()`'s 90s `timeout_recv_response` was already raised once
+/// (from 30s) for exactly this failure mode on a local model — see that
+/// function's doc comment — and even 90s still wasn't enough for a real,
+/// repeated report of local chat getting cut off mid-turn (large local
+/// model, slow hardware, or a long context window pushing time-to-first-
+/// token past the deadline). A local daemon is fundamentally a different
+/// trust/speed tier than a cloud API: it can legitimately take minutes to
+/// produce a first token or finish a long generation on CPU, and there is
+/// no "genuinely dead endpoint" case a receive-side deadline needs to catch
+/// here that `timeout_connect` doesn't already catch (the daemon not
+/// listening at all, e.g. Ollama not running) — a local process that
+/// accepted the connection and is still computing is not a hang to fail
+/// out of, unlike an unresponsive remote host.
+pub fn build_local_agent() -> ureq::Agent {
+    let config = ureq::Agent::config_builder()
+        .timeout_connect(Some(Duration::from_secs(10)))
+        .timeout_recv_response(None)
+        .timeout_recv_body(None)
+        .http_status_as_error(false)
+        .build();
+    ureq::Agent::new_with_config(config)
+}
+
 /// Read a small, bounded prefix of a non-2xx response body for error
 /// reporting. Bounded so a misbehaving upstream can't make a single failed
 /// request print megabytes of garbage.
