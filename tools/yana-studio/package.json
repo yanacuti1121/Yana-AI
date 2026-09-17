@@ -16,7 +16,9 @@
     "rebuild": "electron-rebuild -f -w node-pty",
     "format": "prettier --write host renderer test scripts *.json *.ts *.html",
     "format:check": "prettier --check host renderer test scripts *.json *.ts *.html",
-    "dist:mac": "npm run write:secrets && npm run build && electron-builder --mac --arm64"
+    "dist:mac": "npm run write:secrets && npm run build && electron-builder --mac --arm64",
+    "dist:win": "npm run write:secrets && npm run build && electron-builder --win --x64",
+    "dist:linux": "npm run write:secrets && npm run build && electron-builder --linux --x64"
   },
   "build": {
     "appId": "com.yana-ai.studio",
@@ -73,6 +75,26 @@
       "gatekeeperAssess": false,
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Development"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false
     },
     "afterSign": "scripts/after-sign-mac.cjs"
   },
