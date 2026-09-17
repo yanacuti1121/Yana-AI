@@ -15,6 +15,32 @@ the same bug class fixed in scripts/yana-rt-wrapper.js on 2026-07-08/09
 mirrors that fix: a hard re-entry guard env var, plus a realpath self-check
 on every candidate (not just the $PATH one) so $YANA_RT_BIN can't re-arm it.
 
+RECURSION GUARD FIX (2026-09-17): the 2026-07-25 guard above shipped with a
+real gap, live-verified on a real machine (hundreds of self-replicating
+`yana-rt --version` processes, system load 490+). Its realpath self-check
+compares the candidate against `Path(__file__).resolve()` — this module's
+OWN file, which lives under .../site-packages/yana_ai/rt.py. But the actual
+`yana-rt` a pip/pipx install puts on $PATH is a DIFFERENT file: setuptools'
+generated console_scripts shim, physically at .../bin/yana-rt (a 3-line
+`#!/bin/sh` + `'''exec' python "$0" "$@"` polyglot launcher that imports
+this module and calls main()). Those two paths are never equal, so
+`real != _SELF_REALPATH` was always True for that shim — the self-check
+silently never fired for the exact case its own docstring describes, and
+`subprocess.run()` re-invoked the shim, which re-imported this module,
+which found the same shim again. The re-entry guard env var (below) does
+stop it one level in — but only once the FIRST unguarded recursive spawn
+already happened, and every following spawn until then re-triggers the
+same lookup, compounding fast under real-world timing.
+The actual invariant we need isn't "is this literally rt.py's own file" —
+it's "is this candidate a compiled binary at all", since only a real
+`yana-rt` binary can ever be correct, and a pip-generated shim (or any
+other script wrongly named `yana-rt`) never is. `_looks_like_native_binary`
+below checks that directly, by magic bytes, which is exactly the property
+`_check_version_compat`'s own error message already documented as the
+real rule ("Do NOT set YANA_RT_BIN to the output of `which yana-rt` — on a
+pip install that path is this wrapper itself, not a compiled binary") but
+that the code never actually enforced.
+
 VERSION COMPATIBILITY CHECK (2026-08-11): this wrapper is a pure passthrough
 — it forwards argv to whichever `yana-rt` binary it resolves and has no
 subcommand/flag-specific logic of its own, so a stale binary doesn't break
@@ -86,9 +112,38 @@ def _platform_bin() -> Path:
     return _PKG_ROOT / "bin" / f"yana-rt-{plat}-{arch}{ext}"
 
 
+_NATIVE_BINARY_MAGIC = (
+    b"\x7fELF",           # Linux ELF
+    b"\xcf\xfa\xed\xfe",  # Mach-O 64-bit
+    b"\xce\xfa\xed\xfe",  # Mach-O 32-bit
+    b"\xca\xfe\xba\xbe",  # Mach-O universal/fat binary
+    b"\xbe\xba\xfe\xca",  # Mach-O universal/fat binary, byte-swapped
+    b"MZ",                # Windows PE (DOS stub header)
+)
+
+
+def _looks_like_native_binary(p: Path) -> bool:
+    """The real yana-rt is always a compiled, platform-native executable.
+    A pip/pipx console_scripts shim is always a text file (a 3-line
+    `#!/bin/sh` + `'''exec' python "$0" "$@"` polyglot launcher) — this
+    catches that shim, and any other script wrongly named `yana-rt`,
+    regardless of its filename or path. See this module's 2026-09-17
+    docstring note for why a realpath-equality check alone missed it."""
+    try:
+        with open(p, "rb") as f:
+            header = f.read(4)
+    except OSError:
+        return False
+    return any(header.startswith(magic) for magic in _NATIVE_BINARY_MAGIC)
+
+
 def _usable(candidate: str | None) -> bool:
-    """A candidate is usable only if it exists, is executable, and its
-    realpath does not resolve back to this wrapper file itself."""
+    """A candidate is usable only if it exists, is executable, its
+    realpath does not resolve back to this wrapper file itself, AND it is
+    an actual compiled binary — not a script. The binary check is the
+    primary guard (see _looks_like_native_binary); the realpath check is
+    kept as cheap defense in depth for the narrower case where something
+    literally re-executes this module file directly."""
     if not candidate:
         return False
     p = Path(candidate)
@@ -100,7 +155,9 @@ def _usable(candidate: str | None) -> bool:
         # RuntimeError: Path.resolve() raises this on an infinite symlink
         # loop. Either way, unresolvable -> fail closed, not open.
         return False
-    return real != _SELF_REALPATH
+    if real == _SELF_REALPATH:
+        return False
+    return _looks_like_native_binary(p)
 
 
 def _find_binary() -> str | None:
