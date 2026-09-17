@@ -195,9 +195,15 @@
     revealTargets.forEach((section) => section.classList.add("reveal"));
     const staggerGrids = document.querySelectorAll("main > section:not(.hero):not(.page-hero) > .product-grid, main > section:not(.hero):not(.page-hero) > .download-panel > [data-release-download] > .download-grid, .home-scenario, .signature-map, .convergence, .gate-path");
     staggerGrids.forEach((grid) => grid.classList.add("reveal-stagger"));
+    // Fire once, never re-hide: toggling opacity back to 0 on every scroll
+    // back out of view made already-read content vanish again on the way
+    // up the page. Reveal is a first-look entrance, not a visibility state.
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
-        entry.target.classList.toggle("visible", entry.isIntersecting);
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          observer.unobserve(entry.target);
+        }
       });
     }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
     revealTargets.forEach((section) => observer.observe(section));
