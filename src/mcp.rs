@@ -3,6 +3,21 @@
 //! Repository and host capabilities remain read-only. Workspace mutations use
 //! the same typed service and governor as the CLI; Critical approval is not
 //! exposed over MCP.
+//!
+//! `browser_fetch` is the one exception to "every tool here is
+//! `ApprovalRequirement::None`": it is registered in the real capability
+//! registry as `HumanApprovalPerCall` (BMAD-YANA-CAPABILITY-MATRIX.md row
+//! for `browser.fetch` — it lets the connected MCP client direct a real
+//! outbound request to a URL of its own choosing). MCP's synchronous stdio
+//! transport has no protocol feature for pausing a call to ask a human, so
+//! this tool does not invent one: it goes through the exact same
+//! `RuntimeAuthority`/`YanaAuthorityChain` decision every other capability
+//! call in this codebase goes through (see `authorize()` below), which
+//! means the ONLY way it ever returns `Allow` for an MCP-originated,
+//! non-human-initiated call is a human having already granted a matching
+//! `capability::lease` from a real terminal (`yana-rt lease grant
+//! --subject <subject> --capability browser.fetch ...`) — never a new,
+//! MCP-specific approval mechanism.
 
 use rmcp::{
     handler::server::{router::tool::ToolRouter, wrapper::Parameters},
@@ -66,6 +81,15 @@ struct WorkspaceInboxParams {
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
 struct WorkspaceOperationParams {
     operation_json: String,
+}
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+struct BrowserFetchParams {
+    url: String,
+    #[serde(default = "markdown_format")]
+    format: String,
+}
+fn markdown_format() -> String {
+    "markdown".into()
 }
 fn dot() -> String {
     ".".into()
@@ -213,6 +237,46 @@ impl YanaRuntime {
                 .and_then(|event| serde_json::to_string(&event).map_err(|error| error.to_string())),
         )
     }
+
+    #[tool(
+        description = "Fetch one web page (HTML or Markdown dump) via an externally-installed Lightpanda headless browser (github.com/lightpanda-io/browser). Requires a human-granted capability lease scoped to 'browser.fetch' for this MCP session's subject — see the error message for the exact 'yana-rt lease grant' command if none exists yet."
+    )]
+    fn browser_fetch(
+        &self,
+        Parameters(p): Parameters<BrowserFetchParams>,
+    ) -> Result<CallToolResult, McpError> {
+        if let Err(reason) = self.authorize("browser_fetch", &p.url) {
+            return Ok(CallToolResult::error(vec![ContentBlock::text(reason)]));
+        }
+        let format = match crate::capability::browser_fetch::DumpFormat::parse(&p.format) {
+            Ok(format) => format,
+            Err(error) => {
+                return Ok(CallToolResult::error(vec![ContentBlock::text(String::from(
+                    error,
+                ))]))
+            }
+        };
+        let options = crate::capability::browser_fetch::FetchOptions {
+            format,
+            ..Default::default()
+        };
+        observe(
+            crate::capability::browser_fetch::fetch_page(&p.url, &options)
+                .map_err(Into::into)
+                .and_then(|outcome| {
+                    serde_json::to_string(&serde_json::json!({
+                        "capability": "browser.fetch",
+                        "data": {
+                            "url": outcome.url,
+                            "format": outcome.format,
+                            "content": outcome.content,
+                        },
+                        "truncated": outcome.truncated,
+                    }))
+                    .map_err(|error| error.to_string())
+                }),
+        )
+    }
 }
 
 impl YanaRuntime {
@@ -222,6 +286,48 @@ impl YanaRuntime {
 
     fn workspace_state(&self) -> Result<crate::workspace::WorkspaceState, String> {
         self.workspace_service().state()
+    }
+
+    /// The one gate every `ApprovalRequirement::HumanApprovalPerCall` tool
+    /// exposed over MCP must call before doing anything real. Builds a
+    /// genuine, non-human-initiated `TurnContext` (an MCP client call is
+    /// exactly that — never fabricated as human-initiated just to make a
+    /// capability easier to call) and runs it through the real,
+    /// unmodified `YanaAuthorityChain`. `tool_name` must match a
+    /// `CapabilityDescriptor::tool_name` in the real registry exactly —
+    /// `authorize_tool` looks capabilities up by that field, not by the
+    /// dotted capability name.
+    fn authorize(&self, tool_name: &str, arguments_repr: &str) -> Result<(), String> {
+        use crate::runtime::{AuthorityDecision, RuntimeAuthority, TurnContext, TurnOrigin, YanaAuthorityChain};
+
+        let subject =
+            std::env::var("YANA_MCP_SUBJECT").unwrap_or_else(|_| "agent:mcp".to_string());
+        let session = crate::session_context::SessionContext::new(
+            "mcp",
+            self.repo_root.clone(),
+            "mcp-client",
+            "n/a",
+            false,
+        );
+        let mut context = TurnContext::new(session, TurnOrigin::Mcp, false);
+        context.agent_id = Some(subject.clone());
+        let call = crate::model::tool::ToolCall {
+            id: uuid::Uuid::new_v4().to_string(),
+            name: tool_name.to_string(),
+            arguments_json: arguments_repr.to_string(),
+        };
+
+        match YanaAuthorityChain.authorize_tool(&context, &call) {
+            AuthorityDecision::Allow { .. } => Ok(()),
+            AuthorityDecision::Deny { reason, .. } | AuthorityDecision::HumanApprovalRequired { reason, .. } => {
+                Err(format!(
+                    "{reason}. This MCP session's subject is '{subject}' (override with \
+                     YANA_MCP_SUBJECT). Grant it access with, for example: \
+                     yana-rt lease grant --subject {subject} --capability browser.fetch \
+                     --expires-in-minutes 60"
+                ))
+            }
+        }
     }
 }
 
@@ -272,5 +378,82 @@ mod tests {
             .unwrap()
             .is_error
             .unwrap_or(false));
+    }
+
+    fn temp_repo(tag: &str) -> PathBuf {
+        let dir = std::env::temp_dir().join(format!("yana-mcp-test-{tag}-{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let marker = dir.join(yana_rt::flock_v1::PROTOCOL_FILE);
+        std::fs::create_dir_all(marker.parent().unwrap()).unwrap();
+        std::fs::write(&marker, yana_rt::flock_v1::PROTOCOL_VERSION).unwrap();
+        dir
+    }
+
+    #[test]
+    fn browser_fetch_is_denied_without_a_matching_lease() {
+        // Real, unmodified YanaAuthorityChain: an MCP call with no lease on
+        // file for its subject must never reach Allow for a
+        // HumanApprovalPerCall capability, no matter what URL it asks for.
+        let root = temp_repo("no-lease");
+        let runtime = YanaRuntime::new(root.clone());
+        let result = runtime.authorize("browser_fetch", "https://example.com");
+        assert!(result.is_err());
+        let message = result.unwrap_err();
+        assert!(
+            message.contains("lease grant"),
+            "denial message should point to the real remedy, got: {message}"
+        );
+        std::fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn browser_fetch_is_allowed_once_a_real_lease_is_granted() {
+        // Grants a real lease through the same LeaseStore the CLI's
+        // `yana-rt lease grant` command uses — not a test-only shortcut —
+        // then confirms authorize() actually consumes it via the real
+        // authority chain, not a mock.
+        let root = temp_repo("with-lease");
+        crate::capability::lease::LeaseStore::for_root(&root)
+            .grant(
+                "agent:mcp".to_string(),
+                "browser.fetch".to_string(),
+                vec![],
+                vec![],
+                "test".to_string(),
+                60,
+                None,
+                None,
+            )
+            .expect("grant should succeed");
+
+        let runtime = YanaRuntime::new(root.clone());
+        let result = runtime.authorize("browser_fetch", "https://example.com");
+        assert!(result.is_ok(), "expected Allow with a matching lease, got: {result:?}");
+        std::fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn browser_fetch_lease_does_not_authorize_a_different_capability() {
+        // A lease scoped to a different capability name must not leak
+        // authority to browser.fetch — proves authorize() really checks
+        // the capability name, not just "some lease exists for this subject".
+        let root = temp_repo("wrong-capability");
+        crate::capability::lease::LeaseStore::for_root(&root)
+            .grant(
+                "agent:mcp".to_string(),
+                "git.status".to_string(),
+                vec![],
+                vec![],
+                "test".to_string(),
+                60,
+                None,
+                None,
+            )
+            .expect("grant should succeed");
+
+        let runtime = YanaRuntime::new(root.clone());
+        let result = runtime.authorize("browser_fetch", "https://example.com");
+        assert!(result.is_err(), "a git.status lease must not authorize browser.fetch");
+        std::fs::remove_dir_all(&root).ok();
     }
 }
