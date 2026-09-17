@@ -23,6 +23,7 @@
 //! "trust the text", not a TPM.
 
 mod crypto;
+pub mod git_measure;
 use clap::Subcommand;
 use crypto::{ct_eq, hmac_sha256, sha256, to_hex};
 use std::process::Command;
