@@ -95,6 +95,15 @@ static RE_INLINE_GIT_CLEAN_FORCE: LazyLock<regex::Regex> = LazyLock::new(|| {
 static RE_INLINE_SQL_DESTRUCTIVE: LazyLock<regex::Regex> = LazyLock::new(|| {
     regex::Regex::new(r"(?i)\b(DROP\s+(TABLE|DATABASE|SCHEMA)|TRUNCATE\s+TABLE)\b").unwrap()
 });
+// SECURITY FIX (2026-09-16, targeted hardening review item 4): `eval "rm -rf
+// ..."` was a documented-but-unclosed gap in the round-2 fix above -- `eval`
+// is a shell builtin, not an interpreter binary, so it never matched
+// RE_INLINE_SCRIPT_INTERPRETER, and it takes no -c/-e/--eval flag at all
+// (its entire argument IS the script). Ported 1:1 alongside
+// core/hooks/guard-destructive.sh's matching fix -- bash and Rust must stay
+// in sync, same as every other check in this file.
+static RE_INLINE_EVAL: LazyLock<regex::Regex> =
+    LazyLock::new(|| regex::Regex::new(r"(?i)\beval\b").unwrap());
 static DESTRUCTIVE_PATTERNS_COMPILED: LazyLock<Vec<(regex::Regex, &'static str)>> =
     LazyLock::new(|| {
         destructive_patterns()
@@ -411,6 +420,22 @@ fn has_inline_script_bypass(command: &str) -> bool {
         || RE_INLINE_GIT_CLEAN_FORCE.is_match(command)
 }
 
+/// True if `command` invokes the `eval` builtin whose raw text contains a
+/// destructive pattern. Same five destructive-pattern regexes as
+/// `has_inline_script_bypass()`, gated on `eval` instead of an interpreter
+/// invocation -- see that function's doc comment and this file's matching
+/// static regex comment for why `eval` needed a separate check.
+fn has_eval_bypass(command: &str) -> bool {
+    if !RE_INLINE_EVAL.is_match(command) {
+        return false;
+    }
+    RE_INLINE_RM_RF.is_match(command)
+        || RE_INLINE_SQL_DESTRUCTIVE.is_match(command)
+        || RE_INLINE_GIT_FORCE_PUSH.is_match(command)
+        || RE_INLINE_GIT_RESET_HARD.is_match(command)
+        || RE_INLINE_GIT_CLEAN_FORCE.is_match(command)
+}
+
 /// `pub`, not the module-private default this function had until Program J's
 /// Phase 9 spike (docs/programs/PROGRAM-J-SKELETON.md) needed to call it from
 /// `src/mcp.rs` without going through `dispatch()`/`cmd_destructive()` (both
@@ -465,6 +490,11 @@ pub fn check_command(command: &str) -> Option<&'static str> {
     if has_inline_script_bypass(command) {
         return Some(
             "Blocked: command invokes an interpreter (python/node/ruby/perl/bash/sh/zsh) with an inline script (-c/-e/--eval) whose content appears to contain a destructive pattern (rm -rf, DROP TABLE/TRUNCATE, git push --force, git reset --hard, or git clean -f). This guard cannot safely verify commands embedded inside interpreter scripts. Run the destructive operation directly (not wrapped in an inline script), or ask the human to confirm.",
+        );
+    }
+    if has_eval_bypass(command) {
+        return Some(
+            "Blocked: command uses 'eval' whose argument appears to contain a destructive pattern (rm -rf, DROP TABLE/TRUNCATE, git push --force, git reset --hard, or git clean -f). eval executes its argument as a real shell command, so this guard cannot let it through unchecked. Run the destructive operation directly (not wrapped in eval), or ask the human to confirm.",
         );
     }
 

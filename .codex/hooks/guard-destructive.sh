@@ -595,6 +595,38 @@ if echo "$COMMAND" | grep -qiE '\b(python3?|node|ruby|perl|bash|sh|zsh)\b[^|;&]*
   fi
 fi
 
+# SECURITY FIX (2026-09-16, targeted hardening review item 4): `eval "rm -rf
+# ..."` was a documented-but-unclosed gap in the round-2 fix above -- `eval`
+# is a shell builtin, not an interpreter binary, so it never matched the
+# `\b(python3?|node|...)\b` alternation, and it takes no -c/-e/--eval flag
+# at all (its entire argument IS the script). Same 5 destructive-pattern
+# checks as the interpreter block above, gated on `\beval\b` instead.
+#
+# KNOWN LIMITATION (found by security-auditor's adversarial review of this
+# same fix, 2026-09-16): `echo "$COMMAND" | grep -qiE ...` evaluates each
+# line of a multi-line command independently -- a destructive payload split
+# across a literal newline inside the eval'd string (e.g. `eval "rm \` /
+# newline / `-rf /tmp/x"`) is NOT caught here. This is a structural
+# limitation of every grep-based check in this file (line-oriented
+# matching), not unique to this block. In practice this only matters on a
+# machine with no compiled `yana-rt` on PATH -- the fast path a few lines
+# above this file execs straight into the Rust implementation
+# (src/guard/portable.rs), which scans the whole command as one buffer and
+# does catch the multi-line case (see
+# eval_with_destructive_payload_split_across_a_newline_still_blocked in
+# src/guard/mod.rs). Not fixed here: rewriting this file's line-oriented
+# matching to be newline-safe would touch every existing check, not just
+# this one -- out of scope for a targeted fix.
+if echo "$COMMAND" | grep -qiE '\beval\b'; then
+  if echo "$COMMAND" | grep -qiE '\brm\b[^|;&]*(-[a-zA-Z]*r[a-zA-Z]*f[a-zA-Z]*|-[a-zA-Z]*f[a-zA-Z]*r[a-zA-Z]*|--recursive|--force)' \
+     || echo "$COMMAND" | grep -qiE '\b(DROP\s+(TABLE|DATABASE|SCHEMA)|TRUNCATE\s+TABLE)\b' \
+     || echo "$COMMAND" | grep -qiE '\bgit\b[^|;&]*\bpush\b[^|;&]*--force|\bgit\b[^|;&]*--force[^|;&]*\bpush\b' \
+     || echo "$COMMAND" | grep -qiE '\bgit\b[^|;&]*\breset\b[^|;&]*--hard' \
+     || echo "$COMMAND" | grep -qiE '\bgit\b[^|;&]*\bclean\b[^|;&]*(-[a-zA-Z]*f[a-zA-Z]*|--force)'; then
+    deny "Blocked: command uses 'eval' whose argument appears to contain a destructive pattern (rm -rf, DROP TABLE/TRUNCATE, git push --force, git reset --hard, or git clean -f). eval executes its argument as a real shell command, so this guard cannot let it through unchecked. Run the destructive operation directly (not wrapped in eval), or ask the human to confirm."
+  fi
+fi
+
 # ── Dangerous package operations ─────────────────────────────────────────────
 if echo "$COMMAND" | grep -qE 'npm\s+publish|yarn\s+publish|pnpm\s+publish'; then
   deny "Blocked: publishing to npm requires explicit human approval. Ask the human to run this command manually."

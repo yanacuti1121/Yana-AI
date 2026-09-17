@@ -896,4 +896,64 @@ mod tests {
     fn git_clean_force_inside_interpreter_now_blocked() {
         assert!(check_command("python3 -c \"import os; os.system('git clean -fdx')\"").is_some());
     }
+
+    // SECURITY FIX (2026-09-16, targeted hardening review item 4): `eval` is
+    // a shell builtin, not an interpreter binary -- it never matched
+    // RE_INLINE_SCRIPT_INTERPRETER's `\b(python3?|node|...)\b` alternation,
+    // and it takes no -c/-e/--eval flag at all. Live-verified as a real
+    // bypass before this fix (exit 0 through both the bash hook and this
+    // Rust fast path); these are the regression tests for the fix, mirroring
+    // the same five destructive patterns already covered for -c/-e/--eval.
+    #[test]
+    fn eval_rm_rf_now_blocked() {
+        assert!(check_command("eval \"rm -rf /tmp/x\"").is_some());
+    }
+
+    #[test]
+    fn eval_git_push_force_now_blocked() {
+        assert!(check_command("eval \"git push --force origin main\"").is_some());
+    }
+
+    #[test]
+    fn eval_git_reset_hard_now_blocked() {
+        assert!(check_command("eval \"git reset --hard HEAD~5\"").is_some());
+    }
+
+    #[test]
+    fn eval_git_clean_force_now_blocked() {
+        assert!(check_command("eval \"git clean -fdx\"").is_some());
+    }
+
+    #[test]
+    fn eval_drop_table_now_blocked() {
+        assert!(check_command("eval \"echo 'DROP TABLE users;' | psql\"").is_some());
+    }
+
+    #[test]
+    fn eval_capitalized_payload_still_blocked() {
+        assert!(check_command("eval \"RM -RF /tmp/x\"").is_some());
+    }
+
+    #[test]
+    fn eval_with_no_destructive_pattern_not_a_false_positive() {
+        assert!(check_command("eval \"echo hello world\"").is_none());
+    }
+
+    // Adversarial follow-up from the independent security review of the
+    // eval fix above (2026-09-16): a destructive payload split across a
+    // literal newline inside the eval'd string. The bash fallback path in
+    // core/hooks/guard-destructive.sh (only reached when no compiled
+    // yana-rt is on PATH) is confirmed vulnerable to this -- `grep` there
+    // evaluates each line of a multi-line `echo` independently, so `rm`
+    // and `-rf` on separate lines never satisfy the same `[^|;&]*` bridge.
+    // This Rust path does not have that limitation: `regex`'s default
+    // (?s)-less negated character class `[^|;&]` still matches `\n`, so
+    // the whole command is scanned as one buffer regardless of embedded
+    // newlines. This test locks that in for the path that's actually used
+    // in practice (guard-destructive.sh execs into a compiled yana-rt
+    // whenever one is present).
+    #[test]
+    fn eval_with_destructive_payload_split_across_a_newline_still_blocked() {
+        assert!(check_command("eval \"rm \\\n-rf /tmp/x\"").is_some());
+    }
 }
