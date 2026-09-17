@@ -2856,6 +2856,31 @@ svg {
   color: #9aabc3;
   font-size: 10px;
 }
+.risk-badge.risk-low {
+  border-color: #2f6b4a66;
+  color: #7fd8a3;
+}
+.risk-badge.risk-medium {
+  border-color: #8a6d2e66;
+  color: #e3c169;
+}
+.risk-badge.risk-high {
+  border-color: #8a352e66;
+  color: #f2968a;
+}
+.approval-technical-details {
+  margin-top: 10px;
+  font-size: 10.5px;
+  color: #7185a4;
+}
+.approval-technical-details summary {
+  cursor: pointer;
+}
+.approval-technical-details code,
+.approval-technical-details span {
+  display: block;
+  margin-top: 4px;
+}
 .settings-card label {
   display: block;
   margin: 20px 0;

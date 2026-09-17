@@ -45,6 +45,21 @@ SENSITIVE_PATHS=(
   ".cursor/hooks.json"
   ".cursor/hooks"
   ".github/workflows"
+  # Added 2026-09-16 (targeted core hardening review, item 3): core-lock's
+  # own LOCKED_DIRS were NOT covered by this watcher's human-approval
+  # ceremony, even though the check_corelock() call below only proves
+  # self-consistency (core-lock.json matches whatever is currently on
+  # disk) -- an actor that modifies one of these dirs AND regenerates
+  # core-lock.json in the same session would pass verify-core-lock.sh
+  # cleanly, with nothing independent catching it. This closes that gap
+  # by giving these paths the same out-of-session, human-approval-gated
+  # scope-drift check .claude/hooks etc. already had. Keep in sync with
+  # core/scripts/update-core-lock.sh's own LOCKED_DIRS.
+  "core/rules"
+  "core/gates"
+  "core/hooks"
+  "core/scripts"
+  "src/guard"
 )
 SOURCE_CHECKOUT=0
 [[ -f "$REPO_DIR/core/config/core-lock.json" ]] && SOURCE_CHECKOUT=1

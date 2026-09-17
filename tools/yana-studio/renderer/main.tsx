@@ -58,7 +58,7 @@ import { Permissions } from "./Permissions";
 import "./style.css";
 import "./light-theme.css";
 import "./dark-theme.css";
-import { translate } from "./i18n";
+import { translate, type MessageKey } from "./i18n";
 import { renderMarkdown } from "./markdown";
 import { AccountSettings, AccountUnlock } from "./AccountSettings";
 import { GovernancePopover } from "./GovernancePopover";
@@ -110,6 +110,81 @@ function glassStyleVars(preferences: State["preferences"]): React.CSSProperties 
     }px`,
     "--glass-shadow-opacity": String(opacity * 0.18),
   } as React.CSSProperties;
+}
+// Human labels for the well-known capability names Manifest::all()
+// (src/capability/registry_data.rs) actually defines -- short phrasings of
+// each descriptor's own real `description` field there, not invented
+// meaning. Deliberately incomplete: only these 12 names exist in the real
+// registry today (confirmed by the `all_twelve_descriptors_present` Rust
+// test), so an id outside this list is either a future addition or a bug,
+// and falling back to the raw id is the honest choice -- never guess a
+// friendly label for a capability this map doesn't actually recognize.
+const CAPABILITY_LABELS_VI: Partial<Record<string, string>> = {
+  "repo.tree": "Xem cấu trúc thư mục",
+  "repo.read": "Đọc file trong project",
+  "repo.search": "Tìm kiếm trong code",
+  "git.status": "Xem trạng thái Git",
+  "git.diff": "Xem thay đổi Git",
+  "host.summary": "Xem thông tin máy",
+  "process.list": "Xem danh sách tiến trình",
+  "process.inspect": "Xem chi tiết một tiến trình",
+  "command.validate": "Kiểm tra lệnh (chưa chạy)",
+  "command.execute": "Chạy lệnh trong terminal",
+  "file.write": "Ghi hoặc sửa file",
+  "config.write": "Ghi cấu hình hệ thống",
+};
+function capabilityLabel(capability: string) {
+  return CAPABILITY_LABELS_VI[capability] || capability;
+}
+function riskTierLabel(
+  riskTier: "Low" | "Medium" | "High" | undefined,
+  t: (key: MessageKey) => string,
+) {
+  if (riskTier === "Low") return t("riskLow");
+  if (riskTier === "Medium") return t("riskMedium");
+  if (riskTier === "High") return t("riskHigh");
+  return t("riskTierMissing");
+}
+// Same known runtime-event kinds WorkspaceInspector.tsx's own
+// activityPresentation() already translates (that function stays
+// untouched per this pass's scope -- this mirrors its kind->label mapping
+// rather than importing it, to avoid any change to that file). Unlike
+// that function's own fallback (which intentionally still shows the raw,
+// space-replaced kind, since its Inspector tab is the deliberate
+// technical-details surface), this one falls back to a neutral label --
+// this block sits inline under the transcript, not inside a dedicated
+// "Inspector" tab, so raw internal event-kind strings shouldn't be the
+// first thing a user reads here. The raw kind is not lost: it's kept as
+// this row's `title` (hover tooltip) regardless of which label shows.
+function eventKindLabel(kind: string | undefined, t: (key: MessageKey) => string) {
+  switch (kind) {
+    case "tool_requested":
+      return t("activityToolProposed");
+    case "tool_approved":
+      return t("activityApproved");
+    case "tool_denied":
+      return t("activityDenied");
+    case "tool_started":
+      return t("activityRunning");
+    case "tool_completed":
+      return t("activityEvidenceRecorded");
+    case "turn_completed":
+      return t("activityTurnCompleted");
+    case "moa_reference_ok":
+      return t("activityMoaReferenceOk");
+    case "moa_reference_failed":
+      return t("activityMoaReferenceFailed");
+    case "moa_aggregator_ok":
+      return t("activityMoaAggregatorOk");
+    case "moa_aggregator_failed":
+      return t("activityMoaAggregatorFailed");
+    case "moa_fallback_ok":
+      return t("activityMoaFallbackOk");
+    case "moa_fallback_failed":
+      return t("activityMoaFallbackFailed");
+    default:
+      return t("activityRuntimeEventFallback");
+  }
 }
 function App() {
   const [state, setState] = useState<State | null>(null);
@@ -1671,7 +1746,9 @@ function App() {
                         </summary>
                         {chat.events.slice(-12).map((event, index) => (
                           <div key={index}>
-                            <span className="event-kind">{event.kind}</span>
+                            <span className="event-kind" title={event.kind}>
+                              {eventKindLabel(event.kind, t)}
+                            </span>
                             <code>{event.tool || event.call_id || ""}</code>
                             <span>{event.summary || event.reason || ""}</span>
                           </div>
@@ -1683,18 +1760,13 @@ function App() {
                         <h3>
                           <Shield size={17} /> {t("needsApproval")}
                         </h3>
-                        <code>{chat.approval.capability}</code>
+                        <strong>{capabilityLabel(chat.approval.capability)}</strong>
                         <div className="approval-contract">
-                          {chat.approval.risk_tier ? (
-                            <span>Risk: {chat.approval.risk_tier}</span>
-                          ) : (
-                            <span>{t("riskTierMissing")}</span>
-                          )}
-                          {chat.approval.approver ? (
-                            <span>Approver: {chat.approval.approver}</span>
-                          ) : (
-                            <span>{t("approverContractDefault")}</span>
-                          )}
+                          <span
+                            className={`risk-badge risk-${(chat.approval.risk_tier || "unknown").toLowerCase()}`}
+                          >
+                            {riskTierLabel(chat.approval.risk_tier, t)}
+                          </span>
                         </div>
                         <p>{chat.approval.reason}</p>
                         <div className="button-row">
@@ -1731,6 +1803,15 @@ function App() {
                             {t("customProviderApprovalNote")}
                           </p>
                         )}
+                        <details className="approval-technical-details">
+                          <summary>{t("approvalTechnicalDetails")}</summary>
+                          <code>{chat.approval.capability}</code>
+                          <span>
+                            {chat.approval.approver
+                              ? `Approver: ${chat.approval.approver}`
+                              : t("approverContractDefault")}
+                          </span>
+                        </details>
                       </div>
                     )}
                     {chat?.error &&
