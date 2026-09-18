@@ -2,6 +2,16 @@
   "name": "yana-studio",
   "productName": "Yana Studio",
   "version": "1.5.3",
+  "description": "Yana Studio — AI coding workspace",
+  "homepage": "https://yana.vutam.link",
+  "author": {
+    "name": "Vũ Văn Tâm",
+    "email": "phamlongh230@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yanacuti1121/Yana-AI"
+  },
   "private": true,
   "type": "module",
   "main": "host/main.cjs",
@@ -18,6 +28,7 @@
     "format:check": "prettier --check host renderer test scripts *.json *.ts *.html",
     "dist:mac": "npm run write:secrets && npm run build && electron-builder --mac --arm64",
     "dist:win": "npm run write:secrets && npm run build && electron-builder --win --x64",
+    "dist:win-arm64": "npm run write:secrets && npm run build && electron-builder --win --arm64",
     "dist:linux": "npm run write:secrets && npm run build && electron-builder --linux --x64"
   },
   "build": {
@@ -85,7 +96,13 @@
     },
     "win": {
       "target": [
-        "nsis"
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
       ]
     },
     "nsis": {
