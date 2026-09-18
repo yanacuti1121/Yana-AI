@@ -2,6 +2,16 @@
   "name": "yana-studio",
   "productName": "Yana Studio",
   "version": "1.5.3",
+  "description": "Yana Studio — AI coding workspace",
+  "homepage": "https://yana.vutam.link",
+  "author": {
+    "name": "Vũ Văn Tâm",
+    "email": "phamlongh230@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yanacuti1121/Yana-AI"
+  },
   "private": true,
   "type": "module",
   "main": "host/main.cjs",
