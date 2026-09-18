@@ -11,14 +11,29 @@ name: Yana Studio Desktop Build
 # Modeled directly on .github/workflows/desktop.yml (the sibling
 # tools/yana-desktop app's own proven win/linux/mac CI matrix) -- same
 # verify-provenance gate, same runtime-build-then-smoke-test-then-stage
-# sequence, same pinned action SHAs. Deliberately narrower: only linux/x64
-# and win/x64 (what was actually asked for), and macOS is intentionally
+# sequence, same pinned action SHAs. Deliberately narrower than desktop.yml:
+# linux/x64, win/x64, and win/arm64 (what was actually asked for -- no
+# linux/arm64 leg here, unlike desktop.yml), and macOS is intentionally
 # left out of this workflow -- Yana Studio's mac release stays the existing
 # manual `npm run dist:mac` + `gh release create` process; this workflow's
 # publish step attaches its own assets to whatever release already exists
 # for the tag (softprops/action-gh-release upserts by tag) rather than
 # assuming it must create the release itself, so it can't clobber a mac
 # asset uploaded manually under the same tag.
+#
+# win/arm64 builds natively on the `windows-11-arm` GitHub-hosted runner
+# (free for public repos, same tier as the `ubuntu-24.04-arm` runner
+# desktop.yml already uses for its own linux/arm64 leg) rather than
+# cross-compiling from windows-latest (x64). Native was chosen over cross
+# for the same reason this file's own header rejects cross-compiling from
+# macOS: yana-studio bundles a native node module (node-pty) and a native
+# Rust binary (yana-rt), and a native ARM64 runner builds, ABI-rebuilds,
+# and smoke-tests both for the actual target CPU instead of guessing that
+# a cross build behaves the same. (node-pty 1.1.0 does ship a win32-arm64
+# prebuild, so cross-compiling was probably viable too -- native was still
+# preferred because it lets this workflow's existing smoke-test step
+# actually execute the shipped yana-rt.exe, which a cross-compiled ARM64
+# binary cannot do on an x64 runner.)
 #
 # Tag prefix is studio-v* (not v*, which is yana-desktop's and the main
 # product's own tag prefix, and firing this workflow on those tags would
@@ -94,6 +109,11 @@ jobs:
           - os: windows-latest
             platform: win
             arch: x64
+            artifact: |
+              tools/yana-studio/release/*.exe
+          - os: windows-11-arm
+            platform: win
+            arch: arm64
             artifact: |
               tools/yana-studio/release/*.exe
 
