@@ -26,14 +26,13 @@ name: Yana Studio Desktop Build
 # desktop.yml already uses for its own linux/arm64 leg) rather than
 # cross-compiling from windows-latest (x64). Native was chosen over cross
 # for the same reason this file's own header rejects cross-compiling from
-# macOS: yana-studio bundles a native node module (node-pty) and a native
-# Rust binary (yana-rt), and a native ARM64 runner builds, ABI-rebuilds,
-# and smoke-tests both for the actual target CPU instead of guessing that
-# a cross build behaves the same. (node-pty 1.1.0 does ship a win32-arm64
-# prebuild, so cross-compiling was probably viable too -- native was still
-# preferred because it lets this workflow's existing smoke-test step
-# actually execute the shipped yana-rt.exe, which a cross-compiled ARM64
-# binary cannot do on an x64 runner.)
+# macOS: yana-studio bundles a native Rust binary (yana-rt) that needs to
+# be built AND smoke-tested for the actual target CPU, which a
+# cross-compiled binary cannot do on an x64 runner. (node-pty, the other
+# native component, is handled differently -- see the "Build app" step's
+# own comment: its win-arm64 rebuild is skipped entirely in favor of its
+# bundled prebuild, after two real CI attempts to make the from-source
+# rebuild work on this runner both failed.)
 #
 # Tag prefix is studio-v* (not v*, which is yana-desktop's and the main
 # product's own tag prefix, and firing this workflow on those tags would
@@ -148,45 +147,6 @@ jobs:
           if [ "${{ runner.os }}" = "Windows" ]; then BIN="target/release/yana-rt.exe"; fi
           bash core/scripts/release-smoke-test.sh "$BIN"
 
-      # win-arm64 only. electron-builder's automatic npmRebuild step (via
-      # @electron/rebuild) recompiles node-pty's native addon from source
-      # for this arch instead of using node-pty's own bundled win32-arm64
-      # prebuild (confirmed present at
-      # node_modules/node-pty/prebuilds/win32-arm64 -- @electron/rebuild's
-      # prebuild-detection just doesn't trust it for this target). The
-      # from-source build then fails with MSB8040 ("Spectre-mitigated
-      # libraries are required for this project") because node-pty's own
-      # binding.gyp deliberately sets `SpectreMitigation: 'Spectre'` (real
-      # hardening, not accidental -- see
-      # node_modules/node-pty/binding.gyp), and the windows-11-arm hosted
-      # runner image doesn't ship the ARM64 Spectre-mitigated VC++ runtime
-      # libraries VS component that toolset needs (confirmed missing by
-      # the actual MSB8040 failure in CI run 35352268827, job
-      # "Build (win-arm64)": every node-pty native target --
-      # conpty/conpty_console_list/winpty-agent/winpty -- failed identically).
-      # windows-latest (x64) doesn't need this step because that VS
-      # component ships there by default; only the ARM64 one is missing.
-      # This installs the same real component MSB8040's own linked
-      # Microsoft doc (https://aka.ms/Ofhn4c) names as the fix, onto the
-      # exact VS edition/path the failing MSBuild invocation used
-      # (`...\2022\Enterprise\...`) -- so node-pty's rebuild takes the
-      # identical, already-proven code path win-x64 and mac already use
-      # (@electron/rebuild logged `buildFromSource=false` for those legs),
-      # rather than skipping the rebuild and trusting an untested
-      # assumption that the Node.js-ABI prebuild also loads correctly
-      # under Electron's ABI.
-      - name: Install ARM64 Spectre-mitigated VC++ libs (win-arm64 only)
-        if: matrix.arch == 'arm64' && runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $installer = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
-          $vsPath = "${env:ProgramFiles}\Microsoft Visual Studio\2022\Enterprise"
-          & $installer modify --installPath $vsPath --add Microsoft.VisualStudio.Component.VC.Runtimes.ARM64.Spectre --quiet --norestart --wait
-          if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 3010) {
-            throw "vs_installer.exe exited with $LASTEXITCODE"
-          }
-
       - name: Install yana-studio dependencies
         working-directory: tools/yana-studio
         run: npm ci
@@ -204,9 +164,27 @@ jobs:
           if [ "${{ runner.os }}" = "Windows" ]; then BIN="../../target/release/yana-rt.exe"; fi
           npm run stage:runtime -- "$BIN"
 
+      # win-arm64 only: --config.npmRebuild=false. electron-builder's
+      # automatic native-module rebuild (@electron/rebuild) recompiles
+      # node-pty from source for this arch instead of using its own
+      # bundled win32-arm64 prebuild (node_modules/node-pty/prebuilds/
+      # win32-arm64, confirmed present). The from-source path needs the
+      # ARM64 Spectre-mitigated VC++ toolset (node-pty's binding.gyp sets
+      # SpectreMitigation: 'Spectre' deliberately), which this runner
+      # doesn't have -- confirmed twice now: MSB8040 on the first attempt
+      # (CI run 35352268827), then a second failed attempt at installing
+      # that toolset component via vs_installer.exe (CI run 35409205259)
+      # -- that installer isn't reliably present/invokable on the
+      # windows-11-arm hosted image the way it is on windows-latest.
+      # node-pty's own win32-arm64 prebuild is safe to use as-is instead:
+      # node-pty builds its Windows targets against node-addon-api (N-API)
+      # -- see node_modules/node-pty/binding.gyp -- which is ABI-stable
+      # across Node.js and Electron by design, the exact guarantee N-API
+      # exists to provide. win-x64 and mac keep the default rebuild
+      # (already proven working, no reason to change what isn't broken).
       - name: Build app
         working-directory: tools/yana-studio
-        run: node node_modules/electron-builder/cli.js --${{ matrix.platform }} --${{ matrix.arch }} --publish never
+        run: node node_modules/electron-builder/cli.js --${{ matrix.platform }} --${{ matrix.arch }} --publish never${{ (matrix.platform == 'win' && matrix.arch == 'arm64') && ' --config.npmRebuild=false' || '' }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1 (node24)
