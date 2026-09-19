@@ -197,10 +197,27 @@ function remember(root) {
 // dropped file that's inside the currently open project is returned as a
 // relative path to open in the editor; a dropped file elsewhere opens its
 // containing folder as a new project.
+//
+// Also the shared handler behind studio:openFilePath (preload.cjs), used
+// for Terminal.tsx's clickable file:line links -- that caller passes a
+// plain string parsed from terminal text, not a real OS drag, and it was
+// broken two ways: (1) Terminal's FILE_LINK regex intentionally captures
+// an optional trailing :line or :line:col suffix for its own display
+// purposes, but nothing stripped it before this function's fs calls, so
+// EVERY such click failed realpathSync on a path no real file has; (2) a
+// relative candidate went straight into fs.realpathSync(candidate),
+// which resolves relative paths against this process's own cwd, not the
+// project root the user is actually looking at -- reported live as
+// `ENOENT ... lstat '/.github'` from a relative candidate that should
+// have resolved inside the open project.
 function openDroppedPath(currentRoot, candidate) {
   if (typeof candidate !== "string" || !candidate.trim())
     throw new Error("Invalid dropped path");
-  const resolved = fs.realpathSync(candidate);
+  const withoutLineSuffix = candidate.replace(/:\d+(?::\d+)?$/, "");
+  const absoluteCandidate = path.isAbsolute(withoutLineSuffix)
+    ? withoutLineSuffix
+    : path.resolve(currentRoot || process.cwd(), withoutLineSuffix);
+  const resolved = fs.realpathSync(absoluteCandidate);
   if (fs.statSync(resolved).isDirectory())
     return { kind: "project", project: remember(resolved) };
   if (currentRoot) {
