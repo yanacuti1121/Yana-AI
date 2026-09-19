@@ -148,6 +148,45 @@ jobs:
           if [ "${{ runner.os }}" = "Windows" ]; then BIN="target/release/yana-rt.exe"; fi
           bash core/scripts/release-smoke-test.sh "$BIN"
 
+      # win-arm64 only. electron-builder's automatic npmRebuild step (via
+      # @electron/rebuild) recompiles node-pty's native addon from source
+      # for this arch instead of using node-pty's own bundled win32-arm64
+      # prebuild (confirmed present at
+      # node_modules/node-pty/prebuilds/win32-arm64 -- @electron/rebuild's
+      # prebuild-detection just doesn't trust it for this target). The
+      # from-source build then fails with MSB8040 ("Spectre-mitigated
+      # libraries are required for this project") because node-pty's own
+      # binding.gyp deliberately sets `SpectreMitigation: 'Spectre'` (real
+      # hardening, not accidental -- see
+      # node_modules/node-pty/binding.gyp), and the windows-11-arm hosted
+      # runner image doesn't ship the ARM64 Spectre-mitigated VC++ runtime
+      # libraries VS component that toolset needs (confirmed missing by
+      # the actual MSB8040 failure in CI run 35352268827, job
+      # "Build (win-arm64)": every node-pty native target --
+      # conpty/conpty_console_list/winpty-agent/winpty -- failed identically).
+      # windows-latest (x64) doesn't need this step because that VS
+      # component ships there by default; only the ARM64 one is missing.
+      # This installs the same real component MSB8040's own linked
+      # Microsoft doc (https://aka.ms/Ofhn4c) names as the fix, onto the
+      # exact VS edition/path the failing MSBuild invocation used
+      # (`...\2022\Enterprise\...`) -- so node-pty's rebuild takes the
+      # identical, already-proven code path win-x64 and mac already use
+      # (@electron/rebuild logged `buildFromSource=false` for those legs),
+      # rather than skipping the rebuild and trusting an untested
+      # assumption that the Node.js-ABI prebuild also loads correctly
+      # under Electron's ABI.
+      - name: Install ARM64 Spectre-mitigated VC++ libs (win-arm64 only)
+        if: matrix.arch == 'arm64' && runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $installer = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
+          $vsPath = "${env:ProgramFiles}\Microsoft Visual Studio\2022\Enterprise"
+          & $installer modify --installPath $vsPath --add Microsoft.VisualStudio.Component.VC.Runtimes.ARM64.Spectre --quiet --norestart --wait
+          if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 3010) {
+            throw "vs_installer.exe exited with $LASTEXITCODE"
+          }
+
       - name: Install yana-studio dependencies
         working-directory: tools/yana-studio
         run: npm ci
