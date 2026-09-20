@@ -7,6 +7,17 @@ const messages = {
     chat: "Trò chuyện",
     files: "Tệp & Trình sửa",
     terminal: "Terminal",
+    studioHome: "Trang chủ Studio",
+    designCanvas: "Canvas thiết kế",
+    tasks: "Công việc",
+    devices: "Thiết bị",
+    currentWorkspace: "Không gian làm việc",
+    localBranch: "Cục bộ",
+    openProjectAria: "Mở project",
+    resizeSidebar: "Đổi độ rộng thanh bên",
+    resizeTerminalDock: "Đổi chiều cao terminal",
+    resizeInspector: "Đổi độ rộng bảng kiểm tra",
+    refreshGit: "Làm mới Git",
     workspace: "KHÔNG GIAN LÀM VIỆC",
     worktrees: "NHÁNH LÀM VIỆC",
     recentProjects: "DỰ ÁN GẦN ĐÂY",
@@ -15,9 +26,20 @@ const messages = {
     runtimeReady: "Runtime đã cấu hình",
     runtimeNeeded: "Cần chọn runtime",
     noBypass: "Không bỏ qua quyền hạn khi lỗi",
+    appearance: "Giao diện",
+    appearanceDescription:
+      "Chọn nền sáng hoặc tối, rồi điều chỉnh hiệu ứng Liquid Glass theo mắt của anh.",
     language: "Giao diện & Ngôn ngữ",
     languageDescription: "Ngôn ngữ được lưu trên máy và áp dụng ngay.",
     languageLabel: "Ngôn ngữ hiển thị",
+    themeLabel: "Chế độ màu",
+    themeLight: "Sáng",
+    themeDark: "Tối",
+    liquidGlassTitle: "Liquid Glass",
+    liquidGlassDescription:
+      "Kéo về 0% để dùng giao diện đặc hiện tại. Tăng dần để panel trở thành kính trong suốt.",
+    glassOpacityLabel: "Độ trong Liquid Glass",
+    glassBlurLabel: "Độ mờ nền",
     account: "Tài khoản",
     modelRuntime: "Model & Runtime",
     usage: "Sử dụng",
@@ -91,6 +113,9 @@ const messages = {
     userLabel: "Anh",
     copyMessageAria: "Sao chép tin nhắn",
     copyTitle: "Sao chép",
+    copyResponseAria: "Sao chép câu trả lời của Yana",
+    editQuestionAria: "Chỉnh sửa câu hỏi này",
+    editQuestionTitle: "Chỉnh sửa",
     reuseAria: "Dùng lại nội dung trong ô nhập",
     reuseTitle: "Dùng lại trong ô nhập",
     modelStaleNotice:
@@ -179,7 +204,8 @@ const messages = {
     activityHeaderLabel: "ACTIVITY",
     noRuntimeEventsNote:
       "Chưa có sự kiện runtime. Không suy diễn tiến độ từ chat hoặc terminal.",
-    aiNoShellBypassNote: "AI không sử dụng shell của anh để vượt qua phê duyệt.",
+    aiNoShellBypassNote:
+      "AI không sử dụng shell của anh để vượt qua phê duyệt.",
     localDataOnlyNote: "· dữ liệu vẫn chỉ nằm trên máy này",
     lockStudio: "Khóa Studio",
     confirmLogout:
@@ -188,6 +214,9 @@ const messages = {
     localFirstAccountTitle: "Tài khoản local-first",
     localFirstAccountNote:
       "Không có Yana cloud server. Tài khoản chỉ nhận diện người dùng trên thiết bị này; project, chat và backup không tự tải lên mạng.",
+    googleAccountTitle: "Đăng nhập để bắt đầu",
+    googleAccountNote:
+      "Yana Studio dùng Google để nhận diện hồ sơ trên máy này. Project và chat vẫn ở trên máy anh.",
     emailPasswordTitle: "Email + mật khẩu",
     emailPasswordNote:
       "Mật khẩu khóa Studio trên máy. Chỉ lưu salt và scrypt verifier, không lưu mật khẩu.",
@@ -196,17 +225,53 @@ const messages = {
     passwordFieldLabel: "Mật khẩu",
     createLocalProfile: "Tạo hồ sơ local",
     continueWithGoogleTitle: "Tiếp tục với Google",
-    googleScopeNote: "Chỉ dùng scope identity. Không tự cấp Gmail, Drive hoặc Calendar.",
+    continueWithGithubTitle: "Tiếp tục với GitHub",
+    googleScopeNote:
+      "Chỉ dùng scope identity. Không tự cấp Gmail, Drive hoặc Calendar.",
+    or: "hoặc",
     useGoogleAsProfile: "Dùng Google làm hồ sơ Studio",
-    connectGoogleFirst: "Kết nối Google Account trong mục Tài khoản & Kết nối trước.",
+    connectGoogleFirst:
+      "Kết nối Google Account trong mục Tài khoản & Kết nối trước.",
     googleNotConnected: "Google chưa kết nối",
+    googleConnecting: "Đang mở Google…",
+    googleWaitingForApproval:
+      "Hoàn tất xác nhận trong trình duyệt để tiếp tục.",
+    googleConnectionFailed:
+      "Chưa thể kết nối Google. Anh kiểm tra cửa sổ trình duyệt rồi thử lại nhé.",
+    googleTestingHint:
+      "Nếu Google báo ứng dụng đang thử nghiệm, thêm Gmail của anh vào Audience → Test users trong Google Cloud trước khi thử lại.",
+    googleTestingBlocked:
+      "Google chưa trả quyền về app. Nếu trình duyệt báo ứng dụng đang thử nghiệm, hãy thêm Gmail này vào Audience → Test users trong Google Cloud rồi thử lại.",
+    openGoogleCloudAudience: "Mở Google Cloud — Test users",
+    githubAccountNote:
+      "GitHub chỉ dùng để nhận diện hồ sơ. Quyền repository được kết nối riêng sau khi vào Studio.",
+    githubConfigurationRequired:
+      "Nhập GitHub OAuth Client ID công khai để bắt đầu.",
+    githubSetupTitle: "Thiết lập GitHub lần đầu",
+    githubSetupStepOne: "Mở GitHub Developer Settings bằng nút dưới đây.",
+    githubSetupStepTwo: "Chọn OAuth Apps → New OAuth App.",
+    githubSetupStepThree:
+      "Đặt tên Yana Studio, dùng trang GitHub công khai của anh làm Homepage URL và bật Enable Device Flow.",
+    githubSetupStepFour:
+      "Đăng ký app, sao chép Client ID hiển thị trên trang app rồi dán vào ô dưới.",
+    openGithubDeveloperSettings: "Mở GitHub Developer Settings",
+    githubClientIdPlaceholder: "Dán Client ID từ GitHub vào đây",
+    githubConnecting: "Đang mở GitHub…",
+    githubWaitingForApproval:
+      "Mở github.com/login/device và nhập mã hiển thị ở trên để tiếp tục.",
+    githubConnectionFailed:
+      "Chưa thể kết nối GitHub. Anh kiểm tra cửa sổ trình duyệt rồi thử lại nhé.",
+    githubRepositoryScopeNote:
+      "Quyền repo được cấp riêng và có thể đọc/ghi private repository. Chỉ kết nối khi anh thật sự muốn dùng GitHub trong Studio.",
     studioLockedTitle: "Yana Studio đã khóa",
     unlockButton: "Mở khóa",
     connectionsLoadError: "Không đọc được trạng thái kết nối.",
-    oauthStartError: "Không bắt đầu được OAuth. Kiểm tra cấu hình và secure storage.",
+    oauthStartError:
+      "Không bắt đầu được OAuth. Kiểm tra cấu hình và secure storage.",
     connectionsIntro:
       "Đăng nhập Google không cấp quyền Gmail. Mỗi kết nối có quyền và credential riêng, do Electron main quản lý.",
-    authPurposeNote: "Tài khoản cá nhân trong app này — không tạo session server Yana.",
+    authPurposeNote:
+      "Tài khoản cá nhân trong app này — không tạo session server Yana.",
     servicePurposeNote: "Cấp quyền dịch vụ riêng biệt.",
     githubOauthConfigSummary: "Cấu hình GitHub OAuth app",
     githubClientIdLabel: "Client ID công khai",
@@ -219,7 +284,8 @@ const messages = {
     deviceCodePrefix: "Nhập mã",
     deviceCodeSuffix:
       "tại github.com/login/device vừa mở. Chỉ xác nhận mã do chính anh vừa yêu cầu trong app này.",
-    secureStorageNotReady: "OS secure storage chưa sẵn sàng. Không lưu token bằng plaintext.",
+    secureStorageNotReady:
+      "OS secure storage chưa sẵn sàng. Không lưu token bằng plaintext.",
     credentialStoreUnreadableNote:
       "Không đọc được thông tin đăng nhập đã lưu (thường xảy ra sau khi cập nhật app). Kết nối lại để khôi phục.",
     realPermissionsNote:
@@ -227,8 +293,10 @@ const messages = {
     revokeAtGoogle: "Thu hồi tại Google",
     confirmDisconnect:
       "Xóa credential kết nối này khỏi Yana Studio? Quyền tại nhà cung cấp vẫn còn; có thể thu hồi trong trang quản lý tài khoản của họ.",
-    disconnectFailNote: "Chưa xóa được credential. Không coi là đã ngắt kết nối.",
-    revokeFailNote: "Thu hồi chưa thành công. Credential chưa được đánh dấu đã thu hồi.",
+    disconnectFailNote:
+      "Chưa xóa được credential. Không coi là đã ngắt kết nối.",
+    revokeFailNote:
+      "Thu hồi chưa thành công. Credential chưa được đánh dấu đã thu hồi.",
     keyEncrypted: "Key đã mã hóa",
     needsApiKey: "Cần API key",
     noKeyNeeded: "Không cần key",
@@ -237,7 +305,8 @@ const messages = {
     getRealListFromProvider: "Lấy danh sách thật từ provider",
     useModel: "Dùng model",
     manageLabel: "Quản lý",
-    addKeyInSettingsNote: "Thêm key trong Settings trước khi sử dụng provider này.",
+    addKeyInSettingsNote:
+      "Thêm key trong Settings trước khi sử dụng provider này.",
     modelSearchPlaceholder:
       "Tìm model theo tên, provider hoặc khả năng (vision, reasoning, cheap...)",
     modelInUseTitle: "Model đang dùng",
@@ -269,7 +338,8 @@ const messages = {
     runtimeReadyTemplate: "{n} model · {ms} ms",
     scanLocalHint:
       "Bấm Quét local để tìm 9Router, Ollama, LM Studio, llama.cpp, TurboFieldfare và AirLLM.",
-    officialProvidersTemplate: "{n} provider chính thức từ catalog Rust · Cloud và Local.",
+    officialProvidersTemplate:
+      "{n} provider chính thức từ catalog Rust · Cloud và Local.",
     restoredNotice: "Dữ liệu portable đã được khôi phục.",
     privacyDataNote:
       "Chỉ thống kê số file và dung lượng. Màn hình này không đọc hoặc hiển thị nội dung file.",
@@ -313,7 +383,8 @@ const messages = {
       'Cấp quyền có phạm vi và hạn dùng thật — không phải công tắc "tự động duyệt". Runtime vẫn kiểm tra lease này qua đúng cơ chế authority chain, không phải bỏ qua nó.',
     allowCommaSeparated: "Allow (phân cách bởi dấu phẩy)",
     expiresAfterMinutes: "Hết hạn sau (phút)",
-    maxInvocationsBlankUnlimited: "Số lần gọi tối đa (bỏ trống = không giới hạn)",
+    maxInvocationsBlankUnlimited:
+      "Số lần gọi tối đa (bỏ trống = không giới hạn)",
     grantLease: "Cấp lease",
     noFilesFound: "Không tìm thấy file nào.",
     reloadLabel: "Tải lại",
@@ -342,7 +413,8 @@ const messages = {
     selectingLayerLabel: "Đang chọn 1 layer",
     wholeScreenLabel: "Toàn màn hình",
     aiInstructionAria: "Yêu cầu AI chỉnh Canvas",
-    aiPlaceholderWithPart: 'Ví dụ: đổi "{label}" thành nút chính màu xanh, bo 14px',
+    aiPlaceholderWithPart:
+      'Ví dụ: đổi "{label}" thành nút chính màu xanh, bo 14px',
     aiPlaceholderNoPart: "Ví dụ: tạo màn hình đăng nhập hiện đại, tông xanh ấm",
     suggestionMoreProminent: "Làm nổi bật hơn",
     suggestionCreateLanding: "Tạo landing page",
@@ -392,7 +464,8 @@ const messages = {
     previewDialogAria: "Xem thử thiết kế",
     closePreviewAria: "Đóng xem thử",
     openProjectToDesign: "Mở project để bắt đầu thiết kế",
-    canvasSavedNote: "Canvas được lưu cùng workspace và backup của Yana Studio.",
+    canvasSavedNote:
+      "Canvas được lưu cùng workspace và backup của Yana Studio.",
     noDesignTokensFound:
       "Không tìm thấy design token nào trong project (CSS custom properties kiểu --accent, --background, --foreground).",
   },
@@ -402,6 +475,17 @@ const messages = {
     chat: "채팅",
     files: "파일 및 편집기",
     terminal: "터미널",
+    studioHome: "Studio 홈",
+    designCanvas: "디자인 캔버스",
+    tasks: "작업",
+    devices: "기기",
+    currentWorkspace: "워크스페이스",
+    localBranch: "로컬",
+    openProjectAria: "프로젝트 열기",
+    resizeSidebar: "사이드바 너비 조절",
+    resizeTerminalDock: "터미널 높이 조절",
+    resizeInspector: "인스펙터 너비 조절",
+    refreshGit: "Git 새로고침",
     workspace: "워크스페이스",
     worktrees: "워크트리",
     recentProjects: "최근 프로젝트",
@@ -410,9 +494,20 @@ const messages = {
     runtimeReady: "런타임 구성됨",
     runtimeNeeded: "런타임 선택 필요",
     noBypass: "오류 시 권한 검사를 우회하지 않음",
+    appearance: "화면",
+    appearanceDescription:
+      "밝은 또는 어두운 화면을 선택하고 Liquid Glass 효과를 눈에 맞게 조절하세요.",
     language: "화면 및 언어",
     languageDescription: "언어 설정은 이 기기에 저장되고 즉시 적용됩니다.",
     languageLabel: "표시 언어",
+    themeLabel: "색상 모드",
+    themeLight: "밝게",
+    themeDark: "어둡게",
+    liquidGlassTitle: "Liquid Glass",
+    liquidGlassDescription:
+      "0%에서는 현재의 단색 화면을 사용합니다. 값을 높일수록 패널이 투명한 유리가 됩니다.",
+    glassOpacityLabel: "Liquid Glass 투명도",
+    glassBlurLabel: "배경 흐림",
     account: "계정",
     modelRuntime: "모델 및 런타임",
     usage: "토큰 사용량",
@@ -484,6 +579,9 @@ const messages = {
     userLabel: "나",
     copyMessageAria: "메시지 복사",
     copyTitle: "복사",
+    copyResponseAria: "Yana의 답변 복사",
+    editQuestionAria: "이 질문 수정",
+    editQuestionTitle: "수정",
     reuseAria: "입력창에 이 내용 다시 사용",
     reuseTitle: "입력창에 다시 사용",
     modelStaleNotice:
@@ -572,7 +670,8 @@ const messages = {
     activityHeaderLabel: "활동",
     noRuntimeEventsNote:
       "아직 런타임 이벤트가 없습니다. 채팅이나 터미널에서 진행 상황을 추측하지 않습니다.",
-    aiNoShellBypassNote: "AI는 승인을 우회하기 위해 당신의 셸을 사용하지 않습니다.",
+    aiNoShellBypassNote:
+      "AI는 승인을 우회하기 위해 당신의 셸을 사용하지 않습니다.",
     localDataOnlyNote: "· 데이터는 여전히 이 기기에만 있습니다",
     lockStudio: "Studio 잠그기",
     confirmLogout:
@@ -581,6 +680,9 @@ const messages = {
     localFirstAccountTitle: "로컬 우선 계정",
     localFirstAccountNote:
       "Yana 클라우드 서버는 없습니다. 계정은 이 기기의 사용자만 식별하며, 프로젝트/채팅/백업은 자동으로 업로드되지 않습니다.",
+    googleAccountTitle: "시작하려면 로그인하세요",
+    googleAccountNote:
+      "Yana Studio는 이 기기의 프로필을 식별하기 위해 Google을 사용합니다. 프로젝트와 채팅은 이 기기에 남아 있습니다.",
     emailPasswordTitle: "이메일 + 비밀번호",
     emailPasswordNote:
       "비밀번호는 이 기기에서 Studio를 잠급니다. salt와 scrypt verifier만 저장하고 비밀번호 자체는 저장하지 않습니다.",
@@ -589,29 +691,66 @@ const messages = {
     passwordFieldLabel: "비밀번호",
     createLocalProfile: "로컬 프로필 만들기",
     continueWithGoogleTitle: "Google로 계속하기",
-    googleScopeNote: "identity 스코프만 사용합니다. Gmail, Drive, Calendar는 자동으로 부여되지 않습니다.",
+    continueWithGithubTitle: "GitHub로 계속하기",
+    googleScopeNote:
+      "identity 스코프만 사용합니다. Gmail, Drive, Calendar는 자동으로 부여되지 않습니다.",
+    or: "또는",
     useGoogleAsProfile: "Google을 Studio 프로필로 사용",
     connectGoogleFirst: "먼저 계정 및 연결에서 Google 계정을 연결하세요.",
     googleNotConnected: "Google 연결 안 됨",
+    googleConnecting: "Google을 여는 중…",
+    googleWaitingForApproval: "계속하려면 브라우저에서 확인을 완료하세요.",
+    googleConnectionFailed:
+      "Google에 연결할 수 없습니다. 브라우저 창을 확인한 뒤 다시 시도하세요.",
+    googleTestingHint:
+      "Google에서 앱이 테스트 중이라고 표시되면 Google Cloud의 Audience → Test users에 이 Gmail을 추가한 뒤 다시 시도하세요.",
+    googleTestingBlocked:
+      "Google에서 앱으로 권한을 돌려주지 않았습니다. 브라우저에 테스트 중인 앱이라고 표시되면 Google Cloud의 Audience → Test users에 이 Gmail을 추가한 뒤 다시 시도하세요.",
+    openGoogleCloudAudience: "Google Cloud — Test users 열기",
+    githubAccountNote:
+      "GitHub은 프로필 식별에만 사용됩니다. repository 권한은 Studio에 들어간 뒤 별도로 연결합니다.",
+    githubConfigurationRequired:
+      "시작하려면 공개 GitHub OAuth Client ID를 입력하세요.",
+    githubSetupTitle: "GitHub 최초 설정",
+    githubSetupStepOne: "아래 버튼으로 GitHub Developer Settings를 엽니다.",
+    githubSetupStepTwo: "OAuth Apps → New OAuth App을 선택합니다.",
+    githubSetupStepThree:
+      "앱 이름을 Yana Studio로 정하고, 공개 GitHub 페이지를 Homepage URL로 사용한 뒤 Enable Device Flow를 켭니다.",
+    githubSetupStepFour:
+      "앱을 등록하고 설정 페이지의 Client ID를 복사해 아래에 붙여 넣습니다.",
+    openGithubDeveloperSettings: "GitHub Developer Settings 열기",
+    githubClientIdPlaceholder: "GitHub Client ID를 여기에 붙여 넣기",
+    githubConnecting: "GitHub을 여는 중…",
+    githubWaitingForApproval:
+      "github.com/login/device에서 위 코드를 입력해 계속하세요.",
+    githubConnectionFailed:
+      "GitHub에 연결할 수 없습니다. 브라우저 창을 확인한 뒤 다시 시도하세요.",
+    githubRepositoryScopeNote:
+      "repo 권한은 별도로 부여되며 private repository를 읽고 쓸 수 있습니다. Studio에서 GitHub를 사용할 때만 연결하세요.",
     studioLockedTitle: "Yana Studio가 잠겨 있습니다",
     unlockButton: "잠금 해제",
     connectionsLoadError: "연결 상태를 읽을 수 없습니다.",
-    oauthStartError: "OAuth를 시작할 수 없습니다. 설정과 secure storage를 확인하세요.",
+    oauthStartError:
+      "OAuth를 시작할 수 없습니다. 설정과 secure storage를 확인하세요.",
     connectionsIntro:
       "Google 로그인은 Gmail 권한을 부여하지 않습니다. 각 연결은 Electron main이 관리하는 별도의 권한과 credential을 가집니다.",
-    authPurposeNote: "이 앱 안의 개인 계정입니다 — Yana 서버 세션을 만들지 않습니다.",
+    authPurposeNote:
+      "이 앱 안의 개인 계정입니다 — Yana 서버 세션을 만들지 않습니다.",
     servicePurposeNote: "별도의 서비스 권한을 부여합니다.",
     githubOauthConfigSummary: "GitHub OAuth 앱 설정",
     githubClientIdLabel: "공개 Client ID",
     githubOauthHint:
       "GitHub Developer Settings에서 OAuth 앱을 만들고 Device flow를 켜세요. 토큰이나 client secret은 여기에 입력하지 마세요.",
     saveClientId: "Client ID 저장",
-    githubClientIdSaveError: "GitHub client ID를 저장하지 못했습니다. ID와 secure storage를 확인하세요.",
-    disconnectBeforeChangeClientId: "OAuth client ID를 바꾸기 전에 연결을 해제하세요.",
+    githubClientIdSaveError:
+      "GitHub client ID를 저장하지 못했습니다. ID와 secure storage를 확인하세요.",
+    disconnectBeforeChangeClientId:
+      "OAuth client ID를 바꾸기 전에 연결을 해제하세요.",
     deviceCodePrefix: "코드",
     deviceCodeSuffix:
       "를 방금 열린 github.com/login/device에 입력하세요. 이 앱에서 직접 요청한 코드만 확인하세요.",
-    secureStorageNotReady: "OS secure storage가 아직 준비되지 않았습니다. 토큰을 평문으로 저장하지 않습니다.",
+    secureStorageNotReady:
+      "OS secure storage가 아직 준비되지 않았습니다. 토큰을 평문으로 저장하지 않습니다.",
     credentialStoreUnreadableNote:
       "저장된 자격 증명을 읽을 수 없습니다 (앱 업데이트 후 흔히 발생). 다시 연결하면 복구됩니다.",
     realPermissionsNote:
@@ -619,8 +758,10 @@ const messages = {
     revokeAtGoogle: "Google에서 취소",
     confirmDisconnect:
       "Yana Studio에서 이 연결 credential을 삭제할까요? 제공자 쪽 권한은 남아있으며, 해당 계정 관리 페이지에서 취소할 수 있습니다.",
-    disconnectFailNote: "credential을 삭제하지 못했습니다. 연결 해제로 간주하지 않습니다.",
-    revokeFailNote: "취소가 완료되지 않았습니다. credential이 취소됨으로 표시되지 않았습니다.",
+    disconnectFailNote:
+      "credential을 삭제하지 못했습니다. 연결 해제로 간주하지 않습니다.",
+    revokeFailNote:
+      "취소가 완료되지 않았습니다. credential이 취소됨으로 표시되지 않았습니다.",
     keyEncrypted: "키 암호화됨",
     needsApiKey: "API 키 필요",
     noKeyNeeded: "키 불필요",
@@ -629,10 +770,13 @@ const messages = {
     getRealListFromProvider: "provider에서 실제 목록 가져오기",
     useModel: "이 모델 사용",
     manageLabel: "관리",
-    addKeyInSettingsNote: "이 provider를 사용하기 전에 Settings에서 키를 추가하세요.",
-    modelSearchPlaceholder: "이름, provider, 기능으로 모델 검색 (vision, reasoning, cheap...)",
+    addKeyInSettingsNote:
+      "이 provider를 사용하기 전에 Settings에서 키를 추가하세요.",
+    modelSearchPlaceholder:
+      "이름, provider, 기능으로 모델 검색 (vision, reasoning, cheap...)",
     modelInUseTitle: "사용 중인 모델",
-    sameCatalogNote: "yana-rt와 같은 카탈로그를 사용하며, provider마다 별도의 키를 가집니다.",
+    sameCatalogNote:
+      "yana-rt와 같은 카탈로그를 사용하며, provider마다 별도의 키를 가집니다.",
     officialProviderEndpointNote:
       "공식 Yana provider는 고정 endpoint를 사용합니다. Custom은 HTTPS 또는 loopback HTTP만 허용합니다.",
     keyEncryptedReplacePrompt: "암호화됨 · 교체하려면 새 키 입력",
@@ -654,14 +798,18 @@ const messages = {
     credentialMissingTemplate: "{label}에 아직 credential이 없습니다.",
     credentialNoKeyTemplate: "{label}은(는) API 키 없이 실행됩니다.",
     localAiTitle: "이 기기의 로컬 AI",
-    localAiNote: "trusted host에서 endpoint를 탐지하며, renderer를 거치지 않습니다.",
+    localAiNote:
+      "trusted host에서 endpoint를 탐지하며, renderer를 거치지 않습니다.",
     scanLocal: "로컬 스캔",
     notRunning: "실행되지 않음",
     runtimeReadyTemplate: "모델 {n}개 · {ms} ms",
-    scanLocalHint: "로컬 스캔을 눌러 9Router, Ollama, LM Studio, llama.cpp, TurboFieldfare, AirLLM을 찾으세요.",
-    officialProvidersTemplate: "Rust 카탈로그의 공식 provider {n}개 · Cloud와 Local.",
+    scanLocalHint:
+      "로컬 스캔을 눌러 9Router, Ollama, LM Studio, llama.cpp, TurboFieldfare, AirLLM을 찾으세요.",
+    officialProvidersTemplate:
+      "Rust 카탈로그의 공식 provider {n}개 · Cloud와 Local.",
     restoredNotice: "portable 데이터가 복원되었습니다.",
-    privacyDataNote: "파일 수와 용량만 집계합니다. 이 화면은 파일 내용을 읽거나 표시하지 않습니다.",
+    privacyDataNote:
+      "파일 수와 용량만 집계합니다. 이 화면은 파일 내용을 읽거나 표시하지 않습니다.",
     localDataOnLocalMachine: "데이터는 이 기기에 있습니다.",
     readingLabel: "읽는 중…",
     refreshLabel: "새로고침",
@@ -731,7 +879,8 @@ const messages = {
     selectingLayerLabel: "레이어 1개 선택됨",
     wholeScreenLabel: "전체 화면",
     aiInstructionAria: "Canvas를 수정할 AI 요청",
-    aiPlaceholderWithPart: '예: "{label}"을 파란색 주요 버튼으로 바꾸고 14px 둥글게',
+    aiPlaceholderWithPart:
+      '예: "{label}"을 파란색 주요 버튼으로 바꾸고 14px 둥글게',
     aiPlaceholderNoPart: "예: 따뜻한 파란 톤의 모던한 로그인 화면 만들기",
     suggestionMoreProminent: "더 돋보이게",
     suggestionCreateLanding: "랜딩 페이지 만들기",
@@ -781,7 +930,8 @@ const messages = {
     previewDialogAria: "디자인 미리보기",
     closePreviewAria: "미리보기 닫기",
     openProjectToDesign: "디자인을 시작하려면 프로젝트를 여세요",
-    canvasSavedNote: "Canvas는 Yana Studio의 workspace 및 백업과 함께 저장됩니다.",
+    canvasSavedNote:
+      "Canvas는 Yana Studio의 workspace 및 백업과 함께 저장됩니다.",
     noDesignTokensFound:
       "project에서 design token을 찾을 수 없습니다 (--accent, --background, --foreground 같은 CSS custom property).",
   },
@@ -791,6 +941,17 @@ const messages = {
     chat: "Chat",
     files: "Files & Editor",
     terminal: "Terminal",
+    studioHome: "Studio Home",
+    designCanvas: "Design Canvas",
+    tasks: "Tasks",
+    devices: "Devices",
+    currentWorkspace: "Workspace",
+    localBranch: "Local",
+    openProjectAria: "Open project",
+    resizeSidebar: "Resize sidebar",
+    resizeTerminalDock: "Resize terminal dock",
+    resizeInspector: "Resize inspector",
+    refreshGit: "Refresh Git",
     workspace: "WORKSPACE",
     worktrees: "WORKTREES",
     recentProjects: "RECENT PROJECTS",
@@ -799,10 +960,21 @@ const messages = {
     runtimeReady: "Runtime configured",
     runtimeNeeded: "Choose a runtime",
     noBypass: "Never bypass authority on failure",
+    appearance: "Appearance",
+    appearanceDescription:
+      "Choose a light or dark surface, then tune Liquid Glass to your eyes.",
     language: "Appearance & Language",
     languageDescription:
       "Language is stored on this device and applies immediately.",
     languageLabel: "Display language",
+    themeLabel: "Color mode",
+    themeLight: "Light",
+    themeDark: "Dark",
+    liquidGlassTitle: "Liquid Glass",
+    liquidGlassDescription:
+      "Use 0% for the current solid interface. Increase it to turn panels into transparent glass.",
+    glassOpacityLabel: "Liquid Glass clarity",
+    glassBlurLabel: "Background blur",
     account: "Account",
     modelRuntime: "Model & Runtime",
     usage: "Usage",
@@ -876,6 +1048,9 @@ const messages = {
     userLabel: "You",
     copyMessageAria: "Copy message",
     copyTitle: "Copy",
+    copyResponseAria: "Copy Yana's response",
+    editQuestionAria: "Edit this question",
+    editQuestionTitle: "Edit",
     reuseAria: "Reuse this content in the composer",
     reuseTitle: "Reuse in composer",
     modelStaleNotice:
@@ -942,7 +1117,8 @@ const messages = {
     projectMemoryHeader: "PROJECT MEMORY",
     projectMemoryNote:
       "Persistent notes for this project — every later chat/session reads it, unlike one pinned conversation.",
-    memoryPlaceholder: "Conventions, decisions, constraints the agent should remember…",
+    memoryPlaceholder:
+      "Conventions, decisions, constraints the agent should remember…",
     memoryPlaceholderNoProject: "Open a project to write memory",
     saveMemory: "Save memory",
     governanceTelemetryHeader: "GOVERNANCE TELEMETRY",
@@ -973,6 +1149,9 @@ const messages = {
     localFirstAccountTitle: "Local-first account",
     localFirstAccountNote:
       "No Yana cloud server. The account only identifies the user on this device; projects, chats, and backups don't auto-upload.",
+    googleAccountTitle: "Sign in to get started",
+    googleAccountNote:
+      "Yana Studio uses Google to identify this device profile. Your projects and chats still stay on this computer.",
     emailPasswordTitle: "Email + password",
     emailPasswordNote:
       "The password locks Studio on this machine. Only a salt and scrypt verifier are stored, never the password itself.",
@@ -981,29 +1160,68 @@ const messages = {
     passwordFieldLabel: "Password",
     createLocalProfile: "Create local profile",
     continueWithGoogleTitle: "Continue with Google",
-    googleScopeNote: "Uses identity scope only. Gmail, Drive, or Calendar are never auto-granted.",
+    continueWithGithubTitle: "Continue with GitHub",
+    googleScopeNote:
+      "Uses identity scope only. Gmail, Drive, or Calendar are never auto-granted.",
+    or: "or",
     useGoogleAsProfile: "Use Google as Studio profile",
-    connectGoogleFirst: "Connect a Google Account under Accounts & Connections first.",
+    connectGoogleFirst:
+      "Connect a Google Account under Accounts & Connections first.",
     googleNotConnected: "Google not connected",
+    googleConnecting: "Opening Google…",
+    googleWaitingForApproval:
+      "Complete the confirmation in your browser to continue.",
+    googleConnectionFailed:
+      "Couldn't connect Google. Check the browser window, then try again.",
+    googleTestingHint:
+      "If Google says the app is still in testing, add your Gmail under Audience → Test users in Google Cloud before trying again.",
+    googleTestingBlocked:
+      "Google did not return authorization to the app. If the browser says the app is in testing, add this Gmail under Audience → Test users in Google Cloud, then try again.",
+    openGoogleCloudAudience: "Open Google Cloud — Test users",
+    githubAccountNote:
+      "GitHub only identifies this profile. Repository access is connected separately after you enter Studio.",
+    githubConfigurationRequired:
+      "Enter a public GitHub OAuth Client ID to get started.",
+    githubSetupTitle: "First-time GitHub setup",
+    githubSetupStepOne: "Open GitHub Developer Settings with the button below.",
+    githubSetupStepTwo: "Choose OAuth Apps → New OAuth App.",
+    githubSetupStepThree:
+      "Name it Yana Studio, use your public GitHub page as the Homepage URL, then enable Device Flow.",
+    githubSetupStepFour:
+      "Register the app, copy the Client ID shown on its settings page, and paste it below.",
+    openGithubDeveloperSettings: "Open GitHub Developer Settings",
+    githubClientIdPlaceholder: "Paste the GitHub Client ID here",
+    githubConnecting: "Opening GitHub…",
+    githubWaitingForApproval:
+      "Enter the code above at github.com/login/device to continue.",
+    githubConnectionFailed:
+      "Couldn't connect GitHub. Check the browser window, then try again.",
+    githubRepositoryScopeNote:
+      "The repo permission is granted separately and can read and write private repositories. Connect it only when you want to use GitHub in Studio.",
     studioLockedTitle: "Yana Studio is locked",
     unlockButton: "Unlock",
     connectionsLoadError: "Couldn't read connection status.",
-    oauthStartError: "Couldn't start OAuth. Check configuration and secure storage.",
+    oauthStartError:
+      "Couldn't start OAuth. Check configuration and secure storage.",
     connectionsIntro:
       "Signing in with Google doesn't grant Gmail access. Each connection has its own permission and credential, managed by the Electron main process.",
-    authPurposeNote: "A personal account in this app — doesn't create a Yana server session.",
+    authPurposeNote:
+      "A personal account in this app — doesn't create a Yana server session.",
     servicePurposeNote: "Grants a separate service permission.",
     githubOauthConfigSummary: "Configure GitHub OAuth app",
     githubClientIdLabel: "Public client ID",
     githubOauthHint:
       "In GitHub Developer Settings, create an OAuth app and enable Device flow. Don't enter a token or client secret here.",
     saveClientId: "Save client ID",
-    githubClientIdSaveError: "Couldn't save the GitHub client ID. Check the ID and secure storage.",
-    disconnectBeforeChangeClientId: "Disconnect before changing the OAuth client ID.",
+    githubClientIdSaveError:
+      "Couldn't save the GitHub client ID. Check the ID and secure storage.",
+    disconnectBeforeChangeClientId:
+      "Disconnect before changing the OAuth client ID.",
     deviceCodePrefix: "Enter code",
     deviceCodeSuffix:
       "at the github.com/login/device page that just opened. Only confirm a code you just requested in this app.",
-    secureStorageNotReady: "OS secure storage isn't ready yet. Tokens are never stored in plaintext.",
+    secureStorageNotReady:
+      "OS secure storage isn't ready yet. Tokens are never stored in plaintext.",
     credentialStoreUnreadableNote:
       "Couldn't read the saved credential (often happens after an app update). Reconnect to restore it.",
     realPermissionsNote:
@@ -1011,8 +1229,10 @@ const messages = {
     revokeAtGoogle: "Revoke at Google",
     confirmDisconnect:
       "Remove this connection's credential from Yana Studio? Permission at the provider stays in place; you can revoke it from their account management page.",
-    disconnectFailNote: "Couldn't remove the credential. Not considered disconnected.",
-    revokeFailNote: "Revoke didn't complete. The credential wasn't marked revoked.",
+    disconnectFailNote:
+      "Couldn't remove the credential. Not considered disconnected.",
+    revokeFailNote:
+      "Revoke didn't complete. The credential wasn't marked revoked.",
     keyEncrypted: "Key encrypted",
     needsApiKey: "Needs API key",
     noKeyNeeded: "No key needed",
@@ -1025,7 +1245,8 @@ const messages = {
     modelSearchPlaceholder:
       "Search models by name, provider, or capability (vision, reasoning, cheap...)",
     modelInUseTitle: "Model in use",
-    sameCatalogNote: "Same catalog as yana-rt; each provider keeps its own key.",
+    sameCatalogNote:
+      "Same catalog as yana-rt; each provider keeps its own key.",
     officialProviderEndpointNote:
       "Official Yana providers use a fixed endpoint. Custom only accepts HTTPS or loopback HTTP.",
     keyEncryptedReplacePrompt: "Encrypted · enter a new key to replace it",
@@ -1047,13 +1268,15 @@ const messages = {
     credentialMissingTemplate: "{label} has no credential yet.",
     credentialNoKeyTemplate: "{label} runs without an API key.",
     localAiTitle: "Local AI on this machine",
-    localAiNote: "Detects the endpoint from the trusted host, not through the renderer.",
+    localAiNote:
+      "Detects the endpoint from the trusted host, not through the renderer.",
     scanLocal: "Scan local",
     notRunning: "Not running",
     runtimeReadyTemplate: "{n} models · {ms} ms",
     scanLocalHint:
       "Click Scan local to find 9Router, Ollama, LM Studio, llama.cpp, TurboFieldfare, and AirLLM.",
-    officialProvidersTemplate: "{n} official providers from the Rust catalog · Cloud and Local.",
+    officialProvidersTemplate:
+      "{n} official providers from the Rust catalog · Cloud and Local.",
     restoredNotice: "Portable data has been restored.",
     privacyDataNote:
       "Only counts file counts and size. This screen never reads or displays file contents.",
@@ -1126,7 +1349,8 @@ const messages = {
     selectingLayerLabel: "1 layer selected",
     wholeScreenLabel: "Whole screen",
     aiInstructionAria: "AI instruction to edit the Canvas",
-    aiPlaceholderWithPart: 'e.g. turn "{label}" into a blue primary button, 14px radius',
+    aiPlaceholderWithPart:
+      'e.g. turn "{label}" into a blue primary button, 14px radius',
     aiPlaceholderNoPart: "e.g. create a modern login screen, warm blue tone",
     suggestionMoreProminent: "Make it more prominent",
     suggestionCreateLanding: "Create a landing page",
@@ -1163,7 +1387,8 @@ const messages = {
     moveUpTitle: "Move up",
     moveDownTitle: "Move down",
     deleteLabel: "Delete",
-    syncThemeTitle: "Read accent/background/text colors from the project's real CSS",
+    syncThemeTitle:
+      "Read accent/background/text colors from the project's real CSS",
     syncThemeFromProject: "Sync theme from project",
     themeFromProjectHint: "This theme was read from the project's real CSS.",
     textColorLabel: "Text",
@@ -1176,7 +1401,8 @@ const messages = {
     previewDialogAria: "Design preview",
     closePreviewAria: "Close preview",
     openProjectToDesign: "Open a project to start designing",
-    canvasSavedNote: "The canvas is saved with Yana Studio's workspace and backups.",
+    canvasSavedNote:
+      "The canvas is saved with Yana Studio's workspace and backups.",
     noDesignTokensFound:
       "No design tokens found in the project (CSS custom properties like --accent, --background, --foreground).",
   },

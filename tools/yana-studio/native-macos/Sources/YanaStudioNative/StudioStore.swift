@@ -613,6 +613,27 @@ final class StudioStore: ObservableObject {
         }
     }
 
+    func signInWithGoogle() {
+        guard let localAccountStore else {
+            accountError = "Hồ sơ local không khả dụng trên máy này."
+            return
+        }
+        guard !isAuthenticating else { return }
+        isAuthenticating = true
+        accountError = nil
+        Task {
+            defer { isAuthenticating = false }
+            do {
+                let identity = try await GoogleOAuthSignIn.authenticate()
+                accountStatus = try localAccountStore.useGoogle(identity: identity)
+                notice = "Đã xác nhận hồ sơ Google trên máy này."
+                refreshReadiness()
+            } catch {
+                accountError = error.localizedDescription
+            }
+        }
+    }
+
     func lockStudio() {
         guard let localAccountStore else { return }
         accountStatus = localAccountStore.lock()
@@ -660,10 +681,10 @@ final class StudioStore: ObservableObject {
         readinessChecks = [
             StudioReadinessCheck(
                 id: "profile",
-                title: "Hồ sơ local",
+                title: "Hồ sơ trên máy",
                 detail: accountStatus.configured
-                    ? (accountStatus.locked ? "Hồ sơ đang khóa." : "\(accountStatus.displayName) · đã mở khóa.")
-                    : "Tạo một hồ sơ local để tiếp tục.",
+                    ? (accountStatus.locked ? "Hồ sơ đang khóa." : "\(accountStatus.displayName) · \(accountStatus.mode == "google" ? "Google" : "local") · đã mở khóa.")
+                    : "Đăng nhập Google hoặc tạo một hồ sơ local để tiếp tục.",
                 isReady: accountStatus.configured && !accountStatus.locked
             ),
             StudioReadinessCheck(id: "project", title: "Project", detail: projectDetail, isReady: projectReady),

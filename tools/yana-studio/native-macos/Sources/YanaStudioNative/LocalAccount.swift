@@ -25,6 +25,9 @@ enum LocalAccountError: LocalizedError {
     case invalidPassword
     case invalidAccountFile
     case incorrectPassword
+    case accountUsesAnotherSignInMethod
+    case googleIdentityMismatch
+    case invalidGoogleIdentity
     case unavailable(String)
 
     var errorDescription: String? {
@@ -41,6 +44,12 @@ enum LocalAccountError: LocalizedError {
             "Không thể đọc hồ sơ local một cách an toàn."
         case .incorrectPassword:
             "Mật khẩu chưa đúng."
+        case .accountUsesAnotherSignInMethod:
+            "Hồ sơ trên máy này đang dùng phương thức đăng nhập khác."
+        case .googleIdentityMismatch:
+            "Tài khoản Google này không khớp với hồ sơ đã lưu trên máy."
+        case .invalidGoogleIdentity:
+            "Google chưa trả về một hồ sơ hợp lệ để đăng nhập."
         case .unavailable(let message):
             message
         }
@@ -52,8 +61,9 @@ private struct PersistedLocalAccount: Codable {
     let mode: String
     let email: String
     let displayName: String
-    let salt: String
-    let verifier: String
+    let salt: String?
+    let verifier: String?
+    let providerSubject: String?
     let createdAt: Date
 }
 
@@ -103,17 +113,7 @@ final class LocalAccountStore {
 
         let data = try Data(contentsOf: accountFile)
         let stored = try JSONDecoder().decode(PersistedLocalAccount.self, from: data)
-        guard
-            stored.schema == 1,
-            stored.mode == "local",
-            Self.isValidEmail(stored.email),
-            !stored.displayName.isEmpty,
-            stored.displayName.count <= 120,
-            let salt = Data(base64Encoded: stored.salt),
-            salt.count == Self.saltLength,
-            let verifier = Data(base64Encoded: stored.verifier),
-            verifier.count == Self.verifierLength
-        else {
+        guard Self.isValidStoredAccount(stored) else {
             throw LocalAccountError.invalidAccountFile
         }
 
@@ -156,6 +156,7 @@ final class LocalAccountStore {
             displayName: normalizedName,
             salt: salt.base64EncodedString(),
             verifier: verifier.base64EncodedString(),
+            providerSubject: nil,
             createdAt: .now
         )
         try write(stored)
@@ -166,10 +167,13 @@ final class LocalAccountStore {
 
     func unlock(password: String) throws -> StudioAccountStatus {
         guard let account else { throw LocalAccountError.unavailable("Chưa có hồ sơ local để mở khóa.") }
+        guard account.mode == "local" else { throw LocalAccountError.accountUsesAnotherSignInMethod }
         guard password.count <= 1_024 else { throw LocalAccountError.incorrectPassword }
         guard
-            let salt = Data(base64Encoded: account.salt),
-            let expected = Data(base64Encoded: account.verifier)
+            let encodedSalt = account.salt,
+            let encodedVerifier = account.verifier,
+            let salt = Data(base64Encoded: encodedSalt),
+            let expected = Data(base64Encoded: encodedVerifier)
         else {
             throw LocalAccountError.invalidAccountFile
         }
@@ -177,6 +181,44 @@ final class LocalAccountStore {
         guard Self.constantTimeEquals(actual, expected) else {
             throw LocalAccountError.incorrectPassword
         }
+        isLocked = false
+        return status
+    }
+
+    func useGoogle(identity: GoogleIdentity) throws -> StudioAccountStatus {
+        let normalizedName = identity.displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalizedEmail = identity.email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let subject = identity.subject.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard
+            !subject.isEmpty,
+            !normalizedName.isEmpty,
+            normalizedName.count <= 120,
+            Self.isValidEmail(normalizedEmail)
+        else {
+            throw LocalAccountError.invalidGoogleIdentity
+        }
+
+        if let account {
+            guard account.mode == "google" else { throw LocalAccountError.accountUsesAnotherSignInMethod }
+            guard account.providerSubject == subject, account.email == normalizedEmail else {
+                throw LocalAccountError.googleIdentityMismatch
+            }
+            isLocked = false
+            return status
+        }
+
+        let stored = PersistedLocalAccount(
+            schema: 2,
+            mode: "google",
+            email: normalizedEmail,
+            displayName: normalizedName,
+            salt: nil,
+            verifier: nil,
+            providerSubject: subject,
+            createdAt: .now
+        )
+        try write(stored)
+        account = stored
         isLocked = false
         return status
     }
@@ -198,6 +240,30 @@ final class LocalAccountStore {
             of: #"^[^\s@]+@[^\s@]+\.[^\s@]+$"#,
             options: .regularExpression
         ) != nil
+    }
+
+    private static func isValidStoredAccount(_ stored: PersistedLocalAccount) -> Bool {
+        guard
+            Self.isValidEmail(stored.email),
+            !stored.displayName.isEmpty,
+            stored.displayName.count <= 120
+        else {
+            return false
+        }
+
+        if stored.schema == 1, stored.mode == "local",
+           let encodedSalt = stored.salt,
+           let encodedVerifier = stored.verifier,
+           let salt = Data(base64Encoded: encodedSalt),
+           let verifier = Data(base64Encoded: encodedVerifier) {
+            return salt.count == Self.saltLength && verifier.count == Self.verifierLength && stored.providerSubject == nil
+        }
+
+        return stored.schema == 2
+            && stored.mode == "google"
+            && !(stored.providerSubject?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+            && stored.salt == nil
+            && stored.verifier == nil
     }
 
     private static func randomData(length: Int) throws -> Data {

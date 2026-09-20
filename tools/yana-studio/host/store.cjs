@@ -4,6 +4,24 @@ const crypto = require("node:crypto");
 const { profileInput } = require("./runtime.cjs");
 const { CANVAS_PART_KINDS } = require("./canvas-ai.cjs");
 
+const DEFAULT_PREFERENCES = {
+  locale: "vi",
+  theme: "light",
+  glassOpacity: 0,
+  glassBlur: 18,
+};
+
+function preferencesWithDefaults(preferences) {
+  if (preferences === undefined) return { ...DEFAULT_PREFERENCES };
+  if (
+    !preferences ||
+    typeof preferences !== "object" ||
+    Array.isArray(preferences)
+  )
+    return preferences;
+  return { ...DEFAULT_PREFERENCES, ...preferences };
+}
+
 function validateState(value) {
   const text = (input) => typeof input === "string";
   const tokenCount = (input) => Number.isSafeInteger(input) && input >= 0;
@@ -146,7 +164,14 @@ function validateState(value) {
   profileInput(value.profile);
   if (
     !value.preferences ||
-    !["vi", "ko", "en"].includes(value.preferences.locale)
+    !["vi", "ko", "en"].includes(value.preferences.locale) ||
+    !["light", "dark"].includes(value.preferences.theme) ||
+    !Number.isSafeInteger(value.preferences.glassOpacity) ||
+    value.preferences.glassOpacity < 0 ||
+    value.preferences.glassOpacity > 100 ||
+    !Number.isSafeInteger(value.preferences.glassBlur) ||
+    value.preferences.glassBlur < 0 ||
+    value.preferences.glassBlur > 32
   )
     throw new Error("Invalid interface preferences");
   if (typeof value.onboardingCompleted !== "boolean")
@@ -179,7 +204,7 @@ class Store {
       projects: [],
       chats: [],
       profile: { provider: "ollama", model: "", baseUrl: "" },
-      preferences: { locale: "vi" },
+      preferences: { ...DEFAULT_PREFERENCES },
       onboardingCompleted: false,
       layout: { sidebar: 250, inspector: 330, dock: 280 },
       designs: {},
@@ -191,7 +216,11 @@ class Store {
         if (fs.statSync(this.file).size > 12 * 1024 * 1024)
           throw new Error("state is too large");
         const parsed = JSON.parse(fs.readFileSync(this.file, "utf8"));
-        const next = { ...this.value, ...parsed };
+        const next = {
+          ...this.value,
+          ...parsed,
+          preferences: preferencesWithDefaults(parsed.preferences),
+        };
         validateState(next);
         this.value = next;
       } catch (error) {
@@ -202,7 +231,15 @@ class Store {
     }
   }
   save(patch) {
-    const next = { ...this.value, ...patch, schema: 1 };
+    const next = {
+      ...this.value,
+      ...patch,
+      preferences:
+        patch.preferences === undefined
+          ? this.value.preferences
+          : preferencesWithDefaults(patch.preferences),
+      schema: 1,
+    };
     validateState(next);
     const payload = JSON.stringify(next);
     if (Buffer.byteLength(payload) > 10 * 1024 * 1024)

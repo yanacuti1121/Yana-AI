@@ -594,7 +594,7 @@ private struct AccountEntrySurface: View {
             )
 
             VStack(alignment: .leading, spacing: 18) {
-                Text(store.accountStatus.locked ? "Mở khóa Yana Studio" : "Tạo hồ sơ để bắt đầu")
+                Text(store.accountStatus.locked ? "Mở khóa Yana Studio" : "Đăng nhập để bắt đầu")
                     .font(.title2.weight(.bold))
                 Text(accountDetail)
                     .font(.subheadline)
@@ -610,7 +610,16 @@ private struct AccountEntrySurface: View {
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
 
-                if store.accountStatus.locked {
+                if store.accountStatus.locked, store.accountStatus.mode == "google" {
+                    Text(store.accountStatus.displayName)
+                        .font(.headline)
+                    Text(store.accountStatus.email)
+                        .font(.caption)
+                        .foregroundStyle(Color.yanaMuted)
+                    Button(store.isAuthenticating ? "Đang mở Google…" : "Tiếp tục với Google", action: store.signInWithGoogle)
+                        .buttonStyle(NativePrimaryButton())
+                        .disabled(store.isAuthenticating || !GoogleOAuthSignIn.isConfigured)
+                } else if store.accountStatus.locked {
                     Text(store.accountStatus.displayName)
                         .font(.headline)
                     SecureField("Mật khẩu", text: $password)
@@ -620,6 +629,17 @@ private struct AccountEntrySurface: View {
                         .buttonStyle(NativePrimaryButton())
                         .disabled(store.isAuthenticating || password.isEmpty)
                 } else {
+                    Button(store.isAuthenticating ? "Đang mở Google…" : "Tiếp tục với Google", action: store.signInWithGoogle)
+                        .buttonStyle(NativePrimaryButton())
+                        .disabled(store.isAuthenticating || !GoogleOAuthSignIn.isConfigured)
+                    Text("Chỉ dùng danh tính Google: tên và email đã xác minh. Không cấp quyền Gmail, Drive hoặc Calendar.")
+                        .font(.caption)
+                        .foregroundStyle(Color.yanaMuted)
+                    HStack(spacing: 10) {
+                        Rectangle().fill(Color.yanaLine).frame(height: 1)
+                        Text("hoặc").font(.caption).foregroundStyle(Color.yanaMuted)
+                        Rectangle().fill(Color.yanaLine).frame(height: 1)
+                    }
                     TextField("Tên hiển thị", text: $displayName)
                         .textFieldStyle(.roundedBorder)
                     TextField("Email", text: $email)
@@ -629,7 +649,12 @@ private struct AccountEntrySurface: View {
                     SecureField("Nhập lại mật khẩu", text: $confirmation)
                         .textFieldStyle(.roundedBorder)
                         .onSubmit(createAccount)
-                    Text("Tối thiểu 10 ký tự. Mật khẩu không được lưu ở dạng có thể đọc.")
+                    if !confirmation.isEmpty, password != confirmation {
+                        Text("Mật khẩu nhập lại chưa khớp.")
+                            .font(.caption)
+                            .foregroundStyle(Color.yanaDanger)
+                    }
+                    Text("Tối thiểu 10 ký tự, nhập lại đúng khớp. Mật khẩu không được lưu ở dạng có thể đọc.")
                         .font(.caption)
                         .foregroundStyle(Color.yanaMuted)
                     Button(store.isAuthenticating ? "Đang tạo hồ sơ…" : "Tạo hồ sơ local", action: createAccount)
@@ -638,7 +663,7 @@ private struct AccountEntrySurface: View {
                 }
 
                 Divider().overlay(Color.yanaLine)
-                Text("Google và GitHub chỉ xuất hiện khi OAuth native đã có callback và Keychain thật. Bản Swift không giả nút đăng nhập chưa hoạt động.")
+                Text(footerDetail)
                     .font(.caption)
                     .foregroundStyle(Color.yanaMuted)
             }
@@ -650,11 +675,20 @@ private struct AccountEntrySurface: View {
     }
 
     private var accountDetail: String {
-        if store.accountStatus.locked {
+        if store.accountStatus.locked, store.accountStatus.mode == "google" {
+            "Xác nhận lại đúng tài khoản Google để mở khóa Yana Studio trên máy này."
+        } else if store.accountStatus.locked {
             "Hồ sơ local của anh đang được khóa trên máy này."
         } else {
             "Hồ sơ dùng để khóa/mở khóa Yana Studio trên máy này."
         }
+    }
+
+    private var footerDetail: String {
+        if GoogleOAuthSignIn.isConfigured {
+            return "Google mở trong trình duyệt và quay về ứng dụng bằng PKCE. Yana không lưu access token hoặc client secret."
+        }
+        return "Google chưa được cấu hình cho bản app này."
     }
 
     private var canCreate: Bool {

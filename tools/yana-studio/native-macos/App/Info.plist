@@ -22,6 +22,8 @@
     <string>1</string>
     <key>LSMinimumSystemVersion</key>
     <string>14.0</string>
+    <key>GoogleOAuthClientID</key>
+    <string>185309186279-o4uhmptdte7nvhbsdj96r84bahtnu35k.apps.googleusercontent.com</string>
     <key>NSHighResolutionCapable</key>
     <true/>
 </dict>

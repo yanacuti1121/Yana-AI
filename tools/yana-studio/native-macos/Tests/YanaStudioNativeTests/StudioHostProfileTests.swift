@@ -110,6 +110,41 @@ final class LocalAccountStoreTests: XCTestCase {
         }
     }
 
+    func testGoogleProfileRequiresTheSameIdentityToUnlock() throws {
+        let store = try makeStore()
+        let identity = GoogleIdentity(subject: "google-subject-1", email: "vu@example.com", displayName: "Vũ")
+
+        let created = try store.useGoogle(identity: identity)
+        XCTAssertEqual(created.mode, "google")
+        XCTAssertFalse(created.locked)
+
+        let accountFile = directory.appendingPathComponent("account-v1.json")
+        let serialized = try String(contentsOf: accountFile, encoding: .utf8)
+        XCTAssertTrue(serialized.contains("google-subject-1"))
+        XCTAssertFalse(serialized.contains("access_token"))
+        XCTAssertFalse(serialized.contains("refresh_token"))
+
+        let reloaded = try makeStore()
+        XCTAssertTrue(reloaded.status.locked)
+        XCTAssertThrowsError(
+            try reloaded.useGoogle(identity: GoogleIdentity(subject: "wrong-subject", email: "vu@example.com", displayName: "Vũ"))
+        ) { error in
+            guard case LocalAccountError.googleIdentityMismatch = error else {
+                return XCTFail("Expected a Google identity mismatch, got \(error)")
+            }
+        }
+
+        let unlocked = try reloaded.useGoogle(identity: identity)
+        XCTAssertFalse(unlocked.locked)
+    }
+
+    func testGooglePKCEUsesTheRequiredSHA256Challenge() {
+        XCTAssertEqual(
+            GoogleOAuthPKCE.challenge(for: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"),
+            "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+        )
+    }
+
     private func makeStore() throws -> LocalAccountStore {
         try LocalAccountStore(directoryURL: directory)
     }

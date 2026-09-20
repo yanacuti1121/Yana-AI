@@ -724,3 +724,268 @@ small,
 ::-webkit-scrollbar-thumb {
   background: #c9c0b6;
 }
+
+:root {
+  --surface: #f7f4ef;
+  --card: #fffdf9;
+  --border: #e2dcd4;
+  --muted: #756f69;
+  --accent: #a95070;
+  --accent-soft: #f7e8ee;
+}
+
+body,
+.app,
+.workspace,
+.main-column {
+  background: #f3efe9;
+}
+
+.titlebar {
+  height: 56px;
+  background: #fffdf9;
+  border-bottom-color: #e6dfd7;
+  box-shadow: none;
+}
+
+.sidebar {
+  background: #f7f4ef;
+  border-right: 1px solid #e6dfd7;
+  padding-top: 16px;
+}
+
+.center,
+.inspector,
+.terminal-dock,
+.settings-container,
+.project-switch,
+.runtime-chip,
+.card,
+.provider-card,
+.local-runtime-card,
+.composer,
+.composer-toolbar,
+.composer-shortcuts,
+.global-search,
+.settings-shortcut {
+  backdrop-filter: none;
+}
+
+.center,
+.inspector,
+.terminal-dock,
+.settings-container {
+  background: #fffdf9;
+  border-color: #e6dfd7;
+  box-shadow: none;
+}
+
+.main-column {
+  padding: 12px 8px 8px;
+}
+
+.center {
+  border-radius: 10px;
+}
+
+.inspector {
+  border-left: 1px solid #e6dfd7;
+  border-radius: 0;
+}
+
+.project-switch,
+.runtime-chip {
+  background: #fffdf9;
+  border-color: #e2dcd4;
+  box-shadow: none;
+}
+
+.project-switch:hover:not(:disabled) {
+  background: #fbf5f7;
+  border-color: #dcb9c7;
+}
+
+.sidebar nav button,
+.sidebar-bottom > button,
+.recent button {
+  border-radius: 6px;
+}
+
+.sidebar nav button.selected,
+.sidebar-bottom > button.selected,
+.sidebar button.current,
+.recent button.current,
+.tabs button.active,
+.tree-item.current,
+.terminal-tab.active,
+.file-tree .current {
+  color: #7b4058;
+  background: #f8e9ef;
+  border-color: #ecd2dc;
+  box-shadow: inset 3px 0 #bd6b86;
+  backdrop-filter: none;
+}
+
+.tree-item.current {
+  color: #514a44;
+  background: #f1ece6;
+  border-color: #e2dbd3;
+  box-shadow: inset 3px 0 #c6b9ae;
+}
+
+.global-search {
+  background: #f8f5f0;
+  border-color: #e2dcd4;
+}
+
+.global-search:hover:not(:disabled),
+.settings-shortcut:hover:not(:disabled) {
+  background: #f8e9ef;
+  border-color: #dcb9c7;
+}
+
+.inspector-tabs,
+.tabs,
+.terminal-tabs,
+.terminal-toolbar,
+.pane-caption,
+.statusbar {
+  background: #faf7f2;
+  backdrop-filter: none;
+}
+
+.inspector-tabs button[aria-selected="true"] {
+  color: #7b4058;
+  background: #fffdf9;
+  box-shadow: inset 0 -2px #bd6b86;
+}
+
+.composer {
+  background: #fffdf9;
+  border-color: #dfd7ce;
+  box-shadow: none;
+}
+
+.composer:focus-within {
+  border-color: #d6a4b5;
+  box-shadow: 0 0 0 3px #f7e8ee;
+}
+
+.composer-toolbar {
+  background: #faf7f2;
+  box-shadow: none;
+}
+
+.composer-shortcuts {
+  background: #f1ece6;
+  box-shadow: none;
+}
+
+.session-summary-grid > div,
+.settings-card,
+.tool-card,
+.capability-card,
+.runtime-chip,
+.project-card,
+.data-summary {
+  box-shadow: none;
+}
+
+.send-button {
+  background: #ad5875;
+  border-color: #9c4965;
+  box-shadow: none;
+}
+
+button:hover:not(:disabled) {
+  background: #f1ebe5;
+  border-color: #d9d1c8;
+}
+
+.message-actions {
+  gap: 6px;
+  opacity: 1;
+}
+
+.message-actions button {
+  width: auto;
+  height: 27px;
+  padding: 0 8px;
+  color: #6c4a57;
+  background: #fffdf9;
+  border-color: #e2d8d1;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.message-actions button:hover:not(:disabled) {
+  color: #7b4058;
+  background: #f8e9ef;
+  border-color: #dcb9c7;
+}
+
+.app[data-theme="light"] {
+  --editor-foreground: #3e454d;
+  --editor-background: #fffefa;
+  --editor-caret: #a84f70;
+  --editor-gutter: #9c9790;
+  --editor-gutter-background: #f6f3ee;
+  --editor-border: #e7e1da;
+  --editor-active-line: #f9eef2;
+  --editor-selection: #ecd5df;
+  background:
+    radial-gradient(circle at 12% 6%, #f5d5e27d, transparent 27rem),
+    radial-gradient(circle at 93% 8%, #d8e5ff82, transparent 25rem), #eee9e2;
+}
+
+.app[data-theme="light"] .workspace,
+.app[data-theme="light"] .main-column {
+  background: transparent;
+}
+
+.app[data-theme="light"] .titlebar,
+.app[data-theme="light"] .sidebar,
+.app[data-theme="light"] .center,
+.app[data-theme="light"] .inspector,
+.app[data-theme="light"] .terminal-dock,
+.app[data-theme="light"] .settings-container,
+.app[data-theme="light"] .project-switch,
+.app[data-theme="light"] .runtime-chip,
+.app[data-theme="light"] .card,
+.app[data-theme="light"] .provider-card,
+.app[data-theme="light"] .local-runtime-card,
+.app[data-theme="light"] .composer,
+.app[data-theme="light"] .composer-toolbar,
+.app[data-theme="light"] .composer-shortcuts,
+.app[data-theme="light"] .global-search,
+.app[data-theme="light"] .settings-shortcut {
+  background: rgba(255, 253, 249, var(--glass-panel-alpha));
+  backdrop-filter: blur(var(--glass-effective-blur)) saturate(132%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 14px 32px rgba(99, 72, 68, var(--glass-shadow-opacity));
+}
+
+.account-entry-shell[data-theme="light"] {
+  --entry-foreground: #3d3936;
+  --entry-background: #eee8e1;
+  background:
+    radial-gradient(circle at 12% 8%, #f3d8e3c4, transparent 30rem),
+    radial-gradient(circle at 90% 14%, #d7e4ffc2, transparent 29rem),
+    var(--entry-background);
+}
+
+.account-entry-shell[data-theme="light"] .account-google-card {
+  background: rgba(255, 253, 249, var(--glass-panel-alpha));
+  border-color: rgba(128, 105, 99, 0.18);
+  backdrop-filter: blur(var(--glass-effective-blur)) saturate(132%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 20px 50px rgba(106, 75, 72, var(--glass-shadow-opacity));
+}
+
+.account-entry-shell[data-theme="light"] .locale-picker {
+  border-color: rgba(109, 88, 84, 0.18);
+  background: rgba(255, 253, 249, var(--glass-panel-alpha));
+  backdrop-filter: blur(var(--glass-effective-blur));
+}
