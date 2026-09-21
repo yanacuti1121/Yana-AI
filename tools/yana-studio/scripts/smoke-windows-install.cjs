@@ -23,6 +23,10 @@ const INSTALL_TIMEOUT_MS = 180_000;
 const TARGET_WAIT_MS = 60_000;
 const SETTLE_MS = 8_000;
 const UNINSTALL_WAIT_MS = 60_000;
+// The NSIS uninstaller re-launches itself from a temp copy, so shortcuts can
+// outlive the executable by a few seconds.
+const SHORTCUT_REMOVAL_WAIT_MS = 30_000;
+const POWERSHELL_TIMEOUT_MS = 60_000;
 const LOG_TAIL_LINES = 60;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -78,6 +82,64 @@ function checkShortcuts(installedExe) {
       fail(`shortcut ${lnk} points at ${target}, not at the installed ${installedExe}`);
     else ok(`shortcut ${path.basename(lnk)} -> ${target}`);
   }
+}
+
+function powershell(script) {
+  const result = spawnSync(
+    "powershell",
+    ["-NoProfile", "-NonInteractive", "-Command", script],
+    { encoding: "utf8", timeout: POWERSHELL_TIMEOUT_MS },
+  );
+  return `${result.stdout ?? ""}${result.stderr ?? ""}`.trim();
+}
+
+function runInstaller(installer, dir) {
+  return spawnSync(installer, ["/S", `/D=${dir}`], {
+    windowsHide: true,
+    timeout: INSTALL_TIMEOUT_MS,
+  });
+}
+
+// Summarises what the installer actually laid down, so a missing executable is
+// visible next to the .dll/.exe files that did or did not arrive with it.
+function describeInstallDir(dir) {
+  if (!fs.existsSync(dir)) return `${dir} does not exist`;
+  const entries = fs.readdirSync(dir, { recursive: true }).map(String);
+  const binaries = entries.filter((name) => /\.(exe|dll|node)$/i.test(name));
+  return `${entries.length} entries, ${binaries.length} binaries (.exe/.dll/.node): ${binaries.slice(0, 40).join(", ") || "none"}`;
+}
+
+// The arm64 installer reported success but left no Yana Studio.exe. Two causes
+// fit that: Windows Defender removed the unsigned binaries after extraction, or
+// the installer never wrote them. Installing a second time into a folder that
+// Defender is told to ignore separates the two.
+function diagnoseMissingExecutable(installer, installDir) {
+  console.log(`  install dir: ${describeInstallDir(installDir)}`);
+  console.log(
+    `  defender status:\n${powershell("Get-MpComputerStatus | Select-Object AntivirusEnabled,RealTimeProtectionEnabled,AntivirusSignatureVersion | Format-List")}`,
+  );
+  console.log(
+    `  defender detections:\n${powershell("Get-MpThreatDetection | Select-Object InitialDetectionTime,ThreatID,Resources | Format-List") || "(none reported)"}`,
+  );
+  console.log(
+    `  defender events:\n${powershell("Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Windows Defender/Operational';Id=1006,1007,1015,1116,1117} -MaxEvents 20 -ErrorAction SilentlyContinue | Format-List TimeCreated,Id,Message") || "(no Defender events)"}`,
+  );
+  const retryDir = `${installDir}-excluded`;
+  console.log(`  retrying the install into ${retryDir} with a Defender exclusion`);
+  powershell(`Add-MpPreference -ExclusionPath '${retryDir}'`);
+  const retry = runInstaller(installer, retryDir);
+  console.log(`  retry installer exit: ${retry.status ?? retry.signal ?? retry.error}`);
+  console.log(`  retry install dir: ${describeInstallDir(retryDir)}`);
+  const retryExe = path.join(retryDir, `${PRODUCT}.exe`);
+  if (fs.existsSync(retryExe))
+    fail("with a Defender exclusion the executable IS installed: Defender removed it in the first install");
+  else fail("the executable is missing even with a Defender exclusion: the installer did not write it");
+}
+
+async function waitForShortcutsGone() {
+  const deadline = Date.now() + SHORTCUT_REMOVAL_WAIT_MS;
+  while (shortcutLocations().some((lnk) => fs.existsSync(lnk)) && Date.now() < deadline)
+    await sleep(1000);
 }
 
 async function jsonList() {
@@ -173,10 +235,7 @@ async function main() {
   );
 
   console.log("\n[1/6] install");
-  const install = spawnSync(installer, ["/S", `/D=${installDir}`], {
-    windowsHide: true,
-    timeout: INSTALL_TIMEOUT_MS,
-  });
+  const install = runInstaller(installer, installDir);
   if (install.status !== 0)
     fail(`installer exited with ${install.status ?? install.signal ?? install.error}`);
   else ok("installer exited 0");
@@ -184,8 +243,7 @@ async function main() {
   console.log("\n[2/6] executable");
   if (!fs.existsSync(exe)) {
     fail(`${exe} does not exist after a successful install`);
-    const listing = fs.existsSync(installDir) ? fs.readdirSync(installDir) : ["(directory missing)"];
-    console.log(`  install dir contents: ${listing.join(", ")}`);
+    diagnoseMissingExecutable(installer, installDir);
   } else ok(`${exe} exists (${fs.statSync(exe).size} bytes)`);
 
   console.log("\n[3/6] shortcuts");
@@ -237,6 +295,7 @@ async function main() {
     while (fs.existsSync(exe) && Date.now() < deadline) await sleep(1000);
     if (fs.existsSync(exe)) fail(`${exe} still exists after uninstall`);
     else ok("executable removed");
+    await waitForShortcutsGone();
     for (const lnk of shortcutLocations())
       if (fs.existsSync(lnk)) fail(`shortcut left behind after uninstall: ${lnk}`);
   }
