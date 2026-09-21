@@ -164,6 +164,16 @@ jobs:
           if [ "${{ runner.os }}" = "Windows" ]; then BIN="../../target/release/yana-rt.exe"; fi
           npm run stage:runtime -- "$BIN"
 
+      # dist/ is gitignored build output and electron-builder only packages
+      # files that exist. Without this step the Windows and Linux apps were
+      # packaged with no dist/index.html, so the window opened black and empty
+      # while every CI check stayed green (studio-v1.5.4 to studio-v1.5.6).
+      # The mac path never had the gap: `npm run dist:mac` runs this build
+      # before electron-builder.
+      - name: Build frontend (tsc + vite)
+        working-directory: tools/yana-studio
+        run: npm run build
+
       # win-arm64 only: --config.npmRebuild=false. electron-builder's
       # automatic native-module rebuild (@electron/rebuild) recompiles
       # node-pty from source for this arch instead of using its own
@@ -186,6 +196,13 @@ jobs:
         working-directory: tools/yana-studio
         run: node node_modules/electron-builder/cli.js --${{ matrix.platform }} --${{ matrix.arch }} --publish never${{ (matrix.platform == 'win' && matrix.arch == 'arm64') && ' --config.npmRebuild=false' || '' }}
 
+      # Reads the finished package instead of trusting that the build worked:
+      # the right architecture for the executable, yana-rt and node-pty, and
+      # the frontend (index.html plus every asset it loads) inside app.asar.
+      - name: Verify packaged app
+        working-directory: tools/yana-studio
+        run: node scripts/verify-package.cjs --platform ${{ matrix.platform }} --arch ${{ matrix.arch }}
+
       - name: Upload artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1 (node24)
         with:
@@ -193,6 +210,53 @@ jobs:
           path: ${{ matrix.artifact }}
           retention-days: 30
           if-no-files-found: error
+
+  # Installs the finished Windows installer on a real runner of the same
+  # architecture and launches it: install, executable exists, shortcut targets
+  # exist, first launch, renderer mounted, uninstall. The renderer is read over
+  # the DevTools protocol, so a black window becomes a concrete finding.
+  #
+  # Not a release gate yet: continue-on-error, and publish does not need it.
+  # The script could not be run outside Windows before this job existed, so it
+  # reports evidence first and should be made blocking once it has proven
+  # itself on both runners.
+  windows-install-smoke:
+    name: Install smoke (win-${{ matrix.arch }})
+    needs: build
+    continue-on-error: true
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            arch: x64
+          - os: windows-11-arm
+            arch: arm64
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0 (node24)
+        with:
+          node-version: '24'
+
+      - name: Download installer artifact
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0 (node24)
+        with:
+          name: yana-studio-win-${{ matrix.arch }}
+          path: installer
+
+      - name: Install, launch and uninstall
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem installer -Filter "Yana-Studio-*-${{ matrix.arch }}.exe" | Select-Object -First 1
+          if (-not $installer) { throw "no ${{ matrix.arch }} installer in the artifact" }
+          node tools/yana-studio/scripts/smoke-windows-install.cjs --installer $installer.FullName --arch ${{ matrix.arch }}
 
   publish:
     name: Verify and attach Windows/Linux release assets
