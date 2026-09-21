@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://yana-ai.pages.dev/sitemap.xml
+Sitemap: https://yana.vutam.link/sitemap.xml
