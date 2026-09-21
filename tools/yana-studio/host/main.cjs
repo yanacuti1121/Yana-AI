@@ -12,6 +12,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const crypto = require("node:crypto");
 const { pathToFileURL } = require("node:url");
+const { resolveDroppedCandidate } = require("./dropped-path.cjs");
 const { Projects } = require("./projects.cjs");
 const { Store, isValidLiquidGlass } = require("./store.cjs");
 const { DataOverview } = require("./data-overview.cjs");
@@ -211,12 +212,7 @@ function remember(root) {
 // `ENOENT ... lstat '/.github'` from a relative candidate that should
 // have resolved inside the open project.
 function openDroppedPath(currentRoot, candidate) {
-  if (typeof candidate !== "string" || !candidate.trim())
-    throw new Error("Invalid dropped path");
-  const withoutLineSuffix = candidate.replace(/:\d+(?::\d+)?$/, "");
-  const absoluteCandidate = path.isAbsolute(withoutLineSuffix)
-    ? withoutLineSuffix
-    : path.resolve(currentRoot || process.cwd(), withoutLineSuffix);
+  const absoluteCandidate = resolveDroppedCandidate(currentRoot, candidate);
   const resolved = fs.realpathSync(absoluteCandidate);
   if (fs.statSync(resolved).isDirectory())
     return { kind: "project", project: remember(resolved) };
