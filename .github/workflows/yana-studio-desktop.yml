@@ -192,8 +192,30 @@ jobs:
       # across Node.js and Electron by design, the exact guarantee N-API
       # exists to provide. win-x64 and mac keep the default rebuild
       # (already proven working, no reason to change what isn't broken).
+      # win-arm64 only, in effect: without ELECTRON_BUILDER_7Z_FILTER=BCJ,
+      # electron-builder 26.15.3 lets 7-Zip 24.09 pick the branch filter per
+      # file, which is the ARM64 filter (coder id 0a) for ARM64 PE files
+      # since 7-Zip 23.00. The NSIS installer's bundled Nsis7z.dll decoder
+      # predates that filter and cannot read it, so those entries are
+      # dropped during extraction while the installer still exits 0 -- this
+      # is exactly studio-v1.6.0's arm64 release: the installer reports
+      # success and creates shortcuts, but Yana Studio.exe and the Electron
+      # runtime DLLs (ffmpeg.dll, d3dcompiler_47.dll, vulkan-1.dll, ...) are
+      # missing from the installed folder ("Missing Shortcut"), confirmed
+      # against workflow run 35712582276's win-arm64 install-smoke log.
+      # BCJ is a single-stream filter every 7z decoder including Nsis7z can
+      # read; it is electron-builder's own permanent fix as of app-builder-lib
+      # 26.15.6, which pins it for every NSIS payload rather than making it
+      # conditional, so setting it here for both Windows legs matches that
+      # upstream behavior rather than narrowing it to arm64 alone.
+      # See https://github.com/electron-userland/electron-builder (app-builder-lib
+      # CHANGELOG.md, "fix(nsis): reliably install the main executable and
+      # native binaries on x64 and arm64") and the identical bug reported at
+      # https://github.com/BenItBuhner/Zenium/pull/63.
       - name: Build app
         working-directory: tools/yana-studio
+        env:
+          ELECTRON_BUILDER_7Z_FILTER: ${{ matrix.platform == 'win' && 'BCJ' || '' }}
         run: node node_modules/electron-builder/cli.js --${{ matrix.platform }} --${{ matrix.arch }} --publish never${{ (matrix.platform == 'win' && matrix.arch == 'arm64') && ' --config.npmRebuild=false' || '' }}
 
       # Reads the finished package instead of trusting that the build worked:
