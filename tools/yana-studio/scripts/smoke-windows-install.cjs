@@ -84,13 +84,20 @@ function checkShortcuts(installedExe) {
   }
 }
 
+// Never throws: a failed, timed-out or missing powershell.exe must not take
+// the whole smoke test down with it, and its outcome (exit code, timeout,
+// spawn error) is reported inline instead of being silently swallowed.
 function powershell(script) {
   const result = spawnSync(
     "powershell",
     ["-NoProfile", "-NonInteractive", "-Command", script],
     { encoding: "utf8", timeout: POWERSHELL_TIMEOUT_MS },
   );
-  return `${result.stdout ?? ""}${result.stderr ?? ""}`.trim();
+  const body = `${result.stdout ?? ""}${result.stderr ?? ""}`.trim();
+  if (result.error) return `${body}\n(powershell.exe failed to start: ${result.error.message})`.trim();
+  if (result.signal) return `${body}\n(powershell.exe killed by signal ${result.signal}, likely the ${POWERSHELL_TIMEOUT_MS}ms timeout)`.trim();
+  if (result.status !== 0) return `${body}\n(powershell.exe exited ${result.status})`.trim();
+  return body;
 }
 
 function runInstaller(installer, dir) {
@@ -114,26 +121,44 @@ function describeInstallDir(dir) {
 // the installer never wrote them. Installing a second time into a folder that
 // Defender is told to ignore separates the two.
 function diagnoseMissingExecutable(installer, installDir) {
-  console.log(`  install dir: ${describeInstallDir(installDir)}`);
-  console.log(
-    `  defender status:\n${powershell("Get-MpComputerStatus | Select-Object AntivirusEnabled,RealTimeProtectionEnabled,AntivirusSignatureVersion | Format-List")}`,
-  );
-  console.log(
-    `  defender detections:\n${powershell("Get-MpThreatDetection | Select-Object InitialDetectionTime,ThreatID,Resources | Format-List") || "(none reported)"}`,
-  );
-  console.log(
-    `  defender events:\n${powershell("Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Windows Defender/Operational';Id=1006,1007,1015,1116,1117} -MaxEvents 20 -ErrorAction SilentlyContinue | Format-List TimeCreated,Id,Message") || "(no Defender events)"}`,
-  );
+  // Each step is wrapped and logged individually: a run that ends up silent
+  // partway through (as studio-v1.6.0's first diagnostic run did, stopping
+  // right after "retrying the install" with no further output and no error)
+  // otherwise gives no clue which call stopped it.
+  try {
+    console.log(`  install dir: ${describeInstallDir(installDir)}`);
+  } catch (error) {
+    console.log(`  install dir: could not be listed (${error.message})`);
+  }
+  try {
+    console.log(
+      `  defender status:\n${powershell("Get-MpComputerStatus | Select-Object AntivirusEnabled,RealTimeProtectionEnabled,AntivirusSignatureVersion | Format-List")}`,
+    );
+    console.log(
+      `  defender detections:\n${powershell("Get-MpThreatDetection | Select-Object InitialDetectionTime,ThreatID,Resources | Format-List") || "(none reported)"}`,
+    );
+    console.log(
+      `  defender events:\n${powershell("Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Windows Defender/Operational';Id=1006,1007,1015,1116,1117} -MaxEvents 20 -ErrorAction SilentlyContinue | Format-List TimeCreated,Id,Message") || "(no Defender events)"}`,
+    );
+  } catch (error) {
+    console.log(`  defender diagnostics crashed: ${error.stack ?? error}`);
+  }
   const retryDir = `${installDir}-excluded`;
   console.log(`  retrying the install into ${retryDir} with a Defender exclusion`);
-  powershell(`Add-MpPreference -ExclusionPath '${retryDir}'`);
-  const retry = runInstaller(installer, retryDir);
-  console.log(`  retry installer exit: ${retry.status ?? retry.signal ?? retry.error}`);
-  console.log(`  retry install dir: ${describeInstallDir(retryDir)}`);
-  const retryExe = path.join(retryDir, `${PRODUCT}.exe`);
-  if (fs.existsSync(retryExe))
-    fail("with a Defender exclusion the executable IS installed: Defender removed it in the first install");
-  else fail("the executable is missing even with a Defender exclusion: the installer did not write it");
+  try {
+    const exclusion = powershell(`Add-MpPreference -ExclusionPath '${retryDir}'`);
+    if (exclusion) console.log(`  Add-MpPreference output: ${exclusion}`);
+    console.log(`  running the installer a second time (up to ${INSTALL_TIMEOUT_MS / 1000}s)`);
+    const retry = runInstaller(installer, retryDir);
+    console.log(`  retry installer exit: status=${retry.status} signal=${retry.signal} error=${retry.error?.message}`);
+    console.log(`  retry install dir: ${describeInstallDir(retryDir)}`);
+    const retryExe = path.join(retryDir, `${PRODUCT}.exe`);
+    if (fs.existsSync(retryExe))
+      fail("with a Defender exclusion the executable IS installed: Defender removed it in the first install");
+    else fail("the executable is missing even with a Defender exclusion: the installer did not write it");
+  } catch (error) {
+    fail(`the Defender-exclusion retry itself crashed: ${error.stack ?? error}`);
+  }
 }
 
 async function waitForShortcutsGone() {
