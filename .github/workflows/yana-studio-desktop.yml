@@ -257,6 +257,11 @@ jobs:
           $installer = Get-ChildItem installer -Filter "Yana-Studio-*-${{ matrix.arch }}.exe" | Select-Object -First 1
           if (-not $installer) { throw "no ${{ matrix.arch }} installer in the artifact" }
           node tools/yana-studio/scripts/smoke-windows-install.cjs --installer $installer.FullName --arch ${{ matrix.arch }}
+          # pwsh does not fail a step on a non-zero exit code from an external
+          # command by itself. Without this check, studio-v1.6.0's first
+          # arm64 smoke run reported this step as passing even though the
+          # script logged a FAIL and then produced no further output at all.
+          if ($LASTEXITCODE -ne 0) { throw "smoke-windows-install.cjs exited $LASTEXITCODE" }
 
   publish:
     name: Verify and attach Windows/Linux release assets
