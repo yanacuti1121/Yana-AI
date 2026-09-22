@@ -246,7 +246,6 @@ jobs:
     name: Install smoke (win-${{ matrix.arch }})
     needs: build
     continue-on-error: true
-    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
@@ -256,6 +255,11 @@ jobs:
           - os: windows-11-arm
             arch: arm64
     runs-on: ${{ matrix.os }}
+    # scanner/ci-workflow-checks.yml's CI010 rule only looks 5 lines around
+    # runs-on: for timeout-minutes:, so this stays right below it rather than
+    # above the strategy/matrix block -- it was a real false positive
+    # (alert #448) with the same 15-minute value 9 lines above runs-on:.
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
