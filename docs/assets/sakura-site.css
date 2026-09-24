@@ -26,7 +26,13 @@
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}#sakura-canvas{display:none}.reveal-section{opacity:1;transform:none;transition:none!important}.sakura-site *{animation:none!important}}
 
 /* Cross-page plane transition + restrained spatial demos */
-@view-transition{navigation:auto}
+/* Disabled: with the added WebGL liquid-metal canvases, the browser's
+   cross-document view-transition capture sometimes aborts mid-flight
+   ("InvalidStateError: Transition was aborted"), leaving the previous
+   page's snapshot visually stuck over the new page — old and new nav
+   buttons appearing stacked on top of each other. Plain navigation is
+   more reliable than a broken transition.
+@view-transition{navigation:auto} */
 ::view-transition-old(root){animation:yana-plane-out .34s cubic-bezier(.4,0,1,1) both}
 ::view-transition-new(root){animation:yana-plane-in .52s cubic-bezier(.16,1,.3,1) both}
 @keyframes yana-plane-out{to{opacity:0;transform:perspective(1200px) translateZ(-90px) rotateX(2deg)}}
@@ -351,7 +357,7 @@ body.sakura-site{
     linear-gradient(160deg,rgba(255,255,255,.6),rgba(255,255,255,.24)) padding-box,
     conic-gradient(from 205deg,rgba(244,168,192,.6),rgba(120,169,255,.6) 22%,rgba(233,247,255,.7) 39%,rgba(255,241,189,.6) 55%,rgba(239,159,187,.6) 73%,rgba(115,156,255,.6) 89%,rgba(244,168,192,.6)) border-box!important;
   box-shadow:inset 0 1px rgba(255,255,255,.92),inset 0 -8px 16px rgba(120,169,255,.16),0 12px 30px rgba(62,89,128,.08);
-  -webkit-backdrop-filter:blur(20px) saturate(150%);backdrop-filter:blur(20px) saturate(150%);
+  -webkit-backdrop-filter:url(#apple-glass-refract) blur(.6px) saturate(150%);backdrop-filter:url(#apple-glass-refract) blur(.6px) saturate(150%);
 }
 .sakura-site :is(.button,.nav-cta):hover,.decision-controls button:hover{transform:translateY(-2px) scale(1.018);filter:saturate(1.06)}
 .sakura-site :is(.button.ghost,.button.light):hover,.decision-controls button:not([aria-pressed=true]):hover{box-shadow:inset 0 1px #fff,inset 0 -10px 20px rgba(120,169,255,.22),0 16px 40px rgba(62,89,128,.12)}
