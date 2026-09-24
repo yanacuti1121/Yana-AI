@@ -3,6 +3,14 @@
   const API = `https://api.github.com/repos/${REPO}`;
   const RELEASES_URL = `https://github.com/${REPO}/releases`;
   const state = { lang: "en", releases: [] };
+  const FETCH_TIMEOUT_MS = 10000; // the GitHub API can stall on a flaky network; without a cap the page sat on "loading" forever
+
+  // localStorage throws when storage is blocked (private mode, site settings). An unguarded call aborted this
+  // whole script, so releases never loaded and the reveal/scene code below never ran.
+  const store = {
+    get(key) { try { return localStorage.getItem(key); } catch (error) { return null; } },
+    set(key, value) { try { localStorage.setItem(key, value); } catch (error) { /* storage blocked: language choice is just not remembered */ } }
+  };
 
   const fallback = {
     en: { loading: "Loading verified release data…", unavailable: "Live release data is temporarily unavailable.", noCurrentRelease: "No public Yana Studio 1.5 installer is available yet.", github: "Open GitHub Releases", recommended: "Recommended", download: "Download", published: "Published", assets: "files", noAssets: "No installer files published.", verify: "Verify downloads with" },
@@ -19,7 +27,7 @@
     if (window.PAGE_I18N && !window.PAGE_I18N[lang]) lang = "en";
     if (!window.PAGE_I18N && !fallback[lang]) lang = "en";
     state.lang = lang;
-    localStorage.setItem("yana-ecosystem-lang", lang);
+    store.set("yana-ecosystem-lang", lang);
     document.documentElement.lang = lang;
     if (window.PAGE_I18N) {
       document.querySelectorAll("[data-i18n]").forEach((node) => {
@@ -109,7 +117,7 @@
 
     const platform = detectedPlatform();
     const grid = document.createElement("div"); grid.className = "download-grid";
-    const labels = { mac: "macOS" };
+    const labels = { mac: "macOS", windows: "Windows", linux: "Linux" };
     Object.entries(labels).forEach(([key, label]) => {
       const card = document.createElement("article"); card.className = `os-card${platform === key ? " recommended" : ""}`;
       const head = document.createElement("div"); head.className = "os-title";
@@ -156,7 +164,10 @@
   async function loadReleases() {
     if (!document.querySelector("[data-release-download], [data-release-list]")) return;
     try {
-      const response = await fetch(`${API}/releases?per_page=10`, { headers: { Accept: "application/vnd.github+json" } });
+      const response = await fetch(`${API}/releases?per_page=10`, {
+        headers: { Accept: "application/vnd.github+json" },
+        signal: typeof AbortSignal.timeout === "function" ? AbortSignal.timeout(FETCH_TIMEOUT_MS) : undefined
+      });
       if (!response.ok) throw new Error(`GitHub API ${response.status}`);
       state.releases = (await response.json()).filter((release) => !release.draft && isStudio15OrNewer(release));
       if (!state.releases.length) throw new Error("No Studio 1.5+ public releases");
@@ -351,7 +362,7 @@
   }
   const documentLanguage = document.documentElement.lang.slice(0, 2);
   const preferred = window.PAGE_I18N
-    ? (localStorage.getItem("yana-ecosystem-lang") || ({ vi: "vi", ko: "ko", zh: "zh" }[navigator.language.slice(0, 2)] || "en"))
+    ? (store.get("yana-ecosystem-lang") ||({ vi: "vi", ko: "ko", zh: "zh" }[navigator.language.slice(0, 2)] || "en"))
     : (fallback[documentLanguage] ? documentLanguage : "en");
   setLang(preferred);
   loadReleases();
@@ -400,11 +411,15 @@
     if (cycle && !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) {
       const items = cycle.querySelectorAll(".anyai-item");
       let index = 0;
-      setInterval(() => {
-        items[index].classList.remove("is-active");
-        index = (index + 1) % items.length;
-        items[index].classList.add("is-active");
-      }, 1900);
+      // with fewer than two items there is nothing to cycle, and items[0] being undefined threw on every tick
+      if (items.length > 1) {
+        setInterval(() => {
+          if (document.hidden) return; // no point restyling while the tab is in the background
+          items[index].classList.remove("is-active");
+          index = (index + 1) % items.length;
+          items[index].classList.add("is-active");
+        }, 1900);
+      }
     }
   }
 })();

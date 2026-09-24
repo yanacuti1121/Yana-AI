@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Yana</title>
+  <desc id="desc">Biểu tượng chữ Y với quỹ đạo và cánh hoa anh đào.</desc>
+  <defs>
+    <linearGradient id="bg" x1="8" y1="5" x2="55" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8D5E0"/>
+      <stop offset=".52" stop-color="#E7A9BE"/>
+      <stop offset="1" stop-color="#A8D4C0"/>
+    </linearGradient>
+    <linearGradient id="y" x1="22" y1="16" x2="43" y2="50" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#111922"/>
+      <stop offset="1" stop-color="#283A3B"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="18" fill="#0D131A"/>
+  <rect x="3" y="3" width="58" height="58" rx="17" fill="url(#bg)"/>
+  <path d="M18 17.5 30.5 32v16.5h7V32L50 17.5h-8.5L34 26.8l-7.5-9.3H18Z" fill="url(#y)"/>
+  <ellipse cx="34" cy="32" rx="25" ry="11" fill="none" stroke="#fff" stroke-opacity=".58" stroke-width="1.4" transform="rotate(-17 34 32)"/>
+  <circle cx="56" cy="25" r="2.4" fill="#fff"/>
+  <g transform="translate(48 47) scale(.72)">
+    <ellipse cy="-5" rx="2.8" ry="5" fill="#fff"/>
+    <ellipse cy="-5" rx="2.8" ry="5" fill="#fff" transform="rotate(72)"/>
+    <ellipse cy="-5" rx="2.8" ry="5" fill="#fff" transform="rotate(144)"/>
+    <ellipse cy="-5" rx="2.8" ry="5" fill="#fff" transform="rotate(216)"/>
+    <ellipse cy="-5" rx="2.8" ry="5" fill="#fff" transform="rotate(288)"/>
+    <circle r="1.7" fill="#D47E9D"/>
+  </g>
+</svg>
