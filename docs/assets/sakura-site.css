@@ -203,7 +203,7 @@ body.sakura-site{
 .sakura-site .knob:hover{transform:scale(1.1) rotate(8deg);background:#fff;box-shadow:0 14px 34px rgba(33,26,34,.22)}
 .sakura-site .knob:focus-visible{outline:3px solid var(--pink);outline-offset:3px}
 .liquid-stage--cta{--h:44px;--pad:14px}
-.liquid-stage--knob{--h:52px;--pad:10px}
+.liquid-stage--knob{--h:44px;--pad:9px}
 .liquid-button--knob{width:var(--bh);padding:0;font-size:calc(150*var(--lu));font-weight:650}
 .liquid-button--cta{padding:0 calc(300*var(--lu));font-size:calc(175*var(--lu));font-weight:560;letter-spacing:-.01em}
 .hero-actions .liquid-stage--cta,.sakura-actions .liquid-stage--cta{flex:none}
