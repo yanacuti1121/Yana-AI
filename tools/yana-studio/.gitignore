@@ -3,3 +3,4 @@ dist/
 artifacts/
 runtime/
 release/
+host/integrations/secrets.local.cjs

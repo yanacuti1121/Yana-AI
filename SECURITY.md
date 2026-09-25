@@ -11,8 +11,8 @@ solo-maintained project, so there is no separate long-term-support line.
 | Artifact | Current | Supported |
 |---|---|---:|
 | Product (GitHub Releases) | 1.4.8 | ✅ Latest only |
-| PyPI (`yana-ai`) | 1.4.2 | ✅ Latest only |
-| crates.io (`yana-rt`) | 1.4.2 | ✅ Latest only |
+| PyPI (`yana-ai`) | 1.5.0 | ✅ Latest only |
+| crates.io (`yana-rt`) | 1.5.0 | ✅ Latest only |
 
 npm distribution was discontinued 2026-07-30 (see `VERSIONING.md`'s
 "Why product has no registry" section) — it is no longer a supported or
@@ -126,8 +126,8 @@ không có dòng long-term-support riêng.
 | Artifact | Hiện tại | Hỗ trợ |
 |---|---|---:|
 | Product (GitHub Releases) | 1.4.8 | ✅ Chỉ bản mới nhất |
-| PyPI (`yana-ai`) | 1.4.2 | ✅ Chỉ bản mới nhất |
-| crates.io (`yana-rt`) | 1.4.2 | ✅ Chỉ bản mới nhất |
+| PyPI (`yana-ai`) | 1.5.0 | ✅ Chỉ bản mới nhất |
+| crates.io (`yana-rt`) | 1.5.0 | ✅ Chỉ bản mới nhất |
 
 Phân phối qua npm đã ngừng từ 2026-07-30 (xem mục "Why product has no
 registry" trong `VERSIONING.md`) — không còn là kênh cài đặt chính thức.

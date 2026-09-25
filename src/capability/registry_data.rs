@@ -1,4 +1,4 @@
-//! The 10 `CapabilityDescriptor` entries themselves — split out of
+//! The 13 `CapabilityDescriptor` entries themselves — split out of
 //! `registry.rs` purely for the repo's 300-line file-length limit (this
 //! file is data, not logic; `registry.rs` keeps the types/`Manifest`).
 
@@ -307,6 +307,35 @@ pub(super) fn all_descriptors() -> Vec<CapabilityDescriptor> {
                     "byte_count": {"type": "integer"},
                     "sha256": {"type": "string"},
                     "backup_path": {"type": ["string", "null"]}
+                }
+            }),
+            availability: always_available,
+        },
+        CapabilityDescriptor {
+            name: "browser.fetch",
+            tool_name: "browser_fetch",
+            description: "Fetch one web page (HTML or Markdown dump) via an externally-installed Lightpanda headless browser (github.com/lightpanda-io/browser, AGPL-3.0, never vendored — shelled out to as a separate process). URL is validated to be plain http/https and not resolve to a private, loopback, link-local, or unspecified address before the fetch runs. Requires explicit human approval — this is the first capability that lets the agent direct a real outbound request to an agent-chosen URL.",
+            access_mode: AccessMode::ReadOnly,
+            risk_tier: RiskTier::Medium,
+            approval: ApprovalRequirement::HumanApprovalPerCall,
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string"},
+                    "format": {"type": "string", "enum": ["html", "markdown"]}
+                },
+                "required": ["url"]
+            }),
+            output_schema: json!({
+                "type": "object",
+                "properties": {
+                    "capability": {"const": "browser.fetch"},
+                    "data": {"type": "object", "properties": {
+                        "url": {"type": "string"},
+                        "format": {"type": "string"},
+                        "content": {"type": "string"}
+                    }},
+                    "truncated": {"type": "boolean"}
                 }
             }),
             availability: always_available,

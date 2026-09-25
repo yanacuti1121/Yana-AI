@@ -46,11 +46,15 @@ export function EntryWelcome({
   onContinue: () => void;
 }) {
   const [changingLocale, setChangingLocale] = useState(false);
+  const [localeError, setLocaleError] = useState("");
   const text = copy[locale];
   const setLocale = (nextLocale: Locale) => {
     if (nextLocale === locale) return;
     setChangingLocale(true);
-    void onLocaleChange(nextLocale).finally(() => setChangingLocale(false));
+    setLocaleError("");
+    onLocaleChange(nextLocale)
+      .catch((error) => setLocaleError(String(error)))
+      .finally(() => setChangingLocale(false));
   };
 
   return (
@@ -83,6 +87,11 @@ export function EntryWelcome({
           </select>
         </label>
       </header>
+      {localeError && (
+        <p className="inline-error" role="alert">
+          {localeError}
+        </p>
+      )}
 
       <section className="entry-welcome-stage" aria-live="polite">
         <div className="entry-welcome-copy">

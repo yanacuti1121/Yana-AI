@@ -135,9 +135,19 @@ class IntegrationManager {
           throw new Error("user_cancelled");
         }
         const url = adapter.authorization(operation.flow, entry.scopes);
+        console.log(
+          `[oauth:${key}] stage=authorize redirect_uri=${operation.flow.redirectUri} client_id=${new URL(url).searchParams.get("client_id")}`,
+        );
         await this.browser(url);
+        console.log(`[oauth:${key}] stage=callback waiting for browser redirect`);
         const code = await operation.flow.result;
+        console.log(
+          `[oauth:${key}] stage=code_received length=${code?.length ?? 0}`,
+        );
         tokens = await adapter.exchange(code, operation.flow);
+        console.log(
+          `[oauth:${key}] stage=token_exchange ok has_access_token=${Boolean(tokens.access_token)} has_refresh_token=${Boolean(tokens.refresh_token)}`,
+        );
       }
       if (operation.cancelled) throw new Error("user_cancelled");
       if (typeof tokens.access_token !== "string" || !tokens.access_token)
@@ -176,6 +186,7 @@ class IntegrationManager {
         },
       });
     } catch (error) {
+      console.log(`[oauth:${key}] stage=failed message=${error.message}`);
       const allowed = [
         "user_cancelled",
         "authorization_denied",

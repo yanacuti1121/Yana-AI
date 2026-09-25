@@ -1,3 +1,7 @@
+/* The liquid-metal dispersion shader technique in this file is adapted from
+   the Sylva Hero community template (ThreeUI, https://threeui.com), MIT
+   license. Reimplemented as a standalone WebGL2 shader; no three.js code
+   or assets from that template are loaded by this file. */
 (function () {
   'use strict';
 

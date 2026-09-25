@@ -1,13 +1,24 @@
 {
   "name": "yana-studio",
   "productName": "Yana Studio",
-  "version": "1.5.1",
+  "version": "1.6.1",
+  "description": "Yana Studio — AI coding workspace",
+  "homepage": "https://yana.vutam.link",
+  "author": {
+    "name": "Vũ Văn Tâm",
+    "email": "phamlongh230@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yanacuti1121/Yana-AI"
+  },
   "private": true,
   "type": "module",
   "main": "host/main.cjs",
   "scripts": {
     "build": "tsc --noEmit && vite build",
-    "start": "npm run build && electron .",
+    "write:secrets": "node scripts/write-secrets.cjs",
+    "start": "npm run write:secrets && npm run build && electron .",
     "test": "node --test test/*.test.cjs",
     "test:electron": "electron test/smoke.cjs",
     "test:ui": "node test/ui.mjs",
@@ -15,7 +26,10 @@
     "rebuild": "electron-rebuild -f -w node-pty",
     "format": "prettier --write host renderer test scripts *.json *.ts *.html",
     "format:check": "prettier --check host renderer test scripts *.json *.ts *.html",
-    "dist:mac": "npm run build && electron-builder --mac --arm64"
+    "dist:mac": "npm run write:secrets && npm run build && electron-builder --mac --arm64",
+    "dist:win": "npm run write:secrets && npm run build && electron-builder --win --x64",
+    "dist:win-arm64": "npm run write:secrets && npm run build && electron-builder --win --arm64",
+    "dist:linux": "npm run write:secrets && npm run build && electron-builder --linux --x64"
   },
   "build": {
     "appId": "com.yana-ai.studio",
@@ -41,6 +55,14 @@
           "yana-rt.exe",
           "manifest.json"
         ]
+      },
+      {
+        "from": "../../COMMANDS.md",
+        "to": "COMMANDS.md"
+      },
+      {
+        "from": "host/integrations/secrets.local.cjs",
+        "to": "secrets.local.cjs"
       }
     ],
     "mac": {
@@ -64,6 +86,28 @@
       "gatekeeperAssess": false,
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Development"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis"
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false
     },
     "afterSign": "scripts/after-sign-mac.cjs"
   },

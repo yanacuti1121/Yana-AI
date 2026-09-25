@@ -268,7 +268,7 @@ try {
     page.getByRole("heading", { name: "Studio Test User" }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Model & Runtime", exact: true })
+    .getByRole("button", { name: "Mô hình & Điều phối", exact: true })
     .click();
   await expect(page.getByText(/19 provider chính thức/)).toBeVisible();
   await expect(
@@ -308,7 +308,10 @@ try {
     page.getByRole("heading", { name: /Google Account/ }),
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: /Gmail/ })).toBeVisible();
-  await page.getByRole("button", { name: "Quyền hạn", exact: true }).click();
+  await page
+    .locator(".settings-page")
+    .getByRole("button", { name: "Quyền hạn", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", { name: "Capability registry" }),
   ).toBeVisible();
@@ -337,7 +340,7 @@ try {
     page.getByText("yana-ai doctor --fix", { exact: true }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Giao diện & Ngôn ngữ", exact: true })
+    .getByRole("button", { name: "Giao diện", exact: true })
     .click();
   await page.getByLabel("Ngôn ngữ hiển thị").selectOption("ko");
   await expect(

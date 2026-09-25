@@ -36,7 +36,7 @@ import {
 import { Settings } from "./Settings";
 import { WorkspaceInspector } from "./WorkspaceInspector";
 import { FilePicker } from "./FilePicker";
-import { ModelManager } from "./ModelManager";
+import { ChatModelPicker } from "./ChatModelPicker";
 import type {
   AttachedFile,
   Chat,
@@ -46,6 +46,7 @@ import type {
   FilePage,
   GitState,
   Layout,
+  Profile,
   Project,
   RunCommand,
   State,
@@ -57,7 +58,7 @@ import { Permissions } from "./Permissions";
 import "./style.css";
 import "./light-theme.css";
 import "./dark-theme.css";
-import { translate } from "./i18n";
+import { translate, type MessageKey } from "./i18n";
 import { renderMarkdown } from "./markdown";
 import { AccountSettings, AccountUnlock } from "./AccountSettings";
 import { GovernancePopover } from "./GovernancePopover";
@@ -91,6 +92,100 @@ type Surface =
   | "permissions";
 const MAX_ATTACH_FILES = 6;
 const MAX_ATTACH_BYTES = 256 * 1024;
+function glassStyleVars(preferences: State["preferences"]): React.CSSProperties {
+  const opacity = preferences.glassOpacity / 100;
+  return {
+    "--glass-opacity": String(opacity),
+    // 0% keeps panels solid (alpha ~1); 100% lets panels turn nearly
+    // fully transparent so the "kính trong suốt" effect actually reads
+    // against panel colors that are close in lightness to the app
+    // background instead of blending into it unnoticeably.
+    "--glass-panel-alpha": String(0.95 - opacity * 0.83),
+    // Blur applies at the user's chosen strength as soon as glass mode
+    // is engaged at all (opacity > 0) rather than being scaled down by
+    // opacity too, which used to make the blur slider look like it did
+    // nothing unless opacity was also cranked near 100%.
+    "--glass-effective-blur": `${
+      preferences.glassOpacity > 0 ? Math.round(preferences.glassBlur) : 0
+    }px`,
+    "--glass-shadow-opacity": String(opacity * 0.18),
+  } as React.CSSProperties;
+}
+// Human labels for the well-known capability names Manifest::all()
+// (src/capability/registry_data.rs) actually defines -- short phrasings of
+// each descriptor's own real `description` field there, not invented
+// meaning. Deliberately incomplete: only these 12 names exist in the real
+// registry today (confirmed by the `all_twelve_descriptors_present` Rust
+// test), so an id outside this list is either a future addition or a bug,
+// and falling back to the raw id is the honest choice -- never guess a
+// friendly label for a capability this map doesn't actually recognize.
+const CAPABILITY_LABELS_VI: Partial<Record<string, string>> = {
+  "repo.tree": "Xem cấu trúc thư mục",
+  "repo.read": "Đọc file trong project",
+  "repo.search": "Tìm kiếm trong code",
+  "git.status": "Xem trạng thái Git",
+  "git.diff": "Xem thay đổi Git",
+  "host.summary": "Xem thông tin máy",
+  "process.list": "Xem danh sách tiến trình",
+  "process.inspect": "Xem chi tiết một tiến trình",
+  "command.validate": "Kiểm tra lệnh (chưa chạy)",
+  "command.execute": "Chạy lệnh trong terminal",
+  "file.write": "Ghi hoặc sửa file",
+  "config.write": "Ghi cấu hình hệ thống",
+};
+function capabilityLabel(capability: string) {
+  return CAPABILITY_LABELS_VI[capability] || capability;
+}
+function riskTierLabel(
+  riskTier: "Low" | "Medium" | "High" | undefined,
+  t: (key: MessageKey) => string,
+) {
+  if (riskTier === "Low") return t("riskLow");
+  if (riskTier === "Medium") return t("riskMedium");
+  if (riskTier === "High") return t("riskHigh");
+  return t("riskTierMissing");
+}
+// Same known runtime-event kinds WorkspaceInspector.tsx's own
+// activityPresentation() already translates (that function stays
+// untouched per this pass's scope -- this mirrors its kind->label mapping
+// rather than importing it, to avoid any change to that file). Unlike
+// that function's own fallback (which intentionally still shows the raw,
+// space-replaced kind, since its Inspector tab is the deliberate
+// technical-details surface), this one falls back to a neutral label --
+// this block sits inline under the transcript, not inside a dedicated
+// "Inspector" tab, so raw internal event-kind strings shouldn't be the
+// first thing a user reads here. The raw kind is not lost: it's kept as
+// this row's `title` (hover tooltip) regardless of which label shows.
+function eventKindLabel(kind: string | undefined, t: (key: MessageKey) => string) {
+  switch (kind) {
+    case "tool_requested":
+      return t("activityToolProposed");
+    case "tool_approved":
+      return t("activityApproved");
+    case "tool_denied":
+      return t("activityDenied");
+    case "tool_started":
+      return t("activityRunning");
+    case "tool_completed":
+      return t("activityEvidenceRecorded");
+    case "turn_completed":
+      return t("activityTurnCompleted");
+    case "moa_reference_ok":
+      return t("activityMoaReferenceOk");
+    case "moa_reference_failed":
+      return t("activityMoaReferenceFailed");
+    case "moa_aggregator_ok":
+      return t("activityMoaAggregatorOk");
+    case "moa_aggregator_failed":
+      return t("activityMoaAggregatorFailed");
+    case "moa_fallback_ok":
+      return t("activityMoaFallbackOk");
+    case "moa_fallback_failed":
+      return t("activityMoaFallbackFailed");
+    default:
+      return t("activityRuntimeEventFallback");
+  }
+}
 function App() {
   const [state, setState] = useState<State | null>(null);
   const [project, setProject] = useState<Project | null>(null);
@@ -118,7 +213,9 @@ function App() {
     Record<string, AttachedFile[]>
   >({});
   const [attachPickerOpen, setAttachPickerOpen] = useState(false);
-  const [modelPopoverOpen, setModelPopoverOpen] = useState(false);
+  const [pendingProfiles, setPendingProfiles] = useState<
+    Record<string, Profile>
+  >({});
   const [quickOpen, setQuickOpen] = useState(false);
   const [runCommands, setRunCommands] = useState<RunCommand[]>([]);
   const [runCommandFormOpen, setRunCommandFormOpen] = useState(false);
@@ -148,7 +245,6 @@ function App() {
   const [busy, setBusy] = useState(false);
   const bottom = useRef<HTMLDivElement>(null);
   const followOutput = useRef(true);
-  const modelPopoverRef = useRef<HTMLDivElement>(null);
   const composerInput = useRef<HTMLTextAreaElement>(null);
   const chat = chats.find(
     (item) => item.id === chatId && item.root === project?.root,
@@ -285,7 +381,6 @@ function App() {
         setDiff(null);
         setQuickOpen(false);
         setAttachPickerOpen(false);
-        setModelPopoverOpen(false);
         // Cancel semantics only — dismisses the "save before closing?"
         // modal without discarding or closing the file, so this doesn't
         // conflict with Esc never being allowed to close a file on its own.
@@ -313,15 +408,6 @@ function App() {
     document.addEventListener("keydown", listener);
     return () => document.removeEventListener("keydown", listener);
   }, [surface, opened, draftFile, project, runCommands]);
-  useEffect(() => {
-    if (!modelPopoverOpen) return;
-    const onClick = (event: MouseEvent) => {
-      if (!modelPopoverRef.current?.contains(event.target as Node))
-        setModelPopoverOpen(false);
-    };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, [modelPopoverOpen]);
   useEffect(() => {
     if (!project) {
       setRunCommands([]);
@@ -627,9 +713,16 @@ function App() {
         setChats((previous) => [...previous, target!]);
         setChatId(target.id);
       }
-      await window.studio.sendChat(target.id, task, message);
+      const override = pendingProfiles[draftKey];
+      await window.studio.sendChat(target.id, task, message, override);
       setDrafts((previous) => ({ ...previous, [draftKey]: "" }));
       setAttachments((previous) => ({ ...previous, [draftKey]: [] }));
+      if (override)
+        setPendingProfiles((previous) => {
+          const next = { ...previous };
+          delete next[draftKey];
+          return next;
+        });
     });
   const attachPath = (path: string) =>
     run(async () => {
@@ -772,18 +865,7 @@ function App() {
         onError={setNotice}
       />
     );
-  const entryStyle = {
-    "--glass-opacity": String(state.preferences.glassOpacity / 100),
-    "--glass-panel-alpha": String(
-      0.98 - (state.preferences.glassOpacity / 100) * 0.8,
-    ),
-    "--glass-effective-blur": `${Math.round(
-      (state.preferences.glassBlur * state.preferences.glassOpacity) / 100,
-    )}px`,
-    "--glass-shadow-opacity": String(
-      (state.preferences.glassOpacity / 100) * 0.18,
-    ),
-  } as React.CSSProperties;
+  const entryStyle = glassStyleVars(state.preferences);
   if (!state.account.configured && showEntryWelcome)
     return (
       <EntryWelcome
@@ -919,17 +1001,7 @@ function App() {
           "--sidebar": `${layout.sidebar}px`,
           "--inspector": `${layout.inspector}px`,
           "--dock": `${layout.dock}px`,
-          "--glass-opacity": String(state.preferences.glassOpacity / 100),
-          "--glass-panel-alpha": String(
-            0.98 - (state.preferences.glassOpacity / 100) * 0.8,
-          ),
-          "--glass-effective-blur": `${Math.round(
-            (state.preferences.glassBlur * state.preferences.glassOpacity) /
-              100,
-          )}px`,
-          "--glass-shadow-opacity": String(
-            (state.preferences.glassOpacity / 100) * 0.18,
-          ),
+          ...glassStyleVars(state.preferences),
         } as React.CSSProperties
       }
     >
@@ -1643,8 +1715,15 @@ function App() {
                                 : t("statusCompleted")}
                         </span>
                         <span>
-                          {chat.profile?.provider || state.profile.provider} ·{" "}
-                          {chat.profile?.model || state.profile.model}
+                          {chat.profile?.provider === "mixture-of-agents"
+                            ? `Mixture of Agents · ${
+                                state.mixtureOfAgents.presets.find(
+                                  (preset) => preset.id === chat.profile?.model,
+                                )?.name || chat.profile.model
+                              }`
+                            : `${chat.profile?.provider || state.profile.provider} · ${
+                                chat.profile?.model || state.profile.model
+                              }`}
                         </span>
                         <span>
                           {chat.usage
@@ -1667,7 +1746,9 @@ function App() {
                         </summary>
                         {chat.events.slice(-12).map((event, index) => (
                           <div key={index}>
-                            <span className="event-kind">{event.kind}</span>
+                            <span className="event-kind" title={event.kind}>
+                              {eventKindLabel(event.kind, t)}
+                            </span>
                             <code>{event.tool || event.call_id || ""}</code>
                             <span>{event.summary || event.reason || ""}</span>
                           </div>
@@ -1679,18 +1760,13 @@ function App() {
                         <h3>
                           <Shield size={17} /> {t("needsApproval")}
                         </h3>
-                        <code>{chat.approval.capability}</code>
+                        <strong>{capabilityLabel(chat.approval.capability)}</strong>
                         <div className="approval-contract">
-                          {chat.approval.risk_tier ? (
-                            <span>Risk: {chat.approval.risk_tier}</span>
-                          ) : (
-                            <span>{t("riskTierMissing")}</span>
-                          )}
-                          {chat.approval.approver ? (
-                            <span>Approver: {chat.approval.approver}</span>
-                          ) : (
-                            <span>{t("approverContractDefault")}</span>
-                          )}
+                          <span
+                            className={`risk-badge risk-${(chat.approval.risk_tier || "unknown").toLowerCase()}`}
+                          >
+                            {riskTierLabel(chat.approval.risk_tier, t)}
+                          </span>
                         </div>
                         <p>{chat.approval.reason}</p>
                         <div className="button-row">
@@ -1727,6 +1803,15 @@ function App() {
                             {t("customProviderApprovalNote")}
                           </p>
                         )}
+                        <details className="approval-technical-details">
+                          <summary>{t("approvalTechnicalDetails")}</summary>
+                          <code>{chat.approval.capability}</code>
+                          <span>
+                            {chat.approval.approver
+                              ? `Approver: ${chat.approval.approver}`
+                              : t("approverContractDefault")}
+                          </span>
+                        </details>
                       </div>
                     )}
                     {chat?.error &&
@@ -1851,31 +1936,19 @@ function App() {
                         onError={setNotice}
                         onOpenPermissions={() => setSurface("permissions")}
                       />
-                      <div className="model-pill-anchor" ref={modelPopoverRef}>
-                        <button
-                          className="composer-model-button"
-                          onClick={() => setModelPopoverOpen((value) => !value)}
-                          title={t("chooseModel")}
-                        >
-                          {state.profile.model || state.profile.provider}{" "}
-                          <ChevronDown size={13} />
-                        </button>
-                        {modelPopoverOpen && (
-                          <div className="model-popover">
-                            <ModelManager
-                              compact
-                              state={state}
-                              locale={state.preferences.locale}
-                              onState={setState}
-                              onError={setNotice}
-                              onManage={() => {
-                                setModelPopoverOpen(false);
-                                setSurface("settings");
-                              }}
-                            />
-                          </div>
-                        )}
-                      </div>
+                      <ChatModelPicker
+                        state={state}
+                        locale={state.preferences.locale}
+                        chat={chat || null}
+                        pendingProfile={pendingProfiles[draftKey]}
+                        onPendingProfile={(profile) =>
+                          setPendingProfiles((previous) => ({
+                            ...previous,
+                            [draftKey]: profile,
+                          }))
+                        }
+                        onManageModels={() => setSurface("settings")}
+                      />
                       {chat?.running ? (
                         <button
                           className="stop-button"

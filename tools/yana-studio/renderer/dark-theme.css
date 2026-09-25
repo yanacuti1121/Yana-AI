@@ -26,13 +26,23 @@
   --editor-active-line: #1c2738;
   --editor-selection: #70465f;
   color: #e6edf8;
+  /* Same reasoning as light-theme.css: many smaller blobs instead of a
+     few giant soft ones, so backdrop-filter blur has actual color
+     edges to soften -- otherwise the glass slider just fades a flat
+     tint and reads like a brightness control instead of frosted glass. */
   background:
-    radial-gradient(circle at 12% 5%, #7c62ff2b, transparent 28rem),
-    radial-gradient(circle at 92% 10%, #e76d9a21, transparent 26rem), #090d14;
+    radial-gradient(circle at 8% 10%, #7c62ff33, transparent 22rem),
+    radial-gradient(circle at 30% 55%, #e76d9a2b, transparent 18rem),
+    radial-gradient(circle at 55% 15%, #4d8cff2e, transparent 20rem),
+    radial-gradient(circle at 78% 60%, #a05ef52e, transparent 22rem),
+    radial-gradient(circle at 95% 20%, #2fd6c833, transparent 18rem),
+    radial-gradient(circle at 40% 90%, #ff8a5c26, transparent 24rem),
+    radial-gradient(circle at 85% 90%, #4fa8ff26, transparent 20rem), #090d14;
 }
 
 .app[data-theme="dark"] .workspace,
-.app[data-theme="dark"] .main-column {
+.app[data-theme="dark"] .main-column,
+.app[data-theme="dark"] .settings-page {
   background: transparent;
 }
 
@@ -41,7 +51,18 @@
 .app[data-theme="dark"] .center,
 .app[data-theme="dark"] .inspector,
 .app[data-theme="dark"] .terminal-dock,
-.app[data-theme="dark"] .settings-container,
+.app[data-theme="dark"] .settings-container {
+  border-color: rgba(159, 181, 219, 0.18);
+  background: rgba(14, 20, 31, var(--glass-panel-alpha));
+  backdrop-filter: blur(var(--glass-effective-blur)) saturate(132%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.055),
+    0 16px 38px rgba(0, 0, 0, var(--glass-shadow-opacity));
+}
+
+/* Same stacked-blur fix as light-theme.css: these are nested inside the
+   outer chrome regions above, which already blur the app background
+   once -- a second backdrop-filter here compounded into a murky look. */
 .app[data-theme="dark"] .project-switch,
 .app[data-theme="dark"] .runtime-chip,
 .app[data-theme="dark"] .card,
@@ -54,7 +75,6 @@
 .app[data-theme="dark"] .settings-shortcut {
   border-color: rgba(159, 181, 219, 0.18);
   background: rgba(14, 20, 31, var(--glass-panel-alpha));
-  backdrop-filter: blur(var(--glass-effective-blur)) saturate(132%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.055),
     0 16px 38px rgba(0, 0, 0, var(--glass-shadow-opacity));
@@ -91,7 +111,6 @@
   color: #ffd4e1;
   border-color: #70465f;
   background: rgba(111, 63, 91, 0.6);
-  box-shadow: inset 3px 0 #ee8eae;
 }
 
 .app[data-theme="dark"] .message-actions button {

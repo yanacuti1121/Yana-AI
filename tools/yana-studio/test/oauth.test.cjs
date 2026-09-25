@@ -37,6 +37,37 @@ test("PKCE uses unique S256 verifier and login excludes mail scopes", () => {
   assert.equal(url.searchParams.get("code_challenge_method"), "S256");
   assert.equal(url.searchParams.has("code_verifier"), false);
 });
+test("Google client_secret is sent only when configured, never a literal default", async () => {
+  // Google's token endpoint rejects a Desktop-app exchange without
+  // client_secret (confirmed live) -- but the real value must come from
+  // YANA_GOOGLE_CLIENT_SECRET at runtime, never a literal in this file or
+  // in providers.cjs (GitHub's push protection rejects committed secrets
+  // regardless of Google's own "not meant to stay confidential" stance for
+  // Desktop clients).
+  const withoutSecret = new GoogleOAuthProvider(
+    "test-client-id",
+    async (_url, options) => ({ seen: options.body }),
+    null, // explicit null, not the omitted-argument default, so this stays
+    // deterministic even when a local secrets.local.cjs / env var is
+    // present on the machine running the test
+  );
+  const bare = await withoutSecret.exchange("code", {
+    redirectUri: "http://127.0.0.1:3456/oauth/callback",
+    verifier: "verifier",
+  });
+  assert.equal(bare.seen.has("client_secret"), false);
+
+  const withSecret = new GoogleOAuthProvider(
+    "test-client-id",
+    async (_url, options) => ({ seen: options.body }),
+    "test-client-secret",
+  );
+  const configured = await withSecret.exchange("code", {
+    redirectUri: "http://127.0.0.1:3456/oauth/callback",
+    verifier: "verifier",
+  });
+  assert.equal(configured.seen.get("client_secret"), "test-client-secret");
+});
 test("loopback validates state without consuming a valid pending request", async () => {
   const flow = await callbackFlow();
   try {

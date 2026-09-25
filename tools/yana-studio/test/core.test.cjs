@@ -55,6 +55,12 @@ const {
   appendUsageRecords,
   summarizeTokenUsage,
 } = require("../host/token-usage.cjs");
+const {
+  isValidMoAConfig,
+  isValidTitleModelConfig,
+  defaultTitleModel,
+  resolveAutoProfile,
+} = require("../host/model-orchestration.cjs");
 
 test("token usage keeps provider-reported rounds and honest totals", () => {
   const existing = [
@@ -701,6 +707,152 @@ test("atomic workspace persistence survives reopening", (context) => {
     fs.readdirSync(root).filter((name) => name.endsWith(".tmp")).length,
     0,
   );
+});
+test("Mixture of Agents preset persists across reopening and rejects invalid configs", (context) => {
+  const root = fixture(context);
+  const store = new Store(root);
+  const validPreset = {
+    id: "preset-1",
+    name: "Test preset",
+    enabled: true,
+    referenceModels: [
+      { id: "r1", provider: "anthropic", model: "claude-sonnet-5", enabled: true },
+    ],
+    aggregator: { provider: "openai", model: "gpt-4o-mini" },
+    contextWindow: "auto",
+    fallbackModels: [{ provider: "gemini", model: "gemini-3.8-flash" }],
+  };
+  store.save({
+    mixtureOfAgents: { presets: [validPreset], defaultPresetId: "preset-1" },
+  });
+  const reopened = new Store(root);
+  assert.equal(reopened.value.mixtureOfAgents.presets[0].name, "Test preset");
+  assert.equal(reopened.value.mixtureOfAgents.defaultPresetId, "preset-1");
+
+  assert.throws(
+    () =>
+      reopened.save({
+        mixtureOfAgents: {
+          presets: [{ ...validPreset, aggregator: { provider: "made-up", model: "x" } }],
+          defaultPresetId: "",
+        },
+      }),
+    /Mixture of Agents/,
+  );
+  assert.throws(
+    () =>
+      reopened.save({
+        mixtureOfAgents: {
+          presets: [
+            {
+              ...validPreset,
+              aggregator: { provider: "anthropic", model: "claude-sonnet-5" },
+            },
+          ],
+          defaultPresetId: "",
+        },
+      }),
+    /Mixture of Agents/,
+    "aggregator duplicating an enabled reference model must be rejected",
+  );
+  assert.throws(
+    () =>
+      reopened.save({
+        mixtureOfAgents: {
+          presets: [
+            {
+              ...validPreset,
+              referenceModels: [{ ...validPreset.referenceModels[0], enabled: false }],
+            },
+          ],
+          defaultPresetId: "",
+        },
+      }),
+    /Mixture of Agents/,
+    "an enabled preset with no enabled reference model must be rejected",
+  );
+  assert.throws(
+    () =>
+      reopened.save({
+        mixtureOfAgents: {
+          presets: [validPreset],
+          defaultPresetId: "does-not-exist",
+        },
+      }),
+    /Mixture of Agents/,
+    "defaultPresetId must point at a real, enabled preset",
+  );
+  assert.equal(isValidMoAConfig({ presets: [validPreset], defaultPresetId: "" }), true);
+});
+test("titleModel config persists across reopening, defaults on a fresh store, and rejects invalid configs", (context) => {
+  const root = fixture(context);
+  assert.deepEqual(new Store(root).value.titleModel, defaultTitleModel());
+
+  const store = new Store(root);
+  const custom = {
+    enabled: true,
+    useMainModel: false,
+    provider: "openai",
+    model: "gpt-4o-mini",
+  };
+  store.save({ titleModel: custom });
+  const reopened = new Store(root);
+  assert.deepEqual(reopened.value.titleModel, custom);
+
+  assert.throws(
+    () =>
+      reopened.save({
+        titleModel: { enabled: true, useMainModel: true, provider: "openai", model: "x" },
+      }),
+    /title model/i,
+    "useMainModel:true must not also carry a leftover provider/model",
+  );
+  assert.throws(
+    () =>
+      reopened.save({
+        titleModel: { enabled: true, useMainModel: false, provider: "openai", model: "" },
+      }),
+    /title model/i,
+    "useMainModel:false requires a real model id",
+  );
+  assert.throws(
+    () =>
+      reopened.save({
+        titleModel: { enabled: true, useMainModel: false, provider: "made-up", model: "x" },
+      }),
+    /title model/i,
+    "useMainModel:false requires a known provider",
+  );
+  assert.equal(
+    isValidTitleModelConfig({
+      enabled: false,
+      useMainModel: true,
+      provider: "",
+      model: "",
+    }),
+    true,
+  );
+});
+test("resolveAutoProfile is deterministic: fixed catalog order, first ready provider wins", () => {
+  const noneConfigured = resolveAutoProfile([]);
+  // ollama is the first provider in model-catalog.cjs's PROVIDERS array
+  // that requires no key at all -- every cloud provider ahead of it in
+  // that fixed order requires a key, so with nothing configured, Auto
+  // must land on ollama, not an arbitrary/first-in-array cloud provider.
+  assert.equal(noneConfigured.provider, "ollama");
+  assert.equal(noneConfigured.model, "llama3.2");
+
+  // openai is configured but anthropic (earlier in catalog order) is not
+  // -- Auto must still skip anthropic and pick openai, proving priority
+  // follows the fixed catalog order, not just "any configured provider".
+  const openaiConfigured = resolveAutoProfile(["openai"]);
+  assert.equal(openaiConfigured.provider, "openai");
+  assert.equal(openaiConfigured.model, "gpt-4o-mini");
+
+  // Configuring a later provider too must not change the result -- the
+  // earlier-in-order configured provider still wins.
+  const bothConfigured = resolveAutoProfile(["openai", "anthropic"]);
+  assert.equal(bothConfigured.provider, "anthropic");
 });
 test("corrupt state is preserved rather than silently erased", (context) => {
   const root = fixture(context);

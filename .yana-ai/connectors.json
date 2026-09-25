@@ -1,0 +1,19 @@
+{
+  "enabled": [
+    {
+      "name": "github",
+      "scopes": [
+        "repo.read",
+        "issue.write"
+      ],
+      "enabled_at": "2026-08-31T01:20:33Z"
+    },
+    {
+      "name": "gmail",
+      "scopes": [
+        "mail.read"
+      ],
+      "enabled_at": "2026-08-31T04:30:42Z"
+    }
+  ]
+}

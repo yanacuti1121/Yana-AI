@@ -237,6 +237,20 @@ test_hook "guard-destructive.sh" "Block git clean -f inside python -c (round 1 m
 test_hook "guard-destructive.sh" "Block git reset --hard inside python -c (bash/Rust test-parity gap, code-auditor finding)" '{"tool_name":"Bash","tool_input":{"command":"python3 -c \"import os; os.system('"'"'git reset --hard HEAD~5'"'"')\""}}' "deny"
 test_hook "guard-destructive.sh" "Allow benign bash -c with no destructive pattern (no false positive)" '{"tool_name":"Bash","tool_input":{"command":"bash -c \"echo hello world\""}}' "allow"
 
+# SECURITY FIX (2026-09-16, targeted hardening review item 4): `eval "rm -rf
+# ..."` was a documented-but-unclosed gap in the round-2 fix above -- eval is
+# a shell builtin, not an interpreter binary, so it never matched the
+# interpreter alternation, and it takes no -c/-e/--eval flag at all. Live-
+# verified as a real bypass (exit 0, both bash hook and Rust fast path)
+# before this fix. Ported 1:1 to src/guard/portable.rs -- bash and Rust stay
+# in sync, same as the round-2 checks above.
+test_hook "guard-destructive.sh" "Block eval rm -rf (eval builtin bypass)" '{"tool_name":"Bash","tool_input":{"command":"eval \"rm -rf /tmp/x\""}}' "deny"
+test_hook "guard-destructive.sh" "Block eval git push --force (eval builtin bypass)" '{"tool_name":"Bash","tool_input":{"command":"eval \"git push --force origin main\""}}' "deny"
+test_hook "guard-destructive.sh" "Block eval git reset --hard (eval builtin bypass)" '{"tool_name":"Bash","tool_input":{"command":"eval \"git reset --hard HEAD~5\""}}' "deny"
+test_hook "guard-destructive.sh" "Block eval git clean -f (eval builtin bypass)" '{"tool_name":"Bash","tool_input":{"command":"eval \"git clean -fdx\""}}' "deny"
+test_hook "guard-destructive.sh" "Block eval DROP TABLE (eval builtin bypass)" '{"tool_name":"Bash","tool_input":{"command":"eval \"echo '"'"'DROP TABLE users;'"'"' | psql\""}}' "deny"
+test_hook "guard-destructive.sh" "Allow benign eval with no destructive pattern (no false positive)" '{"tool_name":"Bash","tool_input":{"command":"eval \"echo hello world\""}}' "allow"
+
 # 3a. tool-proxy-enforcer.sh — had ZERO direct test coverage before this
 # addition (2026-07-19), despite being one of 5 hooks in the live default
 # PreToolUse chain for every Bash call. That gap is exactly how its `grep -P`

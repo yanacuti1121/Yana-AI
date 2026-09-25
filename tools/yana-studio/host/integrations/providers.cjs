@@ -28,12 +28,20 @@ async function requestJson(url, options = {}, acceptedErrors = []) {
         response.status === 401 ||
         data.error === "invalid_grant" ||
         data.error === "token_revoked";
+      console.error(
+        `[integrations] ${url} responded ${response.status}: ${data.error || "(no error field)"} ${data.error_description || ""}`,
+      );
       throw new Error(
         expired ? "authorization_revoked" : "provider_request_failed",
       );
     }
     return data;
   } catch (error) {
+    if (
+      error.message !== "authorization_revoked" &&
+      error.message !== "provider_request_failed"
+    )
+      console.error(`[integrations] ${url} request threw:`, error);
     throw new Error(
       error.message === "authorization_revoked"
         ? "authorization_revoked"
@@ -43,9 +51,42 @@ async function requestJson(url, options = {}, acceptedErrors = []) {
 }
 const GOOGLE_CLIENT =
   "185309186279-o4uhmptdte7nvhbsdj96r84bahtnu35k.apps.googleusercontent.com";
+// Google's token endpoint rejects a Desktop-app token/refresh request with
+// "invalid_request: client_secret is missing" even with a correct PKCE
+// code_verifier -- confirmed live (stage-by-stage log showed authorize,
+// callback, and code_received all succeeding, only exchange failing on
+// this). Google's own native-app guide includes client_secret in the
+// Desktop-app token request too; unlike a Web-application secret, Google
+// documents this one as not needing to stay confidential, since Desktop
+// clients ship it in distributed source. It still isn't committed to this
+// repo (GitHub's push protection rejects that regardless of Google's own
+// stance): `scripts/write-secrets.cjs` writes the gitignored
+// integrations/secrets.local.cjs from YANA_GOOGLE_CLIENT_SECRET at build
+// time, and electron-builder's extraResources copies it to
+// Resources/secrets.local.cjs in the packaged app (electron-builder
+// silently drops gitignored files matched only via the "files" glob, so
+// extraResources -- the same mechanism COMMANDS.md needed -- is required
+// here too). Tries the packaged Resources path first, then the dev-mode
+// relative path, then falls back to reading the env var directly.
+let GOOGLE_CLIENT_SECRET = process.env.YANA_GOOGLE_CLIENT_SECRET || null;
+for (const candidate of [
+  process.resourcesPath &&
+    require("node:path").join(process.resourcesPath, "secrets.local.cjs"),
+  "./secrets.local.cjs",
+].filter(Boolean)) {
+  try {
+    GOOGLE_CLIENT_SECRET = require(candidate).googleClientSecret;
+    break;
+  } catch {}
+}
 class GoogleOAuthProvider {
-  constructor(clientId = GOOGLE_CLIENT, request = requestJson) {
+  constructor(
+    clientId = GOOGLE_CLIENT,
+    request = requestJson,
+    clientSecret = GOOGLE_CLIENT_SECRET,
+  ) {
     this.clientId = clientId;
+    this.clientSecret = clientSecret;
     this.request = request;
     this.id = "google";
   }
@@ -65,25 +106,29 @@ class GoogleOAuthProvider {
     return url.href;
   }
   async exchange(code, flow) {
+    const fields = {
+      client_id: this.clientId,
+      code,
+      redirect_uri: flow.redirectUri,
+      code_verifier: flow.verifier,
+      grant_type: "authorization_code",
+    };
+    if (this.clientSecret) fields.client_secret = this.clientSecret;
     return this.request("https://oauth2.googleapis.com/token", {
       method: "POST",
-      body: new URLSearchParams({
-        client_id: this.clientId,
-        code,
-        redirect_uri: flow.redirectUri,
-        code_verifier: flow.verifier,
-        grant_type: "authorization_code",
-      }),
+      body: new URLSearchParams(fields),
     });
   }
   async refresh(tokens) {
+    const fields = {
+      client_id: this.clientId,
+      refresh_token: tokens.refresh_token,
+      grant_type: "refresh_token",
+    };
+    if (this.clientSecret) fields.client_secret = this.clientSecret;
     return this.request("https://oauth2.googleapis.com/token", {
       method: "POST",
-      body: new URLSearchParams({
-        client_id: this.clientId,
-        refresh_token: tokens.refresh_token,
-        grant_type: "refresh_token",
-      }),
+      body: new URLSearchParams(fields),
     });
   }
   async identity(tokens) {
