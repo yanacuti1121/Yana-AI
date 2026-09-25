@@ -102,17 +102,32 @@
     return link;
   }
 
-  function renderDownload(release) {
+  // Each platform may not ship in every release (e.g. a release cut without a
+  // Windows build). Scanning only the single latest release for every OS's
+  // assets meant that OS showed "no installer files" even when an older,
+  // still-current release had a working one. Instead, each platform
+  // independently walks the release list (newest first) for its own most
+  // recent installer, same principle as apt/npm dist-tag resolution.
+  function latestAssetsForPlatform(releases, key) {
+    for (const release of releases) {
+      const assets = release.assets.filter(isInstaller).filter((asset) => assetPlatform(asset.name) === key);
+      if (assets.length) return { release, assets };
+    }
+    return null;
+  }
+
+  function renderDownload(releases) {
     const root = document.querySelector("[data-release-download]");
-    if (!root || !release) return;
+    if (!root || !releases || !releases.length) return;
+    const latest = releases[0];
     root.replaceChildren();
     const banner = document.createElement("div");
     banner.className = "release-banner";
     const info = document.createElement("div");
-    const strong = document.createElement("strong"); strong.textContent = release.name || release.tag_name;
-    const small = document.createElement("small"); small.textContent = `${t("published")} ${humanDate(release.published_at)}`;
+    const strong = document.createElement("strong"); strong.textContent = latest.name || latest.tag_name;
+    const small = document.createElement("small"); small.textContent = `${t("published")} ${humanDate(latest.published_at)}`;
     info.append(strong, document.createElement("br"), small);
-    const all = document.createElement("a"); all.className = "button light"; all.href = release.html_url; all.textContent = t("github");
+    const all = document.createElement("a"); all.className = "button light"; all.href = latest.html_url; all.textContent = t("github");
     banner.append(info, all); root.append(banner);
 
     const platform = detectedPlatform();
@@ -126,13 +141,21 @@
       if (platform === key) { const badge = document.createElement("span"); badge.className = "status shipped"; badge.textContent = t("recommended"); head.append(badge); }
       card.append(head);
       const list = document.createElement("div"); list.className = "asset-list";
-      const assets = release.assets.filter(isInstaller).filter((asset) => assetPlatform(asset.name) === key);
-      if (!assets.length) { const empty = document.createElement("p"); empty.className = "meta"; empty.textContent = t("noAssets"); list.append(empty); }
-      assets.forEach((asset) => list.append(makeAssetLink(asset)));
+      const found = latestAssetsForPlatform(releases, key);
+      if (!found) {
+        const empty = document.createElement("p"); empty.className = "meta"; empty.textContent = t("noAssets"); list.append(empty);
+      } else {
+        if (found.release !== latest) {
+          const olderNote = document.createElement("p"); olderNote.className = "meta";
+          olderNote.textContent = `${found.release.name || found.release.tag_name} — ${humanDate(found.release.published_at)}`;
+          list.append(olderNote);
+        }
+        found.assets.forEach((asset) => list.append(makeAssetLink(asset)));
+      }
       card.append(list); grid.append(card);
     });
     root.append(grid);
-    const checksum = release.assets.find((asset) => asset.name === "SHA256SUMS");
+    const checksum = latest.assets.find((asset) => asset.name === "SHA256SUMS");
     if (checksum) { const note = document.createElement("p"); note.className = "meta"; const link = document.createElement("a"); link.className = "text-link"; link.href = checksum.browser_download_url; link.textContent = "SHA256SUMS"; note.append(document.createTextNode(`${t("verify")} `), link, document.createTextNode(".")); root.append(note); }
   }
 
@@ -157,7 +180,7 @@
 
   function renderReleaseSurfaces() {
     if (!state.releases.length) return;
-    renderDownload(state.releases[0]);
+    renderDownload(state.releases);
     renderReleases(state.releases);
   }
 
