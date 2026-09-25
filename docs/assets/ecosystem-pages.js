@@ -127,8 +127,12 @@
     const strong = document.createElement("strong"); strong.textContent = latest.name || latest.tag_name;
     const small = document.createElement("small"); small.textContent = `${t("published")} ${humanDate(latest.published_at)}`;
     info.append(strong, document.createElement("br"), small);
-    const all = document.createElement("a"); all.className = "button light"; all.href = latest.html_url; all.textContent = t("github");
-    banner.append(info, all); root.append(banner);
+    const stage = document.createElement("div");
+    stage.className = "liquid-stage liquid-stage--cta";
+    stage.dataset.liquidMetal = "cta";
+    stage.innerHTML = `<div class="liquid-plate" aria-hidden="true"></div><canvas class="liquid-fx" aria-hidden="true"></canvas><a class="liquid-button liquid-button--cta" href="${latest.html_url}"><span class="lbl">${t("github")}</span></a>`;
+    banner.append(info, stage); root.append(banner);
+    if (typeof globalThis.mountYanaLiquidMetal === "function") globalThis.mountYanaLiquidMetal(stage);
 
     const platform = detectedPlatform();
     const grid = document.createElement("div"); grid.className = "download-grid";

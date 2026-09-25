@@ -855,4 +855,12 @@ window.__seek   = v => { clock = v; drawn = null; };
     if (hosts[i].dataset.liquidMetal === 'play') continue;
     mountLiquidMetal(hosts[i]);
   }
+
+  /* This IIFE's own querySelectorAll runs once, at script load — any
+     [data-liquid-metal] host inserted later (e.g. the GitHub release
+     banner, built after an async API fetch) never gets found by it. Expose
+     a mount function so that kind of late-inserted host can still opt in. */
+  globalThis.mountYanaLiquidMetal = (host) => {
+    if (host && host.dataset.liquidMetal !== 'play') mountLiquidMetal(host);
+  };
 })();
