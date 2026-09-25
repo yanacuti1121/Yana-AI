@@ -5,11 +5,31 @@
   /* localStorage throws when storage is blocked (private mode, site settings). An unguarded call
      aborted this whole script, leaving the footer, petals and demos unbuilt. Not persisting is fine. */
   const store={get:key=>{try{return localStorage.getItem(key)}catch(error){return null}},set:(key,value)=>{try{localStorage.setItem(key,value)}catch(error){/* storage blocked: preference just is not remembered */}}};
-  const englishPages=new Set(["yana-ai","studio","wheelbot","runtime","governance","agents-skills","models","connectors","missions","continuity","design","evidence","safety","architecture","ecosystem","download","support","privacy","legal-notices","acknowledgements"]);
+  const englishPages=new Set(["yana-ai","studio","wheelbot","runtime","governance","agents-skills","models","connectors","missions","continuity","design","evidence","safety","architecture","ecosystem","download","support","privacy","legal-notices","acknowledgements","install-macos","install-windows","install-linux"]);
   const stem=page.replace(/\.html$/,"").replace(/-en$/,"");
   const languageHref=vi?(page==="index.html"?"en.html":englishPages.has(stem)?`${stem}-en.html`:"en.html"):(stem==="en"?"index.html":`${stem}.html`);
   const route=name=>vi?`${name}.html`:(name==="index"?"en.html":`${name}-en.html`);
   document.body.classList.add("sakura-site");
+
+  /* Apple Liquid Glass refraction filter — SVG feDisplacementMap masked by a
+     radial gradient so the centre reads clean and distortion concentrates at
+     the rim/corners, matching iOS/macOS Liquid Glass (not a uniform frosted
+     blur). Injected once, referenced by .apple-glass via backdrop-filter:url(). */
+  if(!document.getElementById("apple-glass-defs")){
+    const svgNS="http://www.w3.org/2000/svg";
+    const defs=document.createElementNS(svgNS,"svg");
+    defs.id="apple-glass-defs";
+    defs.setAttribute("width","0");defs.setAttribute("height","0");
+    defs.style.position="absolute";
+    defs.innerHTML=`<filter id="apple-glass-refract" x="-20%" y="-20%" width="140%" height="140%">`+
+      `<feTurbulence type="fractalNoise" baseFrequency="0.015 0.02" numOctaves="2" seed="11" result="noise"/>`+
+      `<feImage href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cdefs%3E%3CradialGradient id='g' cx='50%25' cy='50%25' r='60%25'%3E%3Cstop offset='55%25' stop-color='black'/%3E%3Cstop offset='100%25' stop-color='white'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='100' height='100' fill='url(%23g)'/%3E%3C/svg%3E" preserveAspectRatio="none" x="0" y="0" width="100%" height="100%" result="edgeMask"/>`+
+      `<feComposite in="noise" in2="edgeMask" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" result="maskedNoise"/>`+
+      `<feGaussianBlur in="maskedNoise" stdDeviation="1.5" result="softMasked"/>`+
+      `<feDisplacementMap in="SourceGraphic" in2="softMasked" scale="55" xChannelSelector="R" yChannelSelector="G"/>`+
+    `</filter>`;
+    document.body.prepend(defs);
+  }
   const documentPages=["legal-notices","privacy","acknowledgements"];
   const technicalPages=["architecture","governance","runtime","models","connectors","evidence","continuity","missions","agents-skills"];
   document.body.classList.add(documentPages.includes(stem)?"mode-document":technicalPages.some(name=>stem===name)?"mode-technical":stem==="index"||stem==="en"?"petal-high":"mode-standard");
@@ -26,6 +46,9 @@
     productsTitle:"Three published products.",platformTitle:"The layers underneath.",resourcesTitle:"Official documentation and support."
   };
   const link = (href,title,detail,current=false) => `<a class="global-mega-link${current?" is-current":""}" href="${href}"><strong>${title}</strong><small>${detail}</small></a>`;
+  const liquidNavCta = (href,text) => `<div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><canvas class="liquid-fx" aria-hidden="true"></canvas><a class="liquid-button liquid-button--cta" href="${href}"><span class="lbl">${text}</span></a></div>`;
+  const liquidKnobLink = (extraClass,href,label,ariaLabel) => `<div class="liquid-stage liquid-stage--knob ${extraClass}" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><canvas class="liquid-fx" aria-hidden="true"></canvas><a class="liquid-button liquid-button--knob" href="${href}" aria-label="${ariaLabel}"><span class="lbl">${label}</span></a></div>`;
+  const liquidKnobButton = (extraClass,label,ariaLabel) => `<div class="liquid-stage liquid-stage--knob menu-knob" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><canvas class="liquid-fx" aria-hidden="true"></canvas><button class="liquid-button liquid-button--knob ${extraClass}" type="button" aria-label="${ariaLabel}" aria-expanded="false"><span class="lbl">${label}</span></button></div>`;
   const group = (label,title,columns) => `<details class="global-nav-group"><summary>${label}</summary><div class="global-mega-panel"><div class="global-mega-intro"><small>YANA</small><h3>${title}</h3></div>${columns.map(c=>`<div class="global-mega-column">${c}</div>`).join("")}</div></details>`;
   const nav = document.querySelector(".site-nav");
   if (nav) {
@@ -49,7 +72,7 @@
       link("https://github.com/yanacuti1121/Yana-AI","GitHub",vi?"Mã nguồn Yana AI":"Yana AI source")
     ];
     const studioPage = page.includes("studio") || page.includes("download");
-    nav.innerHTML = `<a class="brand" href="${route("index")}"><img class="brand-mark" src="yana-mark.svg" alt=""><span>Yana</span></a><button class="menu-button" type="button" aria-label="Menu" aria-expanded="false">☰</button><div class="nav-links">${group(copy.products,copy.productsTitle,[products])}${group(copy.platform,copy.platformTitle,[platform.slice(0,3).join(""),platform.slice(3).join("")])}${group(copy.resources,copy.resourcesTitle,[resources.slice(0,3).join(""),resources.slice(3).join("")])}<a href="https://vutam.link/">${copy.about}</a></div><div class="nav-actions"><a class="language-link" href="${languageHref}" aria-label="${vi?"View in English":"Xem bằng tiếng Việt"}">${vi?"EN":"VI"}</a><a class="nav-cta" href="https://github.com/yanacuti1121/Yana-AI">${copy.source}</a>${studioPage?`<a class="nav-cta studio-download-cta" href="${route("download")}">${copy.download}</a>`:""}</div>`;
+    nav.innerHTML = `<a class="brand" href="${route("index")}"><img class="brand-mark" src="yana-mark.svg" alt=""><span>Yana</span></a>${liquidKnobButton("menu-button","☰","Menu")}<div class="nav-links">${group(copy.products,copy.productsTitle,[products])}${group(copy.platform,copy.platformTitle,[platform.slice(0,3).join(""),platform.slice(3).join("")])}${group(copy.resources,copy.resourcesTitle,[resources.slice(0,3).join(""),resources.slice(3).join("")])}<a href="https://vutam.link/">${copy.about}</a></div><div class="nav-actions">${liquidKnobLink("",languageHref,vi?"EN":"VI",vi?"View in English":"Xem bằng tiếng Việt")}${liquidNavCta("https://github.com/yanacuti1121/Yana-AI",copy.source)}${studioPage?liquidNavCta(route("download"),copy.download):""}</div>`;
     const scrim = document.createElement("div"); scrim.className="nav-scrim"; document.body.append(scrim);
     const menu = nav.querySelector(".menu-button"), links = nav.querySelector(".nav-links"), groups=[...nav.querySelectorAll("details")];
     const close = () => { groups.forEach(g=>g.open=false); links.classList.remove("open"); menu.setAttribute("aria-expanded","false"); scrim.classList.remove("is-visible"); };
@@ -110,35 +133,31 @@
     let spatialFrame=0;
     const updateSpatialScroll=()=>{
       spatialFrame=0;
-      const viewportCenter=innerHeight*.5;
+      /* PERF: per-section 3D transforms (--scroll-y, --scroll-z, --scroll-rotate, --scroll-scale)
+         are disabled: they forced getBoundingClientRect + style.setProperty on every section every
+         scroll frame, triggering transition: transform .16s — heavy layout thrash for a subtle
+         parallax that most users never notice. The prologue orbit progress is still updated. */
       if(prologue){
         const prologueRect=prologue.getBoundingClientRect();
         const travel=Math.max(1,prologueRect.height-innerHeight);
         const progress=Math.max(0,Math.min(1,-prologueRect.top/travel));
         prologue.style.setProperty("--prologue-progress",progress.toFixed(4));
       }
-      /* read every rect before any write: a read after a write forces a fresh layout for each section */
-      const rects=spatialSections.map(section=>section.getBoundingClientRect());
-      spatialSections.forEach((section,index)=>{
-        const rect=rects[index];
-        if(rect.bottom < -innerHeight*.35 || rect.top > innerHeight*1.35)return;
-        const delta=Math.max(-1.15,Math.min(1.15,(rect.top+rect.height*.5-viewportCenter)/innerHeight));
-        const spatialStrength=innerWidth<600?0:innerWidth<1000?.45:1;
-        section.style.setProperty("--scroll-y",`${delta*18*spatialStrength}px`);
-        section.style.setProperty("--scroll-z",`${-Math.abs(delta)*40*spatialStrength}px`);
-        section.style.setProperty("--scroll-rotate",`${delta*-1.2*spatialStrength}deg`);
-        section.style.setProperty("--scroll-scale",`${1-Math.abs(delta)*.012*spatialStrength}`);
-      });
     };
     const queueSpatialScroll=()=>{if(!spatialFrame)spatialFrame=requestAnimationFrame(updateSpatialScroll)};
     addEventListener("scroll",queueSpatialScroll,{passive:true});addEventListener("resize",queueSpatialScroll);updateSpatialScroll();
+    /* Petals are intentionally disabled site-wide: motion is reserved for
+       meaningful controls instead of running a decorative canvas forever. */
+    const enablePetals=false;
+    if(enablePetals&&!document.body.classList.contains("home-page")){
     const canvas=document.createElement("canvas");canvas.id="sakura-canvas";document.body.prepend(canvas);const ctx=canvas.getContext("2d",{alpha:true});let w=0,h=0,dpr=1,pointer=0;
     const resize=()=>{dpr=Math.min(devicePixelRatio||1,innerWidth<700?1:1.5);w=innerWidth;h=innerHeight;canvas.width=Math.ceil(w*dpr);canvas.height=Math.ceil(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0)};resize();addEventListener("resize",resize,{passive:true});addEventListener("pointermove",e=>pointer=(e.clientX/w-.5),{passive:true});
     canvas.setAttribute("aria-hidden","true");const base=document.body.classList.contains("mode-document")?2:document.body.classList.contains("mode-technical")?8:document.body.classList.contains("petal-high")?24:16;const count=innerWidth<700?Math.ceil(base*.5):base;const petals=Array.from({length:count},()=>({x:Math.random()*w,y:Math.random()*h,s:4+Math.random()*8,v:.35+Math.random()*.75,r:Math.random()*6.28,rv:(Math.random()-.5)*.025,z:.35+Math.random()*.9}));
     const petal=p=>{ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.scale(p.z,p.z);ctx.beginPath();ctx.moveTo(0,-p.s);ctx.bezierCurveTo(p.s*.9,-p.s*.4,p.s*.75,p.s*.75,0,p.s);ctx.bezierCurveTo(-p.s*.75,p.s*.75,-p.s*.9,-p.s*.4,0,-p.s);ctx.fillStyle=`rgba(244,184,204,${.28+p.z*.35})`;ctx.fill();ctx.restore()};
     const frameMs=innerWidth<700||navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=4?1000/24:1000/30;let last=performance.now();const draw=now=>{requestAnimationFrame(draw);/* hidden tab: keep the clock fresh so petals do not jump on return. Frame-rate throttle: just skip the frame,
        without touching the clock, or 60 Hz frames (16 ms apart) never reach frameMs and the petals never move. */
-      if(document.hidden){last=now;return}if(now-last<frameMs)return;const dt=Math.min((now-last)/16.67,2);last=now;ctx.clearRect(0,0,w,h);petals.forEach(p=>{p.y+=p.v*p.z*dt;p.x+=(Math.sin(p.y*.012)+pointer*1.8)*p.z*dt;p.r+=p.rv*dt;if(p.y>h+20){p.y=-20;p.x=Math.random()*w}if(p.x>w+30)p.x=-20;if(p.x<-30)p.x=w+20;petal(p)})};requestAnimationFrame(draw);
+      if(document.hidden||sylvaVisible){last=now;return}if(now-last<frameMs)return;const dt=Math.min((now-last)/16.67,2);last=now;ctx.clearRect(0,0,w,h);petals.forEach(p=>{p.y+=p.v*p.z*dt;p.x+=(Math.sin(p.y*.012)+pointer*1.8)*p.z*dt;p.r+=p.rv*dt;if(p.y>h+20){p.y=-20;p.x=Math.random()*w}if(p.x>w+30)p.x=-20;if(p.x<-30)p.x=w+20;petal(p)})};requestAnimationFrame(draw);
+    }
   }
 
   document.querySelectorAll("[data-execution-demo]").forEach(demo=>{

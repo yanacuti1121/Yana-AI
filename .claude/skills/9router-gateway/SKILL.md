@@ -25,7 +25,7 @@ http://127.0.0.1:20128/v1   ← 9Router (local, MIT)
 ## Cài đặt (1 phút)
 
 ```bash
-npm install -g 9router        # passes L4 vetting: 17K+ stars, MIT, active
+npm install -g 9router        # passes L4 vetting: 29K+ stars (xác nhận 2026-09-17), MIT, active
 9router                       # dashboard: http://localhost:20128
 ```
 
@@ -43,8 +43,15 @@ export ANTHROPIC_API_KEY="<9router-key>"
 export OPENAI_BASE_URL="http://localhost:20128/v1"
 export OPENAI_API_KEY="<9router-key>"
 
-# yana-web: Provider picker → 9Router → dán key → model "kr/claude-sonnet-4.5"
-# (provider có sẵn từ v0.41.2 — server.js PROVIDERS['9router'])
+# yana-web: Provider picker → 9Router → model "kr/claude-sonnet-4.5"
+# (key tự đọc từ ~/.9router/db/data.sqlite khi khởi động, không cần dán tay:
+# tools/yana-web/lib/providers.js dòng 17-26. Bảng provider gốc đã dời từ
+# server.js sang file này, entry '9router' ở dòng 155)
+
+# Yana Studio: Models & Runtime → chọn 9Router → dán NINE_ROUTER_API_KEY
+# → bấm "Dò model" để lấy danh sách model thật từ 9router đang chạy
+# (provider có sẵn: tools/yana-studio/host/model-catalog.cjs, id "9router",
+# kind: "local", discoverable: true, baseUrl 127.0.0.1:20128/v1)
 ```
 
 Model naming của 9Router: `<provider-prefix>/<model>` — ví dụ
