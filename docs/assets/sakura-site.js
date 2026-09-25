@@ -5,7 +5,7 @@
   /* localStorage throws when storage is blocked (private mode, site settings). An unguarded call
      aborted this whole script, leaving the footer, petals and demos unbuilt. Not persisting is fine. */
   const store={get:key=>{try{return localStorage.getItem(key)}catch(error){return null}},set:(key,value)=>{try{localStorage.setItem(key,value)}catch(error){/* storage blocked: preference just is not remembered */}}};
-  const englishPages=new Set(["yana-ai","studio","wheelbot","runtime","governance","agents-skills","models","connectors","missions","continuity","design","evidence","safety","architecture","ecosystem","download","support","privacy","legal-notices","acknowledgements"]);
+  const englishPages=new Set(["yana-ai","studio","wheelbot","runtime","governance","agents-skills","models","connectors","missions","continuity","design","evidence","safety","architecture","ecosystem","download","support","privacy","legal-notices","acknowledgements","install-macos","install-windows","install-linux"]);
   const stem=page.replace(/\.html$/,"").replace(/-en$/,"");
   const languageHref=vi?(page==="index.html"?"en.html":englishPages.has(stem)?`${stem}-en.html`:"en.html"):(stem==="en"?"index.html":`${stem}.html`);
   const route=name=>vi?`${name}.html`:(name==="index"?"en.html":`${name}-en.html`);
