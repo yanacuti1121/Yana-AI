@@ -112,7 +112,7 @@
     const strong = document.createElement("strong"); strong.textContent = release.name || release.tag_name;
     const small = document.createElement("small"); small.textContent = `${t("published")} ${humanDate(release.published_at)}`;
     info.append(strong, document.createElement("br"), small);
-    const all = document.createElement("a"); all.className = "button secondary"; all.href = release.html_url; all.textContent = t("github");
+    const all = document.createElement("a"); all.className = "button light"; all.href = release.html_url; all.textContent = t("github");
     banner.append(info, all); root.append(banner);
 
     const platform = detectedPlatform();
