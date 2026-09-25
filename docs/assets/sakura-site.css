@@ -349,19 +349,14 @@ body.sakura-site{
   filter:blur(12px);opacity:.92;transform:scaleX(.8);
 }
 .sakura-site :is(.button.ghost,.button.light),.decision-controls button:not([aria-pressed=true]){
-  color:#1d1d1f!important;border:1px solid transparent!important;outline:0;
-  background:
-    radial-gradient(58% 118% at 52% 124%,rgba(255,246,196,.55),transparent 42%) padding-box,
-    radial-gradient(55% 112% at 25% 126%,rgba(120,190,255,.55),transparent 46%) padding-box,
-    radial-gradient(48% 105% at 79% 126%,rgba(255,168,203,.42),transparent 46%) padding-box,
-    linear-gradient(160deg,rgba(255,255,255,.6),rgba(255,255,255,.24)) padding-box,
-    conic-gradient(from 205deg,rgba(244,168,192,.6),rgba(120,169,255,.6) 22%,rgba(233,247,255,.7) 39%,rgba(255,241,189,.6) 55%,rgba(239,159,187,.6) 73%,rgba(115,156,255,.6) 89%,rgba(244,168,192,.6)) border-box!important;
-  box-shadow:inset 0 1px rgba(255,255,255,.92),inset 0 -8px 16px rgba(120,169,255,.16),0 12px 30px rgba(62,89,128,.08);
-  -webkit-backdrop-filter:url(#apple-glass-refract) blur(.6px) saturate(150%);backdrop-filter:url(#apple-glass-refract) blur(.6px) saturate(150%);
+  color:#1d1d1f!important;border:1px solid rgba(0,0,0,.1)!important;outline:0;
+  background:linear-gradient(160deg,rgba(255,255,255,.7),rgba(230,230,232,.4)) padding-box!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.9),0 10px 26px rgba(20,20,24,.1);
+  -webkit-backdrop-filter:url(#apple-glass-refract) blur(.6px) saturate(105%);backdrop-filter:url(#apple-glass-refract) blur(.6px) saturate(105%);
 }
 .sakura-site :is(.button,.nav-cta):hover,.decision-controls button:hover{transform:translateY(-2px) scale(1.018);filter:saturate(1.06)}
-.sakura-site :is(.button.ghost,.button.light):hover,.decision-controls button:not([aria-pressed=true]):hover{box-shadow:inset 0 1px #fff,inset 0 -10px 20px rgba(120,169,255,.22),0 16px 40px rgba(62,89,128,.12)}
-@media(max-width:900px){.sakura-site :is(.button.ghost,.button.light),.decision-controls button:not([aria-pressed=true]){-webkit-backdrop-filter:none;backdrop-filter:none;background:linear-gradient(145deg,rgba(255,255,255,.78),rgba(231,248,255,.36)) padding-box,conic-gradient(from 205deg,rgba(244,168,192,.6),rgba(120,169,255,.6) 22%,rgba(233,247,255,.7) 39%,rgba(255,241,189,.6) 55%,rgba(239,159,187,.6) 73%,rgba(115,156,255,.6) 89%,rgba(244,168,192,.6)) border-box!important}}
+.sakura-site :is(.button.ghost,.button.light):hover,.decision-controls button:not([aria-pressed=true]):hover{box-shadow:inset 0 1px #fff,0 14px 32px rgba(20,20,24,.14)}
+@media(max-width:900px){.sakura-site :is(.button.ghost,.button.light),.decision-controls button:not([aria-pressed=true]){-webkit-backdrop-filter:none;backdrop-filter:none;background:linear-gradient(160deg,rgba(255,255,255,.85),rgba(230,230,232,.5)) padding-box!important}}
 
 /* Apple Liquid Glass (iOS/macOS): clean centre, refraction concentrated at
    the rim — see apple-glass-refract filter injected by sakura-site.js. Placed
