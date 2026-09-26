@@ -171,9 +171,14 @@
       ask:["ASK","Waiting for human approval. No change has been executed."],
       deny:["DENY","The request is stopped at the authority gate. The target system is untouched."]
     };
-    demo.querySelectorAll("[data-decision]").forEach(button=>button.addEventListener("click",()=>{
+    demo.querySelectorAll("button[data-decision]").forEach(button=>button.addEventListener("click",()=>{
       const state=button.dataset.decision;demo.dataset.state=state;
-      demo.querySelectorAll("[data-decision]").forEach(item=>item.setAttribute("aria-pressed",String(item===button)));
+      demo.querySelectorAll("button[data-decision]").forEach(item=>{
+        const selected=item===button;
+        item.setAttribute("aria-pressed",String(selected));
+        const stage=item.closest(".liquid-stage");
+        if(stage)stage.classList.toggle("is-selected",selected);
+      });
       receipt.innerHTML=`<b>${messages[state][0]}</b><span>${messages[state][1]}</span>`;
     }));
   });
