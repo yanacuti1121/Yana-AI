@@ -1,5 +1,10 @@
 """Optional Mojo acceleration for memory-recall vector scoring.
 
+Origin:  Yana AI original code. No hermes-agent source was found for it (a
+         search of vendor/hermes-agent/_upstream returned nothing), and its
+         git history is Yana commits only.
+License: Yana AI code, same license as this repository.
+
 This module owns the narrow boundary between Yana's Python memory adapter and
 an optional Mojo kernel.  Python remains responsible for network I/O, secret
 redaction, cache consistency, thresholds, and result selection.  Mojo only
