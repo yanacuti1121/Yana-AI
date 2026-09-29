@@ -171,11 +171,17 @@ def _find_binary() -> str | None:
     if override and _usable(override):
         return override
 
-    # 2. System PATH
+    # 2. System PATH — every entry, not just the first match. pipx puts
+    #    this wrapper's own shim in ~/.local/bin, usually ahead of
+    #    ~/.cargo/bin; stopping at shutil.which()'s first hit meant a real
+    #    binary later on PATH was never found (2026-09-29).
     import shutil
-    on_path = shutil.which("yana-rt")
-    if on_path and _usable(on_path):
-        return on_path
+    for directory in os.environ.get("PATH", "").split(os.pathsep):
+        if not directory:
+            continue
+        on_path = shutil.which("yana-rt", path=directory)
+        if on_path and _usable(on_path):
+            return on_path
 
     # 3. Pre-built platform binary
     pb = _platform_bin()

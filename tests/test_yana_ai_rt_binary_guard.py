@@ -209,3 +209,37 @@ def test_version_check_against_real_shim_does_not_recurse(rt_module, tmp_path, m
     )
     rt_module._check_version_compat(str(shim))
     assert not marker.exists()
+
+
+# ── _find_binary — must look past the shim to later PATH entries ────────
+
+def test_find_binary_skips_shim_and_finds_real_binary_later_on_path(rt_module, tmp_path, monkeypatch):
+    """Default pipx layout: ~/.local/bin (shim) comes before ~/.cargo/bin
+    (real binary). Stopping at the first PATH hit reported 'binary not
+    found' even though a working binary was installed (2026-09-29)."""
+    local_bin = tmp_path / "local_bin"
+    cargo_bin = tmp_path / "cargo_bin"
+    local_bin.mkdir()
+    cargo_bin.mkdir()
+    _make_executable(local_bin / "yana-rt", _REAL_INCIDENT_SHIM.encode())
+    real = _make_executable(cargo_bin / "yana-rt", b"\x7fELF" + b"\x00" * 60)
+    monkeypatch.delenv("YANA_RT_BIN", raising=False)
+    monkeypatch.setenv("PATH", os.pathsep.join([str(local_bin), "", str(cargo_bin)]))
+    assert rt_module._find_binary() == str(real)
+
+
+def test_find_binary_never_returns_shim_when_only_shim_on_path(rt_module, tmp_path, monkeypatch):
+    local_bin = tmp_path / "local_bin"
+    local_bin.mkdir()
+    _make_executable(local_bin / "yana-rt", _REAL_INCIDENT_SHIM.encode())
+    monkeypatch.delenv("YANA_RT_BIN", raising=False)
+    monkeypatch.setenv("PATH", str(local_bin))
+    monkeypatch.setattr(rt_module, "_PKG_ROOT", tmp_path / "no_pkg_root")
+    assert rt_module._find_binary() is None
+
+
+def test_find_binary_empty_path(rt_module, tmp_path, monkeypatch):
+    monkeypatch.delenv("YANA_RT_BIN", raising=False)
+    monkeypatch.setenv("PATH", "")
+    monkeypatch.setattr(rt_module, "_PKG_ROOT", tmp_path / "no_pkg_root")
+    assert rt_module._find_binary() is None

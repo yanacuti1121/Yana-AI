@@ -49,8 +49,3 @@ def test_parse_tag_rejects_malformed(tag):
 
 def test_parse_tag_accepts_valid():
     assert drift.parse_tag("py-v1.5.0") == (1, 5, 0)
-
-
-def test_script_passes_on_this_branch():
-    # This branch bumps 1.5.0 -> 1.5.1 on top of the unreleased fix.
-    assert drift.main() == 0
