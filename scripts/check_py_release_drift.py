@@ -10,7 +10,7 @@ never ship under a version number PyPI would accept.
 
 Rule enforced here, against the latest `py-v*` tag:
   - current version < tag version            -> fail (downgrade)
-  - package changed since tag, version == tag -> fail (fix can't ship)
+  - package shipped files changed since tag, version == tag -> fail
   - otherwise                                 -> pass
 
 Exit codes: 0 pass, 1 drift detected, 2 cannot determine (no tag / git error).
@@ -20,12 +20,21 @@ from __future__ import annotations
 import re
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGE_PATHS = ("src/yana_ai", "pyproject.toml")
 _VERSION_LINE = re.compile(r'^version\s*=\s*"(\d+)\.(\d+)\.(\d+)"', re.MULTILINE)
 _TAG = re.compile(r"^py-v(\d+)\.(\d+)\.(\d+)$")
+
+
+def package_paths(pyproject: dict) -> list[str]:
+    """Every repo path that ends up in the wheel: packages plus force-include
+    sources (bin/, core/, gates/, ...). Read from pyproject so the drift
+    scope can't fall out of sync with what is actually shipped."""
+    wheel = pyproject["tool"]["hatch"]["build"]["targets"]["wheel"]
+    paths = list(wheel.get("packages", [])) + list(wheel.get("force-include", {}))
+    return sorted(set(paths + ["pyproject.toml"]))
 
 
 def parse_tag(tag: str) -> tuple[int, int, int] | None:
@@ -41,7 +50,7 @@ def evaluate(tag_version: tuple[int, ...], current: tuple[int, ...],
         return False, f"downgrade: pyproject {cur_s} < released py-v{tag_s}"
     if current == tag_version and changed_commits > 0:
         return False, (
-            f"{changed_commits} commit(s) touched the Python package since "
+            f"{changed_commits} commit(s) changed files shipped in the PyPI wheel since "
             f"py-v{tag_s}, but pyproject is still {cur_s}. PyPI rejects "
             "re-uploads of an existing version, so these changes can never "
             "reach users. Bump the version in pyproject.toml and "
@@ -62,11 +71,13 @@ def main() -> int:
             print("[py-release-drift] no py-v* tag found", file=sys.stderr)
             return 2
         latest = max(tags, key=parse_tag)
-        commits = _git("rev-list", "--count", f"{latest}..HEAD", "--", *PACKAGE_PATHS)
-    except (OSError, subprocess.CalledProcessError) as exc:
-        print(f"[py-release-drift] git failed: {exc}", file=sys.stderr)
+        text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+        paths = package_paths(tomllib.loads(text))
+        commits = _git("rev-list", "--count", f"{latest}..HEAD", "--", *paths)
+    except (OSError, subprocess.CalledProcessError, tomllib.TOMLDecodeError, KeyError) as exc:
+        print(f"[py-release-drift] cannot determine: {exc}", file=sys.stderr)
         return 2
-    match = _VERSION_LINE.search((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    match = _VERSION_LINE.search(text)
     if not match:
         print("[py-release-drift] version not found in pyproject.toml", file=sys.stderr)
         return 2

@@ -49,3 +49,23 @@ def test_parse_tag_rejects_malformed(tag):
 
 def test_parse_tag_accepts_valid():
     assert drift.parse_tag("py-v1.5.0") == (1, 5, 0)
+
+
+def test_package_paths_cover_force_included_dirs():
+    # Review finding on PR #379: bin/, core/, gates/ ... ship in the wheel
+    # too, so changes there also need a version bump.
+    pyproject = {"tool": {"hatch": {"build": {"targets": {"wheel": {
+        "packages": ["src/yana_ai"],
+        "force-include": {"bin": "yana_ai/bin", "core": "yana_ai/core",
+                          ".codex/hooks.json": "yana_ai/.codex/hooks.json"},
+    }}}}}}
+    assert drift.package_paths(pyproject) == [
+        ".codex/hooks.json", "bin", "core", "pyproject.toml", "src/yana_ai"]
+
+
+def test_package_paths_match_real_pyproject():
+    import tomllib
+    real = tomllib.loads((_SCRIPT.parents[1] / "pyproject.toml").read_text(encoding="utf-8"))
+    paths = drift.package_paths(real)
+    for expected in ("src/yana_ai", "bin", "core", "gates", "scanner", "pyproject.toml"):
+        assert expected in paths
