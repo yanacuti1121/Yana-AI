@@ -215,7 +215,7 @@ def _run(extra_args: list[str] | None = None) -> None:
         print(
             "yana-rt: binary not found.\n\n"
             "To install, run one of:\n"
-            f"  cargo install --path {_PKG_ROOT}  # build from source (requires Rust)\n"
+            "  cargo install yana-rt  # from crates.io (requires Rust)\n"
             "  export YANA_RT_BIN=/path/to/yana-rt\n\n"
             "Do NOT set YANA_RT_BIN to the output of `which yana-rt` — on a\n"
             "pip install that path is this wrapper itself, not a compiled binary.",
