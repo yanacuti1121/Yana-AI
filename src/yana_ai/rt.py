@@ -83,7 +83,11 @@ def _check_version_compat(binary: str) -> None:
     be the reason a working setup stops working."""
     try:
         result = subprocess.run(
-            [binary, "--version"], capture_output=True, text=True, timeout=5
+            [binary, "--version"], capture_output=True, text=True, timeout=5,
+            # Defense in depth: if a shim ever slips past _usable, the child
+            # must see the re-entry guard here too, not only in _run().
+            # Without it, PyPI 1.5.0 fork-bombed via this exact call (2026-09-29).
+            env={**os.environ, _RECURSION_GUARD: "1"},
         )
         match = _VERSION_RE.search(result.stdout)
         if not match:

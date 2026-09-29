@@ -170,3 +170,42 @@ def test_usable_realpath_check_alone_rejects_an_executable_copy_of_self(rt_modul
         assert rt_module._usable(str(candidate)) is False
     finally:
         rt_module.Path.resolve = original_resolve
+
+
+# ── _check_version_compat — must pass the re-entry guard to its child ───
+
+def test_version_check_child_inherits_recursion_guard(rt_module, monkeypatch):
+    """PyPI 1.5.0 (2026-09-29 incident) ran `<binary> --version` WITHOUT the
+    re-entry guard env var, so a shim that reached this call re-entered the
+    wrapper unguarded and fork-bombed (~470 processes). The guard must be in
+    the child's env even when the parent process has not set it."""
+    monkeypatch.delenv(rt_module._RECURSION_GUARD, raising=False)
+    captured = {}
+
+    def fake_run(args, **kwargs):
+        captured["env"] = kwargs.get("env")
+        raise OSError("stop here")
+
+    monkeypatch.setattr(rt_module.subprocess, "run", fake_run)
+    rt_module._check_version_compat("/nonexistent/yana-rt")
+    assert captured["env"] is not None
+    assert captured["env"].get(rt_module._RECURSION_GUARD) == "1"
+
+
+def test_version_check_against_real_shim_does_not_recurse(rt_module, tmp_path, monkeypatch):
+    """End-to-end shape of the incident: point the version check at a script
+    that would re-enter unguarded. With the guard, the child sees it and
+    exits immediately instead of spawning again."""
+    monkeypatch.delenv(rt_module._RECURSION_GUARD, raising=False)
+    marker = tmp_path / "spawned"
+    shim = _make_executable(
+        tmp_path / "yana-rt",
+        (
+            "#!/bin/sh\n"
+            f'if [ -n "${rt_module._RECURSION_GUARD}" ]; then exit 1; fi\n'
+            f'echo x >> "{marker}"\n'
+            'exec "$0" --version\n'
+        ).encode(),
+    )
+    rt_module._check_version_compat(str(shim))
+    assert not marker.exists()
