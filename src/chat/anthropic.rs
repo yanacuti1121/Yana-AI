@@ -53,31 +53,7 @@ impl ChatProvider for AnthropicProvider {
             "ANTHROPIC_API_KEY not set — export it, or run with --provider ollama for a local model",
         )?;
 
-        let msgs = build_anthropic_messages(messages);
-
-        let mut body = serde_json::json!({
-            "model": model,
-            "max_tokens": MAX_TOKENS,
-            "stream": true,
-            "messages": msgs,
-        });
-        if let Some(sys) = system {
-            body["system"] = serde_json::Value::String(sys.to_string());
-        }
-        if !tools.is_empty() {
-            body["tools"] = serde_json::Value::Array(
-                tools
-                    .iter()
-                    .map(|t| {
-                        serde_json::json!({
-                            "name": t.name,
-                            "description": t.description,
-                            "input_schema": t.parameters_schema,
-                        })
-                    })
-                    .collect(),
-            );
-        }
+        let body = build_request_body(model, system, messages, tools, prompt_cache_enabled());
 
         let agent = super::provider::build_agent();
         let mut resp = agent
@@ -195,6 +171,87 @@ impl ChatProvider for AnthropicProvider {
 /// already set correctly for both cases by whoever constructed it (see
 /// `history.rs`'s module doc) — this function only decides the `content`
 /// shape, never the `role`.
+/// Operator kill switch for prompt caching (WS1 P4). On by default. Set
+/// `YANA_PROMPT_CACHE` to `0`, `off` or `false` to send plain requests, for
+/// example if cache-write pricing surprises a bill. Read per request; tests
+/// call `build_request_body` directly and never touch the environment.
+fn prompt_cache_enabled() -> bool {
+    !matches!(
+        std::env::var("YANA_PROMPT_CACHE").as_deref().map(str::trim),
+        Ok("0") | Ok("off") | Ok("false")
+    )
+}
+
+/// Assemble the Messages API request body. With `cache` set, the system prompt
+/// and the newest message carry an ephemeral `cache_control` breakpoint so
+/// the stable prefix (tools, system, earlier turns) is billed at the cache
+/// read rate on the next turn. Prefixes under the model's minimum cacheable
+/// size are simply not cached by the API, which is harmless.
+fn build_request_body(
+    model: &str,
+    system: Option<&str>,
+    messages: &[ChatMessage],
+    tools: &[ToolSpec],
+    cache: bool,
+) -> serde_json::Value {
+    let mut built_messages = build_anthropic_messages(messages);
+    if cache {
+        mark_last_message_cacheable(&mut built_messages);
+    }
+    let mut body = serde_json::json!({
+        "model": model,
+        "max_tokens": MAX_TOKENS,
+        "stream": true,
+        "messages": built_messages,
+    });
+    if let Some(sys) = system {
+        body["system"] = if cache {
+            serde_json::json!([{"type": "text", "text": sys, "cache_control": cache_marker()}])
+        } else {
+            serde_json::Value::String(sys.to_string())
+        };
+    }
+    if !tools.is_empty() {
+        body["tools"] = serde_json::Value::Array(
+            tools
+                .iter()
+                .map(|t| {
+                    serde_json::json!({
+                        "name": t.name,
+                        "description": t.description,
+                        "input_schema": t.parameters_schema,
+                    })
+                })
+                .collect(),
+        );
+    }
+    body
+}
+
+fn cache_marker() -> serde_json::Value {
+    serde_json::json!({"type": "ephemeral"})
+}
+
+/// Put a cache breakpoint on the last content block of the newest message. A
+/// plain-string message becomes a one-block array first, because the API
+/// only accepts `cache_control` on a block. Empty text is skipped: the API
+/// rejects `cache_control` on an empty text block.
+fn mark_last_message_cacheable(messages: &mut [serde_json::Value]) {
+    let Some(last) = messages.last_mut() else {
+        return;
+    };
+    let content = &mut last["content"];
+    if let Some(text) = content.as_str().map(str::to_string) {
+        if text.is_empty() {
+            return;
+        }
+        *content = serde_json::json!([{"type": "text", "text": text}]);
+    }
+    if let Some(block) = content.as_array_mut().and_then(|blocks| blocks.last_mut()) {
+        block["cache_control"] = cache_marker();
+    }
+}
+
 fn build_anthropic_messages(messages: &[ChatMessage]) -> Vec<serde_json::Value> {
     messages
         .iter()
@@ -250,6 +307,92 @@ fn build_anthropic_messages(messages: &[ChatMessage]) -> Vec<serde_json::Value> 
 mod tests {
     use super::*;
     use crate::chat::tool_types::{ToolCallRecord, ToolResultRecord};
+
+    fn spec() -> ToolSpec {
+        ToolSpec {
+            name: "read_file",
+            description: "read",
+            parameters_schema: serde_json::json!({"type": "object"}),
+        }
+    }
+
+    #[test]
+    fn cache_off_keeps_the_original_request_shape() {
+        let msgs = [ChatMessage::text(Role::User, "hi")];
+        let body = build_request_body("m", Some("be brief"), &msgs, &[spec()], false);
+        assert_eq!(body["system"], "be brief");
+        assert_eq!(body["messages"][0]["content"], "hi");
+        assert!(!body.to_string().contains("cache_control"));
+    }
+
+    #[test]
+    fn cache_on_marks_the_system_prompt_as_a_cache_breakpoint() {
+        let msgs = [ChatMessage::text(Role::User, "hi")];
+        let body = build_request_body("m", Some("be brief"), &msgs, &[], true);
+        assert_eq!(body["system"][0]["type"], "text");
+        assert_eq!(body["system"][0]["text"], "be brief");
+        assert_eq!(body["system"][0]["cache_control"]["type"], "ephemeral");
+    }
+
+    #[test]
+    fn cache_on_marks_only_the_newest_message() {
+        let msgs = [
+            ChatMessage::text(Role::User, "first"),
+            ChatMessage::text(Role::Assistant, "answer"),
+            ChatMessage::text(Role::User, "second"),
+        ];
+        let body = build_request_body("m", None, &msgs, &[], true);
+        assert_eq!(body["messages"][0]["content"], "first", "older turns stay plain strings");
+        assert_eq!(body["messages"][1]["content"], "answer");
+        let last = &body["messages"][2]["content"];
+        assert_eq!(last[0]["type"], "text");
+        assert_eq!(last[0]["text"], "second");
+        assert_eq!(last[0]["cache_control"]["type"], "ephemeral");
+    }
+
+    #[test]
+    fn cache_on_marks_the_last_block_of_a_tool_result_message() {
+        let mut result = ChatMessage::text(Role::User, "");
+        result.tool_result = Some(ToolResultRecord {
+            call_id: "c1".to_string(),
+            output: "out".to_string(),
+            is_error: false,
+            denied: false,
+        });
+        let body = build_request_body("m", None, &[result], &[], true);
+        let blocks = &body["messages"][0]["content"];
+        assert_eq!(blocks[0]["type"], "tool_result");
+        assert_eq!(blocks[0]["cache_control"]["type"], "ephemeral");
+    }
+
+    #[test]
+    fn cache_on_skips_an_empty_text_message() {
+        let body = build_request_body("m", None, &[ChatMessage::text(Role::User, "")], &[], true);
+        assert_eq!(body["messages"][0]["content"], "");
+        assert!(!body.to_string().contains("cache_control"));
+    }
+
+    #[test]
+    fn cache_on_marks_the_last_block_of_an_image_message() {
+        let message = ChatMessage::text(Role::User, "look").with_images(vec![
+            crate::model::provider::ImageAttachment {
+                mime_type: "image/png".to_string(),
+                data: "aGk=".to_string(),
+            },
+        ]);
+        let body = build_request_body("m", None, &[message], &[], true);
+        let blocks = &body["messages"][0]["content"];
+        assert!(blocks[0].get("cache_control").is_none());
+        assert_eq!(blocks[1]["text"], "look");
+        assert_eq!(blocks[1]["cache_control"]["type"], "ephemeral");
+    }
+
+    #[test]
+    fn cache_on_leaves_the_request_valid_without_system_or_messages() {
+        let body = build_request_body("m", None, &[], &[], true);
+        assert!(body.get("system").is_none());
+        assert_eq!(body["messages"], serde_json::json!([]));
+    }
 
     #[test]
     fn plain_text_message_unchanged_shape() {

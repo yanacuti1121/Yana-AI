@@ -137,6 +137,16 @@ impl CredentialPool {
 - Adapter gắn `"cache_control": {"type": "ephemeral"}` vào khối `system` và khối tin nhắn ổn định cuối cùng. Tắt được bằng cài đặt.
 - `ChatUsage` thêm `cache_read_tokens` và `cache_write_tokens`. `ChatUsage` được dựng bằng literal ở 9 chỗ, nên thay đổi này **phải** đi kèm sửa các chỗ đó hoặc dùng `..Default::default()`. Nếu chỗ nào nằm ngoài phạm vi WS1 thì dừng và báo trước khi sửa.
 
+### 5.1 Thay đổi khi cài đặt P4 (2026-09-30)
+
+Ba chỗ khác với văn bản trên, đều do phạm vi file:
+
+1. **Không thêm trường vào `ChatUsage`.** 4 chỗ dựng bằng literal nằm ngoài phạm vi WS1: `chat/headless.rs:761`, `chat/tui/tabs/tests.rs:42`, `runtime/tests.rs:66` và `:74`. Vì vậy P4 chỉ làm phía yêu cầu (gắn `cache_control`); chưa đọc và báo số token cache. Việc đó chờ anh Tâm cho phép sửa 4 chỗ này.
+2. **Không thêm `supports_prompt_cache()` vào trait.** Chưa có nơi nào dùng nó, thêm vào là thừa. Thêm khi có người gọi.
+3. **Công tắc tắt là biến môi trường `YANA_PROMPT_CACHE=0|off|false`, không phải cài đặt.** `AnthropicProvider` là struct rỗng được tạo ở `chat/mod.rs:107` và `model/catalog.rs:35`; thêm trường cấu hình buộc phải sửa `chat/mod.rs` (ngoài phạm vi). Mặc định bật. Biến được đọc mỗi lần gửi yêu cầu, còn test gọi thẳng `build_request_body` nên không đụng môi trường.
+
+Vị trí điểm cache: khối `system` (kéo theo `tools` phía trước) và khối cuối của tin nhắn mới nhất. Tin nhắn chuỗi thường được đổi thành mảng một khối vì API chỉ nhận `cache_control` trên khối. Văn bản rỗng bị bỏ qua vì API từ chối `cache_control` trên khối rỗng.
+
 ## 6. Provider mới qua `openai_compat` (việc P5)
 
 Chỉ thêm sau khi P1 đến P3 có test. Mỗi provider chỉ là một mục cấu hình (tên, URL gốc, biến môi trường khóa, model mặc định) trên `openai_compat`, không thêm mã truyền tải mới. Ứng viên: OpenRouter, một provider cục bộ.
