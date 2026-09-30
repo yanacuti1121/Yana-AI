@@ -391,7 +391,7 @@ void main(){
 
 /* --------------------------------------------------------------- */
 const cv = document.getElementById('fx');
-const gl = cv.getContext('webgl2', {alpha:true, antialias:false, premultipliedAlpha:true, powerPreference:'high-performance'});
+const gl = cv.getContext('webgl2', {alpha:true, antialias:false, premultipliedAlpha:true, powerPreference:'low-power'});
 const stage = document.getElementById('stage');
 const btn   = document.getElementById('btn');
 const plate = document.querySelector('.plate');

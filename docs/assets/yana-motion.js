@@ -22,6 +22,18 @@
   }
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
+  // Looping CSS animations keep the compositor busy even when their scene is
+  // scrolled away; pause them while the scene is outside the viewport.
+  const loopScenes = document.querySelectorAll(
+    ".execution-stage, .wheelbot-stage, .yana-orbit, .screenshot-stack, .sylva-intro"
+  );
+  if (loopScenes.length && "IntersectionObserver" in window) {
+    const loopObserver = new IntersectionObserver(entries => {
+      for (const entry of entries) entry.target.classList.toggle("yana-offscreen", !entry.isIntersecting);
+    }, { rootMargin: "10% 0px 10% 0px", threshold: 0 });
+    for (const scene of loopScenes) loopObserver.observe(scene);
+  }
+
   const surfaces = [...document.querySelectorAll(
     ".yana-hero-object, .showcase-visual, .hero-stage, .feature-visual"
   )];
