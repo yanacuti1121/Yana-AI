@@ -212,3 +212,6 @@ fn fix_mcp001(target: &str, dry_run: bool) -> Result<()> {
     println!("[fix/MCP001] No MCP config found");
     Ok(())
 }
+
+#[cfg(test)]
+mod tests;
