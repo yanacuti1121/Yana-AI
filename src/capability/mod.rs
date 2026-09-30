@@ -16,10 +16,15 @@ pub mod config_write;
 pub mod error;
 pub mod evidence;
 pub mod file_mutation;
+pub mod file_patch;
 pub mod git;
 pub mod lease;
+pub mod patch;
+#[cfg(test)]
+mod patch_tests;
 pub mod registry;
 mod registry_data;
+mod registry_data_ws3;
 pub mod repo;
 pub mod system;
 

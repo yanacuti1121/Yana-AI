@@ -15,6 +15,13 @@ fn unix_only(_ctx: &SessionContext) -> bool {
 }
 
 pub(super) fn all_descriptors() -> Vec<CapabilityDescriptor> {
+    let mut all = base_descriptors();
+    // WS3 tools live in their own file so this one does not grow further.
+    all.extend(super::registry_data_ws3::descriptors());
+    all
+}
+
+fn base_descriptors() -> Vec<CapabilityDescriptor> {
     vec![
         CapabilityDescriptor {
             name: "repo.tree",
