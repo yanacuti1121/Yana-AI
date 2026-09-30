@@ -108,6 +108,7 @@ impl ChatProvider for GeminiProvider {
                         .get("candidatesTokenCount")
                         .and_then(serde_json::Value::as_u64)
                         .unwrap_or(0),
+                    ..ChatUsage::default()
                 });
             }
             Ok(())

@@ -539,6 +539,7 @@ impl ChatProvider for OpenAiCompatProvider {
                         .get("completion_tokens")
                         .and_then(|v| v.as_u64())
                         .unwrap_or(0),
+                    ..ChatUsage::default()
                 });
             }
             Ok(())

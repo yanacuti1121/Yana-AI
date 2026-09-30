@@ -141,7 +141,8 @@ impl CredentialPool {
 
 Ba chỗ khác với văn bản trên, đều do phạm vi file:
 
-1. **Không thêm trường vào `ChatUsage`.** 4 chỗ dựng bằng literal nằm ngoài phạm vi WS1: `chat/headless.rs:761`, `chat/tui/tabs/tests.rs:42`, `runtime/tests.rs:66` và `:74`. Vì vậy P4 chỉ làm phía yêu cầu (gắn `cache_control`); chưa đọc và báo số token cache. Việc đó chờ anh Tâm cho phép sửa 4 chỗ này.
+1. **Không thêm trường vào `ChatUsage` ở lần đầu.** 4 chỗ dựng bằng literal nằm ngoài phạm vi WS1: `chat/headless.rs:761`, `chat/tui/tabs/tests.rs:42`, `runtime/tests.rs:66` và `:74`. Vì vậy P4 lúc đầu chỉ làm phía yêu cầu (gắn `cache_control`).
+   **Đã giải quyết (2026-09-30, anh Tâm cho phép sửa đúng 4 chỗ này):** `ChatUsage` có thêm `cache_read_tokens` và `cache_write_tokens` (mặc định 0); 4 literal dùng `..Default::default()`, không đổi logic. Anthropic đọc `cache_read_input_tokens` và `cache_creation_input_tokens` từ sự kiện `message_start`. Chế độ không TUI báo hai số này trong sự kiện JSON `metrics` (`cache_read_tokens`, `cache_write_tokens`). Giao diện TUI chưa hiển thị chúng.
 2. **Không thêm `supports_prompt_cache()` vào trait.** Chưa có nơi nào dùng nó, thêm vào là thừa. Thêm khi có người gọi.
 3. **Công tắc tắt là biến môi trường `YANA_PROMPT_CACHE=0|off|false`, không phải cài đặt.** `AnthropicProvider` là struct rỗng được tạo ở `chat/mod.rs:107` và `model/catalog.rs:35`; thêm trường cấu hình buộc phải sửa `chat/mod.rs` (ngoài phạm vi). Mặc định bật. Biến được đọc mỗi lần gửi yêu cầu, còn test gọi thẳng `build_request_body` nên không đụng môi trường.
 

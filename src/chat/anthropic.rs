@@ -114,13 +114,7 @@ impl ChatProvider for AnthropicProvider {
                 // placeholder at this point in the stream (see ChatUsage::merge).
                 Some("message_start") => {
                     if let Some(u) = event.pointer("/message/usage") {
-                        usage.merge(ChatUsage {
-                            input_tokens: u
-                                .get("input_tokens")
-                                .and_then(|v| v.as_u64())
-                                .unwrap_or(0),
-                            output_tokens: 0,
-                        });
+                        usage.merge(usage_from_message_start(u));
                     }
                 }
                 // real final output_tokens arrives here; no input_tokens
@@ -131,11 +125,11 @@ impl ChatProvider for AnthropicProvider {
                 Some("message_delta") => {
                     if let Some(u) = event.get("usage") {
                         usage.merge(ChatUsage {
-                            input_tokens: 0,
                             output_tokens: u
                                 .get("output_tokens")
                                 .and_then(|v| v.as_u64())
                                 .unwrap_or(0),
+                            ..ChatUsage::default()
                         });
                     }
                     if event.pointer("/delta/stop_reason").and_then(|v| v.as_str())
@@ -165,12 +159,19 @@ impl ChatProvider for AnthropicProvider {
     }
 }
 
-/// Anthropic's own wire shape for tool-call/tool-result turns: a `tool_use`
-/// block nests inside an assistant-role message; a `tool_result` block
-/// nests inside a user-role message addressed back. `ChatMessage.role` is
-/// already set correctly for both cases by whoever constructed it (see
-/// `history.rs`'s module doc) — this function only decides the `content`
-/// shape, never the `role`.
+/// Usage carried by the `message_start` event. `output_tokens` stays zero
+/// because the real count only arrives with `message_delta` (see
+/// `ChatUsage::merge`). Cache fields are absent unless prompt caching applied.
+fn usage_from_message_start(usage: &serde_json::Value) -> ChatUsage {
+    let count = |field: &str| usage.get(field).and_then(|v| v.as_u64()).unwrap_or(0);
+    ChatUsage {
+        input_tokens: count("input_tokens"),
+        output_tokens: 0,
+        cache_read_tokens: count("cache_read_input_tokens"),
+        cache_write_tokens: count("cache_creation_input_tokens"),
+    }
+}
+
 /// Operator kill switch for prompt caching (WS1 P4). On by default. Set
 /// `YANA_PROMPT_CACHE` to `0`, `off` or `false` to send plain requests, for
 /// example if cache-write pricing surprises a bill. Read per request; tests
@@ -252,6 +253,12 @@ fn mark_last_message_cacheable(messages: &mut [serde_json::Value]) {
     }
 }
 
+/// Anthropic's own wire shape for tool-call/tool-result turns: a `tool_use`
+/// block nests inside an assistant-role message; a `tool_result` block
+/// nests inside a user-role message addressed back. `ChatMessage.role` is
+/// already set correctly for both cases by whoever constructed it (see
+/// `history.rs`'s module doc) — this function only decides the `content`
+/// shape, never the `role`.
 fn build_anthropic_messages(messages: &[ChatMessage]) -> Vec<serde_json::Value> {
     messages
         .iter()
@@ -370,6 +377,27 @@ mod tests {
         let body = build_request_body("m", None, &[ChatMessage::text(Role::User, "")], &[], true);
         assert_eq!(body["messages"][0]["content"], "");
         assert!(!body.to_string().contains("cache_control"));
+    }
+
+    #[test]
+    fn message_start_usage_reports_cache_read_and_write_tokens() {
+        let event = serde_json::json!({
+            "input_tokens": 12,
+            "cache_read_input_tokens": 300,
+            "cache_creation_input_tokens": 40,
+            "output_tokens": 1
+        });
+        let usage = usage_from_message_start(&event);
+        assert_eq!(usage.input_tokens, 12);
+        assert_eq!(usage.cache_read_tokens, 300);
+        assert_eq!(usage.cache_write_tokens, 40);
+        assert_eq!(usage.output_tokens, 0, "output is a placeholder until message_delta");
+    }
+
+    #[test]
+    fn message_start_usage_without_cache_fields_defaults_to_zero() {
+        let usage = usage_from_message_start(&serde_json::json!({"input_tokens": 7}));
+        assert_eq!((usage.input_tokens, usage.cache_read_tokens, usage.cache_write_tokens), (7, 0, 0));
     }
 
     #[test]

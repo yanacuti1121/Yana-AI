@@ -547,6 +547,8 @@ fn write_event(output: &mut impl Write, event: RuntimeEvent) -> Result<()> {
             "type": "metrics",
             "input_tokens": usage.input_tokens,
             "output_tokens": usage.output_tokens,
+            "cache_read_tokens": usage.cache_read_tokens,
+            "cache_write_tokens": usage.cache_write_tokens,
         })),
         RuntimeEvent::AuthorityDenied { authority, reason } => Some(json!({
             "type": "authority_denied",
@@ -761,6 +763,8 @@ mod tests {
             RuntimeEvent::Metrics(crate::model::provider::ChatUsage {
                 input_tokens: 4,
                 output_tokens: 7,
+                cache_read_tokens: 300,
+                cache_write_tokens: 40,
             }),
         )
         .unwrap();
@@ -775,6 +779,8 @@ mod tests {
         );
         assert_eq!(parsed[1]["input_tokens"], 4);
         assert_eq!(parsed[1]["output_tokens"], 7);
+        assert_eq!(parsed[1]["cache_read_tokens"], 300);
+        assert_eq!(parsed[1]["cache_write_tokens"], 40);
     }
 
     #[test]
