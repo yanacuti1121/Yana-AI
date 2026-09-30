@@ -13,7 +13,8 @@
 use super::CheckpointError;
 use std::ffi::OsStr;
 use std::path::Path;
-use std::process::Command;
+use std::process::{Command, Stdio};
+use std::time::{Duration, Instant};
 
 #[cfg(windows)]
 const NULL_PATH: &str = "NUL";
@@ -33,6 +34,8 @@ const IDENTITY_NAME: &str = "yana";
 const IDENTITY_EMAIL: &str = "yana@localhost";
 /// Longest stderr excerpt kept in an error.
 const MAX_STDERR_CHARS: usize = 300;
+/// How often a time-limited command is checked for completion.
+const POLL: Duration = Duration::from_millis(10);
 
 fn isolate(command: &mut Command) {
     for var in INHERITED_REPO_VARS {
@@ -73,21 +76,54 @@ pub(super) fn init_command(git: &OsStr, shadow: &Path) -> Command {
     command
 }
 
-/// Run `command` and return its stdout.
-pub(super) fn run(command: &mut Command) -> Result<Vec<u8>, CheckpointError> {
-    let output = command.output().map_err(|error| match error.kind() {
+/// Run `command` and return its stdout. With a `deadline`, the process is
+/// killed when the time passes and `TimedOut` is returned.
+pub(super) fn run_until(command: &mut Command, deadline: Option<Instant>) -> Result<Vec<u8>, CheckpointError> {
+    let Some(deadline) = deadline else { return finish(command.output()) };
+    command.stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped());
+    let mut child = command.spawn().map_err(spawn_error)?;
+    // Both pipes are drained on their own threads so a chatty command cannot block on a full pipe.
+    let out = drain(child.stdout.take());
+    let err = drain(child.stderr.take());
+    let status = loop {
+        match child.try_wait() {
+            Ok(Some(status)) => break status,
+            Ok(None) if Instant::now() < deadline => std::thread::sleep(POLL),
+            Ok(None) => {
+                let _ = child.kill();
+                let _ = child.wait();
+                return Err(CheckpointError::TimedOut);
+            }
+            Err(error) => return Err(CheckpointError::Io(format!("waiting for git: {error}"))),
+        }
+    };
+    let (stdout, stderr) = (out.join().unwrap_or_default(), err.join().unwrap_or_default());
+    finish(Ok(std::process::Output { status, stdout, stderr }))
+}
+
+fn drain(pipe: Option<impl std::io::Read + Send + 'static>) -> std::thread::JoinHandle<Vec<u8>> {
+    std::thread::spawn(move || {
+        let mut bytes = Vec::new();
+        if let Some(mut pipe) = pipe {
+            let _ = pipe.read_to_end(&mut bytes);
+        }
+        bytes
+    })
+}
+
+fn spawn_error(error: std::io::Error) -> CheckpointError {
+    match error.kind() {
         std::io::ErrorKind::NotFound => CheckpointError::GitMissing,
         _ => CheckpointError::Io(format!("running git: {error}")),
-    })?;
+    }
+}
+
+fn finish(output: std::io::Result<std::process::Output>) -> Result<Vec<u8>, CheckpointError> {
+    let output = output.map_err(spawn_error)?;
     if output.status.success() {
         return Ok(output.stdout);
     }
     let stderr = String::from_utf8_lossy(&output.stderr);
     let excerpt: String = stderr.trim().chars().take(MAX_STDERR_CHARS).collect();
     Err(CheckpointError::Git(excerpt))
-}
-
-/// `run`, decoded as trimmed text.
-pub(super) fn run_text(command: &mut Command) -> Result<String, CheckpointError> {
-    Ok(String::from_utf8_lossy(&run(command)?).trim().to_string())
 }

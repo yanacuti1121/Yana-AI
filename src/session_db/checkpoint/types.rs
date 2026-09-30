@@ -17,6 +17,8 @@ pub enum CheckpointError {
     NotFound(String),
     /// The destination would leave the project or pass through a link.
     OutsideProject(String),
+    /// A time-limited snapshot ran out of time and was stopped.
+    TimedOut,
 }
 
 impl fmt::Display for CheckpointError {
@@ -29,6 +31,7 @@ impl fmt::Display for CheckpointError {
             Self::InvalidPath(why) => write!(f, "invalid path: {why}"),
             Self::NotFound(what) => write!(f, "not found: {what}"),
             Self::OutsideProject(why) => write!(f, "refusing to write outside the project: {why}"),
+            Self::TimedOut => write!(f, "the checkpoint took too long and was stopped"),
         }
     }
 }

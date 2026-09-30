@@ -12,6 +12,9 @@
 //! call `snapshot`.
 
 mod git;
+mod limit;
+#[cfg(test)]
+mod limit_tests;
 mod restore;
 #[cfg(test)]
 mod safety_tests;
@@ -25,7 +28,7 @@ pub use types::{
 };
 
 use super::{StateKind, StateRoot};
-use git::{git_command, init_command, run, run_text};
+use git::{git_command, init_command, run_until};
 use restore::{normalize, parse_tree, write_entry, TreeEntry};
 use sha2::{Digest, Sha256};
 use std::ffi::OsString;
@@ -73,6 +76,9 @@ pub struct CheckpointStore {
     git: OsString,
     project: PathBuf,
     shadow: PathBuf,
+    /// Longest a `snapshot` may take (see `limit.rs`); `None` means no limit.
+    time_limit: Option<std::time::Duration>,
+    deadline: std::cell::Cell<Option<std::time::Instant>>,
 }
 
 impl CheckpointStore {
@@ -95,7 +101,8 @@ impl CheckpointStore {
         fs::create_dir_all(&dir).map_err(|e| CheckpointError::Io(format!("creating {}: {e}", dir.display())))?;
         let digest = Sha256::digest(project.to_string_lossy().as_bytes());
         let name: String = digest.iter().map(|b| format!("{b:02x}")).collect::<String>()[..SHADOW_NAME_HEX].to_string();
-        Ok(Self { git, project, shadow: dir.join(format!("{name}.git")) })
+        let shadow = dir.join(format!("{name}.git"));
+        Ok(Self { git, project, shadow, time_limit: None, deadline: std::cell::Cell::new(None) })
     }
 
     fn cmd(&self, needs_work_tree: bool) -> Command {
@@ -105,14 +112,14 @@ impl CheckpointStore {
     fn require_git(&self) -> Result<(), CheckpointError> {
         let mut probe = Command::new(&self.git);
         probe.arg("--version");
-        run(&mut probe).map(|_| ())
+        self.run(&mut probe).map(|_| ())
     }
 
     fn ensure_shadow(&self) -> Result<(), CheckpointError> {
         if self.shadow.join("HEAD").exists() {
             return Ok(());
         }
-        run(&mut init_command(&self.git, &self.shadow))?;
+        self.run(&mut init_command(&self.git, &self.shadow))?;
         let info = self.shadow.join("info");
         let io = |e: std::io::Error| CheckpointError::Io(format!("writing the exclude list: {e}"));
         fs::create_dir_all(&info).map_err(io)?;
@@ -121,21 +128,21 @@ impl CheckpointStore {
 
     /// Record the project's current files. Returns the newest checkpoint when
     /// nothing changed since it, so repeated calls do not pile up duplicates.
-    pub fn snapshot(&self, label: &str) -> Result<CheckpointId, CheckpointError> {
+    fn snapshot_inner(&self, label: &str) -> Result<CheckpointId, CheckpointError> {
         self.require_git()?;
         self.ensure_shadow()?;
-        run(self.cmd(true).args(["add", "-A"]))?;
-        let tree = run_text(self.cmd(false).arg("write-tree"))?;
+        self.run(self.cmd(true).args(["add", "-A"]))?;
+        let tree = self.run_text(self.cmd(false).arg("write-tree"))?;
         let existing = self.list()?;
         if let Some(last) = existing.last() {
-            let last_tree = run_text(self.cmd(false).args(["rev-parse", &format!("{}^{{tree}}", last.commit)]))?;
+            let last_tree = self.run_text(self.cmd(false).args(["rev-parse", &format!("{}^{{tree}}", last.commit)]))?;
             if last_tree == tree {
                 return Ok(last.id);
             }
         }
-        let commit = run_text(self.cmd(false).args(["commit-tree", &tree, "-m", &clean_label(label)]))?;
+        let commit = self.run_text(self.cmd(false).args(["commit-tree", &tree, "-m", &clean_label(label)]))?;
         let id = CheckpointId(existing.last().map_or(1, |c| c.id.0 + 1));
-        run(self.cmd(false).args(["update-ref", &format!("{REF_PREFIX}{:06}", id.0), &commit]))?;
+        self.run(self.cmd(false).args(["update-ref", &format!("{REF_PREFIX}{:06}", id.0), &commit]))?;
         Ok(id)
     }
 
@@ -146,7 +153,7 @@ impl CheckpointStore {
             return Ok(Vec::new());
         }
         let format = "--format=%(refname)%09%(objectname)%09%(creatordate:iso-strict)%09%(contents:subject)";
-        let output = run_text(self.cmd(false).args(["for-each-ref", format, REF_PREFIX]))?;
+        let output = self.run_text(self.cmd(false).args(["for-each-ref", format, REF_PREFIX]))?;
         Ok(output.lines().filter_map(parse_ref_line).collect())
     }
 
@@ -161,15 +168,15 @@ impl CheckpointStore {
     /// Paths recorded in a checkpoint.
     pub fn files(&self, id: CheckpointId) -> Result<Vec<String>, CheckpointError> {
         let commit = self.commit_of(id)?;
-        let out = run(self.cmd(false).args(["ls-tree", "-r", "--name-only", "-z", &commit]))?;
+        let out = self.run(self.cmd(false).args(["ls-tree", "-r", "--name-only", "-z", &commit]))?;
         Ok(String::from_utf8_lossy(&out).split('\0').filter(|p| !p.is_empty()).map(str::to_string).collect())
     }
 
     /// What changed in the project since checkpoint `id`, as a unified diff.
     pub fn diff(&self, id: CheckpointId) -> Result<String, CheckpointError> {
         let commit = self.commit_of(id)?;
-        run(self.cmd(true).args(["add", "-A"]))?;
-        let out = run(self.cmd(false).args(["diff", "--cached", "--no-color", "--no-ext-diff", &commit]))?;
+        self.run(self.cmd(true).args(["add", "-A"]))?;
+        let out = self.run(self.cmd(false).args(["diff", "--cached", "--no-color", "--no-ext-diff", &commit]))?;
         let mut text = String::from_utf8_lossy(&out).to_string();
         if text.len() > MAX_DIFF_BYTES {
             let mut end = MAX_DIFF_BYTES;
@@ -190,7 +197,7 @@ impl CheckpointStore {
             RestoreScope::Whole => None,
             RestoreScope::OneFile(path) => Some(normalize(path)?),
         };
-        let mut entries = parse_tree(&run(self.cmd(false).args(["ls-tree", "-r", "-z", "--full-tree", &commit]))?)?;
+        let mut entries = parse_tree(&self.run(self.cmd(false).args(["ls-tree", "-r", "-z", "--full-tree", &commit]))?)?;
         if let Some(path) = &wanted_path {
             entries.retain(|entry| &entry.path == path);
             if entries.is_empty() {
@@ -215,7 +222,7 @@ impl CheckpointStore {
     }
 
     fn restore_entry(&self, entry: &TreeEntry) -> Result<(), restore::Skip> {
-        let content = run(self.cmd(false).args(["cat-file", "blob", &entry.sha]))
+        let content = self.run(self.cmd(false).args(["cat-file", "blob", &entry.sha]))
             .map_err(|e| restore::Skip { reason: e.to_string(), unsafe_path: false })?;
         write_entry(&self.project, entry, &content)
     }
@@ -242,11 +249,11 @@ impl CheckpointStore {
     }
 
     fn delete_point(&self, point: &CheckpointInfo) -> Result<(), CheckpointError> {
-        run(self.cmd(false).args(["update-ref", "-d", &format!("{REF_PREFIX}{:06}", point.id.0)])).map(|_| ())
+        self.run(self.cmd(false).args(["update-ref", "-d", &format!("{REF_PREFIX}{:06}", point.id.0)])).map(|_| ())
     }
 
     fn collect_garbage(&self) -> Result<(), CheckpointError> {
-        run(self.cmd(false).args(["gc", "--prune=now", "--quiet"])).map(|_| ())
+        self.run(self.cmd(false).args(["gc", "--prune=now", "--quiet"])).map(|_| ())
     }
 }
 
