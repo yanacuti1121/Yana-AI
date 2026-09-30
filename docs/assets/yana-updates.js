@@ -1,6 +1,7 @@
 (() => {
   'use strict';
   const vi = document.documentElement.lang.startsWith('vi');
+  const ko = document.documentElement.lang.startsWith('ko');
   const t = vi ? {
     loading: 'Đang kiểm tra…', unavailable: 'Tạm không đọc được nguồn', empty: 'Chưa có Release công khai',
     feedEmpty: 'Chưa có bản phát hành công khai.', feedUnavailable: 'Tạm không tải được nguồn phát hành. Anh có thể xem trực tiếp tại GitHub.',
@@ -8,6 +9,13 @@
     checked: 'Đã kiểm tra', published: 'Công bố', partial: 'Một số nguồn tạm không phản hồi; các nguồn còn lại đã cập nhật.',
     ready: 'Đã cập nhật thông tin từ các nguồn phát hành.', failed: 'Không đọc được nguồn phát hành lúc này. Anh có thể mở GitHub trực tiếp.',
     pre: 'Bản thử nghiệm'
+  } : ko ? {
+    loading: '확인 중…', unavailable: '일시적으로 자료를 읽을 수 없습니다', empty: '공개 릴리스가 없습니다',
+    feedEmpty: '공개 릴리스가 없습니다.', feedUnavailable: '릴리스 자료를 일시적으로 불러올 수 없습니다. GitHub에서 직접 확인할 수 있습니다.',
+    postsEmpty: '추가 공지가 없습니다.', postsUnavailable: '공지를 일시적으로 불러올 수 없습니다.',
+    checked: '확인 시각', published: '게시', partial: '일부 자료가 응답하지 않았습니다. 나머지는 업데이트되었습니다.',
+    ready: '릴리스 자료를 업데이트했습니다.', failed: '현재 릴리스 자료를 읽을 수 없습니다. GitHub에서 직접 확인할 수 있습니다.',
+    pre: '사전 릴리스'
   } : {
     loading: 'Checking…', unavailable: 'Source temporarily unavailable', empty: 'No public Release yet',
     feedEmpty: 'No public release yet.', feedUnavailable: 'The release sources are temporarily unavailable. You can check GitHub directly.',
@@ -37,7 +45,7 @@
   };
   const dateText = value => {
     if (!value || !Number.isFinite(Date.parse(value))) return '';
-    return new Intl.DateTimeFormat(vi ? 'vi-VN' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(value));
+    return new Intl.DateTimeFormat(vi ? 'vi-VN' : ko ? 'ko-KR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(value));
   };
   const safeReleaseUrl = (release, project) => {
     const fallback = `https://github.com/yanacuti1121/${project.repo}/releases`;
@@ -99,8 +107,8 @@
     for (const { project, release, post } of items) {
       const item = document.createElement('li');
       if (post) {
-        item.append(textNode('p', `${vi ? 'Yana · Thông báo' : 'Yana · Announcement'} · ${dateText(post.date)}`, 'updates-feed-meta'));
-        const a = textNode('a', vi ? post.titleVi : post.titleEn);
+        item.append(textNode('p', `${vi ? 'Yana · Thông báo' : ko ? 'Yana · 공지' : 'Yana · Announcement'} · ${dateText(post.date)}`, 'updates-feed-meta'));
+        const a = textNode('a', vi ? post.titleVi : ko ? (post.titleKo || post.titleEn) : post.titleEn);
         a.href = '#updates-posts';
         item.append(a);
         feed.append(item);
@@ -128,13 +136,13 @@
       const article = document.createElement('article');
       article.className = 'updates-post';
       article.append(textNode('p', dateText(item.date), 'updates-post-date'));
-      article.append(textNode('h3', vi ? item.titleVi : item.titleEn));
-      article.append(textNode('p', vi ? (item.bodyVi || '') : (item.bodyEn || ''), 'updates-post-body'));
+      article.append(textNode('h3', vi ? item.titleVi : ko ? (item.titleKo || item.titleEn) : item.titleEn));
+      article.append(textNode('p', vi ? (item.bodyVi || '') : ko ? (item.bodyKo || item.bodyEn || '') : (item.bodyEn || ''), 'updates-post-body'));
       if (typeof item.url === 'string') {
         try {
           const u = new URL(item.url);
           if (u.protocol === 'https:') {
-            const a = textNode('a', vi ? 'Đọc thêm ↗' : 'Read more ↗');
+            const a = textNode('a', vi ? 'Đọc thêm ↗' : ko ? '자세히 보기 ↗' : 'Read more ↗');
             a.href = u.href; a.target = '_blank'; a.rel = 'noopener noreferrer'; article.append(a);
           }
         } catch (_) { /* optional link is malformed */ }
@@ -166,7 +174,7 @@
       renderFeed(results);
     }
     const success = results.filter(result => result.ok).length;
-    status.textContent = `${success === 3 ? t.ready : success ? t.partial : t.failed} ${t.checked} ${new Intl.DateTimeFormat(vi ? 'vi-VN' : 'en-US', { hour: '2-digit', minute: '2-digit' }).format(new Date())}.`;
+    status.textContent = `${success === 3 ? t.ready : success ? t.partial : t.failed} ${t.checked} ${new Intl.DateTimeFormat(vi ? 'vi-VN' : ko ? 'ko-KR' : 'en-US', { hour: '2-digit', minute: '2-digit' }).format(new Date())}.`;
     refresh.disabled = false; active = false;
   }
   refresh.addEventListener('click', load);
