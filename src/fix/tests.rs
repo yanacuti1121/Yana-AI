@@ -228,7 +228,6 @@ fn mcp001_dry_run_leaves_the_file_byte_identical_and_invalid_json_is_an_error() 
 // ── acceptance tests for known defects (fail today) ─────────────────────────
 
 #[test]
-#[ignore = "Y12: AC003 inserts timeout-minutes at a fixed 6-space indent, which corrupts a standard workflow"]
 fn ac003_produces_valid_yaml_with_the_timeout_at_job_level() {
     let (d, t) = dir();
     write(&d, ".github/workflows/ci.yml", WORKFLOW);
@@ -241,7 +240,6 @@ fn ac003_produces_valid_yaml_with_the_timeout_at_job_level() {
 }
 
 #[test]
-#[ignore = "Y13: CI007 inserts a job-level key between step lines and repeats it per matching line, which corrupts the workflow"]
 fn ci007_produces_valid_yaml_with_one_environment_gate_on_the_job() {
     let (d, t) = dir();
     write(&d, ".github/workflows/p.yml", PUBLISH_WORKFLOW);

@@ -2,6 +2,8 @@ use anyhow::Result;
 use clap::Subcommand;
 use std::path::Path;
 
+mod workflow;
+
 #[derive(Subcommand, Debug)]
 pub enum FixAction {
     /// Auto-apply a safe fix for a specific finding ID
@@ -118,32 +120,40 @@ fn fix_ac002(target: &str, dry_run: bool) -> Result<()> {
     Ok(())
 }
 
+/// Workflow files (`*.yml`, `*.yaml`) under `.github/workflows/`, sorted, or
+/// None when that directory does not exist.
+fn workflow_files(target: &str) -> Result<Option<Vec<std::path::PathBuf>>> {
+    let dir = Path::new(target).join(".github/workflows");
+    if !dir.exists() {
+        return Ok(None);
+    }
+    let mut files: Vec<_> = std::fs::read_dir(&dir)?
+        .flatten()
+        .map(|entry| entry.path())
+        .filter(|p| matches!(p.extension().and_then(|e| e.to_str()), Some("yml" | "yaml")))
+        .collect();
+    files.sort();
+    Ok(Some(files))
+}
+
+fn file_name(path: &Path) -> String {
+    path.file_name().unwrap_or_default().to_string_lossy().into_owned()
+}
+
 fn fix_ac003(target: &str, dry_run: bool) -> Result<()> {
-    let wf_dir = Path::new(target).join(".github/workflows");
-    if !wf_dir.exists() {
+    let Some(files) = workflow_files(target)? else {
         println!("[fix/AC003] No .github/workflows/ found");
         return Ok(());
-    }
+    };
     let mut fixed = 0usize;
-    for entry in std::fs::read_dir(&wf_dir)?.flatten() {
-        let path = entry.path();
-        if path.extension().and_then(|e| e.to_str()) != Some("yml") &&
-           path.extension().and_then(|e| e.to_str()) != Some("yaml") { continue; }
-        let content = std::fs::read_to_string(&path)?;
-        if content.contains("timeout-minutes:") { continue; }
-        // Add timeout after first `runs-on:` line
-        let patched = content.lines().map(|l| {
-            if l.trim().starts_with("runs-on:") {
-                format!("{}\n      timeout-minutes: 30", l)
-            } else {
-                l.to_string()
-            }
-        }).collect::<Vec<_>>().join("\n");
+    for path in files {
+        let (patched, jobs) = workflow::add_job_timeouts(&std::fs::read_to_string(&path)?);
+        if jobs == 0 { continue; }
         if dry_run {
-            println!("[dry-run] would add timeout-minutes: 30 to {}", path.display());
+            println!("[dry-run] would add timeout-minutes: 30 to {jobs} job(s) in {}", path.display());
         } else {
             std::fs::write(&path, patched)?;
-            println!("[fix/AC003] Added timeout-minutes: 30 to {}", path.file_name().unwrap_or_default().to_string_lossy());
+            println!("[fix/AC003] Added timeout-minutes: 30 to {jobs} job(s) in {}", file_name(&path));
             fixed += 1;
         }
     }
@@ -152,30 +162,19 @@ fn fix_ac003(target: &str, dry_run: bool) -> Result<()> {
 }
 
 fn fix_ci007(target: &str, dry_run: bool) -> Result<()> {
-    let wf_dir = Path::new(target).join(".github/workflows");
-    if !wf_dir.exists() {
+    let Some(files) = workflow_files(target)? else {
         println!("[fix/CI007] No .github/workflows/ found");
         return Ok(());
-    }
+    };
     let publish_patterns = ["npm publish", "cargo publish", "gh release", "pypi", "pip upload"];
-    for entry in std::fs::read_dir(&wf_dir)?.flatten() {
-        let path = entry.path();
-        if path.extension().and_then(|e| e.to_str()) != Some("yml") &&
-           path.extension().and_then(|e| e.to_str()) != Some("yaml") { continue; }
-        let content = std::fs::read_to_string(&path)?;
-        if !publish_patterns.iter().any(|p| content.contains(p)) { continue; }
-        if content.contains("environment:") { continue; }
-        // Insert environment: production before the first publish step
-        let patched = content.lines().map(|l| {
-            if publish_patterns.iter().any(|p| l.contains(p)) {
-                format!("      environment: production\n{}", l)
-            } else { l.to_string() }
-        }).collect::<Vec<_>>().join("\n");
+    for path in files {
+        let (patched, jobs) = workflow::add_job_environment(&std::fs::read_to_string(&path)?, &publish_patterns);
+        if jobs == 0 { continue; }
         if dry_run {
-            println!("[dry-run] would add environment: production to {}", path.display());
+            println!("[dry-run] would add environment: production to {jobs} job(s) in {}", path.display());
         } else {
             std::fs::write(&path, patched)?;
-            println!("[fix/CI007] Added environment: production gate to {}", path.file_name().unwrap_or_default().to_string_lossy());
+            println!("[fix/CI007] Added environment: production gate to {jobs} job(s) in {}", file_name(&path));
         }
     }
     Ok(())
