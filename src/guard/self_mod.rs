@@ -262,6 +262,7 @@ mod tests {
 
     #[test]
     fn blocks_absolute_path_to_rules() {
+        let _env = super::super::blast_paths::env_test_guard();
         std::env::set_var("YANA_REPO_ROOT", "/workspaces/Yana-AI");
         let result = run(&make_payload(
             "Write",

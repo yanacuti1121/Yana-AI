@@ -17,10 +17,15 @@ name = "yana-rt"
 path = "src/main.rs"
 required-features = ["cli"]
 
+# Same source as yana-rt on purpose: src/main.rs opens `chat` when argv[0] is
+# "yana-ai-rt", and package.json, pyproject.toml, the session-bootstrap hooks
+# and the docs all name this alias. test = false stops cargo from compiling and
+# running the same unit tests a second time for it.
 [[bin]]
 name = "yana-ai-rt"
 path = "src/main.rs"
 required-features = ["cli"]
+test = false
 
 # Generic PTY-over-stdio bridge for embedding `yana-rt chat` (or any
 # other program) inside Yana AI's Electron desktop app, the same way
