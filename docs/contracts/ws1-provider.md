@@ -166,3 +166,16 @@ Chỉ thêm sau khi P1 đến P3 có test. Mỗi provider chỉ là một mục 
 - P3: khóa bị 429 được bỏ qua rồi dùng lại sau `retry_after` (đồng hồ giả); khóa bị `Auth` không tự sống lại; mọi khóa bị khóa thì `acquire()` là `None`; xoay vòng đều.
 - Không test nào đặt biến môi trường toàn cục (bài học của lỗi chập chờn ở WS0). Truyền cấu hình qua tham số.
 - Tiêu chí nộp: `cargo test --features cli` xanh, chạy lặp 20 lần để loại chập chờn, kèm log thật.
+
+## 9. Nối vào ứng dụng (2026-09-30, anh Tâm chọn hướng 3 cho P5)
+
+Phạm vi được mở thêm đúng hai file: `src/chat/mod.rs` và `src/chat/settings.rs`. Logic nằm ở file mới `src/model/wiring.rs` (thuộc `src/model/`), còn hai file kia chỉ sửa mỏng.
+
+- `settings.rs`: thêm `fallback_providers: Vec<String>` (`#[serde(default)]`, mặc định rỗng). File cấu hình cũ đọc được như trước.
+- `wiring::assemble(primary, fallback_names, select, lookup)` là hàm thuần: môi trường và catalog đi vào bằng tham số. Không cấu hình gì (không `fallback_providers`, không `<TÊN>_POOL` của provider chính) thì trả về **chính `Arc` provider đó**, không bọc. Có test `Arc::ptr_eq` chứng minh.
+- Có `<TÊN>_POOL` của provider chính thì provider chính dùng nhóm khóa. Có `fallback_providers` thì bọc bằng `FailoverProvider`. Provider dự phòng bị bỏ qua kèm ghi chú khi: tên không có trong catalog, trùng provider chính, đã liệt kê hai lần, hoặc cần khóa mà chưa đặt biến. Provider không cần khóa (ví dụ ollama) dùng được không cần khóa.
+- Provider dự phòng dùng model mặc định của chính nó và khóa của chính nó (`<TÊN>` hoặc `<TÊN>_POOL`), không dùng khóa hay model của người gọi.
+- `chat/mod.rs`: `dispatch` lấy khóa chính bằng `wiring::resolve_primary_key` (biến đơn được ưu tiên; nếu chỉ có `<TÊN>_POOL` thì dùng khóa đầu của nhóm, trước đây trường hợp này báo lỗi thoát). Ghi chú của `assemble` in ra stderr trước khi vào TUI.
+- Thay đổi hành vi duy nhất so với trước khi có cấu hình: đặt `<TÊN>_POOL` mà không đặt `<TÊN>` giờ chạy được thay vì thoát mã 2.
+
+**Chưa nối (ngoài phạm vi, ghi để khỏi hiểu nhầm):** đường không TUI (`chat/headless.rs`) và việc đổi provider giữa phiên bằng `/model` (`chat/tui/model_command.rs`, `tabs.rs`) vẫn dùng provider trần, không có failover hay nhóm khóa. Nối hai chỗ này cần sửa các file đó.

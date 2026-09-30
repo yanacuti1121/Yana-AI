@@ -114,6 +114,12 @@ fn select_provider(name: Option<&str>) -> Arc<dyn ChatProvider> {
     }
 }
 
+/// Environment lookup handed to the provider wiring. Empty counts as unset,
+/// the same rule the single-key variable always followed.
+fn process_env(name: &str) -> Option<String> {
+    std::env::var(name).ok().filter(|value| !value.is_empty())
+}
+
 fn resolve_default_model(provider: &Arc<dyn ChatProvider>) -> String {
     if provider.name() == "ollama" {
         if let Some(detected) = openai_compat::detect_ollama_model() {
@@ -152,10 +158,12 @@ pub fn dispatch(
                 .flatten()
         })
         .unwrap_or_else(|| resolve_default_model(&provider));
+    // A lone `<ENV>` behaves exactly as before; `<ENV>_POOL` alone now also
+    // works, starting from the first pooled key.
     let api_key = if provider.requires_key() {
-        match std::env::var(provider.env_var()) {
-            Ok(k) if !k.is_empty() => Some(k),
-            _ => {
+        match crate::model::wiring::resolve_primary_key(provider.env_var(), &process_env) {
+            Some(k) => Some(k),
+            None => {
                 eprintln!(
                     "[chat] {} not set — export it, or run with --provider ollama for a local model",
                     provider.env_var()
@@ -166,6 +174,17 @@ pub fn dispatch(
     } else {
         None
     };
+    // No fallback_providers and no `<ENV>_POOL` returns the provider as it was.
+    let wiring = crate::model::wiring::assemble(
+        provider,
+        &chat_settings.fallback_providers,
+        &|name| try_select_provider(name),
+        &process_env,
+    );
+    for note in &wiring.notes {
+        eprintln!("[chat] {note}");
+    }
+    let provider = wiring.provider;
 
     let resumed = resume.is_some();
     let (session_id, history) = match &resume {
