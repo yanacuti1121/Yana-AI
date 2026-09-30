@@ -309,7 +309,8 @@ fn check_git_branch(target: &str) -> Check {
 /// True when `.gitignore` has a live rule for `pattern`: a whole line, after
 /// trimming and dropping a leading `**/` or `/`, that is not a comment or a
 /// negation. A substring test would count `# .env` and `.environment`.
-fn gitignore_covers(content: &str, pattern: &str) -> bool {
+/// Shared with `fix AC002` so the two commands cannot disagree.
+pub(crate) fn gitignore_covers(content: &str, pattern: &str) -> bool {
     content.lines().any(|raw| {
         let line = raw.trim();
         if line.is_empty() || line.starts_with('#') || line.starts_with('!') {

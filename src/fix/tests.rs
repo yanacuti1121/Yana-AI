@@ -254,7 +254,6 @@ fn ci007_produces_valid_yaml_with_one_environment_gate_on_the_job() {
 }
 
 #[test]
-#[ignore = "Y14: AC002 uses a substring test, so `# .env` or `.environment` makes it skip while `doctor` still warns"]
 fn ac002_adds_env_entries_when_env_only_appears_in_a_comment_or_a_longer_name() {
     let (d, t) = dir();
     write(&d, ".gitignore", "# .env\n.environment\n");

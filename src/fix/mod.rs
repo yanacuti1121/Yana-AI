@@ -95,7 +95,7 @@ fn fix_ac002(target: &str, dry_run: bool) -> Result<()> {
     let entries = "\n# Environment files\n.env\n.env.*\n*.env\n*.pem\n*.key\n";
     if path.exists() {
         let content = std::fs::read_to_string(&path)?;
-        if content.contains(".env") {
+        if crate::doctor::gitignore_covers(&content, ".env") {
             println!("[fix/AC002] .gitignore already has .env entries — skipping");
             return Ok(());
         }
