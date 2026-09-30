@@ -18,6 +18,7 @@
 //!   here; that is the credential pool (P3).
 
 use super::circuit_breaker::CircuitBreaker;
+use super::credential_pool::{CredentialPool, Lease};
 use super::provider::{ChatMessage, ChatProvider, ChatUsage, ModelInfo, ProviderHealth, RuntimeKind};
 use super::provider_error::ProviderError;
 use super::tool::{StreamOutcome, ToolSpec};
@@ -58,12 +59,15 @@ pub struct FallbackRoute {
     pub provider: Arc<dyn ChatProvider>,
     pub model: String,
     pub api_key: Option<String>,
+    /// When set, keys come from the pool and `api_key` is ignored.
+    pub pool: Option<Arc<CredentialPool>>,
 }
 
 struct Route {
     provider: Arc<dyn ChatProvider>,
     model: Option<String>,
     api_key: Option<String>,
+    pool: Option<Arc<CredentialPool>>,
     breaker: Mutex<CircuitBreaker>,
 }
 
@@ -87,19 +91,31 @@ impl FailoverProvider {
         fallbacks: Vec<FallbackRoute>,
         policy: FailoverPolicy,
     ) -> Self {
-        let mut routes = vec![Route::new(primary, None, None)];
+        let mut routes = vec![Route::new(primary, None, None, None)];
         routes.extend(
             fallbacks
                 .into_iter()
-                .map(|f| Route::new(f.provider, Some(f.model), f.api_key)),
+                .map(|f| Route::new(f.provider, Some(f.model), f.api_key, f.pool)),
         );
         Self { routes, policy }
+    }
+
+    /// Serve the primary provider's keys from a pool instead of the single
+    /// key the caller passes to `stream_chat`.
+    pub fn with_primary_pool(mut self, pool: Arc<CredentialPool>) -> Self {
+        self.routes[0].pool = Some(pool);
+        self
     }
 }
 
 impl Route {
-    fn new(provider: Arc<dyn ChatProvider>, model: Option<String>, api_key: Option<String>) -> Self {
-        Self { provider, model, api_key, breaker: Mutex::new(CircuitBreaker::new()) }
+    fn new(
+        provider: Arc<dyn ChatProvider>,
+        model: Option<String>,
+        api_key: Option<String>,
+        pool: Option<Arc<CredentialPool>>,
+    ) -> Self {
+        Self { provider, model, api_key, pool, breaker: Mutex::new(CircuitBreaker::new()) }
     }
 
     fn breaker(&self) -> MutexGuard<'_, CircuitBreaker> {
@@ -187,13 +203,21 @@ impl FailoverProvider {
         on_chunk: &mut dyn FnMut(&str) -> Result<()>,
     ) -> RouteOutcome {
         let route = &self.routes[index];
-        let (key, model) = match &route.model {
+        let (default_key, model) = match &route.model {
             None => (caller_key, caller_model),
             Some(own_model) => (route.api_key.as_deref(), own_model.as_str()),
         };
-        let mut attempt = 0;
+        let mut attempt = 1;
+        let mut previous_error: Option<anyhow::Error> = None;
         loop {
-            attempt += 1;
+            let lease = match &route.pool {
+                Some(pool) => match pool.acquire() {
+                    Some(lease) => Some(lease),
+                    None => return RouteOutcome::Next(no_key_error(route, previous_error)),
+                },
+                None => None,
+            };
+            let key = lease.as_ref().map(Lease::secret).or(default_key);
             let mut emitted = false;
             let result = route.provider.stream_chat(key, model, system, messages, tools, &mut |chunk| {
                 emitted = true;
@@ -209,27 +233,76 @@ impl FailoverProvider {
             let Some(typed) = error.downcast_ref::<ProviderError>().cloned() else {
                 return RouteOutcome::Stop(error);
             };
-            route.breaker().record_failure_with_status(typed.status);
-            if emitted && !self.policy.allow_failover_after_output {
-                return RouteOutcome::Stop(error);
+            match self.decide(route, lease.as_ref(), &typed, emitted, attempt) {
+                Decision::Rotate => {}
+                Decision::Retry => {
+                    std::thread::sleep(self.policy.retry_backoff);
+                    attempt += 1;
+                }
+                Decision::Next => return RouteOutcome::Next(error),
+                Decision::Stop => return RouteOutcome::Stop(error),
             }
-            let hint = typed.kind.hint();
-            if hint.retry_same && attempt < self.policy.max_attempts_per_route && self.can_wait_inline(&typed) {
-                std::thread::sleep(self.policy.retry_backoff);
-                continue;
-            }
-            return if hint.fallback_provider { RouteOutcome::Next(error) } else { RouteOutcome::Stop(error) };
+            previous_error = Some(error);
         }
     }
 
-    fn can_wait_inline(&self, error: &ProviderError) -> bool {
-        error.retry_after.is_none_or(|wait| wait <= self.policy.max_inline_wait)
+    /// Decides what to do after a typed failure and books it: the pool parks
+    /// the key that failed, and the breaker counts the failure unless a
+    /// different key can still serve this route.
+    fn decide(
+        &self,
+        route: &Route,
+        lease: Option<&Lease>,
+        error: &ProviderError,
+        emitted: bool,
+        attempt: u32,
+    ) -> Decision {
+        if let (Some(pool), Some(lease)) = (&route.pool, lease) {
+            pool.report(lease, error);
+        }
+        let hint = error.kind.hint();
+        let keys_left = route.pool.as_ref().is_none_or(|pool| pool.available() > 0);
+        let output_locks_route = emitted && !self.policy.allow_failover_after_output;
+        if !output_locks_route && hint.rotate_credential && route.pool.is_some() && keys_left {
+            return Decision::Rotate;
+        }
+        route.breaker().record_failure_with_status(error.status);
+        if output_locks_route {
+            return Decision::Stop;
+        }
+        let can_retry = attempt < self.policy.max_attempts_per_route
+            && error.retry_after.is_none_or(|wait| wait <= self.policy.max_inline_wait);
+        if hint.retry_same && can_retry && keys_left {
+            Decision::Retry
+        } else if hint.fallback_provider {
+            Decision::Next
+        } else {
+            Decision::Stop
+        }
+    }
+}
+
+/// What to do after one failed call on a route.
+enum Decision {
+    /// Another key of the same provider may work; try it without counting an attempt.
+    Rotate,
+    Retry,
+    Next,
+    Stop,
+}
+
+fn no_key_error(route: &Route, previous: Option<anyhow::Error>) -> anyhow::Error {
+    let name = route.provider.name();
+    match previous {
+        Some(error) => error.context(format!("every credential for {name} is parked")),
+        None => anyhow::anyhow!("no usable credential for {name}"),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::model::credential_pool::SystemClock;
     use crate::model::provider_error::ProviderErrorKind;
     use std::collections::VecDeque;
     use std::sync::atomic::{AtomicUsize, Ordering};
@@ -321,7 +394,90 @@ mod tests {
             provider: provider.clone(),
             model: model.to_string(),
             api_key: key.map(str::to_string),
+            pool: None,
         }
+    }
+
+    fn key_pool(keys: &[&str]) -> Arc<CredentialPool> {
+        Arc::new(CredentialPool::new(
+            "TEST_KEY",
+            keys.iter().map(|k| k.to_string()).collect(),
+            Arc::new(SystemClock),
+        ))
+    }
+
+    fn keys_seen(fake: &Fake) -> Vec<String> {
+        fake.keys_seen.lock().unwrap().iter().map(|k| k.clone().unwrap_or_default()).collect()
+    }
+
+    #[test]
+    fn rate_limited_key_rotates_to_the_next_key_without_leaving_the_provider() {
+        let primary = Fake::new("primary", vec![Step::Http(429, "slow")], Step::Ok("ok"));
+        let backup = Fake::new("backup", vec![], Step::Ok("nope"));
+        let router = FailoverProvider::new(primary.clone(), vec![route(&backup, "b", None)], fast_policy(1))
+            .with_primary_pool(key_pool(&["k1", "k2"]));
+        let (result, chunks) = run(&router);
+        assert!(result.is_ok());
+        assert_eq!(keys_seen(&primary), vec!["k1", "k2"]);
+        assert_eq!(chunks, vec!["ok:caller-model"]);
+        assert_eq!(backup.calls(), 0);
+    }
+
+    #[test]
+    fn rotation_does_not_trip_the_breaker_while_a_good_key_remains() {
+        // A 401 on one key would normally park the whole route for a long time.
+        let primary = Fake::new("primary", vec![Step::Http(401, "bad key")], Step::Ok("ok"));
+        let backup = Fake::new("backup", vec![], Step::Ok("nope"));
+        let router = FailoverProvider::new(primary.clone(), vec![route(&backup, "b", None)], fast_policy(1))
+            .with_primary_pool(key_pool(&["bad", "good"]));
+        assert!(run(&router).0.is_ok());
+        assert!(run(&router).0.is_ok(), "route must still be usable on the next turn");
+        assert_eq!(backup.calls(), 0);
+        assert_eq!(keys_seen(&primary), vec!["bad", "good", "good"]);
+    }
+
+    #[test]
+    fn every_key_rate_limited_then_the_fallback_provider_is_used() {
+        let primary = Fake::new("primary", vec![], Step::Http(429, "slow"));
+        let backup = Fake::new("backup", vec![], Step::Ok("ok"));
+        let router = FailoverProvider::new(primary.clone(), vec![route(&backup, "b", None)], fast_policy(1))
+            .with_primary_pool(key_pool(&["k1", "k2"]));
+        let (result, _) = run(&router);
+        assert!(result.is_ok());
+        assert_eq!(primary.calls(), 2, "one attempt per key, no more");
+        assert_eq!(backup.calls(), 1);
+    }
+
+    #[test]
+    fn a_route_with_no_usable_key_is_skipped_without_calling_the_provider() {
+        let primary = Fake::new("primary", vec![], Step::Ok("nope"));
+        let backup = Fake::new("backup", vec![], Step::Ok("ok"));
+        let router = FailoverProvider::new(primary.clone(), vec![route(&backup, "b", None)], fast_policy(1))
+            .with_primary_pool(key_pool(&[]));
+        assert!(run(&router).0.is_ok());
+        assert_eq!(primary.calls(), 0);
+    }
+
+    #[test]
+    fn a_fallback_route_can_have_its_own_pool() {
+        let primary = Fake::new("primary", vec![], Step::Http(503, "down"));
+        let backup = Fake::new("backup", vec![Step::Http(429, "slow")], Step::Ok("ok"));
+        let mut fallback = route(&backup, "b", Some("unused-single-key"));
+        fallback.pool = Some(key_pool(&["b1", "b2"]));
+        let router = FailoverProvider::new(primary, vec![fallback], fast_policy(1));
+        assert!(run(&router).0.is_ok());
+        assert_eq!(keys_seen(&backup), vec!["b1", "b2"]);
+    }
+
+    #[test]
+    fn no_key_appears_in_the_final_error_text() {
+        let secret = "sk-FAKEKEYFAKEKEY1234567890";
+        let leaky: &'static str = Box::leak(format!("invalid key {secret}").into_boxed_str());
+        let primary = Fake::new("primary", vec![], Step::Http(401, leaky));
+        let router = FailoverProvider::new(primary, vec![], fast_policy(1))
+            .with_primary_pool(key_pool(&[secret]));
+        let error = run(&router).0.unwrap_err();
+        assert!(!format!("{error:#} {error:?}").contains("FAKEKEYFAKEKEY"), "{error:#}");
     }
 
     /// Runs one turn and returns (outcome, chunks seen).

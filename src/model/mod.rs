@@ -20,6 +20,7 @@
 
 pub(crate) mod catalog;
 pub(crate) mod circuit_breaker;
+pub(crate) mod credential_pool;
 pub(crate) mod failover;
 pub(crate) mod gateway;
 pub(crate) mod placement;
