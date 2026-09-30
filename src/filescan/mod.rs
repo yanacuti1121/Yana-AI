@@ -23,6 +23,8 @@ use std::collections::BTreeMap;
 use std::net::ToSocketAddrs;
 use std::path::Path;
 
+use crate::design::is_private_ip;
+
 const VT_HOST: &str = "www.virustotal.com";
 const VT_API_BASE: &str = "https://www.virustotal.com/api/v3/files";
 // Hashing an arbitrarily large file blocks the CLI for a long time for no
@@ -45,15 +47,6 @@ pub fn dispatch(action: FilescanAction) {
     if let Err(e) = result {
         eprintln!("[filescan] error: {e}");
         std::process::exit(1);
-    }
-}
-
-fn is_private_ip(ip: std::net::IpAddr) -> bool {
-    match ip {
-        std::net::IpAddr::V4(v4) => {
-            v4.is_loopback() || v4.is_private() || v4.is_link_local() || v4.is_unspecified()
-        }
-        std::net::IpAddr::V6(v6) => v6.is_loopback() || v6.is_unspecified(),
     }
 }
 
