@@ -97,6 +97,57 @@ fn secrets_state_and_build_output_are_never_captured() {
 }
 
 #[test]
+fn credential_files_the_doctor_warns_about_and_other_common_ones_are_excluded() {
+    let fx = fixture();
+    put(&fx.project, "src/main.rs", "fn main() {}");
+    let secret_paths = [
+        "credentials.json",
+        "config/credentials.json",
+        "token.json",
+        "app/token.json",
+        "prod.env",
+        "deploy/staging.env",
+        ".pypirc",
+        ".kube/config",
+        ".gnupg/pubring.kbx",
+        ".docker/config.json",
+        "id_ecdsa",
+        "id_dsa",
+        "keys/id_ecdsa",
+    ];
+    for rel in secret_paths {
+        put(&fx.project, rel, "sensitive");
+    }
+    let store = fx.store();
+    let id = store.snapshot("s").unwrap();
+    assert_eq!(store.files(id).unwrap(), vec!["src/main.rs"]);
+}
+
+#[test]
+fn ordinary_source_files_with_secret_sounding_names_are_still_captured() {
+    let fx = fixture();
+    let ordinary = [
+        "src/token_budget.rs",
+        "src/credentials_store.rs",
+        "docs/credentials-guide.md",
+        "src/environment.rs",
+        "src/keys.rs",
+        "config/settings.json",
+        "notes/pem-format.txt",
+    ];
+    for rel in ordinary {
+        put(&fx.project, rel, "code");
+    }
+    let store = fx.store();
+    let id = store.snapshot("s").unwrap();
+    let mut captured = store.files(id).unwrap();
+    captured.sort();
+    let mut expected: Vec<String> = ordinary.iter().map(|s| s.to_string()).collect();
+    expected.sort();
+    assert_eq!(captured, expected, "the exclude list must not swallow ordinary files");
+}
+
+#[test]
 fn the_users_own_git_repository_is_left_byte_for_byte_alone() {
     let fx = fixture();
     put(&fx.project, "tracked.txt", "v1");

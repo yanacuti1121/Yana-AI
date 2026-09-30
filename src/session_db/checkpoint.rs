@@ -46,6 +46,7 @@ node_modules/
 target/
 .env
 .env.*
+*.env
 *.pem
 *.key
 *.p12
@@ -54,10 +55,18 @@ target/
 *.kdbx
 id_rsa
 id_ed25519
+id_ecdsa
+id_dsa
+credentials.json
+token.json
 .npmrc
 .netrc
+.pypirc
 .ssh/
 .aws/
+.kube/
+.gnupg/
+.docker/config.json
 ";
 
 pub struct CheckpointStore {
