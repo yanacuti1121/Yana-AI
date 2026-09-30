@@ -18,6 +18,12 @@ const MAX_RETRY_AFTER: Duration = Duration::from_secs(3600);
 /// ordinary words such as "sk-learn" are left alone.
 const MIN_KEY_LEN: usize = 16;
 const REDACTED: &str = "[redacted]";
+/// Prefixes of well known API key formats (OpenAI and Anthropic `sk-`, Google
+/// `AIza`, Groq `gsk_`, xAI `xai-`, Hugging Face `hf_`, GitHub `ghp_`, AWS `AKIA`).
+const KEY_PREFIXES: [&str; 7] = ["sk-", "AIza", "gsk_", "xai-", "hf_", "ghp_", "AKIA"];
+/// Words whose following value is a credential: the value is masked whatever it looks like.
+const SECRET_MARKERS: [&str; 6] =
+    ["bearer", "x-api-key", "x-goog-api-key", "api_key", "apikey", "api-key"];
 
 const QUOTA_MARKERS: [&str; 4] = [
     "insufficient_quota",
@@ -25,6 +31,9 @@ const QUOTA_MARKERS: [&str; 4] = [
     "exceeded your current quota",
     "billing",
 ];
+/// Bodies that say the key itself is bad even though the status is 400
+/// (Gemini answers an invalid key with 400 and this text).
+const BAD_KEY_MARKERS: [&str; 2] = ["api key not valid", "api_key_invalid"];
 const CONTEXT_MARKERS: [&str; 5] = [
     "context_length_exceeded",
     "maximum context length",
@@ -181,42 +190,50 @@ fn is_token_char(c: char) -> bool {
 }
 
 fn looks_like_key(token: &str) -> bool {
-    token.len() >= MIN_KEY_LEN && (token.starts_with("sk-") || token.starts_with("AIza"))
+    token.len() >= MIN_KEY_LEN && KEY_PREFIXES.iter().any(|prefix| token.starts_with(prefix))
 }
 
-/// Append `token` to `out`, masked when it is key-shaped or follows the
-/// word "Bearer". Returns whether the NEXT token follows a "Bearer".
-fn emit_token(token: &str, out: &mut String, after_bearer: bool) -> bool {
-    if after_bearer || looks_like_key(token) {
+fn is_secret_marker(token: &str) -> bool {
+    SECRET_MARKERS.iter().any(|marker| token.eq_ignore_ascii_case(marker))
+}
+
+/// Append `token` to `out`, masked when it is key-shaped or is the value of a
+/// marker such as "Bearer" or "api_key". Returns whether the NEXT token is
+/// such a value.
+fn emit_token(token: &str, out: &mut String, is_value: bool) -> bool {
+    if is_value || looks_like_key(token) {
         out.push_str(REDACTED);
     } else {
         out.push_str(token);
     }
-    token.eq_ignore_ascii_case("bearer")
+    is_secret_marker(token)
 }
 
-/// Mask key-shaped tokens and the token after "Bearer". Runs before
-/// truncation so a secret cut in half is never half shown.
+/// Mask key-shaped tokens and the value that follows a secret marker. Inside
+/// such a value `/`, `+` and `=` count as part of the token (base64 style
+/// credentials), so the whole thing is masked and not just its first
+/// segment. Runs before truncation so a secret cut in half is never half shown.
 fn mask_secrets(raw: &str) -> String {
     let mut out = String::with_capacity(raw.len());
     let mut token = String::new();
-    let mut after_bearer = false;
+    let mut is_value = false;
     for c in raw.chars() {
-        if is_token_char(c) {
+        let value_char = is_value && !token.is_empty() && matches!(c, '/' | '+' | '=');
+        if is_token_char(c) || value_char {
             token.push(c);
             continue;
         }
         if !token.is_empty() {
-            after_bearer = emit_token(&token, &mut out, after_bearer);
+            is_value = emit_token(&token, &mut out, is_value);
             token.clear();
         }
-        if !c.is_whitespace() && !matches!(c, ':' | '"' | '\'') {
-            after_bearer = false;
+        if !c.is_whitespace() && !matches!(c, ':' | '"' | '\'' | '=') {
+            is_value = false;
         }
         out.push(c);
     }
     if !token.is_empty() {
-        emit_token(&token, &mut out, after_bearer);
+        emit_token(&token, &mut out, is_value);
     }
     out
 }
@@ -234,8 +251,12 @@ fn classify_http(status: u16, body: &str) -> ProviderErrorKind {
     if matches!(status, 400 | 413 | 422) && contains_any(&body, &CONTEXT_MARKERS) {
         return ContextOverflow;
     }
+    if status == 400 && contains_any(&body, &BAD_KEY_MARKERS) {
+        return Auth;
+    }
     match status {
         402 => QuotaExhausted,
+        408 => Timeout,
         429 => RateLimited,
         401 | 403 => Auth,
         404 if body.contains("model") => ModelNotFound,

@@ -1,5 +1,6 @@
 //! Tunables for `FailoverProvider`.
 
+use crate::model::provider_error::ProviderError;
 use std::time::Duration;
 
 /// Attempts on one route before moving on, counting the first try.
@@ -16,6 +17,14 @@ pub struct FailoverPolicy {
     pub allow_failover_after_output: bool,
     pub retry_backoff: Duration,
     pub max_inline_wait: Duration,
+}
+
+impl FailoverPolicy {
+    /// Pause before retrying after `error`: the server's `Retry-After` when
+    /// it asks for longer than the base backoff, otherwise the backoff.
+    pub fn retry_wait(&self, error: &ProviderError) -> Duration {
+        error.retry_after.map_or(self.retry_backoff, |wait| wait.max(self.retry_backoff))
+    }
 }
 
 impl Default for FailoverPolicy {

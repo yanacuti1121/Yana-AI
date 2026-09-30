@@ -4,6 +4,21 @@ use super::test_support::*;
 use super::*;
 
 #[test]
+fn zero_retry_after_cannot_spin_the_rotation_loop() {
+    // 20 scripted 429s with Retry-After: 0, then an untyped error. If the
+    // router spins, it consumes the script and ends on the untyped error, so
+    // the call count is far above the two keys in the pool.
+    let script = vec![Step::HttpRetryAfter(429, 0); 20];
+    let primary = Fake::new("primary", script, Step::Untyped);
+    let backup = Fake::new("backup", vec![], Step::Ok("ok"));
+    let router = FailoverProvider::new(primary.clone(), vec![route(&backup, "b", None)], fast_policy(1))
+        .with_primary_pool(key_pool(&["k1", "k2"]));
+    let (result, _) = run(&router);
+    assert!(result.is_ok(), "the fallback provider should answer once both keys are parked");
+    assert_eq!(primary.calls(), 2, "one attempt per key, never more");
+}
+
+#[test]
 fn rate_limited_key_rotates_to_the_next_key_without_leaving_the_provider() {
     let primary = Fake::new("primary", vec![Step::Http(429, "slow")], Step::Ok("ok"));
     let backup = Fake::new("backup", vec![], Step::Ok("nope"));

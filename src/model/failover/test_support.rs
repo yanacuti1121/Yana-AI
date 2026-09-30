@@ -11,6 +11,8 @@ use std::time::Duration;
 pub(super) enum Step {
     Ok(&'static str),
     Http(u16, &'static str),
+    /// A failure that carries a `Retry-After` of this many seconds.
+    HttpRetryAfter(u16, u64),
     HttpAfterOutput(u16),
     Untyped,
 }
@@ -72,6 +74,12 @@ impl ChatProvider for Fake {
             Step::Http(status, body) => {
                 Err(anyhow::Error::new(ProviderError::from_http(self.name, status, body, None)))
             }
+            Step::HttpRetryAfter(status, seconds) => Err(anyhow::Error::new(ProviderError::from_http(
+                self.name,
+                status,
+                "",
+                Some(Duration::from_secs(seconds)),
+            ))),
             Step::HttpAfterOutput(status) => {
                 on_chunk("partial")?;
                 Err(anyhow::Error::new(ProviderError::from_http(self.name, status, "cut", None)))

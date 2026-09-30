@@ -16,8 +16,15 @@ use std::time::{Duration, Instant};
 
 /// Pause used when a 429 carries no `Retry-After`.
 const DEFAULT_RATE_LIMIT_COOLDOWN: Duration = Duration::from_secs(60);
+/// Shortest time a rate-limited key is parked. A server may send
+/// `Retry-After: 0`; without a floor that key would be reusable at once and a
+/// caller could spin on it.
+const MIN_RATE_LIMIT_COOLDOWN: Duration = Duration::from_secs(1);
 /// Out-of-quota keys usually recover on a billing cycle, not in seconds.
 const QUOTA_COOLDOWN: Duration = Duration::from_secs(3600);
+/// A 403 can be a region or permission block rather than a dead key, so the
+/// key is parked for a while instead of being disabled for good.
+const FORBIDDEN_COOLDOWN: Duration = Duration::from_secs(3600);
 
 pub trait Clock: Send + Sync {
     fn now(&self) -> Instant;
@@ -192,9 +199,13 @@ impl CredentialPool {
         let now = self.clock.now();
         let parked = match error.kind {
             ProviderErrorKind::RateLimited => {
-                State::CoolingUntil(now + error.retry_after.unwrap_or(DEFAULT_RATE_LIMIT_COOLDOWN))
+                let pause = error.retry_after.unwrap_or(DEFAULT_RATE_LIMIT_COOLDOWN);
+                State::CoolingUntil(now + pause.max(MIN_RATE_LIMIT_COOLDOWN))
             }
             ProviderErrorKind::QuotaExhausted => State::CoolingUntil(now + QUOTA_COOLDOWN),
+            ProviderErrorKind::Auth if error.status == Some(403) => {
+                State::CoolingUntil(now + FORBIDDEN_COOLDOWN)
+            }
             ProviderErrorKind::Auth => State::Disabled,
             _ => return,
         };

@@ -102,6 +102,25 @@ fn untyped_error_is_returned_at_once() {
 }
 
 #[test]
+fn the_final_error_keeps_why_each_route_failed() {
+    let primary = Fake::new("primary", vec![], Step::Http(401, "bad key"));
+    let backup = Fake::new("backup", vec![], Step::Http(503, "busy"));
+    let router = FailoverProvider::new(primary, vec![route(&backup, "b", None)], fast_policy(1));
+    let text = format!("{:#}", run(&router).0.unwrap_err());
+    assert!(text.contains("primary (Auth)"), "the first route's cause must survive: {text}");
+    assert!(text.contains("backup (Overloaded)"), "{text}");
+}
+
+#[test]
+fn retry_wait_honors_retry_after_but_never_goes_below_the_backoff() {
+    let policy = FailoverPolicy::default();
+    let error = |retry_after: Option<Duration>| ProviderError::from_http("p", 429, "", retry_after);
+    assert_eq!(policy.retry_wait(&error(None)), policy.retry_backoff);
+    assert_eq!(policy.retry_wait(&error(Some(Duration::from_secs(4)))), Duration::from_secs(4));
+    assert_eq!(policy.retry_wait(&error(Some(Duration::from_millis(1)))), policy.retry_backoff);
+}
+
+#[test]
 fn all_routes_failing_reports_every_route_and_keeps_the_last_kind() {
     let primary = Fake::new("primary", vec![], Step::Http(503, "busy"));
     let backup = Fake::new("backup", vec![], Step::Http(529, "overloaded"));

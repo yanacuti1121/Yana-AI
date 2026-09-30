@@ -151,7 +151,7 @@ impl ChatProvider for FailoverProvider {
                 RouteOutcome::Done(result) => return Ok(result),
                 RouteOutcome::Stop(error) => return Err(error),
                 RouteOutcome::Next(error) => {
-                    tried.push(route.provider.name().to_string());
+                    tried.push(describe_failure(route, &error));
                     last_error = Some(error);
                 }
             }
@@ -183,6 +183,8 @@ impl FailoverProvider {
             Some(own_model) => (route.api_key.as_deref(), own_model.as_str()),
         };
         let mut attempt = 1;
+        let mut rotations = 0;
+        let pool_size = route.pool.as_ref().map_or(0, |pool| pool.len());
         let mut previous_error: Option<anyhow::Error> = None;
         loop {
             let lease = match &route.pool {
@@ -209,9 +211,16 @@ impl FailoverProvider {
                 return RouteOutcome::Stop(error);
             };
             match self.decide(route, lease.as_ref(), &typed, emitted, attempt) {
-                Decision::Rotate => {}
+                Decision::Rotate => {
+                    // Belt and braces next to the pool's cooldown floor: never
+                    // try more keys than the pool holds in one turn.
+                    rotations += 1;
+                    if rotations >= pool_size {
+                        return RouteOutcome::Next(no_key_error(route, Some(error)));
+                    }
+                }
                 Decision::Retry => {
-                    std::thread::sleep(self.policy.retry_backoff);
+                    std::thread::sleep(self.policy.retry_wait(&typed));
                     attempt += 1;
                 }
                 Decision::Next => return RouteOutcome::Next(error),
@@ -264,6 +273,16 @@ enum Decision {
     Retry,
     Next,
     Stop,
+}
+
+/// "name (Kind)" for the failure list, so the final error says why each
+/// route gave up and not only the last one.
+fn describe_failure(route: &Route, error: &anyhow::Error) -> String {
+    let name = route.provider.name();
+    match error.downcast_ref::<ProviderError>() {
+        Some(typed) => format!("{name} ({:?})", typed.kind),
+        None => name.to_string(),
+    }
 }
 
 fn no_key_error(route: &Route, previous: Option<anyhow::Error>) -> anyhow::Error {

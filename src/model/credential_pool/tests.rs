@@ -26,6 +26,28 @@ fn error(status: u16, retry_after: Option<u64>) -> ProviderError {
 }
 
 #[test]
+fn zero_retry_after_still_parks_the_key_for_a_moment() {
+    let clock = ManualClock::new();
+    let pool = pool(&["a"], &clock);
+    let lease = pool.acquire().unwrap();
+    pool.report(&lease, &error(429, Some(0)));
+    assert_eq!(pool.available(), 0, "a zero pause must not make the key instantly reusable");
+    clock.advance(Duration::from_secs(2));
+    assert_eq!(pool.available(), 1);
+}
+
+#[test]
+fn forbidden_parks_the_key_for_an_hour_instead_of_disabling_it_for_good() {
+    let clock = ManualClock::new();
+    let pool = pool(&["a"], &clock);
+    let lease = pool.acquire().unwrap();
+    pool.report(&lease, &error(403, None));
+    assert_eq!(pool.available(), 0);
+    clock.advance(Duration::from_secs(3601));
+    assert_eq!(pool.available(), 1, "a 403 can be a region or permission block, not a dead key");
+}
+
+#[test]
 fn parse_keys_merges_trims_and_dedupes() {
     assert_eq!(parse_keys(Some("a"), Some("b, c ,a,,")), vec!["a", "b", "c"]);
     assert_eq!(parse_keys(Some("solo"), None), vec!["solo"]);

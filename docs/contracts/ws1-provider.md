@@ -192,3 +192,24 @@ Mọi điểm vào chat giờ đi qua đúng một chỗ: `chat::wire_provider(p
 1. Failover: thêm vào `.yana-ai/chat-settings.json` (cùng thư mục làm việc khi chạy chat), ví dụ `{"fallback_providers": ["openai", "ollama"]}`. Tên là những tên `--provider` nhận. Thứ tự là thứ tự thử.
 2. Nhiều khóa: đặt `<TÊN_BIẾN_KHÓA>_POOL` là danh sách khóa cách nhau bởi dấu phẩy, ví dụ `ANTHROPIC_API_KEY_POOL=k1,k2,k3`. Biến đơn `ANTHROPIC_API_KEY` vẫn chạy như cũ và được thử trước.
 3. Tắt prompt caching Anthropic: `YANA_PROMPT_CACHE=0`.
+
+### 9.3 Sau review mã (2026-09-30)
+
+Một reviewer đọc toàn bộ mã WS1; các phát hiện đã đối chiếu với mã trước khi sửa.
+
+**Đã sửa (có test):**
+- Vòng lặp xoay khóa không dừng khi máy chủ trả `Retry-After: 0`: khóa bị 429 giờ luôn bị tạm dừng tối thiểu 1 giây, và mỗi lượt chỉ được xoay tối đa bằng số khóa của nhóm.
+- Thời gian chờ khi thử lại tuân theo `Retry-After` (không dưới `retry_backoff`), nhờ `FailoverPolicy::retry_wait`.
+- Lỗi cuối cùng liệt kê lý do của từng route, dạng `primary (Auth), backup (Overloaded)`, không chỉ route cuối.
+- Che khóa: thêm tiền tố `gsk_`, `xai-`, `hf_`, `ghp_`, `AKIA`; giá trị đi sau `Bearer`, `x-api-key`, `x-goog-api-key`, `api_key`, `apikey`, `api-key` luôn bị che, gồm cả token base64 có `/`, `+`, `=`.
+- Phân loại: Gemini trả 400 "API key not valid" giờ là `Auth` (được xoay khóa và failover); 408 là `Timeout`.
+- Nhóm khóa: 403 chỉ tạm dừng khóa 1 giờ thay vì vô hiệu vĩnh viễn (403 có thể là chặn vùng hay thiếu quyền). 401 vẫn vô hiệu đến khi nạp lại cấu hình.
+
+**Đã quyết:** ở chế độ không TUI, nếu tiến trình có `<TÊN>_POOL` thì nhóm khóa được dùng cho provider chính và khóa từ stdin bị bỏ qua. Lý do: đặt biến môi trường là cấu hình chủ động. Ai muốn dùng khóa của Desktop thì đừng đặt `<TÊN>_POOL` cho provider đó.
+
+**Chưa sửa, cần quyết định thiết kế:**
+- Breaker đếm cả các lần thử lại, nên mở sớm hơn 5 lượt thất bại (với 2 lần thử mỗi lượt thì khoảng 3 lượt). Lần thử thăm dò half-open thất bại vẫn thử lại.
+- Provider dự phòng nhận nguyên `tools` và ảnh của yêu cầu, dù nó có thể không hỗ trợ; khi đó người dùng thấy lỗi 400 của dự phòng thay vì lỗi gốc. Model mặc định của dự phòng ollama là `default_model()`, không dò model đã cài như đường chính.
+- Lỗi TLS và các lỗi truyền tải khác ngoài timeout, host, kết nối được xếp `Unknown` nên không failover.
+- Che khóa bằng so khớp chính xác giá trị của các khóa trong nhóm (cần đưa nhóm khóa vào nơi dựng lỗi) chưa làm.
+- Yêu cầu Anthropic khi không cấu hình gì đã khác trước: có `cache_control` và `system` là mảng (đã ghi ở 5.1, tắt được bằng `YANA_PROMPT_CACHE=0`).

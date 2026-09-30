@@ -22,6 +22,46 @@ fn status_codes_map_to_kinds() {
 }
 
 #[test]
+fn gemini_invalid_key_and_request_timeout_are_classified() {
+    let gemini = r#"{"error":{"code":400,"message":"API key not valid. Please pass a valid API key."}}"#;
+    assert_eq!(kind_for(400, gemini), ProviderErrorKind::Auth);
+    assert_eq!(kind_for(408, ""), ProviderErrorKind::Timeout);
+}
+
+#[test]
+fn common_key_formats_and_awkward_bearer_tokens_are_masked() {
+    let cases = [
+        ("Authorization: Bearer abc/def+ghi==", "def"),
+        ("Authorization: Bearer abc/def+ghi==", "ghi"),
+        ("x-api-key: plainlookingvalue12345", "plainlookingvalue12345"),
+        (r#"{"api_key":"plainlookingvalue12345"}"#, "plainlookingvalue12345"),
+        ("api_key=plainlookingvalue12345&x=1", "plainlookingvalue12345"),
+        ("bad gsk_0123456789abcdefABCDEF here", "gsk_0123456789abcdefABCDEF"),
+        ("bad xai-0123456789abcdefABCDEF here", "xai-0123456789abcdefABCDEF"),
+        ("bad hf_0123456789abcdefABCDEF here", "hf_0123456789abcdefABCDEF"),
+        ("bad ghp_0123456789abcdefABCDEF here", "ghp_0123456789abcdefABCDEF"),
+        ("bad AKIA0123456789ABCDEF here", "AKIA0123456789ABCDEF"),
+    ];
+    for (body, secret) in cases {
+        let shown = ProviderError::from_http("p", 401, body, None).to_string();
+        assert!(!shown.contains(secret), "leaked {secret}: {shown}");
+    }
+}
+
+#[test]
+fn masking_leaves_ordinary_error_text_alone() {
+    for body in [
+        "The model gpt-4o does not exist",
+        "authorization failed for this account",
+        "rate limit reached for sk-learn users",
+        "invalid api key format, see docs",
+    ] {
+        let shown = ProviderError::from_http("p", 401, body, None).to_string();
+        assert!(shown.ends_with(body), "text was altered: {shown}");
+    }
+}
+
+#[test]
 fn not_found_is_model_not_found_only_when_body_mentions_model() {
     assert_eq!(
         kind_for(404, r#"{"error":{"message":"The model `x` does not exist"}}"#),
