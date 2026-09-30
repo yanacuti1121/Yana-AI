@@ -141,6 +141,12 @@ pub(super) fn dispatch(provider_name: String, model: Option<String>) -> Result<(
     }
     let history_messages = validate_history(input.history)?;
     let repo_root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    // Notes go to stderr: stdout is the NDJSON protocol channel.
+    let wiring = crate::chat::wire_provider(provider, &crate::chat::configured_fallbacks(&repo_root));
+    for note in &wiring.notes {
+        eprintln!("[chat/headless] {note}");
+    }
+    let provider = wiring.provider;
     let session = SessionContext::new(
         validate_session_id(input.session_id.as_deref())?,
         repo_root,
@@ -234,6 +240,11 @@ pub(super) fn dispatch_resume(provider_name: String) -> Result<()> {
         crate::model::catalog::try_select_provider(&provider_name).map_err(anyhow::Error::msg)?;
     let input = read_resume_input()?;
     let repo_root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    let wiring = crate::chat::wire_provider(provider, &crate::chat::configured_fallbacks(&repo_root));
+    for note in &wiring.notes {
+        eprintln!("[chat/headless] {note}");
+    }
+    let provider = wiring.provider;
     let store = PendingApprovalStore::for_root(&repo_root);
     let resolved = store
         .resolve(&input.approval_id, input.decision, input.decided_by)

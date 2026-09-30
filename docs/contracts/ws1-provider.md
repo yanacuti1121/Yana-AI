@@ -179,4 +179,16 @@ Phạm vi được mở thêm đúng hai file: `src/chat/mod.rs` và `src/chat/s
 - `chat/mod.rs`: `dispatch` lấy khóa chính bằng `wiring::resolve_primary_key` (biến đơn được ưu tiên; nếu chỉ có `<TÊN>_POOL` thì dùng khóa đầu của nhóm, trước đây trường hợp này báo lỗi thoát). Ghi chú của `assemble` in ra stderr trước khi vào TUI.
 - Thay đổi hành vi duy nhất so với trước khi có cấu hình: đặt `<TÊN>_POOL` mà không đặt `<TÊN>` giờ chạy được thay vì thoát mã 2.
 
-**Chưa nối (ngoài phạm vi, ghi để khỏi hiểu nhầm):** đường không TUI (`chat/headless.rs`) và việc đổi provider giữa phiên bằng `/model` (`chat/tui/model_command.rs`, `tabs.rs`) vẫn dùng provider trần, không có failover hay nhóm khóa. Nối hai chỗ này cần sửa các file đó.
+### 9.1 Nối nốt các điểm vào còn lại (2026-09-30, anh Tâm mở thêm phạm vi)
+
+Mọi điểm vào chat giờ đi qua đúng một chỗ: `chat::wire_provider(provider, fallback_names)` trong `chat/mod.rs`, bọc `wiring::assemble`. Đó là: `dispatch` (TUI), `headless::dispatch`, `headless::dispatch_resume`, lệnh `/model` (`tui/model_command.rs`) và khôi phục phiên (`tui/tabs.rs`). `chat::configured_fallbacks(repo_root)` đọc `fallback_providers` từ `.yana-ai/chat-settings.json`; thiếu hoặc lỗi file thì là rỗng. Không cấu hình gì thì `wire_provider` trả về đúng provider đưa vào (có test `Arc::ptr_eq`).
+
+- Ghi chú của `assemble` hiển thị ở: stderr trước khi vào TUI (`dispatch`), stderr với tiền tố `[chat/headless]` (chế độ không TUI, vì stdout là kênh giao thức NDJSON), và dòng trạng thái (`/model`, khôi phục phiên).
+- `/model` và khôi phục phiên cũng đọc khóa bằng `wiring::resolve_primary_key`, nên `<TÊN>_POOL` đứng một mình chạy được ở đó như ở `dispatch`.
+- Ở chế độ không TUI, khóa của provider chính vẫn đến từ JSON trên stdin (ứng dụng Desktop cấp). Provider dự phòng lấy khóa từ biến môi trường của tiến trình (`<TÊN>` hoặc `<TÊN>_POOL`); nếu thiếu, nó bị bỏ qua kèm ghi chú.
+
+### 9.2 Cách bật
+
+1. Failover: thêm vào `.yana-ai/chat-settings.json` (cùng thư mục làm việc khi chạy chat), ví dụ `{"fallback_providers": ["openai", "ollama"]}`. Tên là những tên `--provider` nhận. Thứ tự là thứ tự thử.
+2. Nhiều khóa: đặt `<TÊN_BIẾN_KHÓA>_POOL` là danh sách khóa cách nhau bởi dấu phẩy, ví dụ `ANTHROPIC_API_KEY_POOL=k1,k2,k3`. Biến đơn `ANTHROPIC_API_KEY` vẫn chạy như cũ và được thử trước.
+3. Tắt prompt caching Anthropic: `YANA_PROMPT_CACHE=0`.

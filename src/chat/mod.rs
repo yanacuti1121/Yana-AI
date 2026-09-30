@@ -120,6 +120,29 @@ fn process_env(name: &str) -> Option<String> {
     std::env::var(name).ok().filter(|value| !value.is_empty())
 }
 
+/// Fallback providers the user configured in `.yana-ai/chat-settings.json`.
+/// Missing or unreadable settings mean no failover.
+pub(crate) fn configured_fallbacks(repo_root: &std::path::Path) -> Vec<String> {
+    settings::load(repo_root).unwrap_or_default().fallback_providers
+}
+
+/// The one place every chat entry point (TUI, `/model`, restored tabs and the
+/// headless protocol) turns a selected provider into the one it talks to. With
+/// no fallbacks and no `<ENV>_POOL` it returns `provider` itself, so nothing
+/// changes for a user who configured nothing. Callers decide where to show the
+/// returned notes.
+pub(crate) fn wire_provider(
+    provider: Arc<dyn ChatProvider>,
+    fallback_names: &[String],
+) -> crate::model::wiring::Wiring {
+    crate::model::wiring::assemble(
+        provider,
+        fallback_names,
+        &|name| try_select_provider(name),
+        &process_env,
+    )
+}
+
 fn resolve_default_model(provider: &Arc<dyn ChatProvider>) -> String {
     if provider.name() == "ollama" {
         if let Some(detected) = openai_compat::detect_ollama_model() {
@@ -175,12 +198,7 @@ pub fn dispatch(
         None
     };
     // No fallback_providers and no `<ENV>_POOL` returns the provider as it was.
-    let wiring = crate::model::wiring::assemble(
-        provider,
-        &chat_settings.fallback_providers,
-        &|name| try_select_provider(name),
-        &process_env,
-    );
+    let wiring = wire_provider(provider, &chat_settings.fallback_providers);
     for note in &wiring.notes {
         eprintln!("[chat] {note}");
     }
@@ -243,4 +261,78 @@ pub(crate) fn dispatch_headless(provider: String, model: Option<String>) -> anyh
 
 pub(crate) fn dispatch_headless_resume(provider: String) -> anyhow::Result<()> {
     headless::dispatch_resume(provider)
+}
+
+#[cfg(test)]
+mod wiring_tests {
+    use super::*;
+    use crate::model::provider::{ChatMessage, ChatUsage};
+    use crate::model::tool::{StreamOutcome, ToolSpec};
+
+    /// Keyless stand-in. Its env var name is never set, so nothing here
+    /// depends on or changes the process environment.
+    struct Stub;
+
+    impl ChatProvider for Stub {
+        fn name(&self) -> &str {
+            "stub"
+        }
+        fn default_model(&self) -> &str {
+            "stub-model"
+        }
+        fn requires_key(&self) -> bool {
+            false
+        }
+        fn env_var(&self) -> &str {
+            ""
+        }
+        fn stream_chat(
+            &self,
+            _: Option<&str>,
+            _: &str,
+            _: Option<&str>,
+            _: &[ChatMessage],
+            _: &[ToolSpec],
+            _: &mut dyn FnMut(&str) -> anyhow::Result<()>,
+        ) -> anyhow::Result<(ChatUsage, StreamOutcome)> {
+            Ok((ChatUsage::default(), StreamOutcome::Text))
+        }
+    }
+
+    #[test]
+    fn no_fallbacks_configured_returns_the_same_provider() {
+        let provider: Arc<dyn ChatProvider> = Arc::new(Stub);
+        let wiring = wire_provider(provider.clone(), &[]);
+        assert!(Arc::ptr_eq(&wiring.provider, &provider), "default behavior must not change");
+        assert!(wiring.notes.is_empty());
+    }
+
+    #[test]
+    fn a_configured_keyless_fallback_turns_failover_on() {
+        let provider: Arc<dyn ChatProvider> = Arc::new(Stub);
+        let wiring = wire_provider(provider.clone(), &["ollama".to_string()]);
+        assert!(!Arc::ptr_eq(&wiring.provider, &provider));
+        assert_eq!(wiring.provider.name(), "stub", "identity still comes from the primary");
+        assert!(wiring.notes.join(" ").contains("stub -> ollama"), "{:?}", wiring.notes);
+    }
+
+    #[test]
+    fn an_unknown_fallback_is_reported_and_ignored() {
+        let provider: Arc<dyn ChatProvider> = Arc::new(Stub);
+        let wiring = wire_provider(provider.clone(), &["no-such-provider".to_string()]);
+        assert!(Arc::ptr_eq(&wiring.provider, &provider));
+        assert!(wiring.notes.join(" ").contains("no-such-provider"), "{:?}", wiring.notes);
+    }
+
+    #[test]
+    fn configured_fallbacks_reads_the_settings_file() {
+        let temp = tempfile::tempdir().unwrap();
+        assert!(configured_fallbacks(temp.path()).is_empty(), "no file means no failover");
+        let saved = settings::ChatSettings {
+            fallback_providers: vec!["openai".to_string(), "ollama".to_string()],
+            ..settings::ChatSettings::default()
+        };
+        settings::save(temp.path(), &saved).unwrap();
+        assert_eq!(configured_fallbacks(temp.path()), vec!["openai", "ollama"]);
+    }
 }
