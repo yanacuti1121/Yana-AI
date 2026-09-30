@@ -92,29 +92,43 @@ fn fix_ac001(target: &str, dry_run: bool) -> Result<()> {
     Ok(())
 }
 
+/// The lines AC002 adds for the patterns `doctor` expects but `.gitignore`
+/// does not yet cover. Missing `.env` also brings its usual variants.
+fn ac002_missing_lines(existing: &str) -> Vec<&'static str> {
+    let mut lines = Vec::new();
+    for pattern in crate::doctor::GITIGNORE_PATTERNS {
+        if crate::doctor::gitignore_covers(existing, pattern) {
+            continue;
+        }
+        lines.push(pattern);
+        if pattern == ".env" {
+            lines.extend([".env.*", "*.env"]);
+        }
+    }
+    lines
+}
+
 fn fix_ac002(target: &str, dry_run: bool) -> Result<()> {
     let path = Path::new(target).join(".gitignore");
-    let entries = "\n# Environment files\n.env\n.env.*\n*.env\n*.pem\n*.key\n";
-    if path.exists() {
-        let content = std::fs::read_to_string(&path)?;
-        if crate::doctor::gitignore_covers(&content, ".env") {
-            println!("[fix/AC002] .gitignore already has .env entries — skipping");
-            return Ok(());
-        }
-        if dry_run {
-            println!("[dry-run] would append to .gitignore:\n{}", entries);
-        } else {
-            let mut f = std::fs::OpenOptions::new().append(true).open(&path)?;
+    let existing = if path.exists() { Some(std::fs::read_to_string(&path)?) } else { None };
+    let lines = ac002_missing_lines(existing.as_deref().unwrap_or(""));
+    if existing.is_some() && lines.is_empty() {
+        println!("[fix/AC002] .gitignore already covers every sensitive pattern — skipping");
+        return Ok(());
+    }
+    let block = format!("\n# Environment and credential files\n{}\n", lines.join("\n"));
+    match (&existing, dry_run) {
+        (Some(_), true) => println!("[dry-run] would append to .gitignore:\n{block}"),
+        (None, true) => println!("[dry-run] would create .gitignore with:\n{block}"),
+        (Some(_), false) => {
             use std::io::Write;
-            f.write_all(entries.as_bytes())?;
-            println!("[fix/AC002] Appended .env entries to .gitignore");
+            let mut f = std::fs::OpenOptions::new().append(true).open(&path)?;
+            f.write_all(block.as_bytes())?;
+            println!("[fix/AC002] Appended {} pattern(s) to .gitignore", lines.len());
         }
-    } else {
-        if dry_run {
-            println!("[dry-run] would create .gitignore with .env entries");
-        } else {
-            std::fs::write(&path, format!("# gitignore{}", entries))?;
-            println!("[fix/AC002] Created .gitignore with .env entries");
+        (None, false) => {
+            std::fs::write(&path, format!("# gitignore{block}"))?;
+            println!("[fix/AC002] Created .gitignore with {} pattern(s)", lines.len());
         }
     }
     Ok(())

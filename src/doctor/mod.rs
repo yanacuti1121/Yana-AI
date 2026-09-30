@@ -306,6 +306,10 @@ fn check_git_branch(target: &str) -> Check {
     }
 }
 
+/// The sensitive-file patterns `doctor` expects in `.gitignore` and `fix AC002`
+/// adds when they are missing: one list, so the two commands cannot disagree.
+pub(crate) const GITIGNORE_PATTERNS: [&str; 5] = [".env", "*.pem", "*.key", "credentials.json", "token.json"];
+
 /// True when `.gitignore` has a live rule for `pattern`: a whole line, after
 /// trimming and dropping a leading `**/` or `/`, that is not a comment or a
 /// negation. A substring test would count `# .env` and `.environment`.
@@ -331,7 +335,7 @@ fn check_gitignore(target: &str) -> Check {
         );
     }
     let content = std::fs::read_to_string(&path).unwrap_or_default();
-    let missing: Vec<_> = [".env", "*.pem", "*.key", "credentials.json", "token.json"]
+    let missing: Vec<_> = GITIGNORE_PATTERNS
         .into_iter()
         .filter(|pattern| !gitignore_covers(&content, pattern))
         .collect();

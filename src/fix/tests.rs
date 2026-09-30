@@ -100,7 +100,7 @@ fn ac002_creates_a_gitignore_with_env_and_key_entries() {
     let (d, t) = dir();
     fix_ac002(&t, false).unwrap();
     let g = read(&d, ".gitignore");
-    for entry in [".env", "*.pem", "*.key"] {
+    for entry in [".env", ".env.*", "*.env", "*.pem", "*.key", "credentials.json", "token.json"] {
         assert!(g.lines().any(|l| l == entry), "{entry}");
     }
 }
@@ -116,11 +116,40 @@ fn ac002_appends_to_an_existing_gitignore_without_losing_content() {
 }
 
 #[test]
-fn ac002_leaves_a_gitignore_that_already_ignores_env_untouched() {
+fn ac002_leaves_a_gitignore_that_already_covers_every_sensitive_pattern_untouched() {
     let (d, t) = dir();
-    write(&d, ".gitignore", ".env\n");
+    let full = crate::doctor::GITIGNORE_PATTERNS.join("\n") + "\n";
+    write(&d, ".gitignore", &full);
     fix_ac002(&t, false).unwrap();
-    assert_eq!(read(&d, ".gitignore"), ".env\n");
+    assert_eq!(read(&d, ".gitignore"), full);
+}
+
+#[test]
+fn ac002_adds_only_the_patterns_that_are_missing_and_keeps_existing_lines() {
+    let (d, t) = dir();
+    write(&d, ".gitignore", "target/\n.env\n*.pem\n");
+    fix_ac002(&t, false).unwrap();
+    let g = read(&d, ".gitignore");
+    assert!(g.starts_with("target/\n.env\n*.pem\n"));
+    assert_eq!(g.lines().filter(|l| *l == ".env").count(), 1, ".env must not be duplicated");
+    for added in ["*.key", "credentials.json", "token.json"] {
+        assert!(g.lines().any(|l| l == added), "{added}");
+    }
+}
+
+#[test]
+fn after_ac002_doctor_has_nothing_left_to_report_about_gitignore() {
+    for start in [None, Some(""), Some("target/\n"), Some("# .env\n.environment\n"), Some(".env\n")] {
+        let (d, t) = dir();
+        if let Some(body) = start {
+            write(&d, ".gitignore", body);
+        }
+        fix_ac002(&t, false).unwrap();
+        let g = read(&d, ".gitignore");
+        for pattern in crate::doctor::GITIGNORE_PATTERNS {
+            assert!(crate::doctor::gitignore_covers(&g, pattern), "{start:?}: {pattern} still missing after the fix");
+        }
+    }
 }
 
 #[test]
