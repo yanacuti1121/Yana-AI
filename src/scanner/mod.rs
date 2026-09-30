@@ -1,8 +1,12 @@
 pub mod files;
 mod matchers;
+#[cfg(test)]
+mod matchers_tests;
 pub mod mod_types;
 pub mod render;
 mod rules;
+#[cfg(test)]
+mod rules_tests;
 
 pub use mod_types::*;
 
