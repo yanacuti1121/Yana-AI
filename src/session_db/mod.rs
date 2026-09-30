@@ -24,6 +24,7 @@ pub use profile::{ProfileError, ProfileName, StateKind, StateRoot};
 #[cfg(feature = "session-db")]
 #[allow(unused_imports)]
 pub use store::{
-    EndReason, IntegrityReport, MessageRow, SearchHit, SessionDbError, SessionRow, SessionStore,
+    message_row, EndReason, IntegrityReport, MessageRow, SearchHit, SessionDbError, SessionRow,
+    SessionStore,
     SqliteSessionStore,
 };

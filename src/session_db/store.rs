@@ -17,7 +17,7 @@ mod sqlite;
 #[cfg(test)]
 mod tests;
 
-pub use import::{import_chat_history, ImportProblem, ImportReport};
+pub use import::{import_chat_history, message_row, ImportProblem, ImportReport};
 pub use lock::SessionLock;
 pub use recover::{CorruptionReport, RecoveryReport};
 pub use sqlite::SqliteSessionStore;

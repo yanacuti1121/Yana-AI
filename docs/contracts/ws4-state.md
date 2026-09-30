@@ -301,3 +301,11 @@ Anh Tâm duyệt (qua phiên hermes-agent-57) thêm đúng một crate.
 - **Phục hồi:** `recover()` chỉ đụng phiên không ai giữ: phiên còn mở thành `crashed`; lời gọi công cụ cuối chưa có kết quả được thêm một kết quả thay thế (`is_error`, "interrupted", id cố định theo vị trí nên lặp lại không thêm lần hai); số tin nhắn và token được tính lại. `integrity_check` báo thêm lệch số và khoảng trống số thứ tự. Khoảng trống chỉ được báo, không bao giờ được "vá" bằng tin nhắn bịa.
 - **Tệp hỏng:** `open_or_recover` khi gặp tệp không phải SQLite hoặc malformed sẽ đổi tên nguyên vẹn sang `sessions.db.corrupt-<thời gian>` (kèm `-wal`, `-shm` nếu có nội dung), tạo tệp mới và nhập lại từ `chat-history`. Cơ sở dữ liệu của bản mới hơn không bị coi là hỏng.
 - Chưa kiểm chứng: Windows (`File::try_lock`, đổi tên tệp đang mở); tệp hỏng giữa chừng chỉ được phát hiện lúc mở, không phải khi đang chạy.
+
+### 14.5 Nối vào chat: phản chiếu lịch sử (phần A)
+
+- `append_line` trong `src/chat/history.rs`, sau khi dòng JSONL đã ghi xong, gọi `mirror::mirror_line` (`src/chat/history/mirror.rs`). JSONL vẫn là nguồn sự thật; cơ sở dữ liệu chỉ là bản sao.
+- **Mặc định TẮT.** Chỉ đặt `YANA_SESSION_DB=1` (đúng giá trị 1) mới bật. Tắt thì không tạo thư mục hay tệp nào (có test). Đổi mặc định sang BẬT là quyết định riêng của anh Tâm, sau khi có bằng chứng chạy thật.
+- Không bao giờ làm hỏng lượt chat: lỗi chỉ in một cảnh báo mỗi tiến trình. Có test: `sessions.db` hỏng thì để nguyên byte, cơ sở dữ liệu bị khóa thì trở về mà không panic, các dòng sau vẫn được sao.
+- Số thứ tự lấy từ `next_seq` (cao nhất cộng 1). Bật giữa chừng một phiên thì phiên đó chỉ có các dòng từ lúc bật; muốn đủ thì nhập lại bằng `import_chat_history`.
+- Giới hạn đã biết: mỗi dòng mở lại kết nối (chi phí nhỏ, chưa đo); khi DB bị khóa, một lần ghi có thể chờ tới 5 giây (`busy_timeout`) rồi bỏ qua; phiên chưa giữ `lock_session` nên `recover()` sẽ coi phiên đang chạy là đã chết. Cả ba để bước sau.

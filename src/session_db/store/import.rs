@@ -142,7 +142,7 @@ fn session_row(id: &str, meta: Option<SessionMetadata>, lines: &[HistoryLine]) -
     }
 }
 
-fn message_row(session_id: &str, seq: u32, line: &HistoryLine) -> MessageRow {
+pub fn message_row(session_id: &str, seq: u32, line: &HistoryLine) -> MessageRow {
     MessageRow {
         id: line.id.clone(),
         session_id: session_id.to_string(),

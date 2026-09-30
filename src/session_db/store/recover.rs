@@ -103,6 +103,17 @@ impl SqliteSessionStore {
         Ok(report)
     }
 
+    /// The number the next message of this session should get (1 for a new session).
+    pub fn next_seq(&self, session_id: &str) -> Result<u32, SessionDbError> {
+        let conn = self.lock();
+        let highest: i64 = conn.query_row(
+            "SELECT COALESCE(MAX(seq), 0) FROM messages WHERE session_id = ?1",
+            [session_id],
+            |row| row.get(0),
+        )?;
+        Ok(u32::try_from(highest).unwrap_or(u32::MAX).saturating_add(1))
+    }
+
     fn repair_tool_call(&self, id: &str) -> Result<bool, SessionDbError> {
         let messages = self.load_messages(id)?;
         let Some((call_id, seq)) = dangling_call(&messages) else { return Ok(false) };
