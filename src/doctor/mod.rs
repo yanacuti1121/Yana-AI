@@ -3,6 +3,8 @@ mod config_tests;
 mod dispatch_check;
 #[cfg(test)]
 mod git_tests;
+#[cfg(test)]
+mod gitignore_tests;
 
 use clap::Subcommand;
 use regex::Regex;
@@ -304,6 +306,20 @@ fn check_git_branch(target: &str) -> Check {
     }
 }
 
+/// True when `.gitignore` has a live rule for `pattern`: a whole line, after
+/// trimming and dropping a leading `**/` or `/`, that is not a comment or a
+/// negation. A substring test would count `# .env` and `.environment`.
+fn gitignore_covers(content: &str, pattern: &str) -> bool {
+    content.lines().any(|raw| {
+        let line = raw.trim();
+        if line.is_empty() || line.starts_with('#') || line.starts_with('!') {
+            return false;
+        }
+        let line = line.trim_start_matches("**/").trim_start_matches('/');
+        line == pattern || (pattern == ".env" && matches!(line, "*.env" | ".env*"))
+    })
+}
+
 fn check_gitignore(target: &str) -> Check {
     let path = Path::new(target).join(".gitignore");
     if !path.exists() {
@@ -316,7 +332,7 @@ fn check_gitignore(target: &str) -> Check {
     let content = std::fs::read_to_string(&path).unwrap_or_default();
     let missing: Vec<_> = [".env", "*.pem", "*.key", "credentials.json", "token.json"]
         .into_iter()
-        .filter(|pattern| !content.contains(pattern))
+        .filter(|pattern| !gitignore_covers(&content, pattern))
         .collect();
     if missing.is_empty() {
         Check::pass(".gitignore", "covers .env, credentials, key files")
