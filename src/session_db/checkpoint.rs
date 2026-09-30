@@ -16,6 +16,9 @@ mod limit;
 #[cfg(test)]
 mod limit_tests;
 mod restore;
+mod shadow;
+#[cfg(test)]
+mod shadow_tests;
 #[cfg(test)]
 mod safety_tests;
 #[cfg(test)]
@@ -42,35 +45,6 @@ const REF_PREFIX: &str = "refs/yana/cp/";
 const MAX_LABEL_CHARS: usize = 200;
 /// Hex characters of the project-path hash used in the shadow directory name.
 const SHADOW_NAME_HEX: usize = 16;
-const EXCLUDES: &str = "\
-.git
-.yana-ai/
-node_modules/
-target/
-.env
-.env.*
-*.env
-*.pem
-*.key
-*.p12
-*.pfx
-*.keystore
-*.kdbx
-id_rsa
-id_ed25519
-id_ecdsa
-id_dsa
-credentials.json
-token.json
-.npmrc
-.netrc
-.pypirc
-.ssh/
-.aws/
-.kube/
-.gnupg/
-.docker/config.json
-";
 
 pub struct CheckpointStore {
     git: OsString,
@@ -116,14 +90,10 @@ impl CheckpointStore {
     }
 
     fn ensure_shadow(&self) -> Result<(), CheckpointError> {
-        if self.shadow.join("HEAD").exists() {
-            return Ok(());
+        if !self.shadow.join("HEAD").exists() {
+            self.run(&mut init_command(&self.git, &self.shadow))?;
         }
-        self.run(&mut init_command(&self.git, &self.shadow))?;
-        let info = self.shadow.join("info");
-        let io = |e: std::io::Error| CheckpointError::Io(format!("writing the exclude list: {e}"));
-        fs::create_dir_all(&info).map_err(io)?;
-        fs::write(info.join("exclude"), EXCLUDES).map_err(io)
+        self.harden()
     }
 
     /// Record the project's current files. Returns the newest checkpoint when
@@ -131,8 +101,8 @@ impl CheckpointStore {
     fn snapshot_inner(&self, label: &str) -> Result<CheckpointId, CheckpointError> {
         self.require_git()?;
         self.ensure_shadow()?;
-        self.run(self.cmd(true).args(["add", "-A"]))?;
-        let tree = self.run_text(self.cmd(false).arg("write-tree"))?;
+        self.add_all()?;
+        let tree =self.run_text(self.cmd(false).arg("write-tree"))?;
         let existing = self.list()?;
         if let Some(last) = existing.last() {
             let last_tree = self.run_text(self.cmd(false).args(["rev-parse", &format!("{}^{{tree}}", last.commit)]))?;
@@ -142,7 +112,8 @@ impl CheckpointStore {
         }
         let commit = self.run_text(self.cmd(false).args(["commit-tree", &tree, "-m", &clean_label(label)]))?;
         let id = CheckpointId(existing.last().map_or(1, |c| c.id.0 + 1));
-        self.run(self.cmd(false).args(["update-ref", &format!("{REF_PREFIX}{:06}", id.0), &commit]))?;
+        // The empty old value means "must not exist yet": a racing snapshot is never overwritten.
+        self.run(self.cmd(false).args(["update-ref", &format!("{REF_PREFIX}{:06}", id.0), &commit, ""]))?;
         Ok(id)
     }
 
@@ -175,8 +146,8 @@ impl CheckpointStore {
     /// What changed in the project since checkpoint `id`, as a unified diff.
     pub fn diff(&self, id: CheckpointId) -> Result<String, CheckpointError> {
         let commit = self.commit_of(id)?;
-        self.run(self.cmd(true).args(["add", "-A"]))?;
-        let out = self.run(self.cmd(false).args(["diff", "--cached", "--no-color", "--no-ext-diff", &commit]))?;
+        self.add_all()?;
+        let out =self.run(self.cmd(false).args(["diff", "--cached", "--no-color", "--no-ext-diff", &commit]))?;
         let mut text = String::from_utf8_lossy(&out).to_string();
         if text.len() > MAX_DIFF_BYTES {
             let mut end = MAX_DIFF_BYTES;

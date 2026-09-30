@@ -95,6 +95,8 @@ fn no_destructive_git_verbs_appear_in_the_checkpoint_sources() {
     let sources = [
         include_str!("../checkpoint.rs"),
         include_str!("git.rs"),
+        include_str!("limit.rs"),
+        include_str!("shadow.rs"),
         include_str!("restore.rs"),
     ];
     for text in sources {

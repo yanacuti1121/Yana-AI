@@ -41,6 +41,14 @@ fn isolate(command: &mut Command) {
     for var in INHERITED_REPO_VARS {
         command.env_remove(var);
     }
+    // Every other GIT_* variable too (GIT_CONFIG_PARAMETERS, GIT_EXEC_PATH,
+    // GIT_TRACE*, GIT_EXTERNAL_DIFF, ...): none of them is needed here and each
+    // could change what git runs or where it writes.
+    for (name, _) in std::env::vars_os() {
+        if name.to_string_lossy().to_ascii_uppercase().starts_with("GIT_") {
+            command.env_remove(name);
+        }
+    }
     command
         .env("GIT_CONFIG_GLOBAL", NULL_PATH)
         .env("GIT_CONFIG_NOSYSTEM", "1")
@@ -89,26 +97,37 @@ pub(super) fn run_until(command: &mut Command, deadline: Option<Instant>) -> Res
         match child.try_wait() {
             Ok(Some(status)) => break status,
             Ok(None) if Instant::now() < deadline => std::thread::sleep(POLL),
-            Ok(None) => {
-                let _ = child.kill();
-                let _ = child.wait();
-                return Err(CheckpointError::TimedOut);
-            }
-            Err(error) => return Err(CheckpointError::Io(format!("waiting for git: {error}"))),
+            Ok(None) => return Err(stop(&mut child, CheckpointError::TimedOut)),
+            Err(error) => return Err(stop(&mut child, CheckpointError::Io(format!("waiting for git: {error}")))),
         }
     };
-    let (stdout, stderr) = (out.join().unwrap_or_default(), err.join().unwrap_or_default());
+    // The output is read within the same deadline: a leftover descendant that
+    // keeps the pipe open must not hold the caller past its limit.
+    let wait = deadline.saturating_duration_since(Instant::now());
+    let (Ok(stdout), Ok(stderr)) = (out.recv_timeout(wait), err.recv_timeout(wait)) else {
+        return Err(CheckpointError::TimedOut);
+    };
     finish(Ok(std::process::Output { status, stdout, stderr }))
 }
 
-fn drain(pipe: Option<impl std::io::Read + Send + 'static>) -> std::thread::JoinHandle<Vec<u8>> {
+/// Kill and reap `child`, then hand back `error`.
+fn stop(child: &mut std::process::Child, error: CheckpointError) -> CheckpointError {
+    let _ = child.kill();
+    let _ = child.wait();
+    error
+}
+
+/// Reads a pipe to the end on its own thread and sends what it read.
+fn drain(pipe: Option<impl std::io::Read + Send + 'static>) -> std::sync::mpsc::Receiver<Vec<u8>> {
+    let (sender, receiver) = std::sync::mpsc::channel();
     std::thread::spawn(move || {
         let mut bytes = Vec::new();
         if let Some(mut pipe) = pipe {
             let _ = pipe.read_to_end(&mut bytes);
         }
-        bytes
-    })
+        let _ = sender.send(bytes);
+    });
+    receiver
 }
 
 fn spawn_error(error: std::io::Error) -> CheckpointError {
