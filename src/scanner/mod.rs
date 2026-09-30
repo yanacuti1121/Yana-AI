@@ -6,6 +6,8 @@ mod matchers;
 mod matchers_tests;
 pub mod mod_types;
 pub mod render;
+#[cfg(test)]
+mod render_tests;
 mod rules;
 #[cfg(test)]
 mod rules_tests;
