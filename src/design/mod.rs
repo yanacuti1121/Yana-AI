@@ -2,7 +2,6 @@ use anyhow::Result;
 use clap::Subcommand;
 use regex::Regex;
 use std::collections::HashMap;
-use std::net::ToSocketAddrs;
 use std::path::Path;
 
 const DESIGN_DIR: &str = ".yana-ai/design";
@@ -110,6 +109,10 @@ fn validate_relative_path(path: &str, label: &str) -> Result<()> {
     Ok(())
 }
 
+mod fetch;
+#[cfg(test)]
+mod ip_tests;
+
 pub(crate) fn extract_url_host(url: &str) -> Option<&str> {
     let without_scheme = url.split("://").nth(1)?;
     let host_port = without_scheme.split('/').next()?;
@@ -137,16 +140,51 @@ pub(crate) fn is_private_ip(ip: std::net::IpAddr) -> bool {
     match ip {
         std::net::IpAddr::V4(v4) => is_private_ipv4(v4),
         std::net::IpAddr::V6(v6) => {
-            if let Some(mapped) = v6.to_ipv4_mapped() {
-                return is_private_ipv4(mapped);
+            if let Some(embedded) = embedded_ipv4(v6) {
+                return is_private_ipv4(embedded);
             }
             v6.is_loopback()
                 || v6.is_unspecified()
                 || v6.is_multicast()
                 || is_unique_local_v6(v6)
                 || is_link_local_v6(v6)
+                || is_ipv4_compatible_v6(v6)
+                || is_teredo_v6(v6)
         }
     }
+}
+
+/// The IPv4 address an IPv6 address stands for when it is a transition form
+/// that is routed to that IPv4 address: IPv4-mapped `::ffff:a.b.c.d`, NAT64
+/// `64:ff9b::a.b.c.d` (RFC 6052) and 6to4 `2002:aabb:ccdd::/48` (RFC 3056).
+/// Judging these by the embedded address stops `[64:ff9b::a9fe:a9fe]` from
+/// reaching the cloud metadata address 169.254.169.254.
+fn embedded_ipv4(v6: std::net::Ipv6Addr) -> Option<std::net::Ipv4Addr> {
+    let seg = v6.segments();
+    let o = v6.octets();
+    if let Some(mapped) = v6.to_ipv4_mapped() {
+        return Some(mapped);
+    }
+    if seg[..6] == [0x64, 0xff9b, 0, 0, 0, 0] {
+        return Some(std::net::Ipv4Addr::new(o[12], o[13], o[14], o[15]));
+    }
+    if seg[0] == 0x2002 {
+        return Some(std::net::Ipv4Addr::new(o[2], o[3], o[4], o[5]));
+    }
+    None
+}
+
+/// ::/96, the deprecated IPv4-compatible form (`::a.b.c.d`): no legitimate
+/// host is reached this way today, so it is refused outright.
+fn is_ipv4_compatible_v6(v6: std::net::Ipv6Addr) -> bool {
+    v6.segments()[..6] == [0; 6]
+}
+
+/// 2001::/32 (Teredo tunnelling): the address hides a relay and a client
+/// IPv4 address, and ordinary sites are not served from it.
+fn is_teredo_v6(v6: std::net::Ipv6Addr) -> bool {
+    let seg = v6.segments();
+    seg[0] == 0x2001 && seg[1] == 0
 }
 
 fn is_private_ipv4(v4: std::net::Ipv4Addr) -> bool {
@@ -154,7 +192,25 @@ fn is_private_ipv4(v4: std::net::Ipv4Addr) -> bool {
         || v4.is_private()
         || v4.is_link_local()
         || v4.is_unspecified()
+        || v4.is_multicast()
+        || v4.is_broadcast()
         || is_cgnat_v4(v4)
+        || is_special_purpose_v4(v4)
+}
+
+/// Special-purpose IPv4 blocks that are never a public site: 192.0.0.0/24
+/// (IETF protocol assignments, which held an Oracle Cloud metadata address),
+/// 198.18.0.0/15 (benchmarking, used by some overlay networks), 240.0.0.0/4
+/// (reserved), the three TEST-NET documentation ranges and 192.88.99.0/24.
+fn is_special_purpose_v4(v4: std::net::Ipv4Addr) -> bool {
+    let o = v4.octets();
+    (o[0] == 192 && o[1] == 0 && o[2] == 0)
+        || (o[0] == 198 && (o[1] & 0b1111_1110) == 18)
+        || o[0] >= 240
+        || (o[0] == 192 && o[1] == 0 && o[2] == 2)
+        || (o[0] == 198 && o[1] == 51 && o[2] == 100)
+        || (o[0] == 203 && o[1] == 0 && o[2] == 113)
+        || (o[0] == 192 && o[1] == 88 && o[2] == 99)
 }
 
 /// 100.64.0.0/10 (RFC 6598) -- checked via raw octets rather than a
@@ -180,26 +236,7 @@ fn is_link_local_v6(v6: std::net::Ipv6Addr) -> bool {
 
 fn fetch_source(source: &str) -> Result<String> {
     if source.starts_with("http://") || source.starts_with("https://") {
-        let host = extract_url_host(source)
-            .ok_or_else(|| anyhow::anyhow!("could not extract host from URL: '{}'", source))?;
-        // Resolve and reject private/internal IPs (SSRF prevention)
-        let resolved: Vec<_> = format!("{}:80", host)
-            .to_socket_addrs()
-            .map_err(|e| anyhow::anyhow!("DNS resolution failed for '{}': {}", host, e))?
-            .collect();
-        for addr in &resolved {
-            if is_private_ip(addr.ip()) {
-                anyhow::bail!(
-                    "SSRF blocked: '{}' resolves to private/internal address {}",
-                    host, addr.ip()
-                );
-            }
-        }
-        let resp = ureq::get(source)
-            .header("User-Agent", "yana-rt/0.9 design-extractor")
-            .call()
-            .map_err(|e| anyhow::anyhow!("fetch failed: {e}"))?;
-        Ok(resp.into_body().read_to_string()?)
+        fetch::fetch_url(source)
     } else {
         // Local file — must stay within project (no absolute paths, no ..)
         validate_relative_path(source, "source")?;
