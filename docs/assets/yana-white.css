@@ -725,3 +725,6 @@ body.opening-active{overflow:hidden}
   .sakura-site .site-nav,.sakura-site .global-mega-panel,.sakura-site .nav-language-panel,.yana-command-panel { animation:none!important; transition:none!important; }
   .yana-navigation-open .yana-intro { filter:none; }
 }
+
+/* Pause looping animations in scenes scrolled out of view (class set by yana-motion.js). */
+.yana-offscreen,.yana-offscreen *,.yana-offscreen *::before,.yana-offscreen *::after{animation-play-state:paused!important}
