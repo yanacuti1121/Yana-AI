@@ -56,3 +56,26 @@ fn public_addresses_in_every_spelling_are_still_allowed() {
         assert!(!blocked(url), "{url}");
     }
 }
+
+#[test]
+fn numeric_spellings_of_loopback_and_metadata_are_blocked() {
+    for url in [
+        "http://2130706433/",        // 127.0.0.1 as one decimal number
+        "http://0x7f.1/",            // hex, shortened
+        "http://0x7f000001/",        // hex, single number
+        "http://127.1/",             // shortened dotted form
+        "http://017700000001/",      // octal, single number
+        "http://0177.0.0.1/",        // octal octets
+        "http://2852039166/",        // 169.254.169.254 as one decimal number
+        "http://0xa9.0xfe.0xa9.0xfe/", // 169.254.169.254 in hex octets
+    ] {
+        assert!(blocked(url), "{url}");
+    }
+}
+
+#[test]
+fn localhost_is_blocked_with_a_trailing_dot_and_as_a_subdomain() {
+    for url in ["http://localhost/", "http://LOCALHOST/", "http://localhost./", "http://foo.localhost/", "http://localhost.localdomain/"] {
+        assert!(blocked(url), "{url}");
+    }
+}
