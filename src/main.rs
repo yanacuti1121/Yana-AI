@@ -916,9 +916,16 @@ fn main() {
             include_skills,
         } => {
             use std::collections::HashSet;
-            let diff_files: Option<HashSet<String>> = diff
-                .as_deref()
-                .map(|base| scanner::files::get_diff_files(base, &target));
+            let diff_files: Option<HashSet<String>> = match diff.as_deref() {
+                Some(base) => match scanner::files::get_diff_files(base, &target) {
+                    Ok(files) => Some(files),
+                    Err(error) => {
+                        eprintln!("[audit] cannot compute --diff {base}: {error}");
+                        std::process::exit(2);
+                    }
+                },
+                None => None,
+            };
             let report = scanner::run_audit(
                 &target,
                 &scanner_dir,
