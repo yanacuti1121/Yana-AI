@@ -242,3 +242,30 @@ Mỗi bước: viết test thất bại trước, cài đặt, `cargo test --fea
 - Không mã hóa dữ liệu lưu (nếu cần là việc riêng, xem rule 52).
 - Không sửa `src/chat/history.rs`, `src/capability/`, `src/runtime/` trong đợt này.
 - Không có giao diện người dùng cho tìm kiếm phiên hay `/rollback`.
+
+## 14. Ghi chú cài đặt (2026-09-30)
+
+Ba bước không cần crate đã cài: bước 0 (`profile.rs`), bước 3 (`memory/provider.rs`), bước 4 (`session_db/checkpoint.rs`). Bước 1 và 2 (SessionDB, phục hồi phiên) vẫn chờ anh Tâm chốt lưu trữ ở mục 4.
+
+### 14.1 Bước 3: `MemoryProvider` và `LocalMemory`
+
+- `LocalMemory::open(&StateRoot)` (kiểm tra thư mục qua `ensure_dir`) hoặc `LocalMemory::at(path)`. Đọc và ghi cùng định dạng `l3.jsonl` với các lệnh `yana-rt memory ...`; mã của các lệnh đó **không bị sửa**.
+- Khác với CLI: mỗi lần ghi viết lại cả tệp qua tệp tạm rồi đổi tên (không bao giờ để lại tệp ghi dở). Đổi lại, hai tiến trình cùng sửa một khóa một lúc vẫn có thể mất một bản cập nhật, giống CLI. Dòng không đọc được được **giữ nguyên** khi viết lại, không bị bỏ.
+- `forget(id)` nhận id đầy đủ hoặc tiền tố duy nhất từ 8 ký tự trở lên; tiền tố ngắn hơn hoặc mơ hồ thì không xóa gì.
+- `remember` từ chối (kèm lý do): (a) chuỗi giống khóa API hoặc bí mật (`memory/guard.rs`, bộ kiểm tra riêng của WS4: tiền tố `sk-`, `AIza`, `gsk_`, `xai-`, `hf_`, `ghp_`, `github_pat_`, `AKIA` từ 16 ký tự, khối khóa riêng, và token dài sau chữ `Bearer`), (b) ngữ cảnh rule 68 mức mật hoặc tối mật, dùng lại `route::classify_sensitivity` mà `checkpoint_fact` vốn đã dùng. Kiểm tra khóa, giá trị và cả thẻ.
+- Chưa có: bản `MemoryProvider` thứ hai (ví dụ tìm theo vector); nối `LocalMemory` vào các lệnh CLI.
+
+### 14.2 Bước 4: điểm kiểm tra
+
+Khác hoặc chi tiết hơn so với mục 7:
+
+- **Khôi phục không dùng lệnh git nào ghi vào cây làm việc** (không `checkout`, `reset`, `clean`). Đọc nội dung từng tệp từ kho bóng bằng `cat-file` rồi tự ghi, sau khi kiểm tra đường dẫn (tương đối, không `.`, `..`, đoạn rỗng, ký tự ổ đĩa; tổ tiên tồn tại sâu nhất được giải liên kết phải nằm trong dự án, kiểm tra **trước** khi tạo thư mục; đích không được là liên kết hay thư mục). Ghi qua tệp tạm rồi đổi tên; giữ bit thực thi.
+- **Mỗi lần khôi phục tự chụp một điểm "before restore" trước**, nên khôi phục hoàn tác được bằng chính điểm đó.
+- **Khôi phục không bao giờ xóa tệp.** Tệp tạo sau lúc chụp vẫn còn. Liên kết mềm và kho lồng trong điểm kiểm tra bị bỏ qua (báo trong `skipped`), không được tạo lại.
+- Khôi phục một tệp mà vi phạm an toàn hay không có trong điểm kiểm tra trả lỗi; khôi phục cả dự án thì tệp có vấn đề vào `skipped`, phần còn lại vẫn được khôi phục.
+- **Chạy `git` cách ly** (`checkpoint/git.rs`): xóa các biến `GIT_DIR`, `GIT_WORK_TREE`, `GIT_INDEX_FILE`, `GIT_OBJECT_DIRECTORY`, `GIT_ALTERNATE_OBJECT_DIRECTORIES`, `GIT_COMMON_DIR`, `GIT_NAMESPACE` thừa hưởng từ môi trường; luôn truyền `--git-dir` (và `--work-tree` khi cần đọc dự án) bằng cờ tường minh; `GIT_CONFIG_GLOBAL` trỏ null, `GIT_CONFIG_NOSYSTEM=1`, `GIT_TERMINAL_PROMPT=0`, tắt hook, tắt ký commit. Có test kiểm tra các điều này và một test đọc mã nguồn khẳng định không có `reset`, `clean`, `checkout`, `restore`, `rm`, `stash`, `push`, `fetch`, `clone` trong mã điểm kiểm tra.
+- **`.git` của dự án không bị đụng:** có test chụp dấu vân tay từng byte của `.git` (HEAD, index, refs, đối tượng, cấu hình) trước và sau khi chụp, xem khác biệt, khôi phục và dọn: giống hệt nhau.
+- Kho bóng nằm ở `<StateRoot>/checkpoints/<16 ký tự đầu của sha256(đường dẫn dự án)>.git`. Danh sách loại trừ: `.git`, `.yana-ai/`, `node_modules/`, `target/`, `.env`, `.env.*`, `*.pem`, `*.key`, `*.p12`, `*.pfx`, `*.keystore`, `*.kdbx`, `id_rsa`, `id_ed25519`, `.npmrc`, `.netrc`, `.ssh/`, `.aws/`. Danh sách này hẹp hơn mẫu `*token*`, `*secret*` của rule 03 (mẫu đó dùng để chặn **ghi**, còn ở đây nó sẽ loại cả tệp mã nguồn như `token_budget.rs`).
+- Chụp không đổi thì trả lại điểm mới nhất, không sinh bản trùng. `prune` giữ tối đa `max_points` (mặc định 50) điểm mới nhất rồi đến trần dung lượng (mặc định 500 MB), luôn giữ lại điểm mới nhất, chỉ dọn kho bóng.
+- `git` không chạy được: mọi thao tác trả `GitMissing` (một dòng rõ ràng), không lỗi khác. Thư mục gốc hệ thống (`/`) bị từ chối làm dự án.
+- **Giới hạn đã biết:** chưa có trần kích thước từng tệp (`git add -A` đọc mọi thứ không bị loại trừ, dự án rất lớn sẽ chậm); chưa có chỗ nào gọi `snapshot` khi tác tử sửa tệp (thuộc `src/capability/`, chờ anh duyệt); test liên kết mềm chỉ chạy trên Unix và phần chuẩn bị của test dùng `/dev/null` nên **chưa chạy thử trên Windows**; lệnh `/rollback` và giao diện chưa có.

@@ -9,7 +9,13 @@
 // later, separately approved steps), so items are unused in the binary for now.
 #![allow(dead_code)]
 
+pub mod checkpoint;
 pub mod profile;
 
+#[allow(unused_imports)]
+pub use checkpoint::{
+    CheckpointError, CheckpointId, CheckpointInfo, CheckpointStore, PruneReport, PrunePolicy,
+    RestoreReport, RestoreScope,
+};
 #[allow(unused_imports)]
 pub use profile::{ProfileError, ProfileName, StateKind, StateRoot};
