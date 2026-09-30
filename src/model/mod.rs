@@ -23,6 +23,7 @@ pub(crate) mod circuit_breaker;
 pub(crate) mod gateway;
 pub(crate) mod placement;
 pub(crate) mod provider;
+pub(crate) mod provider_error;
 pub(crate) mod requirements;
 pub(crate) mod runtime;
 pub(crate) mod tool;

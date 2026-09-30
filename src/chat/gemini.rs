@@ -4,8 +4,9 @@
 //! `openai_compat` while still implementing the canonical `ChatProvider`.
 
 use super::provider::{
-    read_error_body, read_sse_stream, ChatMessage, ChatProvider, ChatUsage, ModelInfo, Role,
+    read_sse_stream, ChatMessage, ChatProvider, ChatUsage, ModelInfo, Role,
 };
+use crate::model::provider_error::{http_failure, transport_failure};
 use super::tool_types::{StreamOutcome, ToolSpec};
 use anyhow::{Context, Result};
 
@@ -78,10 +79,9 @@ impl ChatProvider for GeminiProvider {
             .header("content-type", "application/json")
             .header("x-goog-api-key", key)
             .send_json(&body)
-            .map_err(|error| anyhow::anyhow!("gemini request failed: {error}"))?;
+            .map_err(|error| transport_failure("gemini", model, &error))?;
         if !response.status().is_success() {
-            let detail = read_error_body(&mut response);
-            anyhow::bail!("gemini error ({}): {detail}", response.status().as_u16());
+            return Err(http_failure("gemini", model, &mut response));
         }
 
         let mut usage = ChatUsage::default();

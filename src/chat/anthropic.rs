@@ -4,9 +4,8 @@
 //! usage split across two SSE event types — so it gets its own
 //! implementation rather than being forced into the OpenAI-compat shape.
 
-use super::provider::{
-    read_error_body, read_sse_stream, ChatMessage, ChatProvider, ChatUsage, Role,
-};
+use super::provider::{read_sse_stream, ChatMessage, ChatProvider, ChatUsage, Role};
+use crate::model::provider_error::{http_failure, transport_failure};
 use super::tool_types::{StreamOutcome, ToolCallAccumulator, ToolSpec};
 use anyhow::{Context, Result};
 
@@ -87,11 +86,10 @@ impl ChatProvider for AnthropicProvider {
             .header("anthropic-version", ANTHROPIC_VERSION)
             .header("content-type", "application/json")
             .send_json(&body)
-            .map_err(|e| anyhow::anyhow!("anthropic request failed: {e}"))?;
+            .map_err(|e| transport_failure("anthropic", model, &e))?;
 
         if !resp.status().is_success() {
-            let detail = read_error_body(&mut resp);
-            anyhow::bail!("anthropic error ({}): {detail}", resp.status().as_u16());
+            return Err(http_failure("anthropic", model, &mut resp));
         }
 
         let mut usage = ChatUsage::default();

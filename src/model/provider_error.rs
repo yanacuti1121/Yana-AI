@@ -1,0 +1,387 @@
+//! Typed, classifiable provider errors (WS1 P1, see docs/contracts/ws1-provider.md).
+//!
+//! Adapters used to throw plain `anyhow` strings like
+//! `"anthropic error (429): <body>"`. This module gives those failures a
+//! kind the router can act on, while `Display` keeps the exact old text so
+//! anything that prints or matches the message is unchanged. Callers recover
+//! the typed error with `err.downcast_ref::<ProviderError>()`.
+
+use std::fmt;
+use std::time::Duration;
+
+/// Longest error body kept, in bytes. Matches `read_error_body`'s own bound.
+const MAX_DETAIL_BYTES: usize = 2048;
+/// Longest `Retry-After` honored. A hostile or buggy upstream cannot park a
+/// credential for longer than this.
+const MAX_RETRY_AFTER: Duration = Duration::from_secs(3600);
+/// Shortest run treated as a key when it starts with a known key prefix, so
+/// ordinary words such as "sk-learn" are left alone.
+const MIN_KEY_LEN: usize = 16;
+const REDACTED: &str = "[redacted]";
+
+const QUOTA_MARKERS: [&str; 4] = [
+    "insufficient_quota",
+    "credit balance is too low",
+    "exceeded your current quota",
+    "billing",
+];
+const CONTEXT_MARKERS: [&str; 5] = [
+    "context_length_exceeded",
+    "maximum context length",
+    "prompt is too long",
+    "exceeds the maximum number of tokens",
+    "too many tokens",
+];
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ProviderErrorKind {
+    RateLimited,
+    QuotaExhausted,
+    ContextOverflow,
+    Auth,
+    Overloaded,
+    ServerError,
+    Timeout,
+    Network,
+    ModelNotFound,
+    BadRequest,
+    Unknown,
+}
+
+/// What a caller may do about an error. Advice only: the router decides.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RecoveryHint {
+    pub retry_same: bool,
+    pub rotate_credential: bool,
+    pub fallback_provider: bool,
+}
+
+impl ProviderErrorKind {
+    pub fn hint(self) -> RecoveryHint {
+        use ProviderErrorKind::*;
+        let (retry_same, rotate_credential, fallback_provider) = match self {
+            RateLimited => (true, true, true),
+            QuotaExhausted | Auth => (false, true, true),
+            Overloaded | ServerError | Timeout | Network => (true, false, true),
+            ModelNotFound => (false, false, true),
+            ContextOverflow | BadRequest => (false, false, false),
+            Unknown => (true, false, false),
+        };
+        RecoveryHint { retry_same, rotate_credential, fallback_provider }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ProviderError {
+    pub kind: ProviderErrorKind,
+    pub status: Option<u16>,
+    pub provider: String,
+    pub model: Option<String>,
+    pub retry_after: Option<Duration>,
+    detail: String,
+    /// True for failures with no HTTP response (connect, timeout).
+    transport: bool,
+}
+
+impl ProviderError {
+    /// Build from a non-2xx HTTP response.
+    pub fn from_http(provider: &str, status: u16, body: &str, retry_after: Option<Duration>) -> Self {
+        Self {
+            kind: classify_http(status, body),
+            status: Some(status),
+            provider: provider.to_string(),
+            model: None,
+            retry_after,
+            detail: sanitize_detail(body),
+            transport: false,
+        }
+    }
+
+    /// Build from a failure that produced no HTTP response.
+    pub fn from_transport(provider: &str, error: &ureq::Error) -> Self {
+        Self {
+            kind: classify_transport(error),
+            status: None,
+            provider: provider.to_string(),
+            model: None,
+            retry_after: None,
+            detail: sanitize_detail(&error.to_string()),
+            transport: true,
+        }
+    }
+
+    pub fn with_model(mut self, model: &str) -> Self {
+        self.model = Some(model.to_string());
+        self
+    }
+
+}
+
+impl fmt::Display for ProviderError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match (self.transport, self.status) {
+            (false, Some(status)) => write!(f, "{} error ({status}): {}", self.provider, self.detail),
+            _ => write!(f, "{} request failed: {}", self.provider, self.detail),
+        }
+    }
+}
+
+impl std::error::Error for ProviderError {}
+
+/// Consume a non-2xx response into a typed error. Reads the bounded error
+/// body and the `Retry-After` header; the returned error prints exactly like
+/// the old `"<provider> error (<status>): <body>"` string.
+pub fn http_failure(
+    provider: &str,
+    model: &str,
+    resp: &mut ureq::http::Response<ureq::Body>,
+) -> anyhow::Error {
+    let retry_after = resp
+        .headers()
+        .get("retry-after")
+        .and_then(|value| value.to_str().ok())
+        .and_then(parse_retry_after);
+    let status = resp.status().as_u16();
+    let body = super::provider::read_error_body(resp);
+    anyhow::Error::new(ProviderError::from_http(provider, status, &body, retry_after).with_model(model))
+}
+
+/// Wrap a send-side failure (no HTTP response) into a typed error.
+pub fn transport_failure(provider: &str, model: &str, error: &ureq::Error) -> anyhow::Error {
+    anyhow::Error::new(ProviderError::from_transport(provider, error).with_model(model))
+}
+
+/// Parse a `Retry-After` header value given in whole seconds. HTTP-date
+/// form is ignored (returns `None`). Capped at `MAX_RETRY_AFTER`.
+pub fn parse_retry_after(value: &str) -> Option<Duration> {
+    let seconds: u64 = value.trim().parse().ok()?;
+    Some(Duration::from_secs(seconds).min(MAX_RETRY_AFTER))
+}
+
+/// Cut `raw` to `MAX_DETAIL_BYTES` on a char boundary and mask anything
+/// that looks like a credential.
+pub fn sanitize_detail(raw: &str) -> String {
+    let masked = mask_secrets(raw);
+    truncate_on_char_boundary(&masked, MAX_DETAIL_BYTES).to_string()
+}
+
+fn truncate_on_char_boundary(text: &str, max_bytes: usize) -> &str {
+    if text.len() <= max_bytes {
+        return text;
+    }
+    let mut end = max_bytes;
+    while !text.is_char_boundary(end) {
+        end -= 1;
+    }
+    &text[..end]
+}
+
+fn is_token_char(c: char) -> bool {
+    c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.')
+}
+
+fn looks_like_key(token: &str) -> bool {
+    token.len() >= MIN_KEY_LEN && (token.starts_with("sk-") || token.starts_with("AIza"))
+}
+
+/// Append `token` to `out`, masked when it is key-shaped or follows the
+/// word "Bearer". Returns whether the NEXT token follows a "Bearer".
+fn emit_token(token: &str, out: &mut String, after_bearer: bool) -> bool {
+    if after_bearer || looks_like_key(token) {
+        out.push_str(REDACTED);
+    } else {
+        out.push_str(token);
+    }
+    token.eq_ignore_ascii_case("bearer")
+}
+
+/// Mask key-shaped tokens and the token after "Bearer". Runs before
+/// truncation so a secret cut in half is never half shown.
+fn mask_secrets(raw: &str) -> String {
+    let mut out = String::with_capacity(raw.len());
+    let mut token = String::new();
+    let mut after_bearer = false;
+    for c in raw.chars() {
+        if is_token_char(c) {
+            token.push(c);
+            continue;
+        }
+        if !token.is_empty() {
+            after_bearer = emit_token(&token, &mut out, after_bearer);
+            token.clear();
+        }
+        if !c.is_whitespace() && !matches!(c, ':' | '"' | '\'') {
+            after_bearer = false;
+        }
+        out.push(c);
+    }
+    if !token.is_empty() {
+        emit_token(&token, &mut out, after_bearer);
+    }
+    out
+}
+
+fn contains_any(haystack: &str, needles: &[&str]) -> bool {
+    needles.iter().any(|needle| haystack.contains(needle))
+}
+
+fn classify_http(status: u16, body: &str) -> ProviderErrorKind {
+    use ProviderErrorKind::*;
+    let body = body.to_ascii_lowercase();
+    if matches!(status, 400 | 402 | 429) && contains_any(&body, &QUOTA_MARKERS) {
+        return QuotaExhausted;
+    }
+    if matches!(status, 400 | 413 | 422) && contains_any(&body, &CONTEXT_MARKERS) {
+        return ContextOverflow;
+    }
+    match status {
+        402 => QuotaExhausted,
+        429 => RateLimited,
+        401 | 403 => Auth,
+        404 if body.contains("model") => ModelNotFound,
+        503 | 529 => Overloaded,
+        500..=599 => ServerError,
+        400..=499 => BadRequest,
+        _ => Unknown,
+    }
+}
+
+fn classify_transport(error: &ureq::Error) -> ProviderErrorKind {
+    match error {
+        ureq::Error::Timeout(_) => ProviderErrorKind::Timeout,
+        ureq::Error::HostNotFound | ureq::Error::ConnectionFailed | ureq::Error::Io(_) => {
+            ProviderErrorKind::Network
+        }
+        _ => ProviderErrorKind::Unknown,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn kind_for(status: u16, body: &str) -> ProviderErrorKind {
+        ProviderError::from_http("p", status, body, None).kind
+    }
+
+    #[test]
+    fn status_codes_map_to_kinds() {
+        assert_eq!(kind_for(429, "slow down"), ProviderErrorKind::RateLimited);
+        assert_eq!(kind_for(402, ""), ProviderErrorKind::QuotaExhausted);
+        assert_eq!(kind_for(401, ""), ProviderErrorKind::Auth);
+        assert_eq!(kind_for(403, ""), ProviderErrorKind::Auth);
+        assert_eq!(kind_for(503, ""), ProviderErrorKind::Overloaded);
+        assert_eq!(kind_for(529, ""), ProviderErrorKind::Overloaded);
+        assert_eq!(kind_for(500, ""), ProviderErrorKind::ServerError);
+        assert_eq!(kind_for(502, ""), ProviderErrorKind::ServerError);
+        assert_eq!(kind_for(504, ""), ProviderErrorKind::ServerError);
+        assert_eq!(kind_for(400, "malformed json"), ProviderErrorKind::BadRequest);
+        assert_eq!(kind_for(413, ""), ProviderErrorKind::BadRequest);
+        assert_eq!(kind_for(418, ""), ProviderErrorKind::BadRequest);
+        assert_eq!(kind_for(302, ""), ProviderErrorKind::Unknown);
+    }
+
+    #[test]
+    fn not_found_is_model_not_found_only_when_body_mentions_model() {
+        assert_eq!(
+            kind_for(404, r#"{"error":{"message":"The model `x` does not exist"}}"#),
+            ProviderErrorKind::ModelNotFound
+        );
+        assert_eq!(kind_for(404, "page not found"), ProviderErrorKind::BadRequest);
+    }
+
+    #[test]
+    fn context_overflow_is_detected_from_body_across_providers() {
+        for body in [
+            "prompt is too long: 250000 tokens > 200000 maximum",
+            r#"{"error":{"code":"context_length_exceeded"}}"#,
+            "This model's maximum context length is 8192 tokens",
+            "The input token count exceeds the maximum number of tokens allowed",
+        ] {
+            assert_eq!(kind_for(400, body), ProviderErrorKind::ContextOverflow, "{body}");
+        }
+    }
+
+    #[test]
+    fn quota_body_wins_over_rate_limit_status() {
+        assert_eq!(
+            kind_for(429, r#"{"error":{"code":"insufficient_quota"}}"#),
+            ProviderErrorKind::QuotaExhausted
+        );
+        assert_eq!(
+            kind_for(400, "Your credit balance is too low to access the API"),
+            ProviderErrorKind::QuotaExhausted
+        );
+    }
+
+    #[test]
+    fn hint_table_matches_contract() {
+        use ProviderErrorKind::*;
+        let h = |k: ProviderErrorKind| {
+            let x = k.hint();
+            (x.retry_same, x.rotate_credential, x.fallback_provider)
+        };
+        assert_eq!(h(RateLimited), (true, true, true));
+        assert_eq!(h(QuotaExhausted), (false, true, true));
+        assert_eq!(h(ContextOverflow), (false, false, false));
+        assert_eq!(h(Auth), (false, true, true));
+        assert_eq!(h(Overloaded), (true, false, true));
+        assert_eq!(h(ServerError), (true, false, true));
+        assert_eq!(h(Timeout), (true, false, true));
+        assert_eq!(h(Network), (true, false, true));
+        assert_eq!(h(ModelNotFound), (false, false, true));
+        assert_eq!(h(BadRequest), (false, false, false));
+        assert_eq!(h(Unknown), (true, false, false));
+    }
+
+    #[test]
+    fn display_keeps_the_legacy_http_format() {
+        let e = ProviderError::from_http("anthropic", 429, "slow down", None);
+        assert_eq!(e.to_string(), "anthropic error (429): slow down");
+    }
+
+    #[test]
+    fn retry_after_parses_seconds_and_caps() {
+        assert_eq!(parse_retry_after("30"), Some(Duration::from_secs(30)));
+        assert_eq!(parse_retry_after(" 7 "), Some(Duration::from_secs(7)));
+        assert_eq!(parse_retry_after("999999"), Some(MAX_RETRY_AFTER));
+        assert_eq!(parse_retry_after("Wed, 21 Oct 2026 07:28:00 GMT"), None);
+        assert_eq!(parse_retry_after(""), None);
+        assert_eq!(parse_retry_after("-5"), None);
+    }
+
+    #[test]
+    fn detail_is_bounded_on_a_char_boundary() {
+        let body = "é".repeat(5000);
+        let d = sanitize_detail(&body);
+        assert!(d.len() <= MAX_DETAIL_BYTES);
+        assert!(d.chars().all(|c| c == 'é'));
+        assert_eq!(sanitize_detail(""), "");
+    }
+
+    #[test]
+    fn credentials_never_reach_display_or_debug() {
+        let body = concat!(
+            r#"{"error":"bad key sk-ant-api03-FAKEFAKEFAKE1234567890"#,
+            r#" and AIzaSyFAKEFAKEFAKEFAKE12345678 "#,
+            r#"and Authorization: Bearer abc.def.ghi-FAKE"}"#
+        );
+        let e = ProviderError::from_http("p", 401, body, None);
+        let shown = format!("{e} {e:?}");
+        for secret in ["FAKEFAKEFAKE1234567890", "AIzaSyFAKEFAKEFAKEFAKE12345678", "abc.def.ghi-FAKE"] {
+            assert!(!shown.contains(secret), "leaked {secret}: {shown}");
+        }
+    }
+
+    #[test]
+    fn downcast_survives_anyhow_context() {
+        use anyhow::Context;
+        let err: anyhow::Error = anyhow::Error::new(ProviderError::from_http("p", 429, "x", None));
+        let wrapped: anyhow::Result<()> = Err(err).context("is the daemon running?");
+        let err = wrapped.unwrap_err();
+        assert_eq!(
+            err.downcast_ref::<ProviderError>().map(|e| e.kind),
+            Some(ProviderErrorKind::RateLimited)
+        );
+    }
+}

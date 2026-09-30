@@ -12,6 +12,7 @@ use super::provider::{
     RuntimeKind,
 };
 use super::tool_types::{StreamOutcome, ToolCallAccumulator, ToolSpec};
+use crate::model::provider_error::{http_failure, transport_failure};
 use anyhow::{Context, Result};
 
 pub struct OpenAiCompatProvider {
@@ -466,7 +467,7 @@ impl ChatProvider for OpenAiCompatProvider {
         }
         let mut resp = req
             .send_json(&body)
-            .map_err(|e| anyhow::anyhow!("{} request failed: {e}", self.provider_name))
+            .map_err(|e| transport_failure(&self.provider_name, model, &e))
             .with_context(|| {
                 if self.provider_name == "ollama" {
                     "is the Ollama daemon running? (`ollama serve`)".to_string()
@@ -484,12 +485,7 @@ impl ChatProvider for OpenAiCompatProvider {
             })?;
 
         if !resp.status().is_success() {
-            let detail = read_error_body(&mut resp);
-            anyhow::bail!(
-                "{} error ({}): {detail}",
-                self.provider_name,
-                resp.status().as_u16()
-            );
+            return Err(http_failure(&self.provider_name, model, &mut resp));
         }
 
         let mut usage = ChatUsage::default();
@@ -673,5 +669,81 @@ mod tests {
         assert_eq!(built[0]["role"], "tool");
         assert_eq!(built[0]["tool_call_id"], "call_1");
         assert_eq!(built[0]["content"], "file contents");
+    }
+
+    /// Serves one canned HTTP response on 127.0.0.1 and returns the request
+    /// URL. No real network and no real credentials are involved.
+    fn serve_once(status_line: &'static str, extra_header: &'static str, body: &'static str) -> String {
+        use std::io::{BufRead, BufReader, Write};
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind fake provider");
+        let port = listener.local_addr().expect("local addr").port();
+        std::thread::spawn(move || {
+            let (mut stream, _) = listener.accept().expect("accept");
+            let mut reader = BufReader::new(stream.try_clone().expect("clone stream"));
+            let mut content_length = 0usize;
+            loop {
+                let mut line = String::new();
+                reader.read_line(&mut line).expect("read header");
+                if let Some(value) = line.to_ascii_lowercase().strip_prefix("content-length:") {
+                    content_length = value.trim().parse().unwrap_or(0);
+                }
+                if line == "\r\n" || line.is_empty() {
+                    break;
+                }
+            }
+            let mut request_body = vec![0u8; content_length];
+            std::io::Read::read_exact(&mut reader, &mut request_body).expect("read body");
+            let response = format!(
+                "HTTP/1.1 {status_line}\r\n{extra_header}content-type: application/json\r\ncontent-length: {}\r\nconnection: close\r\n\r\n{body}",
+                body.len()
+            );
+            stream.write_all(response.as_bytes()).expect("write response");
+        });
+        format!("http://127.0.0.1:{port}/v1/chat/completions")
+    }
+
+    fn typed_error(status_line: &'static str, header: &'static str, body: &'static str) -> crate::model::provider_error::ProviderError {
+        let provider = custom(serve_once(status_line, header, body), "m", true);
+        let err = provider
+            .stream_chat(None, "m", None, &[ChatMessage::text(Role::User, "hi")], &[], &mut |_| Ok(()))
+            .expect_err("fake server returns a failure status");
+        err.downcast_ref::<crate::model::provider_error::ProviderError>()
+            .cloned()
+            .expect("adapter must return a typed ProviderError")
+    }
+
+    #[test]
+    fn stream_chat_429_is_typed_with_retry_after() {
+        use crate::model::provider_error::ProviderErrorKind;
+        let error = typed_error("429 Too Many Requests", "retry-after: 7\r\n", r#"{"error":"slow down"}"#);
+        assert_eq!(error.kind, ProviderErrorKind::RateLimited);
+        assert_eq!(error.status, Some(429));
+        assert_eq!(error.retry_after, Some(std::time::Duration::from_secs(7)));
+        assert_eq!(error.model.as_deref(), Some("m"));
+        assert_eq!(error.to_string(), r#"custom error (429): {"error":"slow down"}"#);
+    }
+
+    #[test]
+    fn stream_chat_context_overflow_and_auth_are_typed() {
+        use crate::model::provider_error::ProviderErrorKind;
+        let overflow = typed_error("400 Bad Request", "", r#"{"error":{"code":"context_length_exceeded"}}"#);
+        assert_eq!(overflow.kind, ProviderErrorKind::ContextOverflow);
+        let auth = typed_error("401 Unauthorized", "", r#"{"error":"bad key"}"#);
+        assert_eq!(auth.kind, ProviderErrorKind::Auth);
+    }
+
+    #[test]
+    fn stream_chat_unreachable_endpoint_is_a_typed_transport_error() {
+        use crate::model::provider_error::{ProviderError, ProviderErrorKind};
+        let closed = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
+        let port = closed.local_addr().expect("addr").port();
+        drop(closed);
+        let provider = custom(format!("http://127.0.0.1:{port}/v1/chat/completions"), "m", true);
+        let err = provider
+            .stream_chat(None, "m", None, &[ChatMessage::text(Role::User, "hi")], &[], &mut |_| Ok(()))
+            .expect_err("nothing is listening");
+        let typed = err.downcast_ref::<ProviderError>().expect("typed transport error");
+        assert_eq!(typed.kind, ProviderErrorKind::Network);
+        assert_eq!(typed.status, None);
     }
 }
