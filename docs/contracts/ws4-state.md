@@ -269,3 +269,27 @@ Khác hoặc chi tiết hơn so với mục 7:
 - Chụp không đổi thì trả lại điểm mới nhất, không sinh bản trùng. `prune` giữ tối đa `max_points` (mặc định 50) điểm mới nhất rồi đến trần dung lượng (mặc định 500 MB), luôn giữ lại điểm mới nhất, chỉ dọn kho bóng.
 - `git` không chạy được: mọi thao tác trả `GitMissing` (một dòng rõ ràng), không lỗi khác. Thư mục gốc hệ thống (`/`) bị từ chối làm dự án.
 - **Giới hạn đã biết:** chưa có trần kích thước từng tệp (`git add -A` đọc mọi thứ không bị loại trừ, dự án rất lớn sẽ chậm); chưa có chỗ nào gọi `snapshot` khi tác tử sửa tệp (thuộc `src/capability/`, chờ anh duyệt); test liên kết mềm chỉ chạy trên Unix và phần chuẩn bị của test dùng `/dev/null` nên **chưa chạy thử trên Windows**; lệnh `/rollback` và giao diện chưa có.
+
+### 14.3 Bước 1: `SessionStore` bằng SQLite, và crate mới (rule 44)
+
+Anh Tâm duyệt (qua phiên hermes-agent-57) thêm đúng một crate.
+
+**Phụ thuộc thêm vào `Cargo.toml`:** `rusqlite = { version = "=0.40.2", default-features = false, features = ["bundled"], optional = true }`, sau feature riêng `session-db = ["rusqlite", "unicode-normalization", "chrono"]`, và `session-db` nằm trong tập `cli` (nên CI hiện có chạy test). Ghim chính xác bằng `=`; tắt feature mặc định nên bộ đệm câu lệnh và `hashlink` không vào.
+
+**Gói mới trong `Cargo.lock` (5, chỉ thêm, 43 dòng thêm, 0 dòng đổi hay xóa):** `rusqlite 0.40.2`, `libsqlite3-sys 0.38.2` (bản `bundled`: tự biên dịch SQLite từ mã C bằng `cc`, nên máy build cần trình biên dịch C), `fallible-iterator 0.3.0`, `fallible-streaming-iterator 0.1.9`, `vcpkg 0.2.15`. Dùng lại các gói đã có sẵn trong khóa: `bitflags 2.13.1`, `smallvec`, `cc`, `pkg-config`. Đã chạy toàn bộ test với `--locked` và khóa không đổi.
+
+**Đã kiểm chứng:**
+- Giấy phép `rusqlite` là MIT (đọc từ `Cargo.toml` của chính crate trong bộ nhớ đệm cargo).
+- Các phụ thuộc thật của `rusqlite 0.40.2` trên nền tảng gốc đúng như danh sách trên (đọc `Cargo.toml` của crate và so với phần thêm vào `Cargo.lock`).
+- **FTS5 có trong bản `bundled`:** test `a_new_database_is_created_at_schema_version_one_with_working_full_text_search` tạo bảng FTS5 và tìm được kết quả thật.
+- Chạy được trên macOS (máy phát triển).
+
+**CHƯA kiểm chứng (anh Tâm duyệt khi biết điều này):** lượt tải và tuổi bản phát hành của 5 gói; có hay không thông báo lỗ hổng (RustSec, CVE) cho `rusqlite`, `libsqlite3-sys` hoặc SQLite được nhúng; giấy phép và tác giả của `libsqlite3-sys`, `fallible-*`, `vcpkg`; thời gian biên dịch C và kích thước tệp thực thi tăng thêm; build trên Windows và Linux (CI). Em không có công cụ tra cứu các thông tin này.
+
+**Thiết kế đã cài (`src/session_db/store/`):**
+- Lược đồ phiên bản 1 qua `PRAGMA user_version`; mỗi bước di chuyển chạy trong một giao dịch, bước lỗi không đổi gì; cơ sở dữ liệu có phiên bản **mới hơn** chương trình bị từ chối (`NewerSchema`), không hạ cấp ngầm. Muốn đổi lược đồ thì thêm một bước cuối vào `STEPS`, không sửa bước đã phát hành.
+- `sessions` (13 cột) và `messages` (11 cột, `role` chỉ nhận `user` hoặc `assistant` bằng ràng buộc CHECK). Khóa ngoại bật. Chống trùng theo `id` tin nhắn (thêm hai lần không đổi gì và không sinh mục chỉ mục thứ hai); tổng số tin nhắn và token của phiên được cập nhật cùng giao dịch.
+- Tìm kiếm: bảng FTS5 ngoài, chỉ mục trên `search_text` = nội dung đã chuẩn hóa cộng 2 KiB đầu của kết quả công cụ. **Chuẩn hóa làm ở Rust, không nhờ tokenizer:** chữ thường, bỏ dấu, `đ` thành `d`, NFC hay NFD đều như nhau. Lý do: `đ` không phân rã thành `d` cộng dấu nên bộ bỏ dấu của tokenizer không xử lý. Truy vấn được cắt thành từ (chữ và số), mỗi từ đặt trong dấu nháy, tối đa 32 từ, nên `"`, `*`, `NEAR(`, `OR`, `:` chỉ là chữ thường, không bao giờ là cú pháp. Mọi từ phải khớp. Xem trước là 200 ký tự đầu của văn bản gốc (có dấu).
+- Nhiều tiến trình cùng mở một tệp: chế độ WAL, `busy_timeout` 5 giây, mỗi lần ghi là một giao dịch `IMMEDIATE`. Có test bốn luồng ghi cùng lúc 100 tin nhắn, tất cả thành công.
+- Cô lập theo profile: mỗi profile một tệp `sessions.db` riêng, có test hai profile không thấy dữ liệu của nhau.
+- Chưa có: phục hồi phiên sau khi tiến trình chết và trình nhập `chat-history` (bước 2), và nối vào chat (chờ kế hoạch gửi phiên hermes-agent-57).

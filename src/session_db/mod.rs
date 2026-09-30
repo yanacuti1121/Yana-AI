@@ -11,6 +11,8 @@
 
 pub mod checkpoint;
 pub mod profile;
+#[cfg(feature = "session-db")]
+pub mod store;
 
 #[allow(unused_imports)]
 pub use checkpoint::{
@@ -19,3 +21,9 @@ pub use checkpoint::{
 };
 #[allow(unused_imports)]
 pub use profile::{ProfileError, ProfileName, StateKind, StateRoot};
+#[cfg(feature = "session-db")]
+#[allow(unused_imports)]
+pub use store::{
+    EndReason, IntegrityReport, MessageRow, SearchHit, SessionDbError, SessionRow, SessionStore,
+    SqliteSessionStore,
+};
