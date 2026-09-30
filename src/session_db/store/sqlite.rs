@@ -5,13 +5,16 @@
 //! one immediate transaction, so writers queue instead of failing.
 
 use super::fold::{fold, search_terms};
+use super::lock::try_lock_session;
 use super::migrations::{migrate, user_version, STEPS};
+use super::recover::integrity_problems;
 use super::{
-    EndReason, IntegrityReport, MessageRow, SearchHit, SessionDbError, SessionRow, SessionStore,
-    StateKind, StateRoot,
+    EndReason, IntegrityReport, MessageRow, SearchHit, SessionDbError, SessionLock, SessionRow,
+    SessionStore, StateKind, StateRoot,
 };
 use crate::model::provider::Role;
 use rusqlite::{params, Connection, TransactionBehavior};
+use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard};
 use std::time::Duration;
 
@@ -25,6 +28,7 @@ const SNIPPET_CHARS: i64 = 200;
 
 pub struct SqliteSessionStore {
     conn: Mutex<Connection>,
+    locks_dir: PathBuf,
 }
 
 impl SqliteSessionStore {
@@ -38,10 +42,20 @@ impl SqliteSessionStore {
         conn.query_row("PRAGMA journal_mode=WAL", [], |row| row.get::<_, String>(0))?;
         conn.pragma_update(None, "synchronous", "NORMAL")?;
         migrate(&mut conn, &STEPS)?;
-        Ok(Self { conn: Mutex::new(conn) })
+        Ok(Self { conn: Mutex::new(conn), locks_dir: root.path(StateKind::SessionLocks) })
     }
 
-    fn lock(&self) -> MutexGuard<'_, Connection> {
+    /// Claim a session for writing. Held until the returned lock is dropped
+    /// (or the process exits); `Busy` when another process holds it.
+    pub fn lock_session(&self, id: &str) -> Result<SessionLock, SessionDbError> {
+        try_lock_session(&self.locks_dir, id)
+    }
+
+    pub(super) fn locks_dir(&self) -> &Path {
+        &self.locks_dir
+    }
+
+    pub(super) fn lock(&self) -> MutexGuard<'_, Connection> {
         self.conn.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
     }
 }
@@ -136,7 +150,7 @@ impl SessionStore for SqliteSessionStore {
         Ok(transaction.commit()?)
     }
 
-    fn append_message(&self, row: &MessageRow) -> Result<(), SessionDbError> {
+    fn append_message(&self, row: &MessageRow) -> Result<bool, SessionDbError> {
         let mut conn = self.lock();
         let transaction = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
         let inserted = transaction.execute(
@@ -171,7 +185,8 @@ impl SessionStore for SqliteSessionStore {
                 ],
             )?;
         }
-        Ok(transaction.commit()?)
+        transaction.commit()?;
+        Ok(inserted > 0)
     }
 
     fn finish_session(&self, id: &str, reason: EndReason) -> Result<(), SessionDbError> {
@@ -269,6 +284,7 @@ impl SessionStore for SqliteSessionStore {
         if let Err(error) = conn.execute("INSERT INTO messages_fts(messages_fts) VALUES('integrity-check')", []) {
             problems.push(format!("full-text index: {error}"));
         }
+        problems.extend(integrity_problems(&conn)?);
         Ok(IntegrityReport { ok: problems.is_empty(), problems })
     }
 }

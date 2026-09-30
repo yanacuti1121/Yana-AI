@@ -90,6 +90,8 @@ pub enum StateKind {
     MemoryL3,
     Checkpoints,
     WorkspaceEvents,
+    /// One lock file per session, held by the process writing it.
+    SessionLocks,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -126,6 +128,7 @@ impl StateRoot {
             StateKind::MemoryL3 => self.dir.join("l3.jsonl"),
             StateKind::Checkpoints => self.dir.join("checkpoints"),
             StateKind::WorkspaceEvents => self.dir.join("workspace").join("events"),
+            StateKind::SessionLocks => self.dir.join("session-locks"),
         }
     }
 

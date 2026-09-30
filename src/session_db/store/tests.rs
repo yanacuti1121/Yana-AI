@@ -1,24 +1,24 @@
 use super::*;
 use crate::session_db::ProfileName;
 
-struct Fixture {
-    _outer: tempfile::TempDir,
-    base: std::path::PathBuf,
+pub(super) struct Fixture {
+    pub(super) _outer: tempfile::TempDir,
+    pub(super) base: std::path::PathBuf,
 }
 
-fn fixture() -> Fixture {
+pub(super) fn fixture() -> Fixture {
     let outer = tempfile::tempdir().unwrap();
     let base = outer.path().join("repo");
     std::fs::create_dir(&base).unwrap();
     Fixture { _outer: outer, base }
 }
 
-fn open(fx: &Fixture, profile: &str) -> SqliteSessionStore {
+pub(super) fn open(fx: &Fixture, profile: &str) -> SqliteSessionStore {
     let root = StateRoot::for_profile(&fx.base, &ProfileName::new(profile).unwrap());
     SqliteSessionStore::open(&root).unwrap()
 }
 
-fn session(id: &str, updated_at: &str) -> SessionRow {
+pub(super) fn session(id: &str, updated_at: &str) -> SessionRow {
     SessionRow {
         id: id.to_string(),
         title: format!("title {id}"),
@@ -37,7 +37,7 @@ fn session(id: &str, updated_at: &str) -> SessionRow {
     }
 }
 
-fn message(id: &str, session_id: &str, seq: u32, role: Role, content: &str) -> MessageRow {
+pub(super) fn message(id: &str, session_id: &str, seq: u32, role: Role, content: &str) -> MessageRow {
     MessageRow {
         id: id.to_string(),
         session_id: session_id.to_string(),

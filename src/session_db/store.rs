@@ -5,11 +5,21 @@
 //! replaceable; `SqliteSessionStore` is the only implementation.
 
 mod fold;
+mod import;
+#[cfg(test)]
+mod import_tests;
+mod lock;
 mod migrations;
+mod recover;
+#[cfg(test)]
+mod recovery_tests;
 mod sqlite;
 #[cfg(test)]
 mod tests;
 
+pub use import::{import_chat_history, ImportProblem, ImportReport};
+pub use lock::SessionLock;
+pub use recover::{CorruptionReport, RecoveryReport};
 pub use sqlite::SqliteSessionStore;
 
 use super::{StateKind, StateRoot};
@@ -24,6 +34,12 @@ pub enum SessionDbError {
     /// The database was written by a newer program than this one.
     NewerSchema { found: u32, supported: u32 },
     NotFound(String),
+    /// Another process holds this session.
+    Busy(String),
+    /// An id or value that must not be used (for example as a file name).
+    Invalid(String),
+    /// The database file is damaged (not an SQLite database, or malformed).
+    Corrupt(String),
 }
 
 impl fmt::Display for SessionDbError {
@@ -36,6 +52,9 @@ impl fmt::Display for SessionDbError {
                 "the session database has schema version {found}, this program understands up to {supported}; update yana-rt"
             ),
             Self::NotFound(what) => write!(f, "not found: {what}"),
+            Self::Busy(id) => write!(f, "session {id} is in use by another process"),
+            Self::Invalid(why) => write!(f, "invalid value: {why}"),
+            Self::Corrupt(why) => write!(f, "the session database is damaged: {why}"),
         }
     }
 }
@@ -44,7 +63,13 @@ impl std::error::Error for SessionDbError {}
 
 impl From<rusqlite::Error> for SessionDbError {
     fn from(error: rusqlite::Error) -> Self {
-        Self::Sqlite(error.to_string())
+        use rusqlite::ErrorCode::{DatabaseCorrupt, NotADatabase};
+        match &error {
+            rusqlite::Error::SqliteFailure(failure, _) if matches!(failure.code, DatabaseCorrupt | NotADatabase) => {
+                Self::Corrupt(error.to_string())
+            }
+            _ => Self::Sqlite(error.to_string()),
+        }
     }
 }
 
@@ -137,8 +162,9 @@ pub trait SessionStore {
     fn schema_version(&self) -> Result<u32, SessionDbError>;
     /// Idempotent by session id.
     fn create_session(&self, row: &SessionRow) -> Result<(), SessionDbError>;
-    /// Idempotent by message id; the session must exist.
-    fn append_message(&self, row: &MessageRow) -> Result<(), SessionDbError>;
+    /// Idempotent by message id; the session must exist. Returns whether the
+    /// message was new (`false` when that id was already stored).
+    fn append_message(&self, row: &MessageRow) -> Result<bool, SessionDbError>;
     fn finish_session(&self, id: &str, reason: EndReason) -> Result<(), SessionDbError>;
     fn load_messages(&self, session_id: &str) -> Result<Vec<MessageRow>, SessionDbError>;
     /// Most recently updated first.
