@@ -113,12 +113,6 @@ mod fetch;
 #[cfg(test)]
 mod ip_tests;
 
-pub(crate) fn extract_url_host(url: &str) -> Option<&str> {
-    let without_scheme = url.split("://").nth(1)?;
-    let host_port = without_scheme.split('/').next()?;
-    Some(host_port.split(':').next()?)
-}
-
 /// BUG FIX (Workstream A stabilization doc, Section 15-21 — SSRF network
 /// caller inventory): this is a second, independent SSRF guard from
 /// `core/hooks/tool-validator.sh`'s WebFetch guard (that one gates Claude
