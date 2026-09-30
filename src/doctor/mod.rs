@@ -1,4 +1,8 @@
+#[cfg(test)]
+mod config_tests;
 mod dispatch_check;
+#[cfg(test)]
+mod git_tests;
 
 use clap::Subcommand;
 use regex::Regex;
