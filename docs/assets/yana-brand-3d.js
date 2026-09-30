@@ -10,7 +10,9 @@
   canvas.setAttribute('tabindex', '0');
   canvas.setAttribute('aria-label', document.documentElement.lang.startsWith('vi')
     ? 'Vật thể Yana 3D. Kéo để xoay, hoặc dùng phím mũi tên.'
-    : 'Interactive 3D Yana sculpture. Drag to rotate, or use arrow keys.');
+    : document.documentElement.lang.startsWith('ko')
+      ? 'Yana 3D 조형물. 드래그하거나 방향키로 회전할 수 있습니다.'
+      : 'Interactive 3D Yana sculpture. Drag to rotate, or use arrow keys.');
   stage.append(canvas);
   const shadow = document.createElement('div');
   shadow.className = 'yana-brand-hero__shadow';

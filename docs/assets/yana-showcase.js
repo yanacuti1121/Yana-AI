@@ -49,10 +49,12 @@
 
   const figures = [...document.querySelectorAll(".wheelbot-view")];
   if (figures.length) {
-    const english = document.documentElement.lang.toLowerCase().startsWith("en");
-    const copy = english
-      ? { inspect: "Inspect image", close: "Close", full: "View at 100%", fit: "Fit image", concept: "Wheelbot concept", plates: "3D print plates" }
-      : { inspect: "Xem chi tiết", close: "Đóng", full: "Xem 100%", fit: "Vừa khung", concept: "Concept Wheelbot", plates: "Bộ file in 3D" };
+    const language = document.documentElement.lang.slice(0, 2).toLowerCase();
+    const copy = language === "ko"
+      ? { inspect: "자세히 보기", close: "닫기", full: "100%로 보기", fit: "화면에 맞추기", concept: "Wheelbot 콘셉트", plates: "3D 프린트 플레이트" }
+      : language === "en"
+        ? { inspect: "Inspect image", close: "Close", full: "View at 100%", fit: "Fit image", concept: "Wheelbot concept", plates: "3D print plates" }
+        : { inspect: "Xem chi tiết", close: "Đóng", full: "Xem 100%", fit: "Vừa khung", concept: "Concept Wheelbot", plates: "Bộ file in 3D" };
     const dialog = document.createElement("dialog");
     dialog.className = "wheelbot-inspector";
     dialog.innerHTML = `<div class="wheelbot-inspector__panel">

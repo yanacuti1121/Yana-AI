@@ -1,25 +1,31 @@
 (() => {
   "use strict";
   const page = location.pathname.split("/").pop() || "index.html";
-  const vi = document.documentElement.lang.slice(0, 2) === "vi";
+  const locale = document.documentElement.lang.slice(0, 2);
+  const vi = locale === "vi", ko = locale === "ko";
   /* localStorage throws when storage is blocked (private mode, site settings). An unguarded call
      aborted this whole script, leaving the footer, petals and demos unbuilt. Not persisting is fine. */
   const store={get:key=>{try{return localStorage.getItem(key)}catch(error){return null}},set:(key,value)=>{try{localStorage.setItem(key,value)}catch(error){/* storage blocked: preference just is not remembered */}}};
   const englishPages=new Set(["yana-ai","studio","wheelbot","runtime","governance","agents-skills","models","connectors","missions","continuity","design","evidence","safety","architecture","ecosystem","download","updates","support","privacy","legal-notices","acknowledgements","install-macos","install-windows","install-linux","account","history"]);
   const stem=page.replace(/\.html$/,"").replace(/-en$/,"");
-  const languageHref=vi?(page==="index.html"?"en.html":englishPages.has(stem)?`${stem}-en.html`:"en.html"):(stem==="en"?"index.html":`${stem}.html`);
-  const route=name=>vi?`${name}.html`:(name==="index"?"en.html":`${name}-en.html`);
+  const languageHref=vi?(page==="index.html"?"en.html":englishPages.has(stem)?`${stem}-en.html`:"en.html"):(stem==="en"||stem==="ko"?"index.html":`${stem}.html`);
+  const route=name=>vi?`${name}.html`:(name==="index"?(ko?"ko.html":"en.html"):`${name}-en.html`);
   document.body.classList.add("sakura-site");
 
   const documentPages=["legal-notices","privacy","acknowledgements"];
   const technicalPages=["architecture","governance","runtime","models","connectors","evidence","continuity","missions","agents-skills"];
-  document.body.classList.add(documentPages.includes(stem)?"mode-document":technicalPages.some(name=>stem===name)?"mode-technical":stem==="index"||stem==="en"?"petal-high":"mode-standard");
+  document.body.classList.add(documentPages.includes(stem)?"mode-document":technicalPages.some(name=>stem===name)?"mode-technical":["index","en","ko"].includes(stem)?"petal-high":"mode-standard");
 
   const copy = vi ? {
     announcement:"Yana kết nối AI với công việc thật, còn quyền kiểm soát vẫn nằm trong tay anh.",
     products:"Sản phẩm",platform:"Nền tảng",solutions:"Giải pháp",resources:"Tài nguyên",about:"Về Yana",
     source:"Mã nguồn",updates:"Cập nhật",download:"Tải Studio",search:"Tìm kiếm",docs:"Docs",start:"Bắt đầu",
     productsTitle:"Các bề mặt của Yana.",platformTitle:"Những lớp vận hành bên dưới.",solutionsTitle:"Yana giúp được gì?",resourcesTitle:"Tài liệu và hỗ trợ."
+  } : ko ? {
+    announcement:"Yana는 AI를 실제 작업에 연결하고, 결정권은 사람에게 남깁니다.",
+    products:"제품",platform:"플랫폼",solutions:"활용 방법",resources:"자료",about:"Yana 소개",
+    source:"소스 코드",updates:"업데이트",download:"Studio 다운로드",search:"검색",docs:"문서",start:"시작하기",
+    productsTitle:"Yana의 제품.",platformTitle:"시스템을 이루는 계층.",solutionsTitle:"Yana로 할 수 있는 일",resourcesTitle:"문서와 지원."
   } : {
     announcement:"Yana connects AI to real work while authority stays with you.",
     products:"Products",platform:"Platform",solutions:"Solutions",resources:"Resources",about:"About Yana",
@@ -31,9 +37,20 @@
   if (nav) {
     const homeHref=route("index"),startHref=homeHref+"#how-it-works",docsHref=route("architecture");
     const githubHref="https://github.com/yanacuti1121/Yana-AI";
+    const koreanDetails={
+      "yana-ai":"AI 조정과 권한",studio:"Yana를 위한 시각적 워크스페이스",wheelbot:"물리적 로봇 프로젝트",
+      "yana-runtime":"통제되는 AI 에이전트 실행",safety:"규칙과 권한",audit:"로그와 추적 기록",
+      runtime:"Agent Runtime · TurnEngine",governance:"Policy Engine · 권한", "agents-skills":"조합할 수 있는 기능",
+      models:"클라우드와 로컬 AI 모델",connectors:"범위가 정해진 연결",infrastructure:"아키텍처와 시스템 계층",
+      developers:"프로젝트, 파일, 터미널", "ai-agents":"허용된 범위에서 실행",teams:"명확한 결정과 권한",
+      "infra-teams":"시스템 계층 연결", "quick-start":"Studio 설치부터 시작",documentation:"Yana AI 시스템 개요",
+      architecture:"제안에서 실행까지",commands:"CLI 및 슬래시 명령 참고",examples:"작업 흐름 예시",
+      updates:"생태계 출시 기록",download:"지원 플랫폼 설치 파일",support:"문의 채널",
+      legal:"라이선스 정보",privacy:"데이터 처리 방식",thanks:"출처와 기여",github:"소스 코드와 프로젝트 상태"
+    };
     const item=(id,path,viTitle,enTitle,viDetail,enDetail,icon,keywords="")=>({
       id,href:/^https?:/.test(path)?path:route(path),title:vi?viTitle:enTitle,
-      detail:vi?viDetail:enDetail,icon,keywords,external:/^https?:/.test(path)
+      detail:vi?viDetail:ko?`${koreanDetails[id]||enDetail} · 영어`:enDetail,icon,keywords,external:/^https?:/.test(path)
     });
     // One destination map feeds desktop groups, mobile subviews, and the command palette.
     const navigationConfig={
@@ -80,15 +97,16 @@
       const data=navigationConfig[key];
       return `<details class="global-nav-group" data-nav-group="${key}"><summary aria-haspopup="true" aria-expanded="false" aria-controls="nav-panel-${key}">${data.label}</summary><div class="global-mega-panel" id="nav-panel-${key}"><div class="global-mega-intro"><small>YANA / ${data.label}</small><h3>${data.title}</h3></div><div class="global-mega-column">${data.items.map(navItemHTML).join("")}</div></div></details>`;
     };
-    const searchButton='<button class="nav-search-trigger" type="button" aria-label="'+(vi?"Tìm kiếm Yana":"Search Yana")+'" aria-keyshortcuts="Meta+K Control+K"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.7" cy="10.7" r="6.7"/><path d="m16 16 5 5"/></svg><span>'+copy.search+'</span><kbd>⌘K</kbd></button>';
-    const viHref=vi?page:languageHref,enHref=vi?languageHref:page;
-    const languageMenu='<details class="nav-language-menu"><summary aria-label="'+(vi?"Chọn ngôn ngữ":"Choose language")+'" aria-haspopup="true" aria-expanded="false">'+(vi?"VI":"EN")+'</summary><div class="nav-language-panel"><small>LANGUAGE</small><a href="'+viHref+'" data-locale="vi"'+(vi?' aria-current="true"':'')+'>'+(vi?'✓ ':'')+'Tiếng Việt</a><a href="'+enHref+'" data-locale="en"'+(!vi?' aria-current="true"':'')+'>'+(!vi?'✓ ':'')+'English</a><span class="is-unavailable" aria-disabled="true">한국어 <small>'+(vi?"Chưa có bản dịch":"Not translated yet")+'</small></span></div></details>';
+    const searchButton='<button class="nav-search-trigger" type="button" aria-label="'+(vi?"Tìm kiếm Yana":ko?"Yana 검색":"Search Yana")+'" aria-keyshortcuts="Meta+K Control+K"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.7" cy="10.7" r="6.7"/><path d="m16 16 5 5"/></svg><span>'+copy.search+'</span><kbd>⌘K</kbd></button>';
+    const viHref=ko?"index.html":vi?page:languageHref,enHref=ko?"en.html":vi?languageHref:page,koHref=ko?page:"ko.html";
+    const languageOptions='<a href="'+viHref+'" data-locale="vi"'+(vi?' aria-current="true"':'')+'>'+(vi?'✓ ':'')+'Tiếng Việt</a><a href="'+enHref+'" data-locale="en"'+(!vi&&!ko?' aria-current="true"':'')+'>'+(!vi&&!ko?'✓ ':'')+'English</a><a href="'+koHref+'" data-locale="ko"'+(ko?' aria-current="true"':'')+'>'+(ko?'✓ ':'')+'한국어'+(ko?'':' <small>홈페이지</small>')+'</a>';
+    const languageMenu='<details class="nav-language-menu"><summary aria-label="'+(vi?"Chọn ngôn ngữ":ko?"언어 선택":"Choose language")+'" aria-haspopup="true" aria-expanded="false">'+(vi?"VI":ko?"KO":"EN")+'</summary><div class="nav-language-panel"><small>LANGUAGE</small>'+languageOptions+'</div></details>';
     nav.innerHTML='<a class="brand" href="'+homeHref+'"><img class="brand-mark" src="yana-mark.svg" alt=""><span>Yana</span></a>'
-      +liquidKnobButton("menu-button","☰",vi?"Mở menu":"Open menu")
+      +liquidKnobButton("menu-button","☰",vi?"Mở menu":ko?"메뉴 열기":"Open menu")
       +'<div class="nav-links">'
       +groupsOrder.map(groupHTML).join("")
       +'<a class="nav-about" href="https://vutam.link/" target="_blank" rel="noopener noreferrer">'+copy.about+' <span aria-hidden="true">↗</span></a>'
-      +'<div class="nav-mobile-actions"><a href="'+route("updates")+'">'+copy.updates+'</a><a href="'+route("download")+'">'+copy.download+'</a><a href="'+docsHref+'">'+copy.docs+'</a><a href="'+githubHref+'" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="'+startHref+'">'+copy.start+' →</a><details class="mobile-language-group"><summary>'+(vi?"Ngôn ngữ":"Language")+' →</summary><div><a href="'+viHref+'" data-locale="vi"'+(vi?' aria-current="true"':'')+'>'+(vi?'✓ ':'')+'Tiếng Việt</a><a href="'+enHref+'" data-locale="en"'+(!vi?' aria-current="true"':'')+'>'+(!vi?'✓ ':'')+'English</a><span aria-disabled="true">한국어 · '+(vi?"Chưa có bản dịch":"Not translated yet")+'</span></div></details></div></div>'
+      +'<div class="nav-mobile-actions"><a href="'+route("updates")+'">'+copy.updates+'</a><a href="'+route("download")+'">'+copy.download+'</a><a href="'+docsHref+'">'+copy.docs+'</a><a href="'+githubHref+'" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="'+startHref+'">'+copy.start+' →</a><details class="mobile-language-group"><summary>'+(vi?"Ngôn ngữ":ko?"언어":"Language")+' →</summary><div>'+languageOptions+'</div></details></div></div>'
       +'<div class="nav-actions">'+searchButton+'<a class="nav-docs" href="'+docsHref+'">'+copy.docs+'</a>'
       +languageMenu
       +'<a class="nav-action--updates" href="'+route("updates")+'">'+copy.updates+'</a>'
@@ -184,7 +202,7 @@
 
     const searchIndex=groupsOrder.flatMap(key=>navigationConfig[key].items.map(entry=>({...entry,category:navigationConfig[key].label,categoryKey:key})));
     const palette=document.createElement("div");palette.className="yana-command-shell";palette.hidden=true;
-    palette.innerHTML='<div class="yana-command-backdrop"></div><section class="yana-command-panel" role="dialog" aria-modal="true" aria-labelledby="yana-search-title"><div class="yana-command-head"><label id="yana-search-title" for="yana-search-input">'+(vi?"Tìm trong Yana":"Search Yana")+'</label><button type="button" class="yana-command-close" aria-label="'+(vi?"Đóng tìm kiếm":"Close search")+'">Esc</button></div><div class="yana-command-field"><span aria-hidden="true">⌕</span><input id="yana-search-input" type="search" autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="true" aria-controls="yana-search-results" placeholder="'+(vi?"Tìm sản phẩm, tài liệu, trang…":"Search products, docs, pages…")+'"></div><div id="yana-search-results" class="yana-command-results" role="listbox"></div><p class="yana-command-help">'+(vi?"↑ ↓ chọn · ↵ mở · Esc đóng":"↑ ↓ Navigate · ↵ Open · Esc Close")+'</p></section>';
+    palette.innerHTML='<div class="yana-command-backdrop"></div><section class="yana-command-panel" role="dialog" aria-modal="true" aria-labelledby="yana-search-title"><div class="yana-command-head"><label id="yana-search-title" for="yana-search-input">'+(vi?"Tìm trong Yana":ko?"Yana에서 검색":"Search Yana")+'</label><button type="button" class="yana-command-close" aria-label="'+(vi?"Đóng tìm kiếm":ko?"검색 닫기":"Close search")+'">Esc</button></div><div class="yana-command-field"><span aria-hidden="true">⌕</span><input id="yana-search-input" type="search" autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="true" aria-controls="yana-search-results" placeholder="'+(vi?"Tìm sản phẩm, tài liệu, trang…":ko?"제품, 문서, 페이지 검색…":"Search products, docs, pages…")+'"></div><div id="yana-search-results" class="yana-command-results" role="listbox"></div><p class="yana-command-help">'+(vi?"↑ ↓ chọn · ↵ mở · Esc đóng":ko?"↑ ↓ 선택 · ↵ 열기 · Esc 닫기":"↑ ↓ Navigate · ↵ Open · Esc Close")+'</p></section>';
     document.body.append(palette);
     const input=palette.querySelector("input"),results=palette.querySelector(".yana-command-results"),trigger=nav.querySelector(".nav-search-trigger"),closeButton=palette.querySelector(".yana-command-close");
     let visible=[],active=0,returnFocus=trigger;
@@ -200,12 +218,12 @@
       active=Math.min(active,Math.max(0,visible.length-1));
       if(!visible.length){
         const suggested=[navigationConfig.resources.items[1],navigationConfig.resources.items[0],navigationConfig.resources.items.at(-1)];
-        results.innerHTML='<div class="yana-command-empty"><strong>'+(vi?'Không có kết quả cho “':'No results for “')+escapeHTML(input.value.trim())+'”</strong><span>'+(vi?'Thử một lối vào khác:':'Try another destination:')+'</span></div>'+suggested.map(entry=>'<a class="yana-command-suggestion" href="'+entry.href+'"'+(entry.external?' target="_blank" rel="noopener noreferrer"':'')+'>'+entry.title+(entry.external?' ↗':'')+'</a>').join("");
+        results.innerHTML='<div class="yana-command-empty"><strong>'+(vi?'Không có kết quả cho “':ko?'검색 결과가 없습니다: “':'No results for “')+escapeHTML(input.value.trim())+'”</strong><span>'+(vi?'Thử một lối vào khác:':ko?'다른 경로를 살펴보세요:':'Try another destination:')+'</span></div>'+suggested.map(entry=>'<a class="yana-command-suggestion" href="'+entry.href+'"'+(entry.external?' target="_blank" rel="noopener noreferrer"':'')+'>'+entry.title+(entry.external?' ↗':'')+'</a>').join("");
         input.removeAttribute("aria-activedescendant");return;
       }
       let lastCategory="";
       results.innerHTML=visible.map((entry,index)=>{
-        const isRecent=!query&&getRecent().includes(entry.id),category=isRecent?(vi?"Gần đây":"Recent"):entry.category;
+        const isRecent=!query&&getRecent().includes(entry.id),category=isRecent?(vi?"Gần đây":ko?"최근":"Recent"):entry.category;
         const heading=category!==lastCategory?'<div class="yana-command-category">'+category+'</div>':"";lastCategory=category;
         return heading+'<a id="yana-search-option-'+index+'" role="option" aria-selected="'+(index===active)+'" tabindex="-1" href="'+entry.href+'" data-search-id="'+entry.id+'"'+(entry.external?' target="_blank" rel="noopener noreferrer"':'')+' class="yana-command-result'+(index===active?' is-active':'')+'"><span><strong>'+entry.title+'</strong><small>'+entry.detail+'</small></span><span aria-hidden="true">'+(entry.external?'↗':'→')+'</span></a>';
       }).join("");
@@ -230,11 +248,11 @@
   }
 
   if (store.get("yana-announcement-hidden") !== "1") {
-    const bar=document.createElement("div");bar.className="announcement-bar";bar.innerHTML=`<span>${copy.announcement}</span><button type="button" aria-label="${vi?"Đóng":"Close"}">×</button>`;document.body.prepend(bar);const hideAnnouncement=()=>{bar.classList.add("is-hiding");setTimeout(()=>{bar.hidden=true;store.set("yana-announcement-hidden","1")},420)};bar.querySelector("button").addEventListener("click",hideAnnouncement);setTimeout(hideAnnouncement,5200);
+    const bar=document.createElement("div");bar.className="announcement-bar";bar.innerHTML=`<span>${copy.announcement}</span><button type="button" aria-label="${vi?"Đóng":ko?"닫기":"Close"}">×</button>`;document.body.prepend(bar);const hideAnnouncement=()=>{bar.classList.add("is-hiding");setTimeout(()=>{bar.hidden=true;store.set("yana-announcement-hidden","1")},420)};bar.querySelector("button").addEventListener("click",hideAnnouncement);setTimeout(hideAnnouncement,5200);
   }
 
   const footer=document.querySelector(".site-footer");
-  if(footer) footer.innerHTML=`<div class="footer-inner"><div><a class="brand" href="${route("index")}"><img class="brand-mark" src="yana-mark.svg" alt=""><span>Yana</span></a><p>${vi?"Trí tuệ có thể thay. Quyền hạn phải bền vững.":"Intelligence may change. Authority must endure."}</p></div><div class="footer-links"><strong>${copy.products}</strong><a href="${route("yana-ai")}">Yana AI</a><a href="${route("studio")}">Yana Studio</a><a href="${route("wheelbot")}">Yana Wheelbot</a></div><div class="footer-links"><strong>${vi?"Hệ thống":"System"}</strong><a href="${route("architecture")}">${vi?"Kiến trúc":"Architecture"}</a><a href="${route("runtime")}">Runtime</a><a href="${route("governance")}">Governance</a><a href="${route("connectors")}">Connectors</a></div><div class="footer-links"><strong>${vi?"Tài nguyên":"Resources"}</strong><a href="${route("updates")}">${vi?"Cập nhật":"Updates"}</a><a href="${route("support")}">${vi?"Hỗ trợ & Liên hệ":"Support & Contact"}</a><a href="https://github.com/yanacuti1121/Yana-AI/issues">GitHub Issues</a><a href="https://vutam.link/">vutam.link</a></div><div class="footer-links"><strong>${vi?"Pháp lý":"Legal"}</strong><a href="${route("legal-notices")}">${vi?"Thông báo pháp lý":"Legal Notices"}</a><a href="${route("acknowledgements")}">${vi?"Lời cảm ơn":"Acknowledgements"}</a><a href="${route("privacy")}">${vi?"Quyền riêng tư":"Privacy"}</a></div></div><div class="footer-bottom">© 2026 Yana · ${vi?"Các thành phần nguồn mở giữ nguyên giấy phép tương ứng.":"Open-source components remain under their respective licenses."}</div>`;
+  if(footer) footer.innerHTML=`<div class="footer-inner"><div><a class="brand" href="${route("index")}"><img class="brand-mark" src="yana-mark.svg" alt=""><span>Yana</span></a><p>${vi?"Trí tuệ có thể thay. Quyền hạn phải bền vững.":ko?"지능은 바뀔 수 있어도 권한은 흔들리지 않아야 합니다.":"Intelligence may change. Authority must endure."}</p></div><div class="footer-links"><strong>${copy.products}</strong><a href="${route("yana-ai")}">Yana AI${ko?" · EN":""}</a><a href="${route("studio")}">Yana Studio${ko?" · EN":""}</a><a href="${route("wheelbot")}">Yana Wheelbot${ko?" · EN":""}</a></div><div class="footer-links"><strong>${vi?"Hệ thống":ko?"시스템":"System"}</strong><a href="${route("architecture")}">${vi?"Kiến trúc":ko?"아키텍처 · EN":"Architecture"}</a><a href="${route("runtime")}">Runtime${ko?" · EN":""}</a><a href="${route("governance")}">Governance${ko?" · EN":""}</a><a href="${route("connectors")}">Connectors${ko?" · EN":""}</a></div><div class="footer-links"><strong>${copy.resources}</strong><a href="${route("updates")}">${copy.updates}${ko?" · EN":""}</a><a href="${route("support")}">${vi?"Hỗ trợ & Liên hệ":ko?"지원 및 문의 · EN":"Support & Contact"}</a><a href="https://github.com/yanacuti1121/Yana-AI/issues">GitHub Issues</a><a href="https://vutam.link/">vutam.link</a></div><div class="footer-links"><strong>${vi?"Pháp lý":ko?"법적 고지":"Legal"}</strong><a href="${route("legal-notices")}">${vi?"Thông báo pháp lý":ko?"법적 고지 · EN":"Legal Notices"}</a><a href="${route("acknowledgements")}">${vi?"Lời cảm ơn":ko?"감사의 말 · EN":"Acknowledgements"}</a><a href="${route("privacy")}">${vi?"Quyền riêng tư":ko?"개인정보 보호 · EN":"Privacy"}</a></div></div><div class="footer-bottom">© 2026 Yana · ${vi?"Các thành phần nguồn mở giữ nguyên giấy phép tương ứng.":ko?"오픈 소스 구성 요소에는 각 라이선스가 적용됩니다.":"Open-source components remain under their respective licenses."}</div>`;
 
   if(footer){
     const contextualFooterLinks={"support.html":route("support"),"legal-notices.html":route("legal-notices"),"privacy.html":route("privacy"),"acknowledgements.html":route("acknowledgements")};
@@ -256,6 +274,10 @@
       allow:["ALLOW","Capability được cấp. Thực thi có giới hạn và ghi receipt bằng chứng."],
       ask:["ASK","Chờ phê duyệt của con người. Chưa có thay đổi nào được thực thi."],
       deny:["DENY","Yêu cầu bị chặn tại cổng quyền hạn. Không chạm vào hệ thống đích."]
+    }:ko?{
+      allow:["ALLOW","기능이 허용되었습니다. 정해진 범위에서 실행하고 증거 기록을 남깁니다."],
+      ask:["ASK","사람의 승인을 기다리는 중입니다. 아직 변경된 내용은 없습니다."],
+      deny:["DENY","요청이 권한 게이트에서 차단되었습니다. 대상 시스템은 변경되지 않았습니다."]
     }:{
       allow:["ALLOW","Capability granted. Execution is bounded and an evidence receipt is written."],
       ask:["ASK","Waiting for human approval. No change has been executed."],

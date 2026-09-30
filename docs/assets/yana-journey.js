@@ -2,19 +2,24 @@
   "use strict";
   if (!document.body.classList.contains("home-page")) return;
 
-  const en = document.documentElement.lang === "en";
+  const language = document.documentElement.lang.slice(0, 2);
+  const labels = {
+    vi: { rail: "Khám phá hành trình Yana", next: "Chặng tiếp theo", kicker: "CHẶNG TIẾP THEO" },
+    en: { rail: "Explore the Yana story", next: "Next chapter", kicker: "NEXT CHAPTER" },
+    ko: { rail: "Yana 이야기 살펴보기", next: "다음 장", kicker: "다음 장" }
+  }[language] || { rail: "Explore the Yana story", next: "Next chapter", kicker: "NEXT CHAPTER" };
   const chapters = [
-    ["how-it-works", "Cách hoạt động", "How it works"],
-    ["terminal-origin", "Khởi đầu", "Origins"],
-    ["prologue", "Hệ sinh thái", "Ecosystem"],
-    ["product-1", "Yana AI", "Yana AI"],
-    ["product-2", "Studio", "Studio"],
-    ["product-3", "Wheelbot", "Wheelbot"],
-    ["capabilities", "Quyền hạn", "Authority"],
-    ["architecture", "Kiến trúc", "Architecture"],
-    ["evidence", "Bằng chứng", "Evidence"],
-    ["why-yana", "Vì sao Yana", "Why Yana"]
-  ].map(([id, vi, english]) => ({ id, label: en ? english : vi, section: document.getElementById(id) }))
+    ["how-it-works", "Cách hoạt động", "How it works", "작동 방식"],
+    ["terminal-origin", "Khởi đầu", "Origins", "시작"],
+    ["prologue", "Hệ sinh thái", "Ecosystem", "생태계"],
+    ["product-1", "Yana AI", "Yana AI", "Yana AI"],
+    ["product-2", "Studio", "Studio", "Studio"],
+    ["product-3", "Wheelbot", "Wheelbot", "Wheelbot"],
+    ["capabilities", "Quyền hạn", "Authority", "권한"],
+    ["architecture", "Kiến trúc", "Architecture", "아키텍처"],
+    ["evidence", "Bằng chứng", "Evidence", "증거"],
+    ["why-yana", "Vì sao Yana", "Why Yana", "Yana를 선택하는 이유"]
+  ].map(([id, vi, en, ko]) => ({ id, label: ({ vi, en, ko }[language] || en), section: document.getElementById(id) }))
     .filter(chapter => chapter.section);
   if (!chapters.length) return;
 
@@ -25,7 +30,7 @@
 
   const rail = document.createElement("nav");
   rail.className = "yana-journey-rail";
-  rail.setAttribute("aria-label", en ? "Explore the Yana story" : "Khám phá hành trình Yana");
+  rail.setAttribute("aria-label", labels.rail);
   const links = chapters.map((chapter, index) => {
     const link = document.createElement("a");
     link.href = `#${chapter.id}`;
@@ -43,7 +48,7 @@
   const next = document.createElement("a");
   next.className = "yana-journey-next";
   const nextKicker = document.createElement("span");
-  nextKicker.textContent = en ? "NEXT CHAPTER" : "CHẶNG TIẾP THEO";
+  nextKicker.textContent = labels.kicker;
   const nextLabel = document.createElement("strong");
   const nextArrow = document.createElement("span");
   nextArrow.setAttribute("aria-hidden", "true");
@@ -77,7 +82,7 @@
       if (hasNext) {
         next.href = `#${chapters[active + 1].id}`;
         nextLabel.textContent = chapters[active + 1].label;
-        next.setAttribute("aria-label", `${en ? "Next chapter" : "Chặng tiếp theo"}: ${chapters[active + 1].label}`);
+        next.setAttribute("aria-label", `${labels.next}: ${chapters[active + 1].label}`);
       }
       links.forEach((link, index) => {
         if (index === active) link.setAttribute("aria-current", "location");
