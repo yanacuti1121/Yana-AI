@@ -181,6 +181,31 @@ fn fix_ci007(target: &str, dry_run: bool) -> Result<()> {
     Ok(())
 }
 
+/// A filesystem server has a name word that is `fs` or starts with `file`
+/// (`files`, `filesystem`, `my-files`), not one that merely contains those
+/// letters (`profs-search`, `profile-manager`).
+fn is_filesystem_server(name: &str) -> bool {
+    name.to_lowercase()
+        .split(|c: char| !c.is_ascii_alphanumeric())
+        .any(|word| word == "fs" || word.starts_with("file"))
+}
+
+/// Adds `--read-only` to one server config; true when it changed anything.
+/// A missing `args` becomes `["--read-only"]`; a config that is not an object,
+/// or whose `args` is not an array, is left exactly as it was.
+fn add_read_only(cfg: &mut serde_json::Value) -> bool {
+    let Some(obj) = cfg.as_object_mut() else { return false };
+    let args = obj.entry("args").or_insert_with(|| serde_json::json!([]));
+    match args.as_array_mut() {
+        Some(list) if list.iter().any(|v| v.as_str() == Some("--read-only")) => false,
+        Some(list) => {
+            list.push(serde_json::json!("--read-only"));
+            true
+        }
+        None => false,
+    }
+}
+
 fn fix_mcp001(target: &str, dry_run: bool) -> Result<()> {
     let paths = [".mcp.json", ".claude/mcp.json"];
     for p in &paths {
@@ -189,23 +214,25 @@ fn fix_mcp001(target: &str, dry_run: bool) -> Result<()> {
         let content = std::fs::read_to_string(&full)?;
         let mut data: serde_json::Value = serde_json::from_str(&content)?;
         let key = if data.get("mcpServers").is_some() { "mcpServers" } else { "servers" };
-        if let Some(servers) = data[key].as_object_mut() {
+        let mut changed: Vec<String> = Vec::new();
+        if let Some(servers) = data.get_mut(key).and_then(|v| v.as_object_mut()) {
             for (name, cfg) in servers.iter_mut() {
-                if name.contains("file") || name.contains("fs") {
-                    if cfg["args"].as_array().map(|a| a.iter().any(|v| v.as_str() == Some("--read-only"))).unwrap_or(false) {
-                        continue;
-                    }
-                    if dry_run {
+                if !is_filesystem_server(name) { continue; }
+                if dry_run {
+                    if add_read_only(&mut cfg.clone()) {
                         println!("[dry-run] would add --read-only to MCP server '{}'", name);
-                    } else if let Some(args) = cfg["args"].as_array_mut() {
-                        args.push(serde_json::json!("--read-only"));
                     }
+                } else if add_read_only(cfg) {
+                    changed.push(name.clone());
                 }
             }
         }
-        if !dry_run {
+        if dry_run { return Ok(()); }
+        if changed.is_empty() {
+            println!("[fix/MCP001] No filesystem MCP server in {} needed --read-only", p);
+        } else {
             std::fs::write(&full, serde_json::to_string_pretty(&data)?)?;
-            println!("[fix/MCP001] Added --read-only to filesystem MCP servers in {}", p);
+            println!("[fix/MCP001] Added --read-only to {} in {}", changed.join(", "), p);
         }
         return Ok(());
     }

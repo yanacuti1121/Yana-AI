@@ -262,7 +262,6 @@ fn ac002_adds_env_entries_when_env_only_appears_in_a_comment_or_a_longer_name() 
 }
 
 #[test]
-#[ignore = "Y15: MCP001 adds `\"args\": null` to servers without args and also matches names like `profs-search`"]
 fn mcp001_touches_only_filesystem_servers_and_never_writes_null_args() {
     let (d, t) = dir();
     write(&d, ".mcp.json", r#"{"mcpServers":{"zeta-files":{"command":"x"},"profs-search":{"command":"y","args":["a"]}}}"#);
@@ -270,4 +269,43 @@ fn mcp001_touches_only_filesystem_servers_and_never_writes_null_args() {
     let v: serde_json::Value = serde_json::from_str(&read(&d, ".mcp.json")).unwrap();
     assert!(v["mcpServers"]["zeta-files"].get("args").map_or(true, |a| !a.is_null()));
     assert_eq!(v["mcpServers"]["profs-search"]["args"], serde_json::json!(["a"]));
+}
+
+#[test]
+fn filesystem_servers_are_recognized_by_name_word_not_by_substring() {
+    for yes in ["files", "filesystem", "fs", "my-files", "server-filesystem", "alpha-fs", "File_Server"] {
+        assert!(is_filesystem_server(yes), "{yes}");
+    }
+    for no in ["profs-search", "profile-manager", "github", "offset", "postgres", "logfiles"] {
+        assert!(!is_filesystem_server(no), "{no}");
+    }
+}
+
+#[test]
+fn mcp001_gives_a_filesystem_server_without_args_a_read_only_flag() {
+    let (d, t) = dir();
+    write(&d, ".mcp.json", r#"{"mcpServers":{"zeta-files":{"command":"x"}}}"#);
+    fix_mcp001(&t, false).unwrap();
+    let v: serde_json::Value = serde_json::from_str(&read(&d, ".mcp.json")).unwrap();
+    assert_eq!(v["mcpServers"]["zeta-files"]["args"], serde_json::json!(["--read-only"]));
+}
+
+#[test]
+fn mcp001_does_not_rewrite_a_config_that_needs_no_change() {
+    let (d, t) = dir();
+    let compact = r#"{"mcpServers":{"github":{"command":"y","args":["b"]},"files":{"args":["--read-only"]}}}"#;
+    write(&d, ".mcp.json", compact);
+    fix_mcp001(&t, false).unwrap();
+    assert_eq!(read(&d, ".mcp.json"), compact, "an unchanged config must stay byte-identical");
+}
+
+#[test]
+fn mcp001_leaves_odd_shaped_server_entries_alone() {
+    let (d, t) = dir();
+    write(&d, ".mcp.json", r#"{"mcpServers":{"files":"not-an-object","fs":{"args":"not-an-array"},"my-files":{"args":[]}}}"#);
+    fix_mcp001(&t, false).unwrap();
+    let v: serde_json::Value = serde_json::from_str(&read(&d, ".mcp.json")).unwrap();
+    assert_eq!(v["mcpServers"]["files"], "not-an-object");
+    assert_eq!(v["mcpServers"]["fs"]["args"], "not-an-array");
+    assert_eq!(v["mcpServers"]["my-files"]["args"], serde_json::json!(["--read-only"]));
 }
