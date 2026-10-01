@@ -1,5 +1,11 @@
 """Persistence + Claude-Code-specific adapter for context_compressor.py.
 
+Origin:  Yana AI original code (new adapter, not a port). It wraps
+         context_compressor.py, which is ported from
+         NousResearch/hermes-agent @ 5378b941209d8f62a65455041658ce8ce8144cc9
+License: this file is Yana AI code. The wrapped port is MIT (c) 2025 Nous
+         Research, see vendor/hermes-agent/_upstream/LICENSE.
+
 `context_compressor.py`/`context_compressor_pairs.py` are near-verbatim MIT
 ports (see their own docstrings) and are deliberately left unmodified — they
 expect OpenAI-tool-calling-shape messages (`role: "system"|"user"|"assistant"

@@ -1097,35 +1097,44 @@ fn init_run_idempotent() {
 // ── watch ─────────────────────────────────────────────────────────────────────
 
 #[test]
-#[ignore = "watch blocks indefinitely in CI — requires real filesystem watcher"]
 fn watch_exits_after_max_changes() {
-    use std::thread;
-    use std::time::Duration;
+    use std::time::{Duration, Instant};
 
+    // `watch start` only looks at the directories named by --dirs (default
+    // core/skills, core/agents, core/rules). The earlier version of this test
+    // wrote a file to the working directory root, which is not watched, so it
+    // never saw a change and ran forever. Watch "." and keep changing a file
+    // until the process exits, so a write before the first snapshot cannot be
+    // missed; give up (and kill it) after a deadline rather than hanging.
     let dir = tmpdir();
-    let dir_path = dir.path().to_path_buf();
-    let dir_path2 = dir_path.clone();
+    let mut child = std::process::Command::new(bin())
+        .args(["watch", "start", "--dirs", ".", "--max-changes", "1", "--interval", "1"])
+        .current_dir(dir.path())
+        .stdout(std::process::Stdio::piped())
+        .spawn()
+        .expect("spawn yana-rt watch");
 
-    let handle = thread::spawn(move || {
-        std::process::Command::new(bin())
-            .args(&["watch", "start", "--max-changes", "1", "--interval", "1"])
-            .current_dir(&dir_path2)
-            .output()
-    });
-
-    thread::sleep(Duration::from_millis(300));
-    std::fs::write(dir_path.join("trigger.txt"), "change").unwrap();
-
-    match handle.join().unwrap() {
-        Ok(output) => {
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            assert!(
-                stdout.contains("change") || stdout.contains("watch") || output.status.success(),
-                "watch detected change or exited cleanly"
-            );
+    let deadline = Instant::now() + Duration::from_secs(30);
+    let mut n = 0usize;
+    let status = loop {
+        if let Some(status) = child.try_wait().unwrap() {
+            break Some(status);
         }
-        Err(_) => {}
-    }
+        if Instant::now() > deadline {
+            child.kill().ok();
+            child.wait().ok();
+            break None;
+        }
+        n += 1;
+        std::fs::write(dir.path().join("trigger.txt"), "x".repeat(n)).unwrap();
+        std::thread::sleep(Duration::from_millis(200));
+    };
+    let status = status.expect("watch did not exit within 30s although a watched file kept changing");
+    assert!(status.success(), "watch exited with {status}");
+    let mut out = String::new();
+    std::io::Read::read_to_string(&mut child.stdout.take().unwrap(), &mut out).unwrap();
+    assert!(out.contains("reached max_changes=1"), "unexpected output: {out}");
+    assert!(out.contains("trigger.txt"), "the change should be reported: {out}");
 }
 
 // ── score ─────────────────────────────────────────────────────────────────────
