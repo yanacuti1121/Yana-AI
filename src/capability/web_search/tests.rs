@@ -166,3 +166,38 @@ fn an_unreadable_or_oversized_config_is_not_reported_as_missing() {
     std::fs::write(big.path().join(".yana-ai/web-search.json"), " ".repeat(MAX_CONFIG_BYTES + 1)).unwrap();
     assert!(matches!(web_search(big.path(), "x"), Err(CapabilityError::InvalidInput { .. })));
 }
+
+fn config_dir(json: &str) -> (tempfile::TempDir, std::path::PathBuf) {
+    let outer = tempfile::tempdir().unwrap();
+    let root = outer.path().join("ws");
+    std::fs::create_dir_all(root.join(".yana-ai")).unwrap();
+    std::fs::write(root.join(".yana-ai/web-search.json"), json).unwrap();
+    (outer, root)
+}
+
+#[test]
+fn the_disclosure_names_the_host_and_whether_a_key_goes_with_the_query() {
+    let (_a, plain) = config_dir(r#"{"endpoint":"https://Search.Example:8443/path"}"#);
+    let d = disclose(&plain).unwrap();
+    assert_eq!(d, SearchDisclosure { backend_host: "search.example".into(), key_variable: None });
+    assert!(d.summary("rust").contains("search.example") && d.summary("rust").contains("no API key is sent"));
+    let (_b, keyed) = config_dir(r#"{"endpoint":"https://s.example/","api_key_env":"YANA_SEARCH_KEY"}"#);
+    let d = disclose(&keyed).unwrap();
+    assert_eq!(d.key_variable.as_deref(), Some("YANA_SEARCH_KEY"));
+    let line = d.summary("rust");
+    assert!(line.contains("s.example") && line.contains("$YANA_SEARCH_KEY WILL be sent"), "{line}");
+}
+
+#[test]
+fn the_disclosure_never_contains_a_secret_value_and_refuses_what_a_search_would_refuse() {
+    // Safe even when the variable holds a value: only its NAME is ever read into the text.
+    let (_a, keyed) = config_dir(r#"{"endpoint":"https://s.example/","api_key_env":"YANA_SEARCH_KEY"}"#);
+    let line = disclose(&keyed).unwrap().summary("q");
+    assert!(!line.to_lowercase().contains("bearer"), "{line}");
+    let (_b, wrong_prefix) = config_dir(r#"{"endpoint":"https://s.example/","api_key_env":"GITHUB_TOKEN"}"#);
+    assert!(disclose(&wrong_prefix).is_err());
+    let (_c, no_host) = config_dir(r#"{"endpoint":"file:///etc/hosts"}"#);
+    assert!(disclose(&no_host).is_err());
+    let missing = tempfile::tempdir().unwrap();
+    assert!(matches!(disclose(missing.path()), Err(CapabilityError::Unsupported { .. })));
+}

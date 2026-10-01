@@ -84,6 +84,34 @@ fn clean_query(query: &str) -> Result<String, CapabilityError> {
     Ok(query.to_string())
 }
 
+/// What an approver must see before a search runs: where the query goes and
+/// whether a key goes with it. Read-only: no network, no DNS, no secret value.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SearchDisclosure {
+    pub backend_host: String,
+    /// NAME of the variable whose value would be sent as a bearer key, if one is configured.
+    pub key_variable: Option<String>,
+}
+
+impl SearchDisclosure {
+    /// One line for an approval prompt or a denial message.
+    pub fn summary(&self, query: &str) -> String {
+        let key = match &self.key_variable {
+            Some(name) => format!("an API key from ${name} WILL be sent"),
+            None => "no API key is sent".to_string(),
+        };
+        format!("web search for \"{query}\": the query goes to {}; {key}", self.backend_host)
+    }
+}
+
+/// The disclosure for the config in `root`, using the same checks `web_search` applies.
+pub fn disclose(root: &Path) -> Result<SearchDisclosure, CapabilityError> {
+    let config = load_config(root)?;
+    let url = url::Url::parse(&config.endpoint).map_err(|e| invalid(format!("endpoint is not a valid URL: {e}")))?;
+    let backend_host = url.host_str().ok_or_else(|| invalid("endpoint has no host"))?.to_string();
+    Ok(SearchDisclosure { backend_host, key_variable: key_variable(&config)?.map(str::to_string) })
+}
+
 /// Search with the config in `root`, the real network, and the real environment.
 pub fn web_search(root: &Path, query: &str) -> Result<String, CapabilityError> {
     let config = load_config(root)?;
