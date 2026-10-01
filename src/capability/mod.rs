@@ -23,6 +23,8 @@ pub mod lease;
 pub mod patch;
 #[cfg(test)]
 mod patch_tests;
+#[cfg(test)]
+mod protected_config_tests;
 pub mod registry;
 mod registry_data;
 mod registry_data_ws3;

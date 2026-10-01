@@ -87,7 +87,29 @@ fn resolve_for_write(root: &Path, requested: &str) -> Result<PathBuf, Capability
             });
         }
     }
+    if is_protected_config(&root, &target) {
+        return Err(CapabilityError::InvalidInput {
+            detail: format!("'{requested}' is a protected configuration file; an agent write cannot change it (edit it yourself)"),
+        });
+    }
     Ok(target)
+}
+
+/// Files under `.yana-ai/` that decide where data is sent or which programs
+/// run. They live inside the repository, so a model (or a cloned repo) must not
+/// be able to rewrite them through a governed write.
+const PROTECTED_CONFIGS: [&str; 2] = ["web-search.json", "mcp-servers.json"];
+
+/// True when `target` (already absolute and canonical in its parent) is one of
+/// `PROTECTED_CONFIGS` in the repo's `.yana-ai/` directory. The directory is
+/// resolved first, so `./`, `..`, a symlinked alias of the directory, and a
+/// different letter case (case-insensitive file systems) all reach the same answer.
+fn is_protected_config(root: &Path, target: &Path) -> bool {
+    let state = root.join(".yana-ai");
+    let state = state.canonicalize().unwrap_or(state);
+    let same_dir = target.parent().is_some_and(|p| p.to_string_lossy().eq_ignore_ascii_case(&state.to_string_lossy()));
+    let name = target.file_name().map(|n| n.to_string_lossy().to_ascii_lowercase());
+    same_dir && name.is_some_and(|n| PROTECTED_CONFIGS.contains(&n.as_str()))
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
