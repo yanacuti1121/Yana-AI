@@ -92,6 +92,17 @@ jobs:
       - name: Validate agent routing map regression behavior
         run: python3 tests/test_agent_routing_map.py
 
+      # 2026-09-29: PyPI yana-ai 1.4.2/1.5.0 fork-bombed on a default pipx
+      # install (~470 `yana-rt --version` processes). The fix sat unreleased
+      # on main because the version was never bumped past what PyPI had.
+      - name: Validate yana-rt wrapper recursion/PATH regression behavior
+        run: python3 -m pytest tests/test_yana_ai_rt_binary_guard.py tests/test_check_py_release_drift.py -q
+
+      - name: Check Python package changes come with a version bump
+        run: |
+          git fetch --quiet --unshallow --tags origin
+          python3 scripts/check_py_release_drift.py
+
       - name: Validate AirLLM bridge admission/timeout/context-ceiling regression behavior
         run: python3 tools/airllm-bridge/test_server.py -v
 
