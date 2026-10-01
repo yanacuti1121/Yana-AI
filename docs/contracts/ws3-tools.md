@@ -104,5 +104,26 @@ Trạng thái: **Implemented và Tested** cho T3 và T2; T1 CHƯA làm (chờ x�
 - **Chưa nối vào đâu:** không có chỗ gọi `web_search`, `apply_file_patch` ngoài test. Khi nối vào `src/mcp.rs` hoặc chat phải đi qua `authorize` và có test bị từ chối khi chưa duyệt (như `browser_fetch`). Do đó build in cảnh báo dead code cho các hàm này.
 - **Chưa kiểm chứng:** mạng thật và DNS thật; Windows; chuyển hướng rebind DNS (rủi ro chấp nhận, như `browser_fetch`); `is_special_purpose` cho các dải hiếm khác; phát hiện injection ngoài mẫu đã biết.
 
+## 13. Hiệu chỉnh và ghi chú đợt nối vào chat (2b)
+
+**Sửa mục 4 (đọc từ `lease.rs`, không phải đoán):** bộ khớp lease là **tiền tố theo token** (`command_matches`: các token của mục `allow` phải là phần đầu các token của văn bản lệnh), KHÔNG có ký tự đại diện. Vì vậy văn bản của cổng `mcp.call` là `"<server>"` hoặc `"<server> <tool>"` (cách nhau bằng dấu cách), không phải `server/tool`: `allow: ["github"]` phủ cả server, `allow: ["github search"]` chỉ một tool, `deny` thắng. Tên server chỉ gồm `a-z0-9_-` và tên tool chỉ gồm `A-Za-z0-9_.:-` (tối đa 64) để mỗi cái là đúng một token.
+
+**Lời nhắc duyệt cho `web.search`** (đã làm, nằm ở `src/chat/tui/`, không phải `src/runtime/`):
+- `web_search` chỉ được đưa cho mô hình khi có `.yana-ai/web-search.json`; không có thì danh sách công cụ y như cũ (test).
+- Hộp duyệt hiện, theo thứ tự: câu hỏi, **nơi nhận** (host kèm cổng), **có gửi khóa hay không** (tên biến, không bao giờ giá trị), rồi truy vấn (cắt một dòng). Phần do mô hình chọn đứng cuối để không đẩy hai dòng kia ra khỏi tầm nhìn. Reviewer bảo mật tìm ra lỗi thật: hộp mặc định chỉ cao 5 hàng (3 dòng), nên bản đầu tiên làm mất dòng "khóa". Hộp tìm kiếm nay cao 6 hàng; có test vẽ thật vào bộ đệm 80x6 (và một test chứng minh 5 hàng thì mất dòng truy vấn).
+- Host (kèm cổng) tối đa 60 ký tự và tên biến khóa tối đa 40; dài hơn thì từ chối thay vì hiện cụt.
+- Truy vấn được kiểm (`validate_query`: không rỗng, tối đa 300 ký tự, không ký tự điều khiển, không ký tự định dạng vô hình như đảo chiều văn bản hay độ rộng bằng không) **trước khi** hiện hay lưu, nên không thể giả dòng khác trong lời nhắc hay trong lý do lưu bền. Câu tóm tắt đặt nơi nhận và khóa trước, truy vấn sau cùng, được escape và đặt trong dấu nháy.
+- Khi bấm `y`, cấu hình được đọc lại và so với cái người duyệt đã thấy (host, **toàn bộ endpoint**, tên biến khóa); khác thì không chạy.
+- Đường từ xa/bền: lý do lưu kèm câu tóm tắt đó; `resume_turn` chỉ chạy khi câu tóm tắt tính lại **khớp đúng phần cuối** của lý do đã lưu, ngược lại trả kết quả bị từ chối cho mô hình mà không gọi bộ thực thi (test đầu cuối cả hai nhánh). Một lần tìm kiếm không thể công bố (chưa cấu hình, cấu hình sai, truy vấn xấu) thì không được dừng lại chờ duyệt mù.
+- Lệnh `authority pending-approvals` in ra đã thay ký tự điều khiển bằng `?`, vì lý do lưu bền đi thẳng ra terminal.
+- Đã mở rộng `PROTECTED_CONFIGS`: ngoài `web-search.json` và `mcp-servers.json` nay có cả `leases.json` và `pending-approvals.json` (một lần `file.write` được duyệt không thể tự cấp lease hay giả một phê duyệt).
+
+**Rủi ro còn lại, nói thẳng:**
+- **Cấu hình nằm trong repo.** Một repo lạ có thể kèm `.yana-ai/web-search.json` làm công cụ xuất hiện mà người dùng không làm gì, và có thể nêu tên một biến `YANA_SEARCH_*` mà người dùng đã đặt cho backend của riêng họ. Hàng rào duy nhất là hộp duyệt từng lần (nay hiện đúng host và biến khóa). Nên có bước xác nhận lần đầu cho cấu hình do repo cung cấp (băm cấu hình, lưu NGOÀI repo, kiểu `direnv allow`); em chưa làm vì cần quyết định thiết kế riêng. Cùng vấn đề, nặng hơn, với `mcp-servers.json`: nó chứa **lệnh sẽ được chạy**, nên hộp duyệt của T1 phải hiện nguyên dòng lệnh (`gateway::disclose`).
+- **`run_command`** (người duyệt từng lần) vẫn có thể ghi đè các tệp cấu hình đó. Bảo vệ khi ấy dựa vào việc lần tìm kiếm kế tiếp hiện đúng nơi nhận.
+- **TOCTOU còn lại rất hẹp:** cấu hình được đọc lại khi bấm `y`, rồi `web_search()` đọc một lần nữa để gửi. Khoảng giữa là mili giây, và kẻ tấn công cần quyền ghi tệp cục bộ đúng lúc đó. Chấp nhận, ghi lại.
+- Một backend có thể chép nguyên header `Authorization` vào thân JSON. `guard()` quét câu injection, không quét khóa bị lặp lại; chưa xử lý.
+- Windows: cách viết đường dẫn lạ (dấu chấm cuối, tên 8.3, `::$DATA`) trong `is_protected_config` chưa kiểm chứng. Liên kết cứng không đổi tệp gốc vì ghi bằng tệp tạm rồi đổi tên (đọc từ mã, chưa có test).
+
 ## 11. Chưa kiểm chứng
 Hành vi thật của `rmcp` client với server thật; cây phụ thuộc đầy đủ của `tokio-stream`; Windows (tiến trình con, kill); phát hiện injection ngoài các mẫu đã biết; đường truyền `duplex` có phản ánh đủ hành vi stdio thật hay không (sẽ thêm một test chạy tiến trình con thật bằng `sh`).

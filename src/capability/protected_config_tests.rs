@@ -14,6 +14,8 @@ fn workspace() -> (tempfile::TempDir, PathBuf) {
     std::fs::create_dir_all(root.join(".yana-ai")).unwrap();
     std::fs::write(root.join(".yana-ai/web-search.json"), ORIGINAL).unwrap();
     std::fs::write(root.join(".yana-ai/mcp-servers.json"), "{}").unwrap();
+    std::fs::write(root.join(".yana-ai/leases.json"), "[]").unwrap();
+    std::fs::write(root.join(".yana-ai/pending-approvals.json"), "[]").unwrap();
     std::fs::create_dir(root.join("docs")).unwrap();
     (outer, root)
 }
@@ -21,6 +23,8 @@ fn workspace() -> (tempfile::TempDir, PathBuf) {
 fn untouched(root: &std::path::Path) {
     assert_eq!(std::fs::read_to_string(root.join(".yana-ai/web-search.json")).unwrap(), ORIGINAL);
     assert_eq!(std::fs::read_to_string(root.join(".yana-ai/mcp-servers.json")).unwrap(), "{}");
+    assert_eq!(std::fs::read_to_string(root.join(".yana-ai/leases.json")).unwrap(), "[]");
+    assert_eq!(std::fs::read_to_string(root.join(".yana-ai/pending-approvals.json")).unwrap(), "[]");
 }
 
 fn refused(root: &std::path::Path, path: &str) {
@@ -44,6 +48,8 @@ fn the_plain_path_and_its_dot_and_dotdot_spellings_are_refused() {
         ".yana-ai/../.yana-ai/web-search.json",
         ".yana-ai/mcp-servers.json",
         "./.yana-ai/./mcp-servers.json",
+        ".yana-ai/leases.json",
+        ".yana-ai/pending-approvals.json",
     ] {
         refused(&root, path);
     }

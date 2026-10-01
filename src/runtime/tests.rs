@@ -426,6 +426,70 @@ fn resume_turn_completes_the_paused_call_and_continues_to_a_final_answer() {
     ));
 }
 
+/// Pauses a `web_search` call for approval the way the headless path does (the
+/// stored reason carries the disclosure), resolves it as allowed, optionally
+/// changes the search configuration, resumes, and reports how many times the
+/// executor ran and what result the model was given.
+fn resume_a_search(change_backend_before_resume: bool) -> (usize, String) {
+    let root = tempfile::tempdir().unwrap();
+    write_flock_marker(root.path());
+    std::fs::create_dir_all(root.path().join(".yana-ai")).unwrap();
+    let config = root.path().join(".yana-ai/web-search.json");
+    std::fs::write(&config, r#"{"endpoint":"https://good.example/q"}"#).unwrap();
+    let search = ToolCall { id: "s1".into(), name: "web_search".into(), arguments_json: r#"{"query":"rust release"}"#.into() };
+    let executor_calls = Arc::new(AtomicUsize::new(0));
+    let provider = Arc::new(MockProvider::new(
+        [MockResponse::Tool(search.clone()), MockResponse::Text(vec!["after"])],
+        Arc::new(AtomicUsize::new(0)),
+    ));
+    let executor = Arc::new(ApprovingExecutor { calls: Arc::clone(&executor_calls) });
+    let engine = TurnEngine::new(
+        Arc::clone(&provider) as Arc<dyn crate::model::provider::ChatProvider>,
+        Arc::new(YanaAuthorityChain),
+        Arc::clone(&executor) as Arc<dyn ToolExecutor>,
+    );
+    let TurnOutcome::AwaitingApproval { call, continuation_messages, tool_rounds, .. } =
+        engine.run(request(root.path()), &CancellationToken::default(), &mut |_| {}).unwrap()
+    else {
+        panic!("a web search must pause for approval");
+    };
+    let reason = crate::runtime::reason_with_disclosure(root.path(), &call, Some("yana_control_plane: needs approval".into())).unwrap();
+    assert!(reason.contains("good.example") && reason.contains("no API key is sent"), "{reason}");
+    let store = crate::runtime::PendingApprovalStore::for_root(root.path());
+    let created = store.create(request(root.path()).context, "mock-model".into(), None, continuation_messages, tool_rounds, call, reason, 20).unwrap();
+    let resolved = store.resolve(&created.approval_id, true, "human:test".into()).unwrap();
+    if change_backend_before_resume {
+        std::fs::write(&config, r#"{"endpoint":"https://evil.example/q"}"#).unwrap();
+    }
+    let outcome = crate::runtime::resume_turn(
+        &resolved,
+        Arc::clone(&provider) as Arc<dyn crate::model::provider::ChatProvider>,
+        Arc::clone(&executor) as Arc<dyn ToolExecutor>,
+        Vec::new(),
+        None,
+        &CancellationToken::default(),
+        &mut |_| {},
+    )
+    .unwrap();
+    let TurnOutcome::Completed { continuation_messages, .. } = outcome else { panic!("the resumed turn must finish") };
+    let given = continuation_messages.iter().rev().find_map(|m| m.tool_result.as_ref()).map(|r| r.output.clone()).unwrap_or_default();
+    (executor_calls.load(Ordering::SeqCst), given)
+}
+
+#[test]
+fn resuming_an_approved_search_runs_it_once_when_the_backend_is_unchanged() {
+    let (ran, given) = resume_a_search(false);
+    assert_eq!(ran, 1);
+    assert_eq!(given, "approved and executed");
+}
+
+#[test]
+fn resuming_an_approved_search_does_not_run_it_when_the_backend_changed_after_approval() {
+    let (ran, given) = resume_a_search(true);
+    assert_eq!(ran, 0, "the executor must not be reached");
+    assert!(given.contains("configuration changed since this was approved"), "{given}");
+}
+
 #[test]
 fn resume_turn_on_a_denied_decision_reports_the_decline_and_continues() {
     let root = tempfile::tempdir().unwrap();

@@ -19,8 +19,8 @@
 
 use crate::model::provider::{ChatMessage, ImageAttachment, Role};
 use crate::runtime::{
-    resume_turn, CancellationToken, PendingApprovalStore, RuntimeEvent, TurnContext, TurnEngine,
-    TurnOrigin, TurnOutcome, TurnRequest, YanaAuthorityChain,
+    reason_with_disclosure, resume_turn, CancellationToken, PendingApprovalStore, RuntimeEvent,
+    TurnContext, TurnEngine, TurnOrigin, TurnOutcome, TurnRequest, YanaAuthorityChain,
 };
 use crate::session_context::SessionContext;
 use anyhow::{Context, Result};
@@ -197,6 +197,8 @@ pub(super) fn dispatch(provider_name: String, model: Option<String>) -> Result<(
             ..
         } => {
             let store = PendingApprovalStore::for_root(&context.session.repo_root);
+            let reason = reason_with_disclosure(&context.session.repo_root, &call, approval_reason)
+                .context("cannot ask for approval: the search backend cannot be disclosed")?;
             let pending = store
                 .create(
                     context,
@@ -205,7 +207,7 @@ pub(super) fn dispatch(provider_name: String, model: Option<String>) -> Result<(
                     continuation_messages,
                     tool_rounds,
                     call,
-                    approval_reason.unwrap_or_else(|| "requires explicit human approval".to_string()),
+                    reason,
                     30,
                 )
                 .context("cannot persist pending approval")?;
@@ -293,6 +295,8 @@ pub(super) fn dispatch_resume(provider_name: String) -> Result<()> {
             // capability right after the first) — pause again, the exact
             // same way the original dispatch does, rather than crash.
             let store = PendingApprovalStore::for_root(&resolved.context.session.repo_root);
+            let reason = reason_with_disclosure(&resolved.context.session.repo_root, &call, approval_reason)
+                .context("cannot ask for approval: the search backend cannot be disclosed")?;
             let pending = store
                 .create(
                     resolved.context.clone(),
@@ -301,7 +305,7 @@ pub(super) fn dispatch_resume(provider_name: String) -> Result<()> {
                     continuation_messages,
                     tool_rounds,
                     call,
-                    approval_reason.unwrap_or_else(|| "requires explicit human approval".to_string()),
+                    reason,
                     30,
                 )
                 .context("cannot persist pending approval")?;

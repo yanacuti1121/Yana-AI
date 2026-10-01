@@ -103,6 +103,24 @@ impl App {
             return;
         };
         let call = match &pending {
+            PendingApproval::WebSearch { disclosure, .. } => {
+                // The approver saw this host and key variable. If the search
+                // configuration changed since, what they approved is gone.
+                let root = self.session_context().repo_root;
+                if crate::capability::web_search::disclose(&root).as_ref() != Ok(disclosure) {
+                    self.push_tool_result(
+                        &pending.call().id,
+                        "blocked during execution revalidation: the search backend configuration changed since approval; please retry"
+                            .to_string(),
+                        true,
+                        true,
+                    );
+                    self.continue_after_tool_result();
+                    return;
+                }
+                let PendingApproval::WebSearch { call, .. } = pending else { unreachable!() };
+                call
+            }
             PendingApproval::Command {
                 argv, command, ..
             } => {

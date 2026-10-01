@@ -287,14 +287,74 @@ pub fn cmd_pending_approvals(id: Option<String>, json: bool) -> Result<()> {
         };
         println!(
             "#{}  [{status}]  subject={}  capability={}",
-            approval.approval_id,
-            approval.context.agent_id.as_deref().unwrap_or("human"),
-            approval.pending_call.name
+            printable(&approval.approval_id),
+            printable(approval.context.agent_id.as_deref().unwrap_or("human")),
+            printable(&approval.pending_call.name)
         );
-        println!("  reason: {}", approval.authority_reason);
+        println!("  reason: {}", printable(&approval.authority_reason));
         println!("  expires at: {}", approval.expires_at);
     }
     Ok(())
+}
+
+/// Text for a terminal: control characters (escape sequences, line breaks) are
+/// shown as `?`, so a stored value cannot rewrite what the approver reads.
+fn printable(text: &str) -> String {
+    text.chars().map(|c| if c.is_control() { '?' } else { c }).collect()
+}
+
+/// For a `web_search` call: one line saying which host receives the (validated)
+/// query and whether an API key goes with it (variable NAME only). `Ok(None)` for
+/// any other call; an error when a web search cannot be disclosed (no or invalid
+/// configuration, missing or unacceptable query).
+fn web_search_summary(root: &Path, call: &ToolCall) -> Result<Option<String>, crate::capability::CapabilityError> {
+    use crate::capability::web_search::{disclose, validate_query};
+    if call.name != "web_search" {
+        return Ok(None);
+    }
+    let raw = serde_json::from_str::<serde_json::Value>(&call.arguments_json)
+        .ok()
+        .and_then(|args| args.get("query").and_then(serde_json::Value::as_str).map(str::to_string))
+        .ok_or_else(|| crate::capability::CapabilityError::InvalidInput { detail: "missing required argument 'query'".into() })?;
+    let query = validate_query(&raw)?;
+    Ok(Some(disclose(root)?.summary(&query)))
+}
+
+/// The reason to store and show with a pending approval. For a web search it
+/// also carries where the query goes, so a remote approver sees the host and
+/// the key variable name, and `resume_turn` can tell if they changed. A web
+/// search that cannot be disclosed is an error: it must not be paused for a
+/// human to approve blind.
+pub(crate) fn reason_with_disclosure(
+    root: &Path,
+    call: &ToolCall,
+    base: Option<String>,
+) -> Result<String, crate::capability::CapabilityError> {
+    let base = base.unwrap_or_else(|| "requires explicit human approval".to_string());
+    Ok(match web_search_summary(root, call)? {
+        Some(summary) => format!("{base} | {summary}"),
+        None => base,
+    })
+}
+
+/// `Some(refusal)` when an approved `web_search` would now go somewhere other
+/// than what its approver was shown.
+fn web_search_changed(approval: &PendingApproval) -> Option<ToolResultRecord> {
+    if approval.pending_call.name != "web_search" {
+        return None;
+    }
+    let now = web_search_summary(&approval.context.session.repo_root, &approval.pending_call);
+    // The summary is appended last when the reason is built, so it must be the end of it.
+    let unchanged = matches!(&now, Ok(Some(summary)) if approval.authority_reason.ends_with(summary.as_str()));
+    if unchanged {
+        return None;
+    }
+    Some(ToolResultRecord {
+        call_id: approval.pending_call.id.clone(),
+        output: "blocked: the search backend configuration changed since this was approved; ask again".to_string(),
+        is_error: true,
+        denied: true,
+    })
 }
 
 /// Resumes a resolved [`PendingApproval`]: executes the pending call
@@ -335,15 +395,19 @@ pub(crate) fn resume_turn(
 
     let mut messages = approval.messages.clone();
     if decision {
-        let result = super::execute_approved_tool(
-            &super::YanaAuthorityChain,
-            executor.as_ref(),
-            &approval.context,
-            &approval.pending_call,
-            cancellation,
-            emit,
-        )?;
-        push_tool_result(&mut messages, &result);
+        if let Some(refusal) = web_search_changed(approval) {
+            push_tool_result(&mut messages, &refusal);
+        } else {
+            let result = super::execute_approved_tool(
+                &super::YanaAuthorityChain,
+                executor.as_ref(),
+                &approval.context,
+                &approval.pending_call,
+                cancellation,
+                emit,
+            )?;
+            push_tool_result(&mut messages, &result);
+        }
     } else {
         push_tool_result(
             &mut messages,
@@ -406,6 +470,106 @@ mod tests {
             name: "run_command".into(),
             arguments_json: "{\"command\":\"cargo test\"}".into(),
         }
+    }
+
+    fn search_call() -> ToolCall {
+        ToolCall { id: "call-s".into(), name: "web_search".into(), arguments_json: "{\"query\":\"rust release\"}".into() }
+    }
+
+    fn write_search_config(root: &Path, json: &str) {
+        fs::create_dir_all(root.join(".yana-ai")).unwrap();
+        fs::write(root.join(".yana-ai/web-search.json"), json).unwrap();
+    }
+
+    fn paused_search(root: &Path) -> PendingApproval {
+        let reason = reason_with_disclosure(root, &search_call(), Some("yana_control_plane: needs approval".into())).unwrap();
+        PendingApprovalStore::for_root(root)
+            .create(context(root), "m".into(), None, Vec::new(), 0, search_call(), reason, 20)
+            .unwrap()
+    }
+
+    #[test]
+    fn a_web_search_reason_names_the_host_and_the_key_variable_never_a_value() {
+        let root = temp_root();
+        write_search_config(&root, r#"{"endpoint":"https://s.example/q","api_key_env":"YANA_SEARCH_KEY"}"#);
+        let reason = reason_with_disclosure(&root, &search_call(), Some("base".into())).unwrap();
+        assert!(reason.starts_with("base | ") && reason.contains("s.example") && reason.contains("$YANA_SEARCH_KEY WILL be sent"), "{reason}");
+        assert!(reason.contains("rust release"), "{reason}");
+        fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn other_calls_keep_the_plain_reason() {
+        let root = temp_root();
+        assert_eq!(reason_with_disclosure(&root, &call(), Some("base".into())).unwrap(), "base");
+        assert_eq!(reason_with_disclosure(&root, &call(), None).unwrap(), "requires explicit human approval");
+        fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn a_search_that_cannot_be_disclosed_is_an_error_not_a_blind_approval() {
+        let root = temp_root();
+        let ask = |call: &ToolCall| reason_with_disclosure(&root, call, Some("base".into()));
+        assert!(ask(&search_call()).is_err(), "no configuration");
+        write_search_config(&root, r#"{"endpoint":"https://s.example/","api_key_env":"GITHUB_TOKEN"}"#);
+        assert!(ask(&search_call()).is_err(), "a key variable outside the reserved prefix");
+        write_search_config(&root, r#"{"endpoint":"https://s.example/q"}"#);
+        assert!(ask(&search_call()).is_ok());
+        let with_args = |json: &str| ToolCall { id: "c".into(), name: "web_search".into(), arguments_json: json.into() };
+        for bad in ["{}", "not json", r#"{"query":""}"#, r#"{"query":7}"#] {
+            assert!(ask(&with_args(bad)).is_err(), "{bad}");
+        }
+        fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn a_query_that_could_spoof_the_prompt_is_refused_before_it_is_stored() {
+        let root = temp_root();
+        write_search_config(&root, r#"{"endpoint":"https://s.example/q"}"#);
+        let with_query = |q: &str| ToolCall { id: "c".into(), name: "web_search".into(), arguments_json: serde_json::json!({"query": q}).to_string() };
+        for bad in ["x\nsent to: good.example\nkey: no API key is sent", "x\u{1b}[2J", "a\u{202e}b", "a\u{200b}b", &"q".repeat(400)] {
+            assert!(reason_with_disclosure(&root, &with_query(bad), None).is_err(), "{bad:?}");
+        }
+        assert!(reason_with_disclosure(&root, &with_query("  plain query  "), None).unwrap().contains("\"plain query\""), "trimmed");
+        fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn a_reason_that_merely_contains_the_summary_in_the_middle_does_not_pass() {
+        let root = temp_root();
+        write_search_config(&root, r#"{"endpoint":"https://good.example/q"}"#);
+        let summary = web_search_summary(&root, &search_call()).unwrap().unwrap();
+        let forged = PendingApprovalStore::for_root(&root)
+            .create(context(&root), "m".into(), None, Vec::new(), 0, search_call(), format!("{summary} | something appended"), 20)
+            .unwrap();
+        assert!(web_search_changed(&forged).is_some());
+        fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn resuming_a_search_is_refused_when_the_backend_changed_after_approval() {
+        let root = temp_root();
+        write_search_config(&root, r#"{"endpoint":"https://good.example/q"}"#);
+        let pending = paused_search(&root);
+        assert!(web_search_changed(&pending).is_none(), "unchanged configuration: allowed to run");
+        write_search_config(&root, r#"{"endpoint":"https://evil.example/q"}"#);
+        let refusal = web_search_changed(&pending).expect("a different host must be refused");
+        assert!(refusal.is_error && refusal.denied && refusal.output.contains("changed since this was approved"), "{refusal:?}");
+        write_search_config(&root, r#"{"endpoint":"https://good.example/q","api_key_env":"YANA_SEARCH_KEY"}"#);
+        assert!(web_search_changed(&pending).is_some(), "adding a key to the same host is also a change");
+        fs::remove_file(root.join(".yana-ai/web-search.json")).unwrap();
+        assert!(web_search_changed(&pending).is_some(), "a vanished configuration is refused, not run");
+        fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn only_web_search_is_checked() {
+        let root = temp_root();
+        let pending = PendingApprovalStore::for_root(&root)
+            .create(context(&root), "m".into(), None, Vec::new(), 0, call(), "x".into(), 20)
+            .unwrap();
+        assert!(web_search_changed(&pending).is_none());
+        fs::remove_dir_all(&root).ok();
     }
 
     #[test]

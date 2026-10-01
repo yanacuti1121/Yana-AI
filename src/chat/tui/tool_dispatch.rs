@@ -94,6 +94,13 @@ impl ToolExecutor for ChatCapabilityExecutor {
                 let session_id = approved.context().session.session_id.clone();
                 file_write_result(call, approved.context(), session_id, true)
             }
+            "web_search" => match parse_string_arg(&call.arguments_json, "query") {
+                Some(query) => match crate::capability::web_search::web_search(&approved.context().session.repo_root, &query) {
+                    Ok(answer) => tool_result(call, answer, false, false),
+                    Err(error) => tool_result(call, format!("search failed: {error}"), true, false),
+                },
+                None => tool_result(call, "missing required argument 'query'".to_string(), true, false),
+            },
             other => tool_result(
                 call,
                 format!("approved executor does not support '{other}'"),
@@ -189,6 +196,7 @@ impl App {
             "run_command" => self.prepare_command_approval(call),
             "write_file" => self.prepare_write_file_approval(call, false),
             "write_config" => self.prepare_write_file_approval(call, true),
+            "web_search" => self.prepare_web_search_approval(call),
             other => {
                 self.push_tool_result(
                     &call.id,
@@ -196,6 +204,36 @@ impl App {
                     true,
                     true,
                 );
+                self.continue_after_tool_result();
+            }
+        }
+    }
+
+    /// The query leaves this machine, so the prompt must say where it goes and
+    /// whether a key goes with it. A missing or invalid search configuration
+    /// never reaches `AwaitingApproval`: the model is told why instead.
+    fn prepare_web_search_approval(&mut self, call: ToolCall) {
+        let Some(raw_query) = parse_string_arg(&call.arguments_json, "query") else {
+            self.push_tool_result(&call.id, "missing required argument 'query'".to_string(), true, false);
+            self.continue_after_tool_result();
+            return;
+        };
+        // Validated before anything is shown: a query that could never run, or
+        // that could spoof the prompt's other lines, never reaches the approver.
+        let query = match crate::capability::web_search::validate_query(&raw_query) {
+            Ok(query) => query,
+            Err(error) => {
+                self.push_tool_result(&call.id, format!("cannot search: {error}"), true, false);
+                self.continue_after_tool_result();
+                return;
+            }
+        };
+        match crate::capability::web_search::disclose(&self.session_context().repo_root) {
+            Ok(disclosure) => {
+                self.turn = TurnState::AwaitingApproval(PendingApproval::WebSearch { call, query, disclosure });
+            }
+            Err(error) => {
+                self.push_tool_result(&call.id, format!("cannot search: {error}"), true, false);
                 self.continue_after_tool_result();
             }
         }
@@ -565,6 +603,120 @@ mod tests {
         );
         assert_eq!(result.output, "hello");
         assert!(!result.is_error);
+    }
+
+    fn search_call(args: &str) -> ToolCall {
+        ToolCall { id: "call-s".into(), name: "web_search".into(), arguments_json: args.into() }
+    }
+
+    fn app_in(root: &std::path::Path) -> App {
+        let mut app = app();
+        app.repo_root = root.to_path_buf();
+        // Past the round ceiling, so error paths stop at the guard instead of starting a turn.
+        app.tool_rounds.set_rounds(9);
+        app
+    }
+
+    fn write_search_config(root: &std::path::Path, json: &str) {
+        std::fs::create_dir_all(root.join(".yana-ai")).unwrap();
+        std::fs::write(root.join(".yana-ai/web-search.json"), json).unwrap();
+    }
+
+    fn last_tool_result(app: &App) -> crate::model::tool::ToolResultRecord {
+        app.history.last().and_then(|m| m.tool_result.clone()).expect("a tool result was recorded")
+    }
+
+    #[test]
+    fn a_web_search_waits_for_approval_showing_the_host_and_the_key_variable() {
+        let root = tempfile::tempdir().unwrap();
+        write_search_config(root.path(), r#"{"endpoint":"https://s.example/q","api_key_env":"YANA_SEARCH_KEY"}"#);
+        let mut app = app_in(root.path());
+        app.prepare_pending_approval(search_call(r#"{"query":"rust release"}"#));
+        match &app.turn {
+            TurnState::AwaitingApproval(pending @ PendingApproval::WebSearch { query, disclosure, .. }) => {
+                assert_eq!(query, "rust release");
+                assert_eq!(disclosure.backend_host, "s.example");
+                assert_eq!(disclosure.key_variable.as_deref(), Some("YANA_SEARCH_KEY"));
+                assert!(pending.summary_line().contains("s.example"));
+                assert!(!pending.is_guard_denied());
+            }
+            _ => panic!("expected AwaitingApproval(WebSearch), status: {}", app.status),
+        }
+    }
+
+    #[test]
+    fn a_web_search_that_cannot_be_disclosed_never_reaches_the_approval_prompt() {
+        let root = tempfile::tempdir().unwrap();
+        let mut none = app_in(root.path());
+        none.prepare_pending_approval(search_call(r#"{"query":"x"}"#));
+        assert!(matches!(none.turn, TurnState::Idle));
+        let result = last_tool_result(&none);
+        assert!(result.is_error && result.output.contains("not configured"), "{result:?}");
+        write_search_config(root.path(), r#"{"endpoint":"https://s.example/","api_key_env":"GITHUB_TOKEN"}"#);
+        let mut wrong_key = app_in(root.path());
+        wrong_key.prepare_pending_approval(search_call(r#"{"query":"x"}"#));
+        assert!(matches!(wrong_key.turn, TurnState::Idle));
+        assert!(last_tool_result(&wrong_key).output.contains("YANA_SEARCH_"));
+        let mut no_query = app_in(root.path());
+        no_query.prepare_pending_approval(search_call("{}"));
+        assert!(matches!(no_query.turn, TurnState::Idle));
+        assert!(last_tool_result(&no_query).output.contains("missing required argument 'query'"));
+    }
+
+    #[test]
+    fn approving_a_search_after_the_backend_changed_is_refused_without_any_request() {
+        use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        let root = tempfile::tempdir().unwrap();
+        write_search_config(root.path(), r#"{"endpoint":"https://good.example/q"}"#);
+        let mut app = app_in(root.path());
+        app.prepare_pending_approval(search_call(r#"{"query":"x"}"#));
+        assert!(matches!(app.turn, TurnState::AwaitingApproval(_)));
+        write_search_config(root.path(), r#"{"endpoint":"https://evil.example/q"}"#);
+        app.handle_approval_key(KeyEvent::new(KeyCode::Char('y'), KeyModifiers::NONE));
+        assert!(matches!(app.turn, TurnState::Idle), "nothing is executing");
+        let result = last_tool_result(&app);
+        assert!(result.is_error && result.denied && result.output.contains("changed since approval"), "{result:?}");
+    }
+
+    #[test]
+    fn declining_a_search_records_a_denial_and_sends_nothing() {
+        use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        let root = tempfile::tempdir().unwrap();
+        write_search_config(root.path(), r#"{"endpoint":"https://good.example/q"}"#);
+        let mut app = app_in(root.path());
+        app.prepare_pending_approval(search_call(r#"{"query":"x"}"#));
+        app.handle_approval_key(KeyEvent::new(KeyCode::Char('n'), KeyModifiers::NONE));
+        assert!(matches!(app.turn, TurnState::Idle));
+        assert!(last_tool_result(&app).output.contains("declined"));
+    }
+
+    #[test]
+    fn the_approved_executor_runs_the_search_capability_and_reports_its_error_text() {
+        // No backend configured: the capability itself refuses before any request,
+        // which proves the approved path reaches it without touching the network.
+        let root = tempfile::tempdir().unwrap();
+        let executor = ChatCapabilityExecutor::new(false);
+        let result = execute_approved_tool(
+            &YanaAuthorityChain,
+            &executor,
+            &context(root.path()),
+            &search_call(r#"{"query":"x"}"#),
+            &CancellationToken::default(),
+            &mut |_| {},
+        )
+        .unwrap();
+        assert!(result.is_error && result.output.contains("search failed") && result.output.contains("not configured"), "{result:?}");
+        let missing = execute_approved_tool(&YanaAuthorityChain, &executor, &context(root.path()), &search_call("{}"), &CancellationToken::default(), &mut |_| {}).unwrap();
+        assert!(missing.output.contains("missing required argument 'query'"));
+    }
+
+    #[test]
+    fn a_search_is_never_executed_without_approval() {
+        let root = tempfile::tempdir().unwrap();
+        write_search_config(root.path(), r#"{"endpoint":"https://good.example/q"}"#);
+        let result = ChatCapabilityExecutor::new(false).execute(&context(root.path()), &search_call(r#"{"query":"x"}"#));
+        assert!(result.is_error, "the unapproved executor path must not run it: {result:?}");
+        assert!(result.output.contains("no implementation") && !result.output.contains("good.example"), "{result:?}");
     }
 
     #[test]

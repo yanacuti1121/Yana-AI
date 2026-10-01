@@ -96,6 +96,15 @@ enum PendingApproval {
         /// against a stale diff.
         diff: crate::capability::FileMutationDiff,
     },
+    /// A `web_search` call. `disclosure` is what the approver was shown (host
+    /// that receives the query, and the NAME of the key variable if one is
+    /// sent, never a value); `approval.rs` recomputes it at `y` and refuses to
+    /// run if the backend configuration changed in between.
+    WebSearch {
+        call: crate::model::tool::ToolCall,
+        query: String,
+        disclosure: crate::capability::web_search::SearchDisclosure,
+    },
 }
 
 impl PendingApproval {
@@ -103,6 +112,7 @@ impl PendingApproval {
         match self {
             PendingApproval::Command { call, .. } => call,
             PendingApproval::FileWrite { call, .. } => call,
+            PendingApproval::WebSearch { call, .. } => call,
         }
     }
 
@@ -118,6 +128,11 @@ impl PendingApproval {
                     crate::capability::FileMutationKind::Overwrite => "overwrite",
                 };
                 format!("{verb} {path}")
+            }
+            PendingApproval::WebSearch { query, disclosure, .. } => {
+                // The host first: the query is model-chosen and may be long.
+                let shown: String = query.chars().take(30).collect();
+                format!("search via {}: {shown}", disclosure.backend_host)
             }
         }
     }

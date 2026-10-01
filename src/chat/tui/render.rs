@@ -12,7 +12,7 @@ use super::super::banner;
 use super::super::provider::{ProviderHealth, Role};
 use super::super::settings::ThemeName;
 use super::sidebar;
-use super::{App, TurnState};
+use super::{App, PendingApproval, TurnState};
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span, Text};
@@ -79,7 +79,11 @@ pub fn draw_ui(frame: &mut Frame, app: &mut App) {
         header_inner_w,
     );
     let header_height = header_lines.len() as u16 + 1;
-    let input_height = if matches!(app.turn, TurnState::AwaitingApproval(_)) {
+    let input_height = if matches!(app.turn, TurnState::AwaitingApproval(PendingApproval::WebSearch { .. })) {
+        // Title, destination, key, query: all four must be visible (see
+        // `render_tools::web_search_prompt_lines`).
+        render_tools::WEB_SEARCH_PROMPT_HEIGHT
+    } else if matches!(app.turn, TurnState::AwaitingApproval(_)) {
         5
     } else {
         (app.input.line_count() + 2).clamp(3, 8)

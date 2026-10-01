@@ -179,13 +179,48 @@ fn config_dir(json: &str) -> (tempfile::TempDir, std::path::PathBuf) {
 fn the_disclosure_names_the_host_and_whether_a_key_goes_with_the_query() {
     let (_a, plain) = config_dir(r#"{"endpoint":"https://Search.Example:8443/path"}"#);
     let d = disclose(&plain).unwrap();
-    assert_eq!(d, SearchDisclosure { backend_host: "search.example".into(), key_variable: None });
-    assert!(d.summary("rust").contains("search.example") && d.summary("rust").contains("no API key is sent"));
+    assert_eq!(d, SearchDisclosure { backend_host: "search.example:8443".into(), endpoint: "https://search.example:8443/path".into(), key_variable: None });
+    assert!(d.summary("rust").contains("https://search.example:8443/path") && d.summary("rust").contains("no API key is sent"));
     let (_b, keyed) = config_dir(r#"{"endpoint":"https://s.example/","api_key_env":"YANA_SEARCH_KEY"}"#);
     let d = disclose(&keyed).unwrap();
     assert_eq!(d.key_variable.as_deref(), Some("YANA_SEARCH_KEY"));
     let line = d.summary("rust");
     assert!(line.contains("s.example") && line.contains("$YANA_SEARCH_KEY WILL be sent"), "{line}");
+}
+
+#[test]
+fn the_summary_puts_the_destination_and_key_first_and_the_query_last_escaped() {
+    let (_a, keyed) = config_dir(r#"{"endpoint":"https://s.example/q?token=1#frag","api_key_env":"YANA_SEARCH_KEY"}"#);
+    let d = disclose(&keyed).unwrap();
+    assert_eq!(d.endpoint, "https://s.example/q", "no query string or fragment in what is disclosed");
+    let spoof = "a\": the query goes to docs.python.org; no API key is sent | web search: query: \"b";
+    let line = d.summary(spoof);
+    let to = line.find("https://s.example/q").unwrap();
+    let key = line.find("$YANA_SEARCH_KEY WILL be sent").unwrap();
+    let query = line.find("query: \"a\\\"").unwrap();
+    assert!(to < key && key < query, "{line}");
+    assert!(!line[..query].contains("docs.python.org"), "nothing the query says appears before the real facts: {line}");
+}
+
+#[test]
+fn a_host_or_key_name_too_long_to_show_whole_is_refused() {
+    let long_host = format!(r#"{{"endpoint":"https://{}.example/"}}"#, "h".repeat(70));
+    let (_a, long) = config_dir(&long_host);
+    assert!(disclose(&long).is_err(), "a prompt could not show this host whole");
+    let long_key = format!(r#"{{"endpoint":"https://s.example/","api_key_env":"YANA_SEARCH_{}"}}"#, "K".repeat(40));
+    let (_b, key) = config_dir(&long_key);
+    assert!(disclose(&key).is_err());
+    let ok_host = format!(r#"{{"endpoint":"https://{}.example/"}}"#, "h".repeat(40));
+    let (_c, ok) = config_dir(&ok_host);
+    assert!(disclose(&ok).is_ok());
+}
+
+#[test]
+fn invisible_formatting_characters_are_refused_in_a_query() {
+    for bad in ["a\u{202e}b", "a\u{200b}b", "a\u{2066}b", "\u{feff}a", "a\u{200f}"] {
+        assert!(validate_query(bad).is_err(), "{bad:?}");
+    }
+    assert_eq!(validate_query("  日本語 query  ").unwrap(), "日本語 query");
 }
 
 #[test]
