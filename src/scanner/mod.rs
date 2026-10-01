@@ -2,6 +2,8 @@
 mod audit_tests;
 #[cfg(test)]
 mod diff_tests;
+#[cfg(test)]
+mod precision_tests;
 pub mod files;
 mod matchers;
 #[cfg(test)]
