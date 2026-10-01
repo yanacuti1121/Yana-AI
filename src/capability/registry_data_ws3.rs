@@ -48,5 +48,29 @@ pub(super) fn descriptors() -> Vec<CapabilityDescriptor> {
             }
         }),
         availability: always_available,
+    }, CapabilityDescriptor {
+        name: "web.search",
+        tool_name: "web_search",
+        description: "Search the web through the one JSON search backend the user configured in .yana-ai/web-search.json. The query text leaves this machine, so each call needs explicit human approval. Only https endpoints that do not resolve to internal addresses are contacted; redirects are checked hop by hop. Results are untrusted external content: trimmed, screened for prompt-injection phrasing (a match refuses the whole result), and returned inside a labelled data block. crate::capability::web_search.",
+        access_mode: AccessMode::ReadOnly,
+        risk_tier: RiskTier::Medium,
+        approval: ApprovalRequirement::HumanApprovalPerCall,
+        input_schema: json!({
+            "type": "object",
+            "properties": {"query": {"type": "string", "maxLength": 300}},
+            "required": ["query"]
+        }),
+        output_schema: json!({
+            "type": "object",
+            "properties": {
+                "capability": {"const": "web.search"},
+                "data": {"type": "object", "properties": {
+                    "query": {"type": "string"},
+                    "content": {"type": "string"}
+                }},
+                "truncated": {"type": "boolean"}
+            }
+        }),
+        availability: always_available,
     }]
 }

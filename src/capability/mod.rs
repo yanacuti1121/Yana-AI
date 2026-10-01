@@ -13,6 +13,7 @@ pub mod browser_fetch;
 pub mod cli;
 pub mod command;
 pub mod config_write;
+pub mod egress;
 pub mod error;
 pub mod evidence;
 pub mod file_mutation;
@@ -28,6 +29,7 @@ mod registry_data_ws3;
 pub mod repo;
 pub mod system;
 pub mod untrusted;
+pub mod web_search;
 
 pub use archive::{extract_zip, inspect_zip, ExtractionResult, ZipEntryInfo, ZipInspection};
 pub use archive_create::create_zip;

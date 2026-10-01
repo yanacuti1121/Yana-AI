@@ -103,15 +103,15 @@ mod tests {
     }
 
     #[test]
-    fn all_fourteen_descriptors_present() {
-        assert_eq!(Manifest::all().descriptors.len(), 14);
+    fn all_fifteen_descriptors_present() {
+        assert_eq!(Manifest::all().descriptors.len(), 15);
     }
 
     #[test]
     fn descriptors_accessor_returns_every_descriptor_unfiltered() {
         // Unlike available(ctx), which filters — the Permission Inspector
         // needs the full list including currently-unavailable capabilities.
-        assert_eq!(Manifest::all().descriptors().len(), 14);
+        assert_eq!(Manifest::all().descriptors().len(), 15);
     }
 
     #[test]
@@ -221,9 +221,9 @@ mod tests {
         let manifest = Manifest::all();
         let available = manifest.available(&ctx());
         // On unix test runners, process.* stay available; on non-unix they
-        // wouldn't be. Either way, count must be <= 14 and repo.read must
+        // wouldn't be. Either way, count must be <= 15 and repo.read must
         // always be present.
-        assert!(available.len() <= 14);
+        assert!(available.len() <= 15);
         assert!(available.iter().any(|d| d.name == "repo.read"));
     }
 }
