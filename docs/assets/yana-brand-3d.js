@@ -5,6 +5,7 @@
   if (!hero || !stage) return;
   const canvas = document.createElement('canvas');
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const lifetime = new AbortController();
   canvas.className = 'yana-brand-hero__canvas';
   canvas.setAttribute('role', 'img');
   canvas.setAttribute('tabindex', '0');
@@ -28,6 +29,7 @@
     uniform vec2 uRotation;
     uniform float uAspect;
     uniform float uFlow;
+    uniform float uScroll;
     varying vec3 vNormal;
     varying vec3 vPosition;
     varying float vRim;
@@ -40,7 +42,7 @@
       vNormal=normalize(rotateY(rotateX(aNormal,uRotation.x),uRotation.y));
       vPosition=p;
       vRim=aRim;
-      float depth=5.0-p.z;
+      float depth=5.0+uScroll*0.55-p.z;
       float scale=2.95;
       gl_Position=vec4(p.x*scale/uAspect,p.y*scale,depth-0.2,depth);
     }`;
@@ -49,10 +51,11 @@
     varying vec3 vNormal;
     varying vec3 vPosition;
     varying float vRim;
+    uniform float uScroll;
     void main(){
       vec3 n=normalize(vNormal);
       vec3 view=normalize(vec3(0.0,0.0,1.0));
-      vec3 light=normalize(vec3(-0.45,0.78,0.72));
+      vec3 light=normalize(vec3(-0.45+uScroll*0.7,0.78-uScroll*0.25,0.72));
       vec3 fill=normalize(vec3(0.84,-0.28,0.45));
       float diffuse=max(dot(n,light),0.0)*0.16+max(dot(n,fill),0.0)*0.08;
       float fresnel=pow(1.0-max(dot(n,view),0.0),2.0);
@@ -88,10 +91,12 @@
   const rotation = gl.getUniformLocation(program, 'uRotation');
   const aspect = gl.getUniformLocation(program, 'uAspect');
   const flow = gl.getUniformLocation(program, 'uFlow');
+  const scroll = gl.getUniformLocation(program, 'uScroll');
   let vertices = 0, visible = true, pending = 0, lastFrame = 0;
   let revealStart = 0, revealPlayed = false, revealTimer = 0;
   let introReady = !document.querySelector('.yana-opening');
   let rx = -0.12, ry = -0.27, drag = null;
+  let scrollProgress = 0, meshBuffer = null;
   const resize = () => {
     const box = canvas.getBoundingClientRect();
     const density = Math.min(devicePixelRatio || 1, 1.25);
@@ -110,8 +115,9 @@
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     const elapsed = revealStart ? Math.min((now - revealStart) / 1000, 3) : 3;
     const ease = Math.pow(1 - Math.min(elapsed / 3, 1), 3);
-    gl.uniform2f(rotation, rx + ease * .22, ry - ease * .78);
+    gl.uniform2f(rotation, rx + scrollProgress * .16 + ease * .22, ry + scrollProgress * .7 - ease * .78);
     gl.uniform1f(flow, elapsed);
+    gl.uniform1f(scroll, scrollProgress);
     gl.uniform1f(aspect, canvas.width / canvas.height);
     gl.drawArrays(gl.TRIANGLES, 0, vertices);
     stage.classList.add('is-3d-ready');
@@ -121,14 +127,14 @@
     } else if (elapsed >= 3) revealStart = 0;
   };
   const queue = () => { if (!pending && visible && !document.hidden) pending = requestAnimationFrame(draw); };
-  fetch('assets/yana-brand-mesh.bin?v=9').then(response => {
+  fetch('assets/yana-brand-mesh.bin?v=9', { signal: lifetime.signal }).then(response => {
     if (!response.ok) throw new Error('Mesh unavailable');
     return response.arrayBuffer();
   }).then(data => {
     const floats = new Float32Array(data);
     if (floats.length % 7) throw new Error('Invalid mesh');
-    const buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    meshBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, meshBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, floats, gl.STATIC_DRAW);
     gl.enableVertexAttribArray(position);
     gl.vertexAttribPointer(position, 3, gl.FLOAT, false, 28, 0);
@@ -139,15 +145,23 @@
     vertices = floats.length / 7;
     if (visible && introReady && !reducedMotion) { revealStart = performance.now(); revealPlayed = true; }
     queue();
-  }).catch(() => { canvas.remove(); shadow.remove(); });
+  }).catch(() => { if (!lifetime.signal.aborted) { canvas.remove(); shadow.remove(); } });
 
-  new IntersectionObserver(entries => {
+  const intersectionObserver = new IntersectionObserver(entries => {
     visible = Boolean(entries[0]?.isIntersecting);
     if (visible && vertices && introReady && !revealPlayed && !reducedMotion) { revealStart = performance.now(); revealPlayed = true; }
     if (visible) queue();
-  }, { threshold: 0 }).observe(hero);
-  new ResizeObserver(queue).observe(stage);
-  document.addEventListener('visibilitychange', queue);
+  }, { threshold: 0 });
+  intersectionObserver.observe(hero);
+  const resizeObserver = new ResizeObserver(queue);
+  resizeObserver.observe(stage);
+  document.addEventListener('visibilitychange', queue, { signal: lifetime.signal });
+  window.addEventListener('yana:brand-scroll', event => {
+    const next = Math.max(0, Math.min(1, Number(event.detail?.progress) || 0));
+    if (reducedMotion || next === scrollProgress) return;
+    scrollProgress = next;
+    queue();
+  }, { signal: lifetime.signal });
   document.addEventListener('yana:opening-complete', () => {
     introReady = true;
     if (visible && vertices && !revealPlayed && !reducedMotion) {
@@ -155,7 +169,7 @@
       revealPlayed = true;
       queue();
     }
-  });
+  }, { signal: lifetime.signal });
   hero.addEventListener('pointerdown', event => {
     if (document.body.classList.contains('yana-navigation-open') || document.body.classList.contains('yana-search-open')) return;
     if (!vertices || event.target.closest('a,button')) return;
@@ -167,7 +181,7 @@
     hero.setPointerCapture(event.pointerId);
     hero.classList.add('is-dragging-brand');
     event.preventDefault();
-  });
+  }, { signal: lifetime.signal });
   hero.addEventListener('pointermove', event => {
     if (document.body.classList.contains('yana-navigation-open') || document.body.classList.contains('yana-search-open')) {
       if (drag && hero.hasPointerCapture(drag.id)) hero.releasePointerCapture(drag.id);
@@ -179,10 +193,10 @@
     ry = Math.max(-1.15, Math.min(1.15, drag.ry + (event.clientX - drag.x) * 0.006));
     rx = Math.max(-0.75, Math.min(0.75, drag.rx + (event.clientY - drag.y) * 0.005));
     queue();
-  });
+  }, { signal: lifetime.signal });
   const endDrag = () => { drag = null; hero.classList.remove('is-dragging-brand'); };
-  hero.addEventListener('pointerup', endDrag);
-  hero.addEventListener('pointercancel', endDrag);
+  hero.addEventListener('pointerup', endDrag, { signal: lifetime.signal });
+  hero.addEventListener('pointercancel', endDrag, { signal: lifetime.signal });
   canvas.addEventListener('keydown', event => {
     if (!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key)) return;
     event.preventDefault();
@@ -191,9 +205,19 @@
     if (event.key === 'ArrowUp') rx -= .12;
     if (event.key === 'ArrowDown') rx += .12;
     queue();
-  });
+  }, { signal: lifetime.signal });
   canvas.addEventListener('webglcontextlost', event => {
     event.preventDefault();
     stage.classList.remove('is-3d-ready');
+  }, { signal: lifetime.signal });
+  window.addEventListener('pagehide', event => {
+    if (event.persisted) return;
+    lifetime.abort();
+    intersectionObserver.disconnect();
+    resizeObserver.disconnect();
+    if (pending) cancelAnimationFrame(pending);
+    clearTimeout(revealTimer);
+    if (meshBuffer) gl.deleteBuffer(meshBuffer);
+    gl.deleteProgram(program);
   });
 })();
