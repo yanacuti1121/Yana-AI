@@ -8,6 +8,7 @@
     "System Health Monitor (macos-latest)",
     "System Health Monitor (windows-latest)",
     "Yana AI Self-Audit (dogfooding — scanner/*.yml on this repo)",
-    "Dependency Vulnerability Audit (cargo audit + pip-audit + npm audit)"
+    "Dependency Vulnerability Audit (cargo audit + pip-audit + npm audit)",
+    "Quality Gates (parallel x3, features, warnings, pytest, js)"
   ]
 }

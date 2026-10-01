@@ -1,5 +1,11 @@
 """Persistence + Claude-Code-specific adapter for tool_guardrails.py.
 
+Origin:  Yana AI original code (new adapter, not a port). It wraps
+         tool_guardrails.py, which is ported from
+         NousResearch/hermes-agent @ 5378b941209d8f62a65455041658ce8ce8144cc9
+License: this file is Yana AI code. The wrapped port is MIT (c) 2025 Nous
+         Research, see vendor/hermes-agent/_upstream/LICENSE.
+
 `tool_guardrails.py` is a near-verbatim MIT port (see its own docstring) and is
 deliberately left unmodified — it has no public save/load API, and its
 `IDEMPOTENT_TOOL_NAMES`/`MUTATING_TOOL_NAMES` frozensets use the upstream

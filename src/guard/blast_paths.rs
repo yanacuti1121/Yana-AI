@@ -128,6 +128,18 @@ pub fn entry_point_hit(raw: &str, entry_points: &[String]) -> Option<String> {
     None
 }
 
+/// Serializes tests that mutate process-wide env vars (YANA_REPO_ROOT, PWD,
+/// YANA_ENTRY_POINT_PATHS). `cargo test` runs tests on parallel threads that
+/// share one environment, so an unguarded set_var/remove_var pair races with
+/// the same pair in another test. CI hid this with --test-threads=1.
+#[cfg(test)]
+pub(crate) fn env_test_guard() -> std::sync::MutexGuard<'static, ()> {
+    static ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    // A test that panicked while holding the lock poisons it; the env vars it
+    // left behind are reset by the next holder, so the poison is safe to ignore.
+    ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -150,6 +162,7 @@ mod tests {
     fn absolute_path_under_repo_root_is_protected() {
         // THE BYPASS: the Codespaces reviewer caught this — an absolute path
         // used to slip straight past protected_hit. It must not anymore.
+        let _env = env_test_guard();
         std::env::set_var("YANA_REPO_ROOT", "/workspaces/Yana-AI");
         let hit = protected_hit("/workspaces/Yana-AI/core/rules/00-meta.md", &prot());
         std::env::remove_var("YANA_REPO_ROOT");
@@ -170,6 +183,7 @@ mod tests {
         // silently, and the absolute-path bypass was back. This test forces
         // that exact mismatch (a $PWD that isn't what current_dir() would
         // return) without needing an actual symlinked directory on disk.
+        let _env = env_test_guard();
         std::env::remove_var("YANA_REPO_ROOT");
         let prior_pwd = std::env::var("PWD").ok();
         std::env::set_var("PWD", "/var/folders/fake/tmp.abc123");
@@ -188,6 +202,7 @@ mod tests {
 
     #[test]
     fn unrelated_absolute_path_not_treated_as_repo_relative() {
+        let _env = env_test_guard();
         std::env::set_var("YANA_REPO_ROOT", "/workspaces/Yana-AI");
         // /etc/passwd is not under the repo and not a protected prefix → no hit
         let hit = protected_hit("/etc/passwd", &prot());
@@ -213,6 +228,7 @@ mod tests {
 
     #[test]
     fn absolute_path_to_entry_point_is_hit() {
+        let _env = env_test_guard();
         std::env::set_var("YANA_REPO_ROOT", "/workspaces/Yana-AI");
         let hit = entry_point_hit(
             "/workspaces/Yana-AI/scripts/yana-rt-wrapper.js",
@@ -244,6 +260,7 @@ mod tests {
 
     #[test]
     fn env_extension_adds_entry_point() {
+        let _env = env_test_guard();
         std::env::set_var("YANA_ENTRY_POINT_PATHS", "scripts/other-wrapper.sh:bin/cli.js");
         let points = entry_point_prefixes();
         std::env::remove_var("YANA_ENTRY_POINT_PATHS");

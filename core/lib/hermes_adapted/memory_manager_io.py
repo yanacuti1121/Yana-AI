@@ -1,5 +1,11 @@
 """Yana-specific glue for memory_manager.py -- turn auto-capture + recall.
 
+Origin:  Yana AI original code (new glue, not a port). It plugs into
+         memory_manager.py, which is ported from
+         NousResearch/hermes-agent @ 5378b941209d8f62a65455041658ce8ce8144cc9
+License: this file is Yana AI code. The wrapped port is MIT (c) 2025 Nous
+         Research, see vendor/hermes-agent/_upstream/LICENSE.
+
 Not a port: memory_manager.py/memory_manager_lifecycle.py stay untouched (see
 their own docstrings). This module is new Yana code, same category as
 context_compressor_io.py and tool_guardrails_io.py, bridging two gaps:
