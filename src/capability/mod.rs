@@ -27,6 +27,7 @@ mod registry_data;
 mod registry_data_ws3;
 pub mod repo;
 pub mod system;
+pub mod untrusted;
 
 pub use archive::{extract_zip, inspect_zip, ExtractionResult, ZipEntryInfo, ZipInspection};
 pub use archive_create::create_zip;
