@@ -123,7 +123,7 @@ tree-sitter-go         = { version = "0.25.0",  optional = true }
 # stable 2.2.0 line, not crates.io's max_version 3.0.0-beta.1, per Phase 8
 # Design Review's own finding: a beta dependency on a security-critical
 # guard path is a real risk, not a style preference.
-rmcp  = { version = "=2.2.0", features = ["server", "transport-io"], optional = true }
+rmcp  = { version = "=2.2.0", features = ["server", "transport-io", "client"], optional = true }
 tokio = { version = "1", features = ["full"], optional = true }
 
 # Discord remote adapter only (see `discord` feature above). Sync WebSocket
