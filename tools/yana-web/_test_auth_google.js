@@ -64,7 +64,7 @@ res = mockRes();
 auth.handleGoogleStart(mockReq({ url: '/api/auth/google/start?intent=login' }), res);
 t('start: 302 redirect', res.status === 302);
 t('start: Location targets accounts.google.com', /^https:\/\/accounts\.google\.com\//.test(res.headers.Location || ''));
-t('start: Location carries our client id', (res.headers.Location || '').includes('test-client-id.apps.googleusercontent.com'));
+t('start: Location carries our client id', new URL(res.headers.Location).searchParams.get('client_id') === 'test-client-id.apps.googleusercontent.com');
 t('start: no Set-Cookie at all (state is server-side, not a cookie — see pendingOAuthStates)', !res.headers['Set-Cookie']);
 const state = stateOf(res);
 t('start: state param captured from Location', !!state);
