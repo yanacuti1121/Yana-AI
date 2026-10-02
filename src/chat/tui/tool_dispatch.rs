@@ -620,6 +620,8 @@ mod tests {
     fn write_search_config(root: &std::path::Path, json: &str) {
         std::fs::create_dir_all(root.join(".yana-ai")).unwrap();
         std::fs::write(root.join(".yana-ai/web-search.json"), json).unwrap();
+        // These tests are about the approval flow, so the configuration is confirmed.
+        crate::capability::config_trust::trust_in_test(root);
     }
 
     fn last_tool_result(app: &App) -> crate::model::tool::ToolResultRecord {

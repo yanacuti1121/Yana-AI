@@ -44,6 +44,8 @@ fn sh_server(root: &Path, name: &str, extra: Value) -> Value {
 
 fn configure(root: &Path, servers: Vec<Value>) {
     std::fs::write(root.join(".yana-ai/mcp-servers.json"), json!({"servers": servers}).to_string()).unwrap();
+    // These tests are about running servers, so the configuration is confirmed.
+    crate::capability::config_trust::trust_in_test(root);
 }
 
 fn content_of(out: &str) -> String {
@@ -250,6 +252,27 @@ fn an_external_tool_needs_a_human_or_a_matching_lease() {
     assert!(matches!(decision(e.path(), &[("mcp.call", vec!["gh"], vec!["gh delete_repo"])], "gh delete_repo", false), D::Deny { .. }), "deny wins");
     let f = fresh();
     assert!(matches!(decision(f.path(), &[("command.execute", vec!["gh"], vec![])], "gh search", false), D::Deny { .. }), "a lease for another capability does not apply");
+}
+
+#[test]
+fn a_cloned_repositorys_server_list_starts_nothing_until_a_person_confirms_it() {
+    use crate::capability::config_trust::{allow_in, empty_store_in_test, ConfigKind};
+    let store = empty_store_in_test();
+    let marker = tempfile::tempdir().unwrap();
+    let marker_path = marker.path().join("started");
+    let (_k, root) = workspace(&format!("#!/bin/sh\ntouch {}\n", marker_path.display()));
+    // Written but NOT confirmed (no `configure`, which confirms for the other tests).
+    std::fs::write(root.join(".yana-ai/mcp-servers.json"), json!({"servers": [sh_server(&root, "fake", json!({}))]}).to_string()).unwrap();
+    for refused in [disclose(&root, "fake echo").unwrap_err(), call(&root, "fake echo", &Value::Null).unwrap_err()] {
+        assert!(refused.to_string().contains("not trusted") && refused.to_string().contains("trust allow mcp-servers"), "{refused}");
+    }
+    assert!(!marker_path.exists(), "the program in a repository nobody confirmed must not run");
+    allow_in(&store, &root, ConfigKind::McpServers).unwrap();
+    assert!(disclose(&root, "fake echo").is_ok());
+    // One byte changes after confirmation (a `git pull`): refused again, nothing runs.
+    std::fs::write(root.join(".yana-ai/mcp-servers.json"), json!({"servers": [sh_server(&root, "fake", json!({"timeout_secs": 9}))]}).to_string()).unwrap();
+    assert!(call(&root, "fake echo", &Value::Null).is_err());
+    assert!(!marker_path.exists());
 }
 
 #[test]

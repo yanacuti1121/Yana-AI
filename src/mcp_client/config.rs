@@ -130,6 +130,9 @@ pub fn load_servers(root: &Path) -> Result<Vec<ServerConfig>, CapabilityError> {
 
 /// The one server called `name`.
 pub fn find_server(root: &Path, name: &str) -> Result<ServerConfig, CapabilityError> {
+    // The file may have come with a cloned repository: nothing in it is used
+    // until a person confirmed this exact content (`yana-rt trust allow mcp-servers`).
+    crate::capability::config_trust::require(root, crate::capability::config_trust::ConfigKind::McpServers)?;
     load_servers(root)?.into_iter().find(|s| s.name == name).ok_or_else(|| CapabilityError::NotFound {
         requested: format!("MCP server '{name}' (not listed in {CONFIG_PATH})"),
     })

@@ -7,6 +7,7 @@ fn root_with(json: &str) -> (tempfile::TempDir, PathBuf) {
     let root = outer.path().join("ws");
     std::fs::create_dir_all(root.join(".yana-ai")).unwrap();
     std::fs::write(root.join(".yana-ai/mcp-servers.json"), json).unwrap();
+    crate::capability::config_trust::trust_in_test(&root);
     (outer, root)
 }
 

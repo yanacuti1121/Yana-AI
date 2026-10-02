@@ -76,7 +76,10 @@ pub fn catalog(ctx: &SessionContext) -> Vec<ToolSpec> {
     }
     // Offered only once the user has set up a search backend, so a repository
     // without `.yana-ai/web-search.json` gets exactly the tool list it always had.
-    if crate::capability::web_search::is_configured(&ctx.repo_root) {
+    // and a person has confirmed that exact configuration (`yana-rt trust allow`).
+    if crate::capability::web_search::is_configured(&ctx.repo_root)
+        && crate::capability::config_trust::is_trusted(&ctx.repo_root, crate::capability::config_trust::ConfigKind::WebSearch)
+    {
         if let Some(descriptor) = available.iter().find(|d| d.name == "web.search") {
             tools.push(ToolSpec {
                 name: "web_search",
@@ -114,6 +117,12 @@ mod tests {
         let names = |c: &SessionContext| catalog(c).iter().map(|t| t.name).collect::<Vec<_>>();
         assert_eq!(names(&ctx_at(&root)), ["read_file", "run_command", "write_file", "write_config"], "no config: the list is unchanged");
         std::fs::write(root.join(".yana-ai/web-search.json"), r#"{"endpoint":"https://s.example/"}"#).unwrap();
+        assert_eq!(
+            names(&ctx_at(&root)),
+            ["read_file", "run_command", "write_file", "write_config"],
+            "a configuration nobody confirmed (a cloned repository's) is not offered either"
+        );
+        crate::capability::config_trust::trust_in_test(&root);
         let with = names(&ctx_at(&root));
         assert_eq!(with, ["read_file", "run_command", "write_file", "write_config", "web_search"]);
         let spec = catalog(&ctx_at(&root)).into_iter().find(|t| t.name == "web_search").unwrap();

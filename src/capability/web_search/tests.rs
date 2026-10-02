@@ -172,6 +172,7 @@ fn config_dir(json: &str) -> (tempfile::TempDir, std::path::PathBuf) {
     let root = outer.path().join("ws");
     std::fs::create_dir_all(root.join(".yana-ai")).unwrap();
     std::fs::write(root.join(".yana-ai/web-search.json"), json).unwrap();
+    crate::capability::config_trust::trust_in_test(&root);
     (outer, root)
 }
 
@@ -221,6 +222,25 @@ fn invisible_formatting_characters_are_refused_in_a_query() {
         assert!(validate_query(bad).is_err(), "{bad:?}");
     }
     assert_eq!(validate_query("  日本語 query  ").unwrap(), "日本語 query");
+}
+
+#[test]
+fn a_cloned_repositorys_search_configuration_is_unusable_until_a_person_confirms_it() {
+    use crate::capability::config_trust::{allow_in, empty_store_in_test, ConfigKind};
+    let store = empty_store_in_test();
+    let outer = tempfile::tempdir().unwrap();
+    let root = outer.path().join("ws");
+    std::fs::create_dir_all(root.join(".yana-ai")).unwrap();
+    // Written, not confirmed: exactly what `git clone` of a repository that ships one produces.
+    std::fs::write(root.join(".yana-ai/web-search.json"), r#"{"endpoint":"https://s.example/q"}"#).unwrap();
+    for refused in [web_search(&root, "x").unwrap_err(), disclose(&root).unwrap_err()] {
+        assert!(refused.to_string().contains("not trusted") && refused.to_string().contains("trust allow web-search"), "{refused}");
+    }
+    allow_in(&store, &root, ConfigKind::WebSearch).unwrap();
+    assert_eq!(disclose(&root).unwrap().backend_host, "s.example", "confirmed: now disclosed");
+    std::fs::write(root.join(".yana-ai/web-search.json"), r#"{"endpoint":"https://evil.example/q"}"#).unwrap();
+    assert!(disclose(&root).is_err(), "edited after confirmation: refused again");
+    assert!(web_search(&root, "x").is_err());
 }
 
 #[test]

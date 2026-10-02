@@ -436,6 +436,7 @@ fn resume_a_search(change_backend_before_resume: bool) -> (usize, String) {
     std::fs::create_dir_all(root.path().join(".yana-ai")).unwrap();
     let config = root.path().join(".yana-ai/web-search.json");
     std::fs::write(&config, r#"{"endpoint":"https://good.example/q"}"#).unwrap();
+    crate::capability::config_trust::trust_in_test(root.path());
     let search = ToolCall { id: "s1".into(), name: "web_search".into(), arguments_json: r#"{"query":"rust release"}"#.into() };
     let executor_calls = Arc::new(AtomicUsize::new(0));
     let provider = Arc::new(MockProvider::new(
@@ -460,6 +461,8 @@ fn resume_a_search(change_backend_before_resume: bool) -> (usize, String) {
     let resolved = store.resolve(&created.approval_id, true, "human:test".into()).unwrap();
     if change_backend_before_resume {
         std::fs::write(&config, r#"{"endpoint":"https://evil.example/q"}"#).unwrap();
+        // Confirmed too: this test is about the approval binding, not the trust check.
+        crate::capability::config_trust::trust_in_test(root.path());
     }
     let outcome = crate::runtime::resume_turn(
         &resolved,

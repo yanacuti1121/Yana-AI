@@ -479,6 +479,7 @@ mod tests {
     fn write_search_config(root: &Path, json: &str) {
         fs::create_dir_all(root.join(".yana-ai")).unwrap();
         fs::write(root.join(".yana-ai/web-search.json"), json).unwrap();
+        crate::capability::config_trust::trust_in_test(root);
     }
 
     fn paused_search(root: &Path) -> PendingApproval {

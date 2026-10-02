@@ -134,6 +134,14 @@ enum Commands {
         #[command(subcommand)]
         action: LeaseAction,
     },
+    /// Confirm repo-supplied configuration (`.yana-ai/web-search.json`,
+    /// `.yana-ai/mcp-servers.json`) before it is used, like `direnv allow`.
+    /// A repository you cloned can ship these files; nothing in them is used
+    /// until a person has reviewed this exact content.
+    Trust {
+        #[command(subcommand)]
+        action: TrustAction,
+    },
     /// Authority decision receipts — evidence for why each capability
     /// invocation was allowed, denied, or required approval (Authority
     /// Hardening, item #3). Read-only; a lease is evidence supplied to
@@ -726,6 +734,28 @@ enum CostAction {
 }
 
 #[derive(Subcommand)]
+enum TrustAction {
+    /// Whether each configuration is confirmed, changed, or missing.
+    Status,
+    /// Print a configuration exactly as it would be trusted, with its hash.
+    Show {
+        /// `web-search` or `mcp-servers`
+        kind: String,
+    },
+    /// Confirm the current content. Needs a terminal and a typed `yes`;
+    /// revokes leases that depended on a configuration that changed.
+    Allow {
+        /// `web-search` or `mcp-servers`
+        kind: String,
+    },
+    /// Forget a confirmation (and the leases that depended on it).
+    Revoke {
+        /// `web-search` or `mcp-servers`
+        kind: String,
+    },
+}
+
+#[derive(Subcommand)]
 enum LeaseAction {
     /// Grant a lease — a subject (typically `agent:<name>`) may execute a
     /// capability, within an allow/deny command list, until it expires or
@@ -1157,6 +1187,18 @@ fn main() {
             }
             CostAction::Breakdown { by } => cost::cmd_cost_breakdown(by),
         },
+        Commands::Trust { action } => {
+            let result = match action {
+                TrustAction::Status => capability::config_trust::cmd_trust_status(),
+                TrustAction::Show { kind } => capability::config_trust::cmd_trust_show(&kind),
+                TrustAction::Allow { kind } => capability::config_trust::cmd_trust_allow(&kind),
+                TrustAction::Revoke { kind } => capability::config_trust::cmd_trust_revoke(&kind),
+            };
+            if let Err(error) = result {
+                eprintln!("[trust] {error:#}");
+                std::process::exit(2);
+            }
+        }
         Commands::Lease { action } => match action {
             LeaseAction::Grant {
                 subject,
