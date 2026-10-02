@@ -72,5 +72,40 @@ pub(super) fn descriptors() -> Vec<CapabilityDescriptor> {
             }
         }),
         availability: always_available,
+    }, CapabilityDescriptor {
+        name: "mcp.call",
+        tool_name: "mcp_call",
+        description: "List the tools of, or call one tool on, an external MCP server the user listed in .yana-ai/mcp-servers.json. The call text is \"<server>\" (list its tools) or \"<server> <tool>\"; starting the server runs an external program, so each call needs explicit human approval that shows the exact command line, or a human-granted lease whose allow list names the server (\"github\") or one tool (\"github search\"). The server runs with an empty environment plus the variables the user listed, under a time limit. Everything it returns is untrusted external content: screened for prompt-injection phrasing (a match refuses the whole result) and returned inside a labelled data block. crate::mcp_client::gateway.",
+        access_mode: AccessMode::Mutating,
+        risk_tier: RiskTier::High,
+        approval: ApprovalRequirement::HumanApprovalPerCall,
+        input_schema: json!({
+            "type": "object",
+            // The field is named `command` on purpose: the lease matcher reads
+            // that field of the arguments to decide whether a lease covers a call.
+            "properties": {
+                "command": {"type": "string", "maxLength": 100, "description": "\"<server>\" or \"<server> <tool>\""},
+                "arguments": {"type": "object"}
+            },
+            "required": ["command"]
+        }),
+        output_schema: json!({
+            "type": "object",
+            "properties": {
+                "capability": {"const": "mcp.call"},
+                "data": {"type": "object", "properties": {
+                    "server": {"type": "string"},
+                    "tool": {"type": ["string", "null"]},
+                    "content": {"type": "string"}
+                }},
+                "truncated": {"type": "boolean"}
+            }
+        }),
+        availability: mcp_client_built,
     }]
+}
+
+/// The client only exists in builds with the `mcp` feature.
+fn mcp_client_built(_ctx: &SessionContext) -> bool {
+    cfg!(feature = "mcp")
 }

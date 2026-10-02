@@ -42,6 +42,9 @@ mod workspace;
 // default build.
 #[cfg(feature = "mcp")]
 mod mcp;
+// WS3 T1: MCP client (uses external MCP servers); same feature gate as `mcp`.
+#[cfg(feature = "mcp")]
+mod mcp_client;
 // Discord Phase (Host-Native OS Program) — gated separately from `cli`,
 // see Cargo.toml's `discord` feature comment. Not part of any default
 // build; `mod remote;` (session.rs, the id-mapping logic) stays available

@@ -18,6 +18,14 @@ use std::sync::OnceLock;
 const MAX_SCANNED_BYTES: usize = 1024 * 1024;
 const ZERO_WIDTH: [char; 5] = ['\u{200B}', '\u{200C}', '\u{200D}', '\u{2060}', '\u{FEFF}'];
 
+/// Characters that change how text is laid out or displayed without being
+/// visible: zero-width and bidirectional-control characters, line and paragraph
+/// separators, and the BOM. Anything an approver reads (a query, a command
+/// line) must not contain them, or what is read is not what is used.
+pub fn is_invisible_format_char(c: char) -> bool {
+    matches!(c, '\u{200B}'..='\u{200F}' | '\u{2028}'..='\u{202E}' | '\u{2060}'..='\u{2069}' | '\u{FEFF}')
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Category {
     /// Tries to cancel the model's earlier instructions, or switch it into a "mode".

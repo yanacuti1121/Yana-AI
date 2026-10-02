@@ -79,13 +79,6 @@ fn key_variable(config: &SearchConfig) -> Result<Option<&str>, CapabilityError> 
     }
 }
 
-/// Characters that change how text is laid out or displayed without being
-/// visible: zero-width and bidirectional-control characters, and the BOM. They
-/// are refused in a query so what an approver reads is what is sent.
-fn is_invisible_format_char(c: char) -> bool {
-    matches!(c, '\u{200B}'..='\u{200F}' | '\u{202A}'..='\u{202E}' | '\u{2060}'..='\u{2069}' | '\u{FEFF}')
-}
-
 /// The query as it will be sent, or why it cannot be. Called before an approval
 /// prompt is built, so a query that could never run is never put in front of a
 /// human, and one that could spoof the prompt's other lines (a line break, an
@@ -98,7 +91,7 @@ pub fn validate_query(query: &str) -> Result<String, CapabilityError> {
     if query.chars().count() > MAX_QUERY_CHARS {
         return Err(invalid(format!("query is longer than {MAX_QUERY_CHARS} characters")));
     }
-    if query.chars().any(|c| c.is_control() || is_invisible_format_char(c)) {
+    if query.chars().any(|c| c.is_control() || super::untrusted::is_invisible_format_char(c)) {
         return Err(invalid("query must not contain control or invisible formatting characters"));
     }
     Ok(query.to_string())
