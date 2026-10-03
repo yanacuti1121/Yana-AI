@@ -92,7 +92,7 @@ fn scan_claude_settings(target: &str) -> ClaudeAccess {
 
     // Check permissions
     if let Some(perms) = data["permissions"].as_object() {
-        if let Some(allow) = perms["allow"].as_array() {
+        if let Some(allow) = perms.get("allow").and_then(|v| v.as_array()) {
             let allow_str: Vec<String> = allow.iter().filter_map(|v| v.as_str()).map(String::from).collect();
             if allow_str.iter().any(|s| s.contains("Bash")) {
                 ca.shell = AccessLevel { level: "HIGH".into(), detail: format!("{} Bash patterns allowed", allow_str.iter().filter(|s| s.contains("Bash")).count()) };
@@ -158,6 +158,16 @@ fn infer_mcp_capabilities(name: &str, cfg: &Value) -> Vec<String> {
     caps
 }
 
+/// Workflow text without YAML comments (whole-line `#` and trailing ` #`), so a
+/// commented-out permission or secret is not reported as live.
+fn strip_comments(content: &str) -> String {
+    content
+        .lines()
+        .map(|l| if l.trim_start().starts_with('#') { "" } else { l.split(" #").next().unwrap_or(l) })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
 fn scan_workflows(target: &str) -> Vec<WfPermissions> {
     let wf_dir = Path::new(target).join(".github/workflows");
     if !wf_dir.exists() { return vec![]; }
@@ -168,12 +178,17 @@ fn scan_workflows(target: &str) -> Vec<WfPermissions> {
            path.extension().and_then(|e| e.to_str()) != Some("yaml") { continue; }
         let Ok(content) = std::fs::read_to_string(&path) else { continue };
         let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string();
+        let live = strip_comments(&content);
         let mut write_perms = Vec::new();
-        for perm in &["contents: write", "packages: write", "id-token: write", "deployments: write"] {
-            if content.contains(perm) { write_perms.push(perm.split(':').next().unwrap_or("").trim().to_string()); }
+        if live.lines().any(|l| l.trim() == "permissions: write-all") {
+            write_perms.push("write-all".to_string());
         }
-        let has_secrets = content.contains("secrets.") || content.contains("${{ secrets");
-        let risk = if write_perms.len() >= 2 { "HIGH" } else if !write_perms.is_empty() || has_secrets { "MEDIUM" } else { "LOW" };
+        for perm in &["contents: write", "packages: write", "id-token: write", "deployments: write"] {
+            if live.contains(perm) { write_perms.push(perm.split(':').next().unwrap_or("").trim().to_string()); }
+        }
+        let has_secrets = live.contains("secrets.") || live.contains("${{ secrets");
+        let write_all = write_perms.iter().any(|p| p == "write-all");
+        let risk = if write_all || write_perms.len() >= 2 { "HIGH" } else if !write_perms.is_empty() || has_secrets { "MEDIUM" } else { "LOW" };
         results.push(WfPermissions { file: name, write_perms, has_secrets, risk: risk.into() });
     }
     results
@@ -228,3 +243,6 @@ fn print_map(target: &str, claude: &ClaudeAccess, mcps: &[McpServer], wfs: &[WfP
     }
     println!();
 }
+
+#[cfg(test)]
+mod tests;

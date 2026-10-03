@@ -13,3 +13,15 @@ core/skills/book--**
 .claude/**
 .codex/**
 .yana/**
+
+# Verified false positives of the repo's own self-audit (each line read on 2026-10-01).
+# Rules that match words fire on files that merely MENTION those words.
+# The scanner's own pattern tables: they contain the very words the rules look for.
+core/scripts/doctor.py      # lists credentials.json / token.json as names to look for (AU010)
+core/scripts/hunt.py        # defines the TODO-about-credentials regex itself (AU011)
+# Generated data files: skill, agent and command names and descriptions that contain "todo" (AU011, SE013).
+site/public/*.json
+# Upstream code kept for reference under vendor/; findings there belong to the upstream projects.
+vendor/**
+# A scope name, not a credential: AUTH_RATE_LIMIT_SCOPE_SHARED_SECRET = "shared-secret" (SE012).
+core/lib/openclaw_adapted/auth_rate_limit.py
