@@ -42,9 +42,9 @@ fn common_key_formats_and_awkward_bearer_tokens_are_masked() {
         ("bad ghp_0123456789abcdefABCDEF here", "ghp_0123456789abcdefABCDEF"),
         ("bad AKIA0123456789ABCDEF here", "AKIA0123456789ABCDEF"),
     ];
-    for (body, secret) in cases {
+    for (index, (body, secret)) in cases.iter().enumerate() {
         let shown = ProviderError::from_http("p", 401, body, None).to_string();
-        assert!(!shown.contains(secret), "leaked {secret}: {shown}");
+        assert!(!shown.contains(secret), "a secret reached the error text in case {index}");
     }
 }
 
@@ -148,8 +148,8 @@ fn credentials_never_reach_display_or_debug() {
     );
     let e = ProviderError::from_http("p", 401, body, None);
     let shown = format!("{e} {e:?}");
-    for secret in ["FAKEFAKEFAKE1234567890", "AIzaSyFAKEFAKEFAKEFAKE12345678", "abc.def.ghi-FAKE"] {
-        assert!(!shown.contains(secret), "leaked {secret}: {shown}");
+    for (index, secret) in ["FAKEFAKEFAKE1234567890", "AIzaSyFAKEFAKEFAKEFAKE12345678", "abc.def.ghi-FAKE"].iter().enumerate() {
+        assert!(!shown.contains(secret), "a secret reached the error text or Debug output, sample {index}");
     }
 }
 
