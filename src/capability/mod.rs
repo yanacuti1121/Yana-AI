@@ -10,6 +10,7 @@
 pub mod archive;
 pub mod archive_create;
 pub mod browser_fetch;
+mod checkpoint_hook;
 pub mod cli;
 pub mod command;
 pub mod config_write;
