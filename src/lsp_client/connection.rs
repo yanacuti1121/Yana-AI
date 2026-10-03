@@ -62,8 +62,20 @@ impl<R: AsyncBufRead + Unpin, W: AsyncWrite + Unpin> Connection<R, W> {
             .map_err(codec_error)
     }
 
+    /// A message with `params` left out when there are none: JSON-RPC allows only an object or array there.
+    fn message(method: &str, params: Value, id: Option<i64>) -> Value {
+        let mut message = json!({"jsonrpc": "2.0", "method": method});
+        if let Some(id) = id {
+            message["id"] = json!(id);
+        }
+        if !params.is_null() {
+            message["params"] = params;
+        }
+        message
+    }
+
     pub async fn notify(&mut self, method: &str, params: Value) -> Result<(), CapabilityError> {
-        self.send(&json!({"jsonrpc": "2.0", "method": method, "params": params})).await
+        self.send(&Self::message(method, params, None)).await
     }
 
     /// Send a request and wait at most `limit` for its answer (writing included).
@@ -71,7 +83,7 @@ impl<R: AsyncBufRead + Unpin, W: AsyncWrite + Unpin> Connection<R, W> {
         let id = self.next_id;
         self.next_id += 1;
         let exchange = async {
-            self.send(&json!({"jsonrpc": "2.0", "id": id, "method": method, "params": params})).await?;
+            self.send(&Self::message(method, params, Some(id))).await?;
             self.await_response(id).await
         };
         tokio::time::timeout(limit, exchange)
@@ -226,6 +238,23 @@ mod tests {
         client.request("b", json!({}), LIMIT).await.unwrap();
         let ids = server.await.unwrap();
         assert!(ids[1] > ids[0]);
+    }
+
+    #[tokio::test]
+    async fn a_message_without_params_has_no_params_key() {
+        let (mut client, mut server_in, mut server_out) = pair();
+        let server = tokio::spawn(async move {
+            let notice = next(&mut server_in).await;
+            let request = next(&mut server_in).await;
+            write_message(&mut server_out, &json!({"jsonrpc": "2.0", "id": request["id"], "result": null})).await.unwrap();
+            (request, notice)
+        });
+        client.notify("exit", Value::Null).await.unwrap();
+        client.request("shutdown", Value::Null, LIMIT).await.unwrap();
+        let (request, notice) = server.await.unwrap();
+        assert_eq!(notice["method"], "exit");
+        assert_eq!(request["method"], "shutdown");
+        assert!(request.get("params").is_none() && notice.get("params").is_none(), "{request} {notice}");
     }
 
     #[test]

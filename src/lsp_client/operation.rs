@@ -98,6 +98,9 @@ pub fn parse_query(arguments: &Value) -> Result<Query, CapabilityError> {
     let operation = Operation::parse(operation_name).ok_or_else(|| invalid("'operation' must be definition, references, hover or document_symbols"))?;
     let path = text("path")?;
     valid_path(path)?;
+    if sensitive_path(path) {
+        return Err(invalid("'path' names a file that holds secrets or credentials; it is not sent to a language server"));
+    }
     let (line, character) = if operation.needs_position() { (position(arguments, "line")?, position(arguments, "character")?) } else { (1, 1) };
     Ok(Query { server: server.to_string(), operation, path: path.to_string(), line, character })
 }
@@ -125,7 +128,7 @@ pub fn character_at(line_text: &str, utf16: u32) -> u32 {
 /// The `params` of the LSP request for `query`; `line_text` is the text of the asked-about line.
 pub fn request_params(query: &Query, uri: &str, line_text: &str) -> Value {
     let document = json!({"uri": uri});
-    let at = json!({"line": query.line - 1, "character": utf16_offset(line_text, query.character)});
+    let at = json!({"line": query.line.saturating_sub(1), "character": utf16_offset(line_text, query.character)});
     match query.operation {
         Operation::Definition | Operation::Hover => json!({"textDocument": document, "position": at}),
         Operation::References => json!({"textDocument": document, "position": at, "context": {"includeDeclaration": true}}),
@@ -144,8 +147,29 @@ pub fn relative_from_uri(root: &Path, uri: &str) -> Option<String> {
     let url = url::Url::parse(uri).ok().filter(|u| u.scheme() == "file")?;
     let path = url.to_file_path().ok()?;
     let relative = path.strip_prefix(root).ok()?;
-    let text = relative.to_str()?;
-    (!text.is_empty()).then(|| text.to_string())
+    // Decoding can turn "%2e%2e%2f" into "../": only plain names are accepted, so a path
+    // that climbs out of the repository (or hides a separator or NUL) is "outside".
+    let plain = relative.components().all(|c| matches!(c, std::path::Component::Normal(name) if !name.to_string_lossy().contains(['\\', '\0'])));
+    let text = relative.to_str().filter(|t| plain && !t.is_empty())?;
+    Some(text.to_string())
+}
+
+/// Files whose contents are secrets or credentials by name (the same families the
+/// privilege-isolation rule protects). A server cannot get their lines shown to the
+/// model, and a model cannot have them sent to a server.
+pub fn sensitive_path(relative: &str) -> bool {
+    relative.split(['/', '\\']).any(|part| {
+        let lower = part.to_ascii_lowercase();
+        lower == ".git"
+            || lower == ".env"
+            || lower.starts_with(".env.")
+            || lower.ends_with(".env")
+            || [".pem", ".key", ".p12", ".pfx", ".crt"].iter().any(|ext| lower.ends_with(ext))
+            || ["secret", "credential", "token"].iter().any(|word| lower.contains(word))
+            || lower == ".npmrc"
+            || lower == "id_rsa"
+            || lower == "id_ed25519"
+    })
 }
 
 #[cfg(test)]
@@ -234,6 +258,10 @@ mod tests {
             "file:///work/other/x.rs",
             "file:///work/repo",
             "file:///work/repo/../other/x.rs",
+            "file:///work/repo/..%2f..%2fetc/passwd",
+            "file:///work/repo/%2e%2e%2f%2e%2e%2fetc/passwd",
+            "file:///work/repo/a%5c..%5cb.rs",
+            "file:///work/repo/a%00b.rs",
             "file:///etc/passwd",
             "file:///work/repository/x.rs",
             "http://work/repo/x.rs",
@@ -244,6 +272,17 @@ mod tests {
         ] {
             assert_eq!(relative_from_uri(root, outside), None, "{outside}");
         }
+    }
+
+    #[test]
+    fn files_that_hold_secrets_are_recognised_by_name() {
+        for secret in [".env", "app/.env.production", "prod.env", "certs/server.pem", "a/b/private.key", "id_rsa", ".npmrc", ".git/config", "src/api_token.rs", "credentials.json", "my_secret.txt"] {
+            assert!(sensitive_path(secret), "{secret}");
+        }
+        for fine in ["src/main.rs", "README.md", "docs/environment.md", "src/lib/envelope.rs"] {
+            assert!(!sensitive_path(fine), "{fine}");
+        }
+        assert!(parse_query(&args(json!({"path": "config/.env"}))).is_err(), "a query about a secrets file is refused");
     }
 
     #[cfg(unix)]

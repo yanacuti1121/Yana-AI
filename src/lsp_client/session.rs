@@ -7,9 +7,10 @@
 //! question is answered, fails, or runs out of time.
 
 use super::connection::Connection;
-use super::operation::{file_uri, request_params, Query};
+use super::codec::MAX_BODY_BYTES;
+use super::operation::{file_uri, request_params, sensitive_path, Query};
 use crate::capability::{read_file_observation, resolve_existing, CapabilityError};
-use crate::mcp_client::bounded::{BoundedReader, MAX_LINE_BYTES, MAX_TOTAL_BYTES};
+use crate::mcp_client::bounded::{BoundedReader, MAX_TOTAL_BYTES};
 use crate::mcp_client::config::ServerConfig;
 use crate::mcp_client::session::kill_tree;
 use crate::mcp_client::spawn::command_for;
@@ -22,6 +23,11 @@ use tokio::time::Instant;
 /// Used when a server does not say how long a question may take: language servers
 /// index before they can answer, so this is longer than the MCP default.
 pub const DEFAULT_TIMEOUT_SECS: u64 = 60;
+/// The longest a question may be given, whatever the configuration or caller says.
+const MAX_BUDGET: Duration = Duration::from_secs(300);
+/// A little over the largest message body: the reader's line limit counts a body
+/// (which has no newline) together with the header line that follows it.
+const READER_LINE_LIMIT: usize = MAX_BODY_BYTES + 4096;
 /// How long a server gets to say goodbye before it is killed anyway.
 const GOODBYE: Duration = Duration::from_secs(2);
 
@@ -62,10 +68,13 @@ pub fn prepare(root: &Path, query: &Query) -> Result<Prepared, CapabilityError> 
     let resolved = resolve_existing(&canonical, &query.path)?;
     let relative = resolved.strip_prefix(&canonical).map_err(|_| CapabilityError::PathEscape { requested: query.path.clone() })?;
     let relative = relative.to_str().ok_or_else(|| CapabilityError::InvalidInput { detail: "that path is not valid text".into() })?;
+    if sensitive_path(relative) {
+        return Err(CapabilityError::InvalidInput { detail: "that file holds secrets or credentials; it is not sent to a language server".into() });
+    }
     let observation = read_file_observation(&canonical, &query.path)?;
     let line_text = if query.operation.needs_position() {
         let total = observation.content.lines().count();
-        observation.content.lines().nth(query.line as usize - 1).map(str::to_string).ok_or_else(|| CapabilityError::InvalidInput {
+        observation.content.lines().nth((query.line as usize).saturating_sub(1)).map(str::to_string).ok_or_else(|| CapabilityError::InvalidInput {
             detail: format!("line {} is beyond the end of {} ({total} lines)", query.line, query.path),
         })?
     } else {
@@ -103,19 +112,24 @@ fn initialize_params(root_uri: &str) -> Value {
 }
 
 /// The conversation: initialize, open the one document, ask, return the server's `result`.
+/// The whole of it, writes included, gets one deadline of at most `MAX_BUDGET`.
 pub async fn exchange<R, W>(connection: &mut Connection<R, W>, prepared: &Prepared, query: &Query, budget: Duration) -> Result<Value, CapabilityError>
 where
     R: tokio::io::AsyncBufRead + Unpin,
     W: tokio::io::AsyncWrite + Unpin,
 {
+    let budget = budget.min(MAX_BUDGET);
     let deadline = Instant::now() + budget;
     let left = || deadline.saturating_duration_since(Instant::now());
-    connection.request("initialize", initialize_params(&prepared.root_uri), left()).await?;
-    connection.notify("initialized", json!({})).await?;
-    let document = json!({"uri": prepared.document_uri, "languageId": prepared.language_id, "version": 1, "text": prepared.text});
-    connection.notify("textDocument/didOpen", json!({"textDocument": document})).await?;
-    let params = request_params(query, &prepared.document_uri, &prepared.line_text);
-    connection.request(query.operation.method(), params, left()).await
+    let conversation = async {
+        connection.request("initialize", initialize_params(&prepared.root_uri), left()).await?;
+        connection.notify("initialized", json!({})).await?;
+        let document = json!({"uri": prepared.document_uri, "languageId": prepared.language_id, "version": 1, "text": prepared.text});
+        connection.notify("textDocument/didOpen", json!({"textDocument": document})).await?;
+        let params = request_params(query, &prepared.document_uri, &prepared.line_text);
+        connection.request(query.operation.method(), params, left()).await
+    };
+    tokio::time::timeout(budget, conversation).await.map_err(|_| CapabilityError::Timeout { detail: "the language server's answer".into() })?
 }
 
 fn budget(config: &ServerConfig) -> Duration {
@@ -132,16 +146,36 @@ pub async fn run_query(config: &ServerConfig, root: &Path, query: &Query) -> Res
         kill_tree(&mut child).await;
         return Err(CapabilityError::SpawnFailed { detail: format!("language server '{}': no pipes to talk through", config.name) });
     };
-    let mut connection = Connection::new(BufReader::new(BoundedReader::new(stdout, MAX_LINE_BYTES, MAX_TOTAL_BYTES)), stdin);
+    // Remembered now: once the leader has been waited for, the child no longer knows its pid,
+    // but helpers it started are still in its process group and must be killed.
+    let group = child.id();
+    let mut connection = Connection::new(BufReader::new(BoundedReader::new(stdout, READER_LINE_LIMIT, MAX_TOTAL_BYTES)), stdin);
     let outcome = exchange(&mut connection, &prepared, query, budget(config)).await;
-    // Ask it to stop, briefly; then make sure, whatever happened.
+    // Ask it to stop and give it a moment to leave (servers clean up locks and temp files on
+    // exit); then make sure, whatever happened. A timed-out connection may be mid-frame, which
+    // only matters here because the process is killed next.
     let _ = tokio::time::timeout(GOODBYE, async {
         let _ = connection.request("shutdown", Value::Null, GOODBYE).await;
         let _ = connection.notify("exit", Value::Null).await;
+        let _ = child.wait().await;
     })
     .await;
+    kill_group(group);
     kill_tree(&mut child).await;
     outcome
+}
+
+/// SIGKILL to the process group the server was started in (its pid is the group id).
+fn kill_group(group: Option<u32>) {
+    #[cfg(unix)]
+    if let Some(pid) = group {
+        // SAFETY: a plain signal to a process group this module created.
+        unsafe {
+            let _ = libc::kill(-(pid as i32), libc::SIGKILL);
+        }
+    }
+    #[cfg(not(unix))]
+    let _ = group;
 }
 
 /// `run_query` on a thread of its own, so it works whether or not the caller is

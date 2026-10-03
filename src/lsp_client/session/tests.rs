@@ -94,9 +94,8 @@ fn a_real_server_is_asked_in_the_right_order_with_the_right_content() {
 
     let received = fx.received();
     let methods: Vec<&str> = received.iter().map(|m| m["method"].as_str().unwrap()).collect();
-    // `exit` is sent and the process is killed right after, so a slow server may not log it.
-    let expected = ["initialize", "initialized", "textDocument/didOpen", "textDocument/definition", "shutdown"];
-    assert!(methods == expected || (methods.len() == 6 && methods[..5] == expected && methods[5] == "exit"), "{methods:?}");
+    assert_eq!(methods, ["initialize", "initialized", "textDocument/didOpen", "textDocument/definition", "shutdown", "exit"], "exit is sent and the server is given time to read it");
+    assert!(received[4].get("params").is_none() && received[5].get("params").is_none(), "shutdown and exit carry no params");
     let initialize = &received[0]["params"];
     assert_eq!(initialize["rootUri"], fx.uri("").trim_end_matches('/'), "the root is the repository");
     assert_eq!(initialize["capabilities"]["workspace"]["applyEdit"], false, "this client says it cannot edit");
@@ -134,9 +133,11 @@ read_frame
 "#
     ));
     // The server speaks first once it has the document: the edit request arrives while the client waits for its answer.
-    run_query_blocking(&fx.config(&script, 10), &fx.root, &query("hover", "src/lib.rs", 1, 1)).ok();
+    let outcome = run_query_blocking(&fx.config(&script, 10), &fx.root, &query("hover", "src/lib.rs", 1, 1));
+    assert_eq!(outcome.unwrap(), Value::Null, "the question is still answered after the edit request was refused");
     let log = std::fs::read_to_string(&fx.log).unwrap();
     assert!(log.contains(r#""applied":false"#), "the client's reply to the edit request says it was not applied: {log}");
+    // A tripwire only (this client has no code that writes files); the log check above is the real assertion.
     assert_eq!(std::fs::read_to_string(fx.root.join("src/lib.rs")).unwrap(), SOURCE, "the file is exactly as it was");
 }
 
@@ -187,10 +188,9 @@ fn a_file_or_line_that_cannot_be_used_is_refused_before_the_program_starts() {
     let marker = fx.root.join("started");
     let script = fx.script(&format!("echo started > '{}'\n{}", marker.display(), answering("null")));
     let config = fx.config(&script, 10);
-    std::fs::write(fx.root.join("src/subdir_file"), "x").unwrap();
     for (path, line) in [("src/missing.rs", 1), ("src", 1), ("src/lib.rs", 99), ("src/lib.rs", 3)] {
         let error = run_query_blocking(&config, &fx.root, &query("hover", path, line, 1));
-        assert!(error.is_err(), "{path}:{line}");
+        assert!(matches!(error, Err(CapabilityError::NotFound { .. } | CapabilityError::NotAFile { .. } | CapabilityError::InvalidInput { .. })), "{path}:{line}: {error:?}");
         assert!(!marker.exists(), "{path}:{line}: the program must not have been started");
     }
     // A path that leaves the repository never reaches the server either (parse refuses '..'; a symlink is caught on resolve).
@@ -222,6 +222,21 @@ read_frame
     );
     let error = run_query_blocking(&fx.config(&refusing, 10), &fx.root, &query("references", "src/lib.rs", 1, 1)).unwrap_err().to_string();
     assert!(error.contains("-32601") && !error.contains("no such method"), "{error}");
+}
+
+#[test]
+fn a_secrets_file_is_never_sent_to_a_server_and_an_absurd_budget_is_clamped() {
+    let fx = fixture();
+    let marker = fx.root.join("started");
+    let script = fx.script(&format!("echo started > '{}'\n{}", marker.display(), answering("null")));
+    std::fs::write(fx.root.join(".env"), "API_KEY=hunter2\n").unwrap();
+    let secrets = Query { server: "rust".into(), operation: Operation::DocumentSymbols, path: ".env".into(), line: 1, character: 1 };
+    assert!(matches!(run_query_blocking(&fx.config(&script, 10), &fx.root, &secrets), Err(CapabilityError::InvalidInput { .. })));
+    assert!(!marker.exists(), "not even started");
+    // A budget far beyond the clamp does not overflow the clock.
+    let mut huge = fx.config(&script, 10);
+    huge.timeout_secs = Some(u64::MAX);
+    assert!(run_query_blocking(&huge, &fx.root, &query("hover", "src/lib.rs", 1, 1)).is_ok());
 }
 
 #[test]
