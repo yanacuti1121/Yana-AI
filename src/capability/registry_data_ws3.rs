@@ -102,6 +102,38 @@ pub(super) fn descriptors() -> Vec<CapabilityDescriptor> {
             }
         }),
         availability: mcp_client_built,
+    }, CapabilityDescriptor {
+        name: "lsp.query",
+        tool_name: "lsp_query",
+        description: "Ask a language server the user listed in .yana-ai/lsp-servers.json about one repository file: the definition or the references of the symbol at a position, its hover documentation, or the symbols of the file. Read-only: the client never applies an edit a server proposes. Starting the server runs an external program, so each call needs explicit human approval that shows the exact command line. The server runs with an empty environment plus the variables the user listed, under a time limit. Files that hold secrets are never sent to it. Everything it returns is untrusted external content: screened for prompt-injection phrasing (a match refuses the whole result) and returned inside a labelled data block. crate::lsp_client::gateway.",
+        access_mode: AccessMode::ReadOnly,
+        risk_tier: RiskTier::High,
+        approval: ApprovalRequirement::HumanApprovalPerCall,
+        input_schema: json!({
+            "type": "object",
+            "properties": {
+                "server": {"type": "string", "maxLength": 32, "description": "a server name from .yana-ai/lsp-servers.json"},
+                "operation": {"type": "string", "enum": ["definition", "references", "hover", "document_symbols"]},
+                "path": {"type": "string", "maxLength": 200, "description": "file path relative to the repository"},
+                "line": {"type": "integer", "minimum": 1, "description": "1-based line (not needed for document_symbols)"},
+                "character": {"type": "integer", "minimum": 1, "description": "1-based column (not needed for document_symbols)"}
+            },
+            "required": ["server", "operation", "path"]
+        }),
+        output_schema: json!({
+            "type": "object",
+            "properties": {
+                "capability": {"const": "lsp.query"},
+                "data": {"type": "object", "properties": {
+                    "server": {"type": "string"},
+                    "operation": {"type": "string"},
+                    "path": {"type": "string"},
+                    "content": {"type": "string"}
+                }},
+                "truncated": {"type": "boolean"}
+            }
+        }),
+        availability: mcp_client_built,
     }]
 }
 

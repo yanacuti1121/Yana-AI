@@ -45,8 +45,7 @@ mod mcp;
 // WS3 T1: MCP client (uses external MCP servers); same feature gate as `mcp`.
 #[cfg(feature = "mcp")]
 mod mcp_client;
-// WS3 LSP client (docs/contracts/ws3-tools.md section 17); same feature gate.
-#[cfg(feature = "mcp")]
+// WS3 LSP client (docs/contracts/ws3-tools.md section 17); its async parts are gated inside.
 mod lsp_client;
 // Discord Phase (Host-Native OS Program) — gated separately from `cli`,
 // see Cargo.toml's `discord` feature comment. Not part of any default

@@ -21,6 +21,8 @@ pub mod file_mutation;
 pub mod file_patch;
 pub mod git;
 pub mod lease;
+pub mod lsp_config;
+pub mod lsp_disclosure;
 pub mod mcp_config;
 pub mod mcp_disclosure;
 pub mod patch;

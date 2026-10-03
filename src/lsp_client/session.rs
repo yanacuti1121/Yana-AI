@@ -8,8 +8,8 @@
 
 use super::connection::Connection;
 use super::codec::MAX_BODY_BYTES;
-use super::operation::{file_uri, request_params, sensitive_path, Query};
-use crate::capability::{read_file_observation, resolve_existing, CapabilityError};
+use super::operation::{check_target, file_uri, request_params, Query};
+use crate::capability::CapabilityError;
 use crate::mcp_client::bounded::{BoundedReader, MAX_TOTAL_BYTES};
 use crate::mcp_client::config::ServerConfig;
 use crate::mcp_client::session::kill_tree;
@@ -20,9 +20,7 @@ use std::time::Duration;
 use tokio::io::BufReader;
 use tokio::time::Instant;
 
-/// Used when a server does not say how long a question may take: language servers
-/// index before they can answer, so this is longer than the MCP default.
-pub const DEFAULT_TIMEOUT_SECS: u64 = 60;
+use crate::capability::lsp_config::DEFAULT_TIMEOUT_SECS;
 /// The longest a question may be given, whatever the configuration or caller says.
 const MAX_BUDGET: Duration = Duration::from_secs(300);
 /// A little over the largest message body: the reader's line limit counts a body
@@ -64,28 +62,13 @@ fn language_id(path: &str) -> String {
 /// Read what the question is about. Fails, without starting anything, when the file
 /// is not a readable file inside the repository or the line is not in it.
 pub fn prepare(root: &Path, query: &Query) -> Result<Prepared, CapabilityError> {
-    let canonical = root.canonicalize().map_err(|e| CapabilityError::Io { detail: format!("resolve repository: {e}") })?;
-    let resolved = resolve_existing(&canonical, &query.path)?;
-    let relative = resolved.strip_prefix(&canonical).map_err(|_| CapabilityError::PathEscape { requested: query.path.clone() })?;
-    let relative = relative.to_str().ok_or_else(|| CapabilityError::InvalidInput { detail: "that path is not valid text".into() })?;
-    if sensitive_path(relative) {
-        return Err(CapabilityError::InvalidInput { detail: "that file holds secrets or credentials; it is not sent to a language server".into() });
-    }
-    let observation = read_file_observation(&canonical, &query.path)?;
-    let line_text = if query.operation.needs_position() {
-        let total = observation.content.lines().count();
-        observation.content.lines().nth((query.line as usize).saturating_sub(1)).map(str::to_string).ok_or_else(|| CapabilityError::InvalidInput {
-            detail: format!("line {} is beyond the end of {} ({total} lines)", query.line, query.path),
-        })?
-    } else {
-        String::new()
-    };
+    let target = check_target(root, query)?;
     Ok(Prepared {
-        root_uri: file_uri(&canonical, "")?,
-        document_uri: file_uri(&canonical, relative)?,
+        root_uri: file_uri(&target.canonical_root, "")?,
+        document_uri: file_uri(&target.canonical_root, &target.relative)?,
         language_id: language_id(&query.path),
-        text: observation.content,
-        line_text,
+        text: target.text,
+        line_text: target.line_text,
     })
 }
 

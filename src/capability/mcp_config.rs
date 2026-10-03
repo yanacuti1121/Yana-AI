@@ -80,7 +80,7 @@ pub fn valid_server_name(name: &str) -> bool {
     !name.is_empty() && name.len() <= MAX_NAME_CHARS && name.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || matches!(c, '-' | '_'))
 }
 
-fn validate(server: &ServerConfig) -> Result<(), CapabilityError> {
+pub(crate) fn validate(server: &ServerConfig) -> Result<(), CapabilityError> {
     let name = &server.name;
     if !valid_server_name(name) {
         return Err(invalid(format!("server name {name:?} must be 1 to {MAX_NAME_CHARS} characters of a-z, 0-9, '-' or '_'")));

@@ -14,6 +14,7 @@ fn workspace() -> (tempfile::TempDir, PathBuf) {
     std::fs::create_dir_all(root.join(".yana-ai")).unwrap();
     std::fs::write(root.join(".yana-ai/web-search.json"), ORIGINAL).unwrap();
     std::fs::write(root.join(".yana-ai/mcp-servers.json"), "{}").unwrap();
+    std::fs::write(root.join(".yana-ai/lsp-servers.json"), "{}").unwrap();
     std::fs::write(root.join(".yana-ai/leases.json"), "[]").unwrap();
     std::fs::write(root.join(".yana-ai/pending-approvals.json"), "[]").unwrap();
     std::fs::create_dir(root.join("docs")).unwrap();
@@ -23,6 +24,7 @@ fn workspace() -> (tempfile::TempDir, PathBuf) {
 fn untouched(root: &std::path::Path) {
     assert_eq!(std::fs::read_to_string(root.join(".yana-ai/web-search.json")).unwrap(), ORIGINAL);
     assert_eq!(std::fs::read_to_string(root.join(".yana-ai/mcp-servers.json")).unwrap(), "{}");
+    assert_eq!(std::fs::read_to_string(root.join(".yana-ai/lsp-servers.json")).unwrap(), "{}");
     assert_eq!(std::fs::read_to_string(root.join(".yana-ai/leases.json")).unwrap(), "[]");
     assert_eq!(std::fs::read_to_string(root.join(".yana-ai/pending-approvals.json")).unwrap(), "[]");
 }
@@ -48,6 +50,8 @@ fn the_plain_path_and_its_dot_and_dotdot_spellings_are_refused() {
         ".yana-ai/../.yana-ai/web-search.json",
         ".yana-ai/mcp-servers.json",
         "./.yana-ai/./mcp-servers.json",
+        ".yana-ai/lsp-servers.json",
+        "docs/../.yana-ai/lsp-servers.json",
         ".yana-ai/leases.json",
         ".yana-ai/pending-approvals.json",
     ] {
@@ -58,7 +62,7 @@ fn the_plain_path_and_its_dot_and_dotdot_spellings_are_refused() {
 #[test]
 fn other_letter_case_reaches_the_same_answer() {
     let (_keep, root) = workspace();
-    for path in [".YANA-AI/web-search.json", ".yana-ai/Web-Search.JSON", ".yana-ai/MCP-SERVERS.json"] {
+    for path in [".YANA-AI/web-search.json", ".yana-ai/Web-Search.JSON", ".yana-ai/MCP-SERVERS.json", ".yana-ai/LSP-Servers.json"] {
         let outcome = apply_file_write(&root, path, FileMutationKind::Overwrite, "x", None);
         assert!(outcome.is_err(), "{path}");
     }

@@ -24,15 +24,17 @@ use std::path::{Path, PathBuf};
 pub enum ConfigKind {
     WebSearch,
     McpServers,
+    LspServers,
 }
 
 impl ConfigKind {
-    pub const ALL: [ConfigKind; 2] = [ConfigKind::WebSearch, ConfigKind::McpServers];
+    pub const ALL: [ConfigKind; 3] = [ConfigKind::WebSearch, ConfigKind::McpServers, ConfigKind::LspServers];
 
     pub fn file_name(self) -> &'static str {
         match self {
             Self::WebSearch => "web-search.json",
             Self::McpServers => "mcp-servers.json",
+            Self::LspServers => "lsp-servers.json",
         }
     }
 
@@ -41,6 +43,7 @@ impl ConfigKind {
         match self {
             Self::WebSearch => "web-search",
             Self::McpServers => "mcp-servers",
+            Self::LspServers => "lsp-servers",
         }
     }
 
@@ -52,6 +55,7 @@ impl ConfigKind {
         match self {
             Self::WebSearch => "web search",
             Self::McpServers => "MCP servers",
+            Self::LspServers => "language servers",
         }
     }
 
@@ -60,6 +64,7 @@ impl ConfigKind {
         match self {
             Self::WebSearch => "web.search",
             Self::McpServers => "mcp.call",
+            Self::LspServers => "lsp.query",
         }
     }
 
@@ -295,6 +300,12 @@ pub(crate) fn empty_store_in_test() -> PathBuf {
         let mut slot = cell.borrow_mut();
         slot.get_or_insert_with(|| tempfile::tempdir().expect("temp trust store").keep()).clone()
     })
+}
+
+/// Replaces this test thread's store with a new EMPTY one: whatever was confirmed before is forgotten.
+#[cfg(test)]
+pub(crate) fn forget_all_trust_in_test() {
+    TEST_STORE.with(|cell| *cell.borrow_mut() = Some(tempfile::tempdir().expect("temp trust store").keep()));
 }
 
 /// Give this test thread a private store and confirm every configuration file that exists in `root`.

@@ -9,7 +9,7 @@ use std::io::{BufRead, IsTerminal, Write};
 pub(super) const MAX_REVIEW_BYTES: usize = 8 * 1024;
 
 fn parse_kind(text: &str) -> Result<ConfigKind> {
-    ConfigKind::parse(text).with_context(|| format!("unknown configuration {text:?}; use web-search or mcp-servers"))
+    ConfigKind::parse(text).with_context(|| format!("unknown configuration {text:?}; use web-search, mcp-servers or lsp-servers"))
 }
 
 /// Control, invisible and direction-changing characters shown as `?`: what is

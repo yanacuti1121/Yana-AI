@@ -16,6 +16,7 @@ fn fixture() -> Fixture {
     std::fs::create_dir_all(root.join(".yana-ai")).unwrap();
     std::fs::write(root.join(".yana-ai/web-search.json"), SEARCH).unwrap();
     std::fs::write(root.join(".yana-ai/mcp-servers.json"), r#"{"servers":[]}"#).unwrap();
+    std::fs::write(root.join(".yana-ai/lsp-servers.json"), r#"{"servers":[]}"#).unwrap();
     let store = outer.path().join("trust-store");
     Fixture { _outer: outer, root, store }
 }

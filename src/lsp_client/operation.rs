@@ -1,9 +1,9 @@
 //! What a model may ask a language server, and how that is turned into LSP
 //! requests (WS3, contract section 17). Everything here is read-only.
 
-use crate::capability::CapabilityError;
+use crate::capability::{read_file_observation, resolve_existing, CapabilityError};
 use serde_json::{json, Value};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 /// Longest repository-relative path accepted in a query (it is shown to an approver).
 const MAX_PATH_CHARS: usize = 200;
@@ -103,6 +103,42 @@ pub fn parse_query(arguments: &Value) -> Result<Query, CapabilityError> {
     }
     let (line, character) = if operation.needs_position() { (position(arguments, "line")?, position(arguments, "character")?) } else { (1, 1) };
     Ok(Query { server: server.to_string(), operation, path: path.to_string(), line, character })
+}
+
+/// What a question is about, read from the repository.
+pub struct Target {
+    pub canonical_root: PathBuf,
+    /// The file's path inside the repository, as a server will see it.
+    pub relative: String,
+    pub text: String,
+    /// The text of the asked-about line (empty when the operation needs no position).
+    pub line_text: String,
+}
+
+/// Read what the question is about. Fails when the file is not a readable file inside the
+/// repository, holds secrets by name, or does not have the line. Used both to decide whether
+/// a question may be shown to an approver and, before a program is started, to run it.
+pub fn check_target(root: &Path, query: &Query) -> Result<Target, CapabilityError> {
+    let canonical_root = root.canonicalize().map_err(|e| CapabilityError::Io { detail: format!("resolve repository: {e}") })?;
+    let resolved = resolve_existing(&canonical_root, &query.path)?;
+    let relative = resolved.strip_prefix(&canonical_root).map_err(|_| CapabilityError::PathEscape { requested: query.path.clone() })?;
+    let relative = relative.to_str().ok_or_else(|| invalid("that path is not valid text"))?.to_string();
+    if sensitive_path(&relative) {
+        return Err(invalid("that file holds secrets or credentials; it is not sent to a language server"));
+    }
+    let observation = read_file_observation(&canonical_root, &query.path)?;
+    let line_text = if query.operation.needs_position() {
+        let total = observation.content.lines().count();
+        observation
+            .content
+            .lines()
+            .nth((query.line as usize).saturating_sub(1))
+            .map(str::to_string)
+            .ok_or_else(|| invalid(format!("line {} is beyond the end of {} ({total} lines)", query.line, query.path)))?
+    } else {
+        String::new()
+    };
+    Ok(Target { canonical_root, relative, text: observation.content, line_text })
 }
 
 /// The 0-based UTF-16 offset of the 1-based `character`th character of `line_text`.

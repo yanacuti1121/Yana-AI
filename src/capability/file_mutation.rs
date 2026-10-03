@@ -101,7 +101,7 @@ fn resolve_for_write(root: &Path, requested: &str) -> Result<PathBuf, Capability
 /// them through a governed write. (A human-approved `run_command` can still
 /// change them; for the search and MCP configs the approval prompt of the next
 /// call shows the real destination, which is what makes that acceptable.)
-const PROTECTED_CONFIGS: [&str; 4] = ["web-search.json", "mcp-servers.json", "leases.json", "pending-approvals.json"];
+const PROTECTED_CONFIGS: [&str; 5] = ["web-search.json", "mcp-servers.json", "lsp-servers.json", "leases.json", "pending-approvals.json"];
 
 /// True when `target` (already absolute and canonical in its parent) is one of
 /// `PROTECTED_CONFIGS` in the repo's `.yana-ai/` directory. The directory is
