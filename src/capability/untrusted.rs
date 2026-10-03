@@ -23,7 +23,26 @@ const ZERO_WIDTH: [char; 5] = ['\u{200B}', '\u{200C}', '\u{200D}', '\u{2060}', '
 /// separators, and the BOM. Anything an approver reads (a query, a command
 /// line) must not contain them, or what is read is not what is used.
 pub fn is_invisible_format_char(c: char) -> bool {
-    matches!(c, '\u{200B}'..='\u{200F}' | '\u{2028}'..='\u{202E}' | '\u{2060}'..='\u{2069}' | '\u{FEFF}')
+    matches!(
+        c,
+        '\u{200B}'..='\u{200F}' // zero-width and left/right marks
+            | '\u{2028}'..='\u{202E}' // line and paragraph separators, direction embeddings and overrides
+            | '\u{2060}'..='\u{206F}' // word joiner, invisible operators, isolates, deprecated format characters
+            | '\u{FEFF}' // byte order mark
+            | '\u{00AD}' // soft hyphen
+            | '\u{034F}' // combining grapheme joiner
+            | '\u{061C}' // Arabic letter mark (a direction control)
+            | '\u{115F}'..='\u{1160}' // Hangul fillers
+            | '\u{17B4}'..='\u{17B5}' // Khmer inherent vowels
+            | '\u{180B}'..='\u{180E}' // Mongolian selectors and separator
+            | '\u{2800}' // blank Braille pattern
+            | '\u{3164}' // Hangul filler
+            | '\u{FE00}'..='\u{FE0F}' // variation selectors
+            | '\u{FFA0}' // halfwidth Hangul filler
+            | '\u{FFF9}'..='\u{FFFB}' // interlinear annotation
+            | '\u{E0000}'..='\u{E007F}' // tag characters
+            | '\u{E0100}'..='\u{E01EF}' // variation selectors supplement
+    )
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

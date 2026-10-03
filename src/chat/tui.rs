@@ -21,6 +21,10 @@ mod commands;
 #[cfg(test)]
 mod golden_e2e_tests;
 #[cfg(test)]
+mod approval_test_support;
+#[cfg(test)]
+mod command_approval_tests;
+#[cfg(test)]
 mod mcp_approval_tests;
 mod keys;
 mod model_command;
@@ -156,6 +160,16 @@ impl PendingApproval {
     /// `guard::check_command()` — the one case with no y/N choice at all,
     /// acknowledge-only. `FileWrite` never reaches this state (see the
     /// variant's own doc comment).
+    /// Identifies WHAT was put in front of the person: the call's id, tool and exact
+    /// arguments. A model that reuses an id with different content gets a different key.
+    pub(super) fn prompt_key(&self) -> u64 {
+        use std::hash::{Hash, Hasher};
+        let call = self.call();
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        (&call.id, &call.name, &call.arguments_json).hash(&mut hasher);
+        hasher.finish()
+    }
+
     pub(super) fn is_guard_denied(&self) -> bool {
         matches!(
             self,
@@ -260,10 +274,10 @@ pub(super) struct App {
     /// One line per tool that is configured here but hidden until a person confirms
     /// it (`yana-rt trust allow`); refreshed at the start of each turn and shown in the header.
     tool_notices: Vec<String>,
-    /// The id of the pending call whose approval prompt was last drawn WHOLE. A
-    /// command or MCP call is approved only if this is its id: what a person cannot
-    /// see in full cannot be approved. Reset on every frame.
-    shown_whole_call: Option<String>,
+    /// The key (see `PendingApproval::prompt_key`) of the pending call whose approval
+    /// prompt was last drawn WHOLE. A command or MCP call is approved only if this is
+    /// its key: what a person cannot see in full cannot be approved. Reset on every frame.
+    shown_whole_call: Option<u64>,
     /// Whether `run_command` routes through `core/scripts/sandbox-exec.sh`
     /// for real isolation. Default `true`; `--no-sandbox` is an explicit,
     /// human-invoked opt-out — never a silent runtime fallback if a

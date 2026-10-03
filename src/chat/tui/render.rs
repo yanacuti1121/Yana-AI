@@ -5,6 +5,7 @@
 //! every one of them.
 
 mod command_prompt;
+mod mcp_prompt;
 mod render_tools;
 #[cfg(test)]
 mod tests;
@@ -79,14 +80,19 @@ pub fn draw_ui(frame: &mut Frame, app: &mut App) {
         &app.session_id,
         header_inner_w,
     );
-    header_lines.extend(app.tool_notices.iter().map(|notice| Line::styled(notice.clone(), Style::default().fg(colors.warning))));
+    // Wrapped, never clipped: the command to run is at the end of the line.
+    for notice in &app.tool_notices {
+        for row in command_prompt::rows_of(notice, usize::from(header_inner_w)) {
+            header_lines.push(Line::styled(row, Style::default().fg(colors.warning)));
+        }
+    }
     let header_height = header_lines.len() as u16 + 1;
     let input_height = if matches!(app.turn, TurnState::AwaitingApproval(PendingApproval::WebSearch { .. })) {
         // Title, destination, key, query: all four must be visible (see
         // `render_tools::web_search_prompt_lines`).
         render_tools::WEB_SEARCH_PROMPT_HEIGHT
     } else if matches!(app.turn, TurnState::AwaitingApproval(PendingApproval::McpCall { .. })) {
-        render_tools::MCP_PROMPT_HEIGHT
+        mcp_prompt::HEIGHT
     } else if let TurnState::AwaitingApproval(PendingApproval::Command { command, guard_verdict: None, .. }) = &app.turn {
         // Grows to hold the whole command; one too long for the largest box gets the standard box and a refusal notice.
         command_prompt::needed_height(command, frame.area().width).unwrap_or(command_prompt::MIN_HEIGHT)
@@ -133,7 +139,7 @@ pub fn draw_ui(frame: &mut Frame, app: &mut App) {
     app.shown_whole_call = None;
     if let TurnState::AwaitingApproval(pending) = &app.turn {
         let whole = render_tools::draw_approval_prompt(frame, pending, input_area);
-        app.shown_whole_call = whole.then(|| pending.call().id.clone());
+        app.shown_whole_call = whole.then(|| pending.prompt_key());
         draw_status_bar(frame, app, status_area, colors);
         return;
     }

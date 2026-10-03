@@ -40,7 +40,7 @@ impl App {
         // A command or external program is approved only if its prompt was drawn whole
         // (for THIS call: a stale frame from an earlier prompt does not count).
         let must_be_shown = matches!(pending, PendingApproval::Command { .. } | PendingApproval::McpCall { .. });
-        let unshown = must_be_shown && self.shown_whole_call.as_deref() != Some(pending.call().id.as_str());
+        let unshown = must_be_shown && self.shown_whole_call != Some(pending.prompt_key());
         match key.code {
             KeyCode::Char('y') | KeyCode::Char('Y') if unshown => {
                 self.status = "this call was not shown in full (too long, or the terminal is too small); enlarge it, or press n".into();

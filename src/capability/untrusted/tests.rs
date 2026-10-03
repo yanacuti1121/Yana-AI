@@ -84,3 +84,13 @@ fn very_large_and_odd_input_is_handled() {
     assert!(scan(&tail).is_empty(), "only the first MiB is screened, by design");
     assert!(scan("日本語のテキスト ✓ \u{0}\u{1F525}").is_empty());
 }
+
+#[test]
+fn characters_that_draw_as_nothing_are_all_invisible_and_ordinary_text_is_not() {
+    for c in ['\u{200B}', '\u{202E}', '\u{2064}', '\u{FEFF}', '\u{00AD}', '\u{034F}', '\u{061C}', '\u{3164}', '\u{2800}', '\u{FE0F}', '\u{E0041}', '\u{E0100}', '\u{FFA0}'] {
+        assert!(is_invisible_format_char(c), "U+{:04X}", c as u32);
+    }
+    for c in ['a', ' ', '\u{4e2d}', '\u{1ee}', '\u{1ef0}', '\u{3000}', '\u{1f600}', '-'] {
+        assert!(!is_invisible_format_char(c), "U+{:04X} is visible text", c as u32);
+    }
+}

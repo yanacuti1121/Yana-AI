@@ -98,7 +98,7 @@ pub fn catalog(ctx: &SessionContext) -> Vec<ToolSpec> {
     }
     // Same rule for external MCP servers, and only in builds that have the client:
     // offered once the user's server list exists AND a person confirmed its exact content.
-    if ctx.repo_root.join(".yana-ai").join("mcp-servers.json").is_file()
+    if crate::capability::config_trust::ConfigKind::McpServers.exists_in(&ctx.repo_root)
         && crate::capability::config_trust::is_trusted(&ctx.repo_root, crate::capability::config_trust::ConfigKind::McpServers)
     {
         if let Some(descriptor) = available.iter().find(|d| d.name == "mcp.call") {

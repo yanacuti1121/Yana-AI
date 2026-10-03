@@ -14,7 +14,7 @@ pub fn hidden_tool_notices(root: &Path) -> Vec<String> {
         notices.push(notice("web_search", ConfigKind::WebSearch));
     }
     // Only in builds that have the client: otherwise the tool is not offered for a reason a confirmation cannot fix.
-    if cfg!(feature = "mcp") && root.join(".yana-ai").join("mcp-servers.json").is_file() && !is_trusted(root, ConfigKind::McpServers) {
+    if cfg!(feature = "mcp") && ConfigKind::McpServers.exists_in(root) && !is_trusted(root, ConfigKind::McpServers) {
         notices.push(notice("mcp_call", ConfigKind::McpServers));
     }
     notices
@@ -90,5 +90,34 @@ mod tests {
         let lines = hidden_tool_notices(&root);
         assert_eq!(lines.len(), if cfg!(feature = "mcp") { 2 } else { 1 });
         assert!(lines[0].starts_with("web_search"));
+    }
+
+    /// The notice and the catalog must agree for every combination: a tool is either
+    /// offered, or hidden WITH a notice, or not configured at all (nothing to say).
+    #[test]
+    fn the_notice_and_the_catalog_agree_for_every_combination() {
+        let offered = |root: &std::path::Path, name: &str| {
+            let ctx = crate::session_context::SessionContext::new("s", root.to_path_buf(), "ollama", "m", false);
+            super::super::catalog(&ctx).iter().any(|t| t.name == name)
+        };
+        for (configure, confirm) in [(false, false), (true, false), (true, true), (false, true)] {
+            let files: Vec<(&str, &str)> = if configure { vec![("web-search.json", SEARCH), ("mcp-servers.json", SERVERS)] } else { Vec::new() };
+            let (_k, root) = repo(&files);
+            empty_store_in_test();
+            if confirm {
+                trust_in_test(&root);
+            }
+            let notices = hidden_tool_notices(&root);
+            let said = |tool: &str| notices.iter().any(|n| n.starts_with(tool));
+            assert_eq!(offered(&root, "web_search"), configure && confirm, "web_search offered (configured {configure}, confirmed {confirm})");
+            assert_eq!(said("web_search"), configure && !confirm, "web_search notice (configured {configure}, confirmed {confirm})");
+            assert!(!(offered(&root, "web_search") && said("web_search")), "never both offered and announced as hidden");
+            if cfg!(feature = "mcp") {
+                assert_eq!(offered(&root, "mcp_call"), configure && confirm, "mcp_call offered (configured {configure}, confirmed {confirm})");
+                assert_eq!(said("mcp_call"), configure && !confirm, "mcp_call notice (configured {configure}, confirmed {confirm})");
+            } else {
+                assert!(!said("mcp_call") && !offered(&root, "mcp_call"), "without the client: neither");
+            }
+        }
     }
 }

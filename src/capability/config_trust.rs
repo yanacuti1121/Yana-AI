@@ -66,6 +66,11 @@ impl ConfigKind {
     fn path(self, root: &Path) -> PathBuf {
         root.join(".yana-ai").join(self.file_name())
     }
+
+    /// Whether the repository ships this configuration at all (a regular file).
+    pub fn exists_in(self, root: &Path) -> bool {
+        self.path(root).is_file()
+    }
 }
 
 fn refuse(detail: impl Into<String>) -> CapabilityError {
