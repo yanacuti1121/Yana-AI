@@ -103,7 +103,7 @@ mod tests {
     }
 
     #[test]
-    fn all_sixteen_descriptors_present() {
+    fn all_descriptors_present() {
         assert_eq!(Manifest::all().descriptors.len(), 17);
     }
 

@@ -7,6 +7,7 @@
 //! `untrusted::guard`, because a name or a documentation comment can say anything.
 
 use super::operation::{character_at, relative_from_uri, sensitive_path, Operation};
+use crate::capability::{resolve_existing, CapabilityError};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::path::Path;
@@ -101,8 +102,18 @@ fn locations(result: &Value, root: &Path) -> String {
             out.push(OUTSIDE.to_string());
             continue;
         };
+        // Where the path really leads: a link inside the repository can point at a secrets file or out of it.
+        let readable = match resolve_existing(root, &relative) {
+            Ok(resolved) => resolved.strip_prefix(root).ok().and_then(Path::to_str).map(str::to_string),
+            Err(CapabilityError::PathEscape { .. }) => None,
+            Err(_) => Some(relative.clone()),
+        };
+        let Some(readable) = readable else {
+            out.push(OUTSIDE.to_string());
+            continue;
+        };
         // A server must not get lines of a secrets file shown to the model.
-        let source = if sensitive_path(&relative) { None } else { sources.line(&relative, line) };
+        let source = if sensitive_path(&relative) || sensitive_path(&readable) { None } else { sources.line(&readable, line) };
         let column = source.as_deref().map_or(utf16.saturating_add(1), |text| character_at(text, utf16));
         let snippet = source.map(|text| format!("  | {}", clean(text.trim(), MAX_SNIPPET_CHARS, false))).unwrap_or_default();
         out.push(format!("{}:{}:{}{}", clean(&relative, MAX_NAME_CHARS * 2, false), line.saturating_add(1), column, snippet));

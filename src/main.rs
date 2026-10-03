@@ -137,7 +137,7 @@ enum Commands {
         action: LeaseAction,
     },
     /// Confirm repo-supplied configuration (`.yana-ai/web-search.json`,
-    /// `.yana-ai/mcp-servers.json`) before it is used, like `direnv allow`.
+    /// `.yana-ai/mcp-servers.json`, `.yana-ai/lsp-servers.json`) before it is used, like `direnv allow`.
     /// A repository you cloned can ship these files; nothing in them is used
     /// until a person has reviewed this exact content.
     Trust {
@@ -741,18 +741,18 @@ enum TrustAction {
     Status,
     /// Print a configuration exactly as it would be trusted, with its hash.
     Show {
-        /// `web-search` or `mcp-servers`
+        /// `web-search`, `mcp-servers` or `lsp-servers`
         kind: String,
     },
     /// Confirm the current content. Needs a terminal and a typed `yes`;
     /// revokes leases that depended on a configuration that changed.
     Allow {
-        /// `web-search` or `mcp-servers`
+        /// `web-search`, `mcp-servers` or `lsp-servers`
         kind: String,
     },
     /// Forget a confirmation (and the leases that depended on it).
     Revoke {
-        /// `web-search` or `mcp-servers`
+        /// `web-search`, `mcp-servers` or `lsp-servers`
         kind: String,
     },
 }

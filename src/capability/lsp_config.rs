@@ -31,6 +31,30 @@ pub struct LspServer {
     pub extensions: Vec<String>,
 }
 
+impl LspServer {
+    /// How long a question may take: the entry's own limit, else the default for language servers.
+    pub fn timeout_secs(&self) -> u64 {
+        self.server.timeout_secs.unwrap_or(DEFAULT_TIMEOUT_SECS)
+    }
+
+    /// A server with a list of extensions answers only for those files; an entry with no
+    /// list answers for any file.
+    pub fn check_extension(&self, path: &str) -> Result<(), CapabilityError> {
+        if self.extensions.is_empty() {
+            return Ok(());
+        }
+        let extension = Path::new(path).extension().and_then(|e| e.to_str()).unwrap_or("").to_ascii_lowercase();
+        if self.extensions.iter().any(|allowed| *allowed == extension) {
+            return Ok(());
+        }
+        Err(invalid(format!("language server '{}' is listed for .{} files, not for {path}", self.server.name, self.extensions.join(", ."))))
+    }
+}
+
+/// Every key an entry may have; anything else (a misspelling such as "extension" or
+/// "timeout") is refused instead of being silently ignored.
+const ENTRY_KEYS: [&str; 6] = ["name", "command", "args", "env", "timeout_secs", "extensions"];
+
 #[derive(Deserialize)]
 struct File {
     servers: Vec<LspServer>,
@@ -44,9 +68,11 @@ fn validate_server(entry: &LspServer) -> Result<(), CapabilityError> {
     validate(&entry.server)?;
     let name = &entry.server.name;
     let command = &entry.server.command;
-    // A bare name is looked up on PATH and an absolute path is explicit; "./x" or "bin/x"
-    // would start whatever the repository put at that place.
-    if command.contains('/') && !command.starts_with('/') {
+    // An absolute path is explicit and a bare name is resolved on PATH (see `resolve_program`);
+    // anything else, in either path style ("./x", "bin/x", ".\\x", "C:x"), would start whatever the
+    // repository put at that place. The approver is shown the resolved program, so this is
+    // defence in depth rather than the only guard.
+    if !Path::new(command).is_absolute() && command.contains(['/', '\\', ':']) {
         return Err(invalid(format!("server '{name}': the command must be a program name or an absolute path, not a relative path")));
     }
     if command.starts_with('-') {
@@ -60,7 +86,16 @@ fn validate_server(entry: &LspServer) -> Result<(), CapabilityError> {
 }
 
 fn parse(bytes: &[u8]) -> Result<Vec<LspServer>, CapabilityError> {
-    let file: File = serde_json::from_slice(bytes).map_err(|e| invalid(format!(".yana-ai/lsp-servers.json is not valid: {e}")))?;
+    let value: serde_json::Value = serde_json::from_slice(bytes).map_err(|e| invalid(format!(".yana-ai/lsp-servers.json is not valid: {e}")))?;
+    if let Some(key) = value.as_object().into_iter().flat_map(|map| map.keys()).find(|key| key.as_str() != "servers") {
+        return Err(invalid(format!(".yana-ai/lsp-servers.json: unknown field {key:?} (the only key is \"servers\")")));
+    }
+    for entry in value.get("servers").and_then(serde_json::Value::as_array).into_iter().flatten() {
+        if let Some(key) = entry.as_object().into_iter().flat_map(|map| map.keys()).find(|key| !ENTRY_KEYS.contains(&key.as_str())) {
+            return Err(invalid(format!(".yana-ai/lsp-servers.json: unknown field {key:?} in an entry (allowed: {})", ENTRY_KEYS.join(", "))));
+        }
+    }
+    let file: File = serde_json::from_value(value).map_err(|e| invalid(format!(".yana-ai/lsp-servers.json is not valid: {e}")))?;
     if file.servers.len() > MAX_SERVERS {
         return Err(invalid(format!(".yana-ai/lsp-servers.json lists more than {MAX_SERVERS} servers")));
     }
@@ -72,6 +107,49 @@ fn parse(bytes: &[u8]) -> Result<Vec<LspServer>, CapabilityError> {
         }
     }
     Ok(file.servers)
+}
+
+/// The absolute path of the program that would run for `command`, decided in this process
+/// BEFORE the working directory is changed to the repository. An absolute command is itself.
+/// A bare name is looked for in the PATH entries that are absolute and outside the repository:
+/// a relative or empty entry (which a shell may add for `.` or `./node_modules/.bin`) and a
+/// directory inside the repository are skipped, so the repository cannot supply the program
+/// by putting one where PATH would find it. The result is what an approver is shown and what is run.
+pub fn resolve_program(command: &str, root: &Path) -> Result<String, CapabilityError> {
+    resolve_program_in(command, root, std::env::var_os("PATH").as_deref())
+}
+
+fn is_executable_file(path: &Path) -> bool {
+    let Ok(meta) = std::fs::metadata(path) else { return false };
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        meta.is_file() && meta.permissions().mode() & 0o111 != 0
+    }
+    #[cfg(not(unix))]
+    {
+        meta.is_file()
+    }
+}
+
+pub(crate) fn resolve_program_in(command: &str, root: &Path, path_var: Option<&std::ffi::OsStr>) -> Result<String, CapabilityError> {
+    if Path::new(command).is_absolute() {
+        return Ok(command.to_string());
+    }
+    let repository = root.canonicalize().map_err(|e| CapabilityError::Io { detail: format!("resolve repository: {e}") })?;
+    for dir in std::env::split_paths(path_var.unwrap_or_default()) {
+        if !dir.is_absolute() {
+            continue;
+        }
+        let candidate = dir.join(command);
+        // Neither the directory nor, through links, the program itself may be inside the repository.
+        let inside = |p: &Path| p.canonicalize().map(|c| c.starts_with(&repository)).unwrap_or(true);
+        if inside(&dir) || !is_executable_file(&candidate) || inside(&candidate) {
+            continue;
+        }
+        return candidate.to_str().map(str::to_string).ok_or_else(|| invalid("that program's path is not valid text"));
+    }
+    Err(invalid(format!("'{command}' was not found in PATH (relative entries and directories inside the repository are ignored); give an absolute path")))
 }
 
 /// The one server called `name`. What is parsed here is the very bytes that were
@@ -111,7 +189,7 @@ mod tests {
         let root = outer.path().join("ws");
         std::fs::create_dir_all(root.join(".yana-ai")).unwrap();
         std::fs::write(root.join(".yana-ai/lsp-servers.json"), r#"{"servers":[{"name":"rust","command":"rust-analyzer"}]}"#).unwrap();
-        config_trust::empty_store_in_test();
+        config_trust::forget_all_trust_in_test();
         let error = find_lsp_server(&root, "rust").unwrap_err().to_string();
         assert!(error.contains("not trusted") && error.contains("yana-rt trust allow lsp-servers"), "{error}");
     }
@@ -124,6 +202,10 @@ mod tests {
             r#"{"servers":[{"name":"a","command":"bin/server"}]}"#,
             r#"{"servers":[{"name":"a","command":"../server"}]}"#,
             r#"{"servers":[{"name":"a","command":"-x"}]}"#,
+            r#"{"servers":[{"name":"a","command":".\\server.exe"}]}"#,
+            r#"{"servers":[{"name":"a","command":"sub\\server.exe"}]}"#,
+            r#"{"servers":[{"name":"a","command":"C:server.exe"}]}"#,
+            r#"{"servers":[],"other":1}"#,
             r#"{"servers":[{"name":"a","command":"x","env":["LD_PRELOAD"]}]}"#,
             r#"{"servers":[{"name":"a","command":"x","timeout_secs":9999}]}"#,
             r#"{"servers":[{"name":"a","command":"café"}]}"#,
@@ -137,11 +219,83 @@ mod tests {
         ];
         for json in cases {
             let (_k, root) = repo(json);
-            assert!(find_lsp_server(&root, "a").is_err(), "{json}");
+            let error = find_lsp_server(&root, "a").unwrap_err().to_string();
+            assert!(!error.contains("not trusted"), "rejected by a rule of its own, not by the missing confirmation: {json}: {error}");
         }
         let many: Vec<String> = (0..=MAX_EXTENSIONS).map(|n| format!("e{n}")).collect();
         let (_k, root) = repo(&serde_json::json!({"servers": [{"name": "a", "command": "x", "extensions": many}]}).to_string());
         assert!(find_lsp_server(&root, "a").is_err(), "too many extensions");
+    }
+
+    #[test]
+    fn a_misspelled_key_is_refused_not_silently_ignored() {
+        for json in [
+            r#"{"servers":[{"name":"a","command":"x","extension":["rs"]}]}"#,
+            r#"{"servers":[{"name":"a","command":"x","timeout":5}]}"#,
+            r#"{"servers":[{"name":"a","command":"x","arg":["--stdio"]}]}"#,
+        ] {
+            let (_k, root) = repo(json);
+            let error = find_lsp_server(&root, "a").unwrap_err().to_string();
+            assert!(error.contains("unknown field"), "{json}: {error}");
+        }
+    }
+
+    #[test]
+    fn a_server_listed_for_some_extensions_refuses_other_files_and_an_empty_list_means_any() {
+        let (_k, root) = repo(r#"{"servers":[{"name":"rust","command":"x","extensions":["rs","toml"]},{"name":"any","command":"x"}]}"#);
+        let rust = find_lsp_server(&root, "rust").unwrap();
+        for ok in ["src/lib.rs", "Cargo.TOML", "a/b/c.rs"] {
+            assert!(rust.check_extension(ok).is_ok(), "{ok}");
+        }
+        for bad in ["src/app.py", "Makefile", "lib.rs.bak", ".rs"] {
+            assert!(rust.check_extension(bad).is_err(), "{bad}");
+        }
+        assert!(find_lsp_server(&root, "any").unwrap().check_extension("anything.xyz").is_ok());
+    }
+
+    /// A directory of programs, with one executable file named `name` in it.
+    fn bin_with(parent: &std::path::Path, dir: &str, name: &str) -> std::path::PathBuf {
+        let bin = parent.join(dir);
+        std::fs::create_dir_all(&bin).unwrap();
+        let program = bin.join(name);
+        std::fs::write(&program, "#!/bin/sh\n").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&program, std::fs::Permissions::from_mode(0o755)).unwrap();
+        }
+        bin
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_bare_name_is_resolved_outside_the_repository_and_never_from_a_relative_or_inside_entry() {
+        let outer = tempfile::tempdir().unwrap();
+        let root = outer.path().canonicalize().unwrap().join("repo");
+        std::fs::create_dir_all(&root).unwrap();
+        let inside = bin_with(&root, "node_modules/.bin", "lsp-x");
+        let trusted = bin_with(&outer.path().canonicalize().unwrap(), "usr-bin", "lsp-x");
+        let join = |dirs: &[&std::path::Path]| std::env::join_paths(dirs.iter().map(|d| d.as_os_str())).unwrap();
+        let resolve = |path: &std::ffi::OsStr| resolve_program_in("lsp-x", &root, Some(path));
+        // A relative entry ("." or "node_modules/.bin"), an empty entry and an in-repository entry are all skipped.
+        let path = join(&[std::path::Path::new("."), std::path::Path::new("node_modules/.bin"), std::path::Path::new(""), &inside, &trusted]);
+        assert_eq!(resolve(&path).unwrap(), trusted.join("lsp-x").to_str().unwrap(), "the program outside the repository wins");
+        // With only skipped entries nothing resolves, and the repository's program is NOT used.
+        let only_bad = join(&[std::path::Path::new("."), &inside]);
+        assert!(resolve(&only_bad).unwrap_err().to_string().contains("not found in PATH"));
+        assert!(resolve_program_in("lsp-x", &root, None).is_err(), "no PATH at all");
+        // A file that is not executable is not a program.
+        let plain = outer.path().canonicalize().unwrap().join("plain");
+        std::fs::create_dir_all(&plain).unwrap();
+        std::fs::write(plain.join("lsp-x"), "x").unwrap();
+        assert!(resolve(&join(&[&plain])).is_err());
+        // A link outside the repository that points back into it is skipped as well.
+        let linked = outer.path().canonicalize().unwrap().join("linked");
+        std::fs::create_dir_all(&linked).unwrap();
+        std::os::unix::fs::symlink(inside.join("lsp-x"), linked.join("lsp-x")).unwrap();
+        assert!(resolve(&join(&[&linked])).is_err(), "a link into the repository is the repository's program");
+        // An absolute command is itself, whatever PATH says.
+        assert_eq!(resolve_program_in("/bin/sh", &root, Some(&path)).unwrap(), "/bin/sh");
     }
 
     #[test]

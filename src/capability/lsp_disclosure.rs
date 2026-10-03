@@ -7,7 +7,7 @@
 //! command line), which variables it is given, and then what is asked and about which
 //! file and position. The model-chosen part comes last.
 
-use super::lsp_config::{find_lsp_server, LspServer, DEFAULT_TIMEOUT_SECS};
+use super::lsp_config::{find_lsp_server, resolve_program, LspServer};
 use super::CapabilityError;
 use crate::lsp_client::operation::{check_target, parse_query, Operation, Query};
 use serde_json::Value;
@@ -16,11 +16,13 @@ use std::path::Path;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LspDisclosure {
     pub server: String,
+    /// The ABSOLUTE path of the program that will run (see `resolve_program`), not the name in the list.
     pub command: String,
     pub args: Vec<String>,
     pub env_names: Vec<String>,
     pub timeout_secs: u64,
     pub operation: Operation,
+    /// The file as it resolves inside the repository (links followed), not as the model wrote it.
     pub path: String,
     pub line: u32,
     pub character: u32,
@@ -62,16 +64,16 @@ impl LspDisclosure {
     }
 }
 
-/// The disclosure for `server` answering `query`.
-pub fn disclosure_of(server: &LspServer, query: &Query) -> LspDisclosure {
+/// The disclosure for `server` answering `query`, with `program` and `path` already resolved.
+pub fn disclosure_of(server: &LspServer, query: &Query, program: &str, path: &str) -> LspDisclosure {
     LspDisclosure {
         server: server.server.name.clone(),
-        command: server.server.command.clone(),
+        command: program.to_string(),
         args: server.server.args.clone(),
         env_names: server.server.env.clone(),
-        timeout_secs: server.server.timeout_secs.unwrap_or(DEFAULT_TIMEOUT_SECS),
+        timeout_secs: server.timeout_secs(),
         operation: query.operation,
-        path: query.path.clone(),
+        path: path.to_string(),
         line: query.line,
         character: query.character,
     }
@@ -83,8 +85,10 @@ pub fn disclosure_of(server: &LspServer, query: &Query) -> LspDisclosure {
 pub fn disclose(root: &Path, arguments: &Value) -> Result<LspDisclosure, CapabilityError> {
     let query = parse_query(arguments)?;
     let server = find_lsp_server(root, &query.server)?;
-    check_target(root, &query)?;
-    Ok(disclosure_of(&server, &query))
+    server.check_extension(&query.path)?;
+    let program = resolve_program(&server.server.command, root)?;
+    let target = check_target(root, &query)?;
+    Ok(disclosure_of(&server, &query, &program, &target.relative))
 }
 
 #[cfg(test)]
@@ -105,7 +109,7 @@ mod tests {
     }
 
     fn one() -> Value {
-        json!([{"name": "rust", "command": "rust-analyzer", "args": ["--log file", "x"], "env": ["RUST_LOG"], "timeout_secs": 90, "extensions": ["rs"]}])
+        json!([{"name": "rust", "command": "/bin/sh", "args": ["--log file", "x"], "env": ["RUST_LOG"], "timeout_secs": 90, "extensions": ["rs"]}])
     }
 
     fn call(operation: &str, path: &str, line: u32) -> Value {
@@ -116,16 +120,16 @@ mod tests {
     fn the_summary_names_the_program_first_and_the_question_last() {
         let (_k, root) = repo(one());
         let d = disclose(&root, &call("definition", "src/lib.rs", 2)).unwrap();
-        assert_eq!(d.command_line(), "rust-analyzer '--log file' x", "quoted, so two arguments cannot pass for one");
-        assert_eq!(d.summary(), "LSP: start external program `rust-analyzer '--log file' x` (server 'rust', variables RUST_LOG passed, timeout 90s) and ask for definition at src/lib.rs:2:5");
+        assert_eq!(d.command_line(), "/bin/sh '--log file' x", "quoted, so two arguments cannot pass for one");
+        assert_eq!(d.summary(), "LSP: start external program `/bin/sh '--log file' x` (server 'rust', variables RUST_LOG passed, timeout 90s) and ask for definition at src/lib.rs:2:5");
         let symbols = disclose(&root, &json!({"server": "rust", "operation": "document_symbols", "path": "src/lib.rs"})).unwrap();
         assert!(symbols.summary().ends_with("ask for document_symbols of src/lib.rs"), "{}", symbols.summary());
     }
 
     #[test]
     fn the_default_timeout_applies_when_the_entry_has_none() {
-        let (_k, root) = repo(json!([{"name": "rust", "command": "rust-analyzer"}]));
-        assert_eq!(disclose(&root, &call("hover", "src/lib.rs", 1)).unwrap().timeout_secs, DEFAULT_TIMEOUT_SECS);
+        let (_k, root) = repo(json!([{"name": "rust", "command": "/bin/sh"}]));
+        assert_eq!(disclose(&root, &call("hover", "src/lib.rs", 1)).unwrap().timeout_secs, crate::capability::lsp_config::DEFAULT_TIMEOUT_SECS);
     }
 
     #[test]
@@ -139,9 +143,12 @@ mod tests {
             call("hover", "../outside.rs", 1),
             call("hover", ".env", 1),
         ];
+        std::fs::write(root.join("src/app.py"), "x = 1\n").unwrap();
         for arguments in bad {
             assert!(disclose(&root, &arguments).is_err(), "{arguments}");
         }
+        // The list names .rs files only: a Python file is refused before an approver is asked.
+        assert!(disclose(&root, &call("hover", "src/app.py", 1)).is_err());
     }
 
     #[test]
@@ -163,4 +170,24 @@ mod tests {
         trust_in_test(&root);
         assert_ne!(base, disclose(&root, &call("definition", "src/lib.rs", 2)).unwrap(), "another program");
     }
+}
+
+#[cfg(unix)]
+#[test]
+fn the_approver_is_shown_the_program_that_will_run_not_the_name_in_the_list() {
+    let (_k, root) = {
+        let outer = tempfile::tempdir().unwrap();
+        let root = outer.path().canonicalize().unwrap().join("ws");
+        std::fs::create_dir_all(root.join(".yana-ai")).unwrap();
+        std::fs::create_dir_all(root.join("src")).unwrap();
+        std::fs::write(root.join("src/lib.rs"), "x\n").unwrap();
+        std::fs::write(root.join(".yana-ai/lsp-servers.json"), r#"{"servers":[{"name":"rust","command":"sh"}]}"#).unwrap();
+        crate::capability::config_trust::trust_in_test(&root);
+        (outer, root)
+    };
+    let shown = disclose(&root, &serde_json::json!({"server": "rust", "operation": "hover", "path": "src/lib.rs", "line": 1, "character": 1}));
+    // "sh" is found in the real PATH (outside any temporary repository) and shown as an absolute path.
+    let shown = shown.unwrap();
+    assert!(shown.command.starts_with('/') && shown.command.ends_with("/sh"), "{}", shown.command);
+    assert!(shown.summary().contains(&format!("`{}", shown.command)), "{}", shown.summary());
 }

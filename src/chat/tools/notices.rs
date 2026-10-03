@@ -27,7 +27,7 @@ fn notice(tool: &str, kind: ConfigKind) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::capability::config_trust::{empty_store_in_test, trust_in_test};
+    use crate::capability::config_trust::{empty_store_in_test, forget_all_trust_in_test, trust_in_test};
 
     fn repo(files: &[(&str, &str)]) -> (tempfile::TempDir, std::path::PathBuf) {
         let outer = tempfile::tempdir().unwrap();
@@ -103,7 +103,7 @@ mod tests {
         for (configure, confirm) in [(false, false), (true, false), (true, true), (false, true)] {
             let files: Vec<(&str, &str)> = if configure { vec![("web-search.json", SEARCH), ("mcp-servers.json", SERVERS)] } else { Vec::new() };
             let (_k, root) = repo(&files);
-            empty_store_in_test();
+            forget_all_trust_in_test();
             if confirm {
                 trust_in_test(&root);
             }
