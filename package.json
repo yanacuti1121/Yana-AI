@@ -78,7 +78,7 @@
     "electron:install": "cd tools/yana-desktop && npm install"
   },
   "devDependencies": {
-    "wrangler": "^4.96.0"
+    "wrangler": "^4.147.0"
   },
   "dependencies": {
     "acorn": "^8.14.0"
