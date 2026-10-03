@@ -92,6 +92,17 @@ jobs:
       - name: Validate agent routing map regression behavior
         run: python3 tests/test_agent_routing_map.py
 
+      # 2026-09-29: PyPI yana-ai 1.4.2/1.5.0 fork-bombed on a default pipx
+      # install (~470 `yana-rt --version` processes). The fix sat unreleased
+      # on main because the version was never bumped past what PyPI had.
+      - name: Validate yana-rt wrapper recursion/PATH regression behavior
+        run: python3 -m pytest tests/test_yana_ai_rt_binary_guard.py tests/test_check_py_release_drift.py -q
+
+      - name: Check Python package changes come with a version bump
+        run: |
+          git fetch --quiet --unshallow --tags origin
+          python3 scripts/check_py_release_drift.py
+
       - name: Validate AirLLM bridge admission/timeout/context-ceiling regression behavior
         run: python3 tools/airllm-bridge/test_server.py -v
 
@@ -484,6 +495,68 @@ jobs:
   # drift.sh's own header comment for the one thing it deliberately
   # cannot verify (GitHub's actual branch-protection setting, which needs
   # repo-admin scope a standard GITHUB_TOKEN doesn't have).
+  quality-gates:
+    name: Quality Gates (parallel x3, features, warnings, pytest, js)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (node24)
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable branch, resolved 2026-08-16
+
+      - name: Cache cargo
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5 (node24)
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-gates-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-gates-
+
+      - name: Prefetch pdfium
+        run: bash core/scripts/prefetch-pdfium.sh
+
+      # Warning ratchet: the count may fall, never rise. Lower
+      # ci/warning-baseline.txt in the same PR that removes warnings.
+      - name: Warning ratchet
+        run: |
+          touch src/main.rs
+          n=$(cargo build --features cli --bin yana-rt 2>&1 | sed -n 's/.*generated \([0-9][0-9]*\) warning.*/\1/p' | head -1)
+          base=$(cat ci/warning-baseline.txt)
+          echo "warnings: $n (baseline $base)"
+          test "${n:-0}" -le "$base"
+
+      # Flaky detector: the serial run in the required job hides tests that
+      # share global state. Three runs at default parallelism expose them.
+      - name: Unit tests, default parallelism, three runs
+        run: |
+          for i in 1 2 3; do
+            cargo test --features cli --bin yana-rt || exit 1
+          done
+
+      - name: All integration test files
+        run: cargo test --features cli --tests -- --test-threads=4
+
+      - name: Feature tests (mcp, discord, pty-bridge)
+        run: |
+          cargo test --features mcp --bin yana-rt
+          cargo test --features discord --bin yana-rt
+          cargo test --features pty-bridge --bin yana-rt
+
+      - name: Full pytest suite
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq python3-pip
+          python3 -m pip install -r requirements-dev.txt
+          cargo build --features cli --bin yana-rt
+          python3 -m pytest tests -q
+
+      - name: yana-web static path tests
+        run: node tools/yana-web/_test_static_path.js
+
   required-checks-drift:
     name: Required Checks Manifest Drift
     runs-on: ubuntu-latest

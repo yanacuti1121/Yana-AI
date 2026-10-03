@@ -141,17 +141,11 @@ fn reject_if_private_or_link_local(host: &str) -> Result<(), CapabilityError> {
 }
 
 fn check_ip(ip: IpAddr) -> Result<(), CapabilityError> {
-    let blocked = match ip {
-        IpAddr::V4(v4) => {
-            v4.is_loopback() || v4.is_link_local() || v4.is_private() || v4.is_unspecified()
-        }
-        IpAddr::V6(v6) => {
-            v6.is_loopback()
-                || v6.is_unspecified()
-                || (v6.segments()[0] & 0xfe00) == 0xfc00 // fc00::/7, unique local
-        }
-    };
-    if blocked {
+    // One canonical private-address test for every outbound fetch in the crate:
+    // it also covers CGNAT (100.64.0.0/10, where the Alibaba metadata address
+    // lives), IPv6 link-local and multicast, and an IPv4 address wrapped in
+    // IPv6 (`::ffff:169.254.169.254`), none of which the old local copy caught.
+    if crate::design::is_private_ip(ip) {
         return Err(CapabilityError::InvalidInput {
             detail: format!("URL resolves to a blocked internal address ({ip}); refusing to fetch"),
         });
@@ -373,3 +367,6 @@ mod tests {
         }
     }
 }
+
+#[cfg(test)]
+mod ssrf_tests;

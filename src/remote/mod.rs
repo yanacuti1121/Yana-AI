@@ -247,8 +247,8 @@ mod dispatch {
         let token = discord::bot_token()
             .context("DISCORD_BOT_TOKEN is not set — see `yana-rt remote discord setup`")?;
         let client = discord::Client::new(token);
-        let username = client.get_me()?;
-        println!("Connected as {username}");
+        let bot_name = client.get_me()?;
+        println!("Connected as {bot_name}");
         Ok(())
     }
 

@@ -1,0 +1,19 @@
+# CodeQL scope for this repository.
+#
+# Excluded paths are not Yana's own runtime code:
+#   core/skills, .claude/skills  sample and tutorial scripts for security skills
+#                                (honeypots, OAuth flows, hash cracking...). They
+#                                deliberately handle fake secrets and insecure
+#                                protocols to demonstrate them, and the
+#                                .claude/skills tree is a byte copy of core/skills,
+#                                so every finding was reported twice. Together they
+#                                produced 242 of the 268 open alerts on 2026-09-30.
+#   vendor                       upstream copies (hermes-agent, openclaw) kept for
+#                                reference; findings there belong to the upstream
+#                                projects and cannot be fixed here.
+# Everything else (src, tools, core/scripts, core/lib, tests, workflows) stays in scope.
+name: Yana CodeQL config
+paths-ignore:
+  - core/skills/**
+  - .claude/skills/**
+  - vendor/**
