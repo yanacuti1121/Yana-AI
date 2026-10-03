@@ -122,13 +122,21 @@ pub(super) fn draw_approval_prompt(frame: &mut Frame, pending: &PendingApproval,
         }
         _ => None,
     };
+    let lsp_view = match pending {
+        PendingApproval::LspQuery { disclosure, .. } if super::lsp_prompt::fits(area.width, area.height) => {
+            super::lsp_prompt::lines(disclosure, usize::from(area.width) - 2, area.height)
+        }
+        _ => None,
+    };
     let whole = match pending {
         PendingApproval::Command { guard_verdict: None, .. } => matches!(command_view, Some(Ok(_))),
         PendingApproval::McpCall { .. } => mcp_view.is_some(),
+        PendingApproval::LspQuery { .. } => lsp_view.is_some(),
         _ => true,
     };
     let (title, border_color, lines): (&str, Color, Vec<Line>) = match pending {
         PendingApproval::McpCall { .. } => (" approve external program ", Color::Yellow, mcp_view.unwrap_or_else(super::mcp_prompt::notice)),
+        PendingApproval::LspQuery { .. } => (" approve language server ", Color::Yellow, lsp_view.unwrap_or_else(super::lsp_prompt::notice)),
         PendingApproval::Command {
             command,
             guard_verdict: Some(reason),

@@ -25,6 +25,8 @@ mod approval_test_support;
 #[cfg(test)]
 mod command_approval_tests;
 #[cfg(test)]
+mod lsp_approval_tests;
+#[cfg(test)]
 mod mcp_approval_tests;
 mod keys;
 mod model_command;
@@ -122,6 +124,14 @@ enum PendingApproval {
         arguments: serde_json::Value,
         disclosure: crate::capability::mcp_disclosure::Disclosure,
     },
+    /// An `lsp_query`: start a language server the user configured and ask it one
+    /// question about one file. `disclosure` is what the approver saw (the resolved
+    /// program, the variable NAMES, the operation and position); it is recomputed at
+    /// `y` and handed to the executor, which runs exactly that or nothing.
+    LspQuery {
+        call: crate::model::tool::ToolCall,
+        disclosure: crate::capability::lsp_disclosure::LspDisclosure,
+    },
 }
 
 impl PendingApproval {
@@ -131,6 +141,7 @@ impl PendingApproval {
             PendingApproval::FileWrite { call, .. } => call,
             PendingApproval::WebSearch { call, .. } => call,
             PendingApproval::McpCall { call, .. } => call,
+            PendingApproval::LspQuery { call, .. } => call,
         }
     }
 
@@ -153,6 +164,7 @@ impl PendingApproval {
                 format!("search via {}: {shown}", disclosure.backend_host)
             }
             PendingApproval::McpCall { command, .. } => format!("mcp {command}"),
+            PendingApproval::LspQuery { disclosure, .. } => format!("lsp {} {}", disclosure.operation.label(), disclosure.path),
         }
     }
 

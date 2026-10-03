@@ -311,6 +311,10 @@ fn printable(text: &str) -> String {
 /// or unconfirmed configuration, missing or unacceptable arguments).
 fn disclosure_summary(root: &Path, call: &ToolCall) -> Result<Option<String>, crate::capability::CapabilityError> {
     use crate::capability::web_search::{disclose, validate_query};
+    if call.name == "lsp_query" {
+        let arguments = serde_json::from_str::<serde_json::Value>(&call.arguments_json).unwrap_or_default();
+        return Ok(Some(crate::capability::lsp_disclosure::disclose(root, &arguments)?.summary()));
+    }
     if call.name == "mcp_call" {
         use crate::capability::mcp_disclosure::{disclose, Disclosure};
         let args = serde_json::from_str::<serde_json::Value>(&call.arguments_json).unwrap_or_default();
@@ -352,10 +356,10 @@ pub(crate) fn reason_with_disclosure(
     })
 }
 
-/// `Some(refusal)` when an approved `web_search` or `mcp_call` would now go
+/// `Some(refusal)` when an approved `web_search`, `mcp_call` or `lsp_query` would now go
 /// somewhere (or start something) other than what its approver was shown.
 fn disclosure_changed(approval: &PendingApproval) -> Option<ToolResultRecord> {
-    if !matches!(approval.pending_call.name.as_str(), "web_search" | "mcp_call") {
+    if !matches!(approval.pending_call.name.as_str(), "web_search" | "mcp_call" | "lsp_query") {
         return None;
     }
     let now = disclosure_summary(&approval.context.session.repo_root, &approval.pending_call);
@@ -366,7 +370,7 @@ fn disclosure_changed(approval: &PendingApproval) -> Option<ToolResultRecord> {
     }
     Some(ToolResultRecord {
         call_id: approval.pending_call.id.clone(),
-        output: "blocked: the search backend or MCP server configuration changed since this was approved; ask again".to_string(),
+        output: "blocked: the search backend, MCP server or language server configuration changed since this was approved (or the question is not the one approved); ask again".to_string(),
         is_error: true,
         denied: true,
     })
@@ -581,6 +585,67 @@ mod tests {
         assert!(refusal.denied && refusal.is_error, "{refusal:?}");
         write_mcp_config(&root, serde_json::json!([{"name": "gh", "command": "npx", "args": ["--extra"]}]));
         assert!(disclosure_changed(&pending).is_some(), "an added argument is a change too");
+        fs::remove_dir_all(&root).ok();
+    }
+
+    fn lsp_call_record(operation: &str, line: u32) -> ToolCall {
+        ToolCall {
+            id: "call-l".into(),
+            name: "lsp_query".into(),
+            arguments_json: serde_json::json!({"server": "rust", "operation": operation, "path": "src/lib.rs", "line": line, "character": 3}).to_string(),
+        }
+    }
+
+    fn write_lsp_config(root: &Path, command: &str) {
+        fs::create_dir_all(root.join(".yana-ai")).unwrap();
+        fs::create_dir_all(root.join("src")).unwrap();
+        fs::write(root.join("src/lib.rs"), "pub fn alpha() {}\nlet beta = 1;\n").unwrap();
+        fs::write(root.join(".yana-ai/lsp-servers.json"), serde_json::json!({"servers": [{"name": "rust", "command": command, "env": ["RUST_LOG"]}]}).to_string()).unwrap();
+        crate::capability::config_trust::trust_in_test(root);
+    }
+
+    #[test]
+    fn an_lsp_reason_carries_the_program_the_variables_and_the_whole_question() {
+        let root = temp_root();
+        write_lsp_config(&root, "/bin/sh");
+        let reason = reason_with_disclosure(&root, &lsp_call_record("references", 2), Some("base".into())).unwrap();
+        assert!(reason.starts_with("base | LSP: start external program `/bin/sh`"), "{reason}");
+        assert!(reason.contains("RUST_LOG") && reason.ends_with("ask for references at src/lib.rs:2:3"), "{reason}");
+        fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn an_lsp_query_that_cannot_be_disclosed_is_an_error_not_a_blind_approval() {
+        let root = temp_root();
+        assert!(reason_with_disclosure(&root, &lsp_call_record("hover", 1), None).is_err(), "no server list");
+        write_lsp_config(&root, "/bin/sh");
+        for bad in [lsp_call_record("rename", 1), lsp_call_record("hover", 99)] {
+            assert!(reason_with_disclosure(&root, &bad, None).is_err(), "{}", bad.arguments_json);
+        }
+        let missing = ToolCall { id: "c".into(), name: "lsp_query".into(), arguments_json: "{}".into() };
+        assert!(reason_with_disclosure(&root, &missing, None).is_err());
+        fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn resuming_an_lsp_query_is_refused_when_the_program_or_the_question_changed_after_approval() {
+        let root = temp_root();
+        write_lsp_config(&root, "/bin/sh");
+        let reason = reason_with_disclosure(&root, &lsp_call_record("hover", 1), Some("needs approval".into())).unwrap();
+        let pending = PendingApprovalStore::for_root(&root)
+            .create(context(&root), "m".into(), None, Vec::new(), 0, lsp_call_record("hover", 1), reason, 20)
+            .unwrap();
+        assert!(disclosure_changed(&pending).is_none(), "unchanged: allowed to run");
+        write_lsp_config(&root, "/tmp/evil");
+        let refusal = disclosure_changed(&pending).expect("a different program must be refused");
+        assert!(refusal.denied && refusal.is_error && refusal.output.contains("language server"), "{refusal:?}");
+        write_lsp_config(&root, "/bin/sh");
+        assert!(disclosure_changed(&pending).is_none(), "restoring what was approved is fine");
+        // The stored call is what is run, so a different question needs a different approval record.
+        let other = PendingApprovalStore::for_root(&root)
+            .create(context(&root), "m".into(), None, Vec::new(), 0, lsp_call_record("references", 1), pending.authority_reason.clone(), 20)
+            .unwrap();
+        assert!(disclosure_changed(&other).is_some(), "an approval for one question does not cover another");
         fs::remove_dir_all(&root).ok();
     }
 

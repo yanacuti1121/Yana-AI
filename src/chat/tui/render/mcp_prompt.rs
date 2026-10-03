@@ -28,7 +28,7 @@ pub(super) fn fits(cols: u16, rows: u16) -> bool {
 }
 
 /// `text` after `label`, in rows that never exceed `width` cells.
-fn labelled(label: &str, text: &str, width: usize) -> Vec<Line<'static>> {
+pub(super) fn labelled(label: &str, text: &str, width: usize) -> Vec<Line<'static>> {
     let room = width.saturating_sub(LABEL_WIDTH);
     rows_of(text, room)
         .into_iter()

@@ -5,6 +5,7 @@
 //! every one of them.
 
 mod command_prompt;
+mod lsp_prompt;
 mod mcp_prompt;
 mod render_tools;
 #[cfg(test)]
@@ -93,6 +94,8 @@ pub fn draw_ui(frame: &mut Frame, app: &mut App) {
         render_tools::WEB_SEARCH_PROMPT_HEIGHT
     } else if matches!(app.turn, TurnState::AwaitingApproval(PendingApproval::McpCall { .. })) {
         mcp_prompt::HEIGHT
+    } else if matches!(app.turn, TurnState::AwaitingApproval(PendingApproval::LspQuery { .. })) {
+        lsp_prompt::HEIGHT
     } else if let TurnState::AwaitingApproval(PendingApproval::Command { command, guard_verdict: None, .. }) = &app.turn {
         // Grows to hold the whole command; one too long for the largest box gets the standard box and a refusal notice.
         command_prompt::needed_height(command, frame.area().width).unwrap_or(command_prompt::MIN_HEIGHT)

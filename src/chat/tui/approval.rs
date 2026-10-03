@@ -39,7 +39,7 @@ impl App {
         }
         // A command or external program is approved only if its prompt was drawn whole
         // (for THIS call: a stale frame from an earlier prompt does not count).
-        let must_be_shown = matches!(pending, PendingApproval::Command { .. } | PendingApproval::McpCall { .. });
+        let must_be_shown = matches!(pending, PendingApproval::Command { .. } | PendingApproval::McpCall { .. } | PendingApproval::LspQuery { .. });
         let unshown = must_be_shown && self.shown_whole_call != Some(pending.prompt_key());
         match key.code {
             KeyCode::Char('y') | KeyCode::Char('Y') if unshown => {
@@ -112,7 +112,26 @@ impl App {
         // For an MCP call: exactly what the approver saw, handed to the executor
         // so it runs that configuration or nothing.
         let mut approved_mcp: Option<crate::capability::mcp_disclosure::Disclosure> = None;
+        let mut approved_lsp: Option<crate::capability::lsp_disclosure::LspDisclosure> = None;
         let call = match &pending {
+            PendingApproval::LspQuery { disclosure, call } => {
+                let root = self.session_context().repo_root;
+                let arguments: serde_json::Value = serde_json::from_str(&call.arguments_json).unwrap_or(serde_json::Value::Null);
+                if crate::capability::lsp_disclosure::disclose(&root, &arguments).as_ref() != Ok(disclosure) {
+                    self.push_tool_result(
+                        &pending.call().id,
+                        "blocked during execution revalidation: the language server configuration or the question changed since approval; please retry"
+                            .to_string(),
+                        true,
+                        true,
+                    );
+                    self.continue_after_tool_result();
+                    return;
+                }
+                approved_lsp = Some(disclosure.clone());
+                let PendingApproval::LspQuery { call, .. } = pending else { unreachable!() };
+                call
+            }
             PendingApproval::McpCall { disclosure, command, .. } => {
                 let root = self.session_context().repo_root;
                 if crate::capability::mcp_disclosure::disclose(&root, command).as_ref() != Ok(disclosure) {
@@ -233,7 +252,7 @@ impl App {
         };
         let context = TurnContext::new(self.session_context(), TurnOrigin::Terminal, true);
         let call_id = call.id.clone();
-        let executor = ChatCapabilityExecutor::new(self.use_sandbox).with_approved_mcp(approved_mcp);
+        let executor = ChatCapabilityExecutor::new(self.use_sandbox).with_approved_mcp(approved_mcp).with_approved_lsp(approved_lsp);
         let (tx, rx) = mpsc::channel::<ToolExecEvent>();
         thread::spawn(move || {
             let result = execute_approved_tool(

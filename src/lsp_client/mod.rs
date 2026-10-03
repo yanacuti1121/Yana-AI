@@ -10,9 +10,9 @@
 //! door, with approval comparison and untrusted-content screening) need the async
 //! runtime and are built with the `mcp` feature.
 
-// Step (b) of the contract's order of work: nothing in the chat dispatches to this
-// module yet; the approval wiring (step c) comes next.
-#![allow(dead_code)]
+// Without the client only the question and its presentation exist; the helpers the async
+// parts use (positions, URIs, request parameters) have no caller in that build.
+#![cfg_attr(not(feature = "mcp"), allow(dead_code))]
 
 #[cfg(feature = "mcp")]
 pub mod codec;

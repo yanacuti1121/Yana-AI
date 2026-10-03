@@ -21,16 +21,44 @@ pub(crate) struct ChatCapabilityExecutor {
     /// remote approval) the configuration is disclosed again right before the
     /// call, after `resume_turn` has checked it against the stored reason.
     approved_mcp: Option<crate::capability::mcp_disclosure::Disclosure>,
+    /// The same for an approved `lsp_query`.
+    approved_lsp: Option<crate::capability::lsp_disclosure::LspDisclosure>,
 }
 
 impl ChatCapabilityExecutor {
     pub(crate) fn new(use_sandbox: bool) -> Self {
-        Self { use_sandbox, approved_mcp: None }
+        Self { use_sandbox, approved_mcp: None, approved_lsp: None }
     }
 
     pub(crate) fn with_approved_mcp(mut self, approved: Option<crate::capability::mcp_disclosure::Disclosure>) -> Self {
         self.approved_mcp = approved;
         self
+    }
+
+    pub(crate) fn with_approved_lsp(mut self, approved: Option<crate::capability::lsp_disclosure::LspDisclosure>) -> Self {
+        self.approved_lsp = approved;
+        self
+    }
+
+    /// Run an approved `lsp_query`. Needs the `mcp` feature; a build without it says so.
+    fn approved_lsp_call(&self, call: &ToolCall, root: &std::path::Path) -> ToolResultRecord {
+        let arguments: serde_json::Value = serde_json::from_str(&call.arguments_json).unwrap_or(serde_json::Value::Null);
+        let disclosure = match self.approved_lsp.clone().map(Ok).unwrap_or_else(|| crate::capability::lsp_disclosure::disclose(root, &arguments)) {
+            Ok(disclosure) => disclosure,
+            Err(error) => return tool_result(call, format!("language server query refused: {error}"), true, false),
+        };
+        #[cfg(feature = "mcp")]
+        {
+            return match crate::lsp_client::gateway::lsp_query(root, &arguments, &disclosure) {
+                Ok(answer) => tool_result(call, answer, false, false),
+                Err(error) => tool_result(call, format!("language server query failed: {error}"), true, false),
+            };
+        }
+        #[cfg(not(feature = "mcp"))]
+        {
+            let _ = (&arguments, &disclosure);
+            tool_result(call, "this build of yana-rt was made without language server support".to_string(), true, false)
+        }
     }
 
     /// Run an approved `mcp_call`. Needs the `mcp` feature; a build without it says so.
@@ -130,6 +158,7 @@ impl ToolExecutor for ChatCapabilityExecutor {
                 file_write_result(call, approved.context(), session_id, true)
             }
             "mcp_call" => self.approved_mcp_call(call, &approved.context().session.repo_root),
+            "lsp_query" => self.approved_lsp_call(call, &approved.context().session.repo_root),
             "web_search" => match parse_string_arg(&call.arguments_json, "query") {
                 Some(query) => match crate::capability::web_search::web_search(&approved.context().session.repo_root, &query) {
                     Ok(answer) => tool_result(call, answer, false, false),
@@ -234,6 +263,7 @@ impl App {
             "write_config" => self.prepare_write_file_approval(call, true),
             "web_search" => self.prepare_web_search_approval(call),
             "mcp_call" => self.prepare_mcp_approval(call),
+            "lsp_query" => self.prepare_lsp_approval(call),
             other => {
                 self.push_tool_result(
                     &call.id,
@@ -269,6 +299,23 @@ impl App {
             }
             Err(error) => {
                 self.push_tool_result(&call.id, format!("cannot call: {error}"), true, false);
+                self.continue_after_tool_result();
+            }
+        }
+    }
+
+    /// Starting a language server runs an external program, so the prompt shows the
+    /// resolved program, the variable names and the question. A list nobody confirmed,
+    /// an unlisted server, a file that cannot be used or a secrets file never reaches
+    /// `AwaitingApproval`: the model is told why instead.
+    fn prepare_lsp_approval(&mut self, call: ToolCall) {
+        let arguments: serde_json::Value = serde_json::from_str(&call.arguments_json).unwrap_or(serde_json::Value::Null);
+        match crate::capability::lsp_disclosure::disclose(&self.session_context().repo_root, &arguments) {
+            Ok(disclosure) => {
+                self.turn = TurnState::AwaitingApproval(PendingApproval::LspQuery { call, disclosure });
+            }
+            Err(error) => {
+                self.push_tool_result(&call.id, format!("cannot ask: {error}"), true, false);
                 self.continue_after_tool_result();
             }
         }

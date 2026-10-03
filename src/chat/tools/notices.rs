@@ -17,6 +17,9 @@ pub fn hidden_tool_notices(root: &Path) -> Vec<String> {
     if cfg!(feature = "mcp") && ConfigKind::McpServers.exists_in(root) && !is_trusted(root, ConfigKind::McpServers) {
         notices.push(notice("mcp_call", ConfigKind::McpServers));
     }
+    if cfg!(feature = "mcp") && ConfigKind::LspServers.exists_in(root) && !is_trusted(root, ConfigKind::LspServers) {
+        notices.push(notice("lsp_query", ConfigKind::LspServers));
+    }
     notices
 }
 
@@ -85,10 +88,10 @@ mod tests {
 
     #[test]
     fn both_unconfirmed_give_two_lines_in_a_stable_order() {
-        let (_k, root) = repo(&[("web-search.json", SEARCH), ("mcp-servers.json", SERVERS)]);
+        let (_k, root) = repo(&[("web-search.json", SEARCH), ("mcp-servers.json", SERVERS), ("lsp-servers.json", SERVERS)]);
         empty_store_in_test();
         let lines = hidden_tool_notices(&root);
-        assert_eq!(lines.len(), if cfg!(feature = "mcp") { 2 } else { 1 });
+        assert_eq!(lines.len(), if cfg!(feature = "mcp") { 3 } else { 1 });
         assert!(lines[0].starts_with("web_search"));
     }
 
@@ -101,7 +104,7 @@ mod tests {
             super::super::catalog(&ctx).iter().any(|t| t.name == name)
         };
         for (configure, confirm) in [(false, false), (true, false), (true, true), (false, true)] {
-            let files: Vec<(&str, &str)> = if configure { vec![("web-search.json", SEARCH), ("mcp-servers.json", SERVERS)] } else { Vec::new() };
+            let files: Vec<(&str, &str)> = if configure { vec![("web-search.json", SEARCH), ("mcp-servers.json", SERVERS), ("lsp-servers.json", SERVERS)] } else { Vec::new() };
             let (_k, root) = repo(&files);
             forget_all_trust_in_test();
             if confirm {
@@ -115,8 +118,11 @@ mod tests {
             if cfg!(feature = "mcp") {
                 assert_eq!(offered(&root, "mcp_call"), configure && confirm, "mcp_call offered (configured {configure}, confirmed {confirm})");
                 assert_eq!(said("mcp_call"), configure && !confirm, "mcp_call notice (configured {configure}, confirmed {confirm})");
+                assert_eq!(offered(&root, "lsp_query"), configure && confirm, "lsp_query offered (configured {configure}, confirmed {confirm})");
+                assert_eq!(said("lsp_query"), configure && !confirm, "lsp_query notice (configured {configure}, confirmed {confirm})");
             } else {
                 assert!(!said("mcp_call") && !offered(&root, "mcp_call"), "without the client: neither");
+                assert!(!said("lsp_query") && !offered(&root, "lsp_query"), "without the client: neither");
             }
         }
     }
