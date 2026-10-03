@@ -26,6 +26,12 @@ pub struct ChatSettings {
     /// auto-sending it, so the user can review/edit before pressing Enter.
     #[serde(default)]
     pub custom_commands: BTreeMap<String, String>,
+    /// Providers to try, in order, when the main one fails in a way another
+    /// provider could fix (rate limit, outage, bad key). Empty means no
+    /// failover, exactly the behavior before this field existed. Names are the
+    /// same ones `--provider` accepts.
+    #[serde(default)]
+    pub fallback_providers: Vec<String>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -55,6 +61,7 @@ impl Default for ChatSettings {
             default_model: None,
             privacy: PrivacySettings::default(),
             custom_commands: BTreeMap::new(),
+            fallback_providers: Vec::new(),
         }
     }
 }
@@ -104,6 +111,27 @@ mod tests {
         let settings = load(temp.path()).unwrap();
         assert_eq!(settings, ChatSettings::default());
         assert!(!settings.privacy.telemetry);
+    }
+
+    #[test]
+    fn fallback_providers_default_to_none_so_failover_is_off() {
+        assert!(ChatSettings::default().fallback_providers.is_empty());
+        let temp = tempfile::tempdir().unwrap();
+        let path = settings_path(temp.path());
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(path, r#"{"default_provider":"anthropic"}"#).unwrap();
+        assert!(load(temp.path()).unwrap().fallback_providers.is_empty());
+    }
+
+    #[test]
+    fn fallback_providers_round_trip_through_disk_in_order() {
+        let temp = tempfile::tempdir().unwrap();
+        let settings = ChatSettings {
+            fallback_providers: vec!["openai".to_string(), "ollama".to_string()],
+            ..ChatSettings::default()
+        };
+        save(temp.path(), &settings).unwrap();
+        assert_eq!(load(temp.path()).unwrap().fallback_providers, vec!["openai", "ollama"]);
     }
 
     #[test]

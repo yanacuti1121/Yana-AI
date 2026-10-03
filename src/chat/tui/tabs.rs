@@ -44,9 +44,7 @@ impl App {
             }
         };
         let api_key = if provider.requires_key() {
-            std::env::var(provider.env_var())
-                .ok()
-                .filter(|key| !key.is_empty())
+            crate::model::wiring::resolve_primary_key(provider.env_var(), &crate::chat::process_env)
         } else {
             None
         };
@@ -61,13 +59,20 @@ impl App {
                 return;
             }
         };
+        let repo_root = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
+        let wiring = crate::chat::wire_provider(provider, &crate::chat::configured_fallbacks(&repo_root));
+        let provider = wiring.provider;
+        let mut status = "session restored".to_string();
+        if !wiring.notes.is_empty() {
+            status.push_str(&format!(" · {}", wiring.notes.join("; ")));
+        }
         let health_rx =
             Self::start_health_probe(provider.clone(), api_key.clone(), metadata.model.clone());
         self.tabs.push(ChatTab {
             history: messages,
             streaming_reply: String::new(),
             input: TextInput::default(),
-            status: "session restored".to_string(),
+            status,
             scroll: u16::MAX,
             breaker: CircuitBreaker::new(),
             turn: TurnState::Idle,
