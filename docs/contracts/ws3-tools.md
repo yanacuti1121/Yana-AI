@@ -171,7 +171,7 @@ Trạng thái: **Implemented và Tested** (đường TUI và đường từ xa/l
 
 ## 17. LSP (đề xuất, chưa làm): `lsp.query`
 
-Trạng thái: **Planned**. Mục 3 hẹn một hợp đồng riêng cho LSP (T5); đây là hợp đồng đó. Không thêm crate.
+Trạng thái: bước (a) **Implemented và Tested** (`src/lsp_client/`: khung thông điệp, kết nối, thao tác và URI, trình bày kết quả, phiên chạy tiến trình thật bằng máy chủ giả `sh`; 39 test, chỉ có trong bản build `--features mcp`, chưa nối vào đâu). Bước (b) và (c) **Planned**. Mục 3 hẹn một hợp đồng riêng cho LSP (T5); đây là hợp đồng đó. Không thêm crate.
 
 - **Là gì:** một công cụ chỉ đọc cho mô hình hỏi máy chủ ngôn ngữ (rust-analyzer, gopls, pyright...) về mã trong repo: `definition`, `references`, `hover`, `document_symbols`. Tham số: `{"server","operation","path","line","character"}` (`path` tương đối repo, dòng và cột tính từ 1 cho mô hình, đổi sang 0-based khi gửi). Chẩn đoán (`publishDiagnostics`) để sau vì là thông điệp đẩy, cần thời gian chờ riêng.
 - **Cấu hình:** `.yana-ai/lsp-servers.json`, cùng dạng với `mcp-servers.json` (tên, lệnh, đối số, tên biến môi trường, `timeout_secs`) cộng `extensions` (đuôi tệp máy chủ phục vụ). Cũng đi kèm repo lạ được, nên: một `ConfigKind::LspServers` trong kho tin cậy (mục 15, xác nhận lần đầu, thu hồi lease khi đổi), thêm vào `PROTECTED_CONFIGS`, và dùng lại kiểm tra của MCP (chỉ ASCII in được, giới hạn độ dài, từ chối biến nạp mã, tên hợp lệ). Dùng chung mã kiểm tra bằng cách đưa các hàm đó ra `pub(crate)`, không chép.

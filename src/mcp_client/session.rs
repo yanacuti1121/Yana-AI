@@ -150,7 +150,7 @@ impl Session {
 /// Kill the server and everything it started (`npx`, `sh -c` wrappers and the
 /// like leave helpers behind), then reap it. The child was put in its own
 /// process group when it was spawned, so the group id is its pid.
-async fn kill_tree(child: &mut Child) {
+pub(crate) async fn kill_tree(child: &mut Child) {
     #[cfg(unix)]
     if let Some(pid) = child.id() {
         // SAFETY: plain signal to a process group this module created.

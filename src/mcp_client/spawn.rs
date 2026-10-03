@@ -14,7 +14,7 @@ use std::path::Path;
 use std::process::Stdio;
 use tokio::process::Command;
 
-fn command_for(config: &ServerConfig, root: &Path) -> Command {
+pub(crate) fn command_for(config: &ServerConfig, root: &Path) -> Command {
     let mut command = Command::new(&config.command);
     command.args(&config.args).current_dir(root).env_clear();
     if let Some(path) = std::env::var_os("PATH") {

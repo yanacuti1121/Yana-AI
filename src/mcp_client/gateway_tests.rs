@@ -59,13 +59,13 @@ fn call(root: &Path, command: &str, arguments: &Value) -> Result<String, Capabil
 }
 
 /// Dead means gone or an un-reaped zombie (which still answers `kill -0`).
-fn is_dead(pid: &str) -> bool {
+pub(crate) fn is_dead(pid: &str) -> bool {
     let out = std::process::Command::new("ps").args(["-o", "stat=", "-p", pid]).output().unwrap();
     let stat = String::from_utf8_lossy(&out.stdout).trim().to_string();
     stat.is_empty() || stat.starts_with('Z')
 }
 
-fn wait_for(path: &Path) -> String {
+pub(crate) fn wait_for(path: &Path) -> String {
     let deadline = Instant::now() + Duration::from_secs(5);
     while Instant::now() < deadline {
         if let Ok(text) = std::fs::read_to_string(path) {
