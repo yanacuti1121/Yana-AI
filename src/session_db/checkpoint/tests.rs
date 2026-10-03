@@ -44,6 +44,10 @@ pub(super) fn setup_git(dir: &Path, args: &[&str]) {
         .env("GIT_CONFIG_NOSYSTEM", "1")
         // gc.auto and maintenance.auto off: after a commit git may start a detached maintenance
         // run that rewrites files under .git, which races with the before/after comparison.
+        // This is a HYPOTHESIS, not a proven cause: forcing it on purpose (gc.auto=1, maintenance
+        // on, 80 loose files committed, 5 serial runs) did NOT reproduce the failure, so the
+        // original CI failure (red 2 of 2 before this, green 3 of 3 after) is still unexplained.
+        // If it comes back, the assertion message names the file that changed.
         .args(["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", "-c", "gc.auto=0", "-c", "maintenance.auto=false"])
         .args(args)
         .output()
