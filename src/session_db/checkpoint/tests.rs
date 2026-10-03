@@ -70,6 +70,31 @@ pub(super) fn fingerprint(dot_git: &Path) -> Vec<(String, Vec<u8>)> {
     found
 }
 
+/// Which files under `.git` differ between two fingerprints: names and sizes only, never contents.
+/// Used in assertion messages, so a failure says WHICH file changed.
+pub(super) fn describe_difference(before: &[(String, Vec<u8>)], after: &[(String, Vec<u8>)]) -> String {
+    use std::collections::BTreeMap;
+    let index = |files: &[(String, Vec<u8>)]| files.iter().map(|(name, bytes)| (name.clone(), bytes.len())).collect::<BTreeMap<_, _>>();
+    let (b, a) = (index(before), index(after));
+    let only_before: Vec<&String> = b.keys().filter(|name| !a.contains_key(*name)).collect();
+    let only_after: Vec<&String> = a.keys().filter(|name| !b.contains_key(*name)).collect();
+    let changed: Vec<String> = before
+        .iter()
+        .filter_map(|(name, bytes)| after.iter().find(|(other, _)| other == name).filter(|(_, other)| other != bytes).map(|(_, other)| format!("{name} ({} -> {} bytes)", bytes.len(), other.len())))
+        .collect();
+    format!("only in before: {only_before:?}; only in after: {only_after:?}; same name, different bytes: {changed:?}")
+}
+
+#[test]
+fn a_difference_is_described_by_file_name_and_size_never_by_content() {
+    let before = vec![("a".to_string(), b"secret one".to_vec()), ("b".to_string(), b"same".to_vec()), ("gone".to_string(), Vec::new())];
+    let after = vec![("a".to_string(), b"secret two!".to_vec()), ("b".to_string(), b"same".to_vec()), ("new".to_string(), b"x".to_vec())];
+    let text = describe_difference(&before, &after);
+    assert!(text.contains("only in before: [\"gone\"]") && text.contains("only in after: [\"new\"]") && text.contains("a (10 -> 11 bytes)"), "{text}");
+    assert!(!text.contains("secret"), "no content is printed: {text}");
+    assert!(!text.contains("\"b\""), "an unchanged file is not listed: {text}");
+}
+
 #[test]
 fn snapshot_lists_and_does_not_duplicate_an_unchanged_project() {
     let fx = fixture();
@@ -166,7 +191,8 @@ fn the_users_own_git_repository_is_left_byte_for_byte_alone() {
     store.diff(store.list().unwrap()[0].id).unwrap();
     store.restore(store.list().unwrap()[0].id, RestoreScope::Whole).unwrap();
     store.prune(PrunePolicy { max_points: 1, ..PrunePolicy::default() }).unwrap();
-    assert_eq!(fingerprint(&dot_git), before, "the project's .git must not change");
+    let after = fingerprint(&dot_git);
+    assert!(after == before, "the project's .git must not change; {}", describe_difference(&before, &after));
     assert!(!store.files(store.list().unwrap()[0].id).unwrap().iter().any(|f| f.starts_with(".git/")));
 }
 
