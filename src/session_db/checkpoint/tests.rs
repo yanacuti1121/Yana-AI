@@ -37,12 +37,14 @@ impl Fixture {
 }
 
 /// A plain git command for test setup, isolated from any user configuration.
-fn setup_git(dir: &Path, args: &[&str]) {
+pub(super) fn setup_git(dir: &Path, args: &[&str]) {
     let output = Command::new("git")
         .current_dir(dir)
         .env("GIT_CONFIG_GLOBAL", "/dev/null")
         .env("GIT_CONFIG_NOSYSTEM", "1")
-        .args(["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false"])
+        // gc.auto and maintenance.auto off: after a commit git may start a detached maintenance
+        // run that rewrites files under .git, which races with the before/after comparison.
+        .args(["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", "-c", "gc.auto=0", "-c", "maintenance.auto=false"])
         .args(args)
         .output()
         .unwrap();
@@ -50,7 +52,7 @@ fn setup_git(dir: &Path, args: &[&str]) {
 }
 
 /// Every file under `.git` with its bytes, for before/after comparison.
-fn fingerprint(dot_git: &Path) -> Vec<(String, Vec<u8>)> {
+pub(super) fn fingerprint(dot_git: &Path) -> Vec<(String, Vec<u8>)> {
     let mut found = Vec::new();
     let mut stack = vec![dot_git.to_path_buf()];
     while let Some(dir) = stack.pop() {

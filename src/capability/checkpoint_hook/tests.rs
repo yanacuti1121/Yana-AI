@@ -19,8 +19,14 @@ fn state(root: &Path) -> StateRoot {
     StateRoot::for_profile(root, &ProfileName::default_profile())
 }
 
+/// Far longer than any real snapshot of these tiny workspaces. The default limit (3 s)
+/// is a promise to the writer, not something these tests are about: on a loaded machine a
+/// real git can take longer than that, and a test that depends on the clock is a flaky test.
+/// Only the test of the limit itself uses a small one, on purpose.
+const GENEROUS_LIMIT: Duration = Duration::from_secs(120);
+
 fn config() -> HookConfig {
-    HookConfig { min_gap: Duration::ZERO, ..HookConfig::default() }
+    HookConfig { min_gap: Duration::ZERO, time_limit: GENEROUS_LIMIT, ..HookConfig::default() }
 }
 
 fn broken_git() -> HookConfig {
@@ -84,7 +90,7 @@ fn the_result_and_the_files_are_the_same_with_and_without_a_checkpoint() {
 #[test]
 fn many_writes_in_one_turn_cost_one_checkpoint() {
     let (_keep, root) = workspace();
-    let turn = HookConfig { min_gap: Duration::from_secs(60), ..HookConfig::default() };
+    let turn = HookConfig { min_gap: Duration::from_secs(60), ..config() };
     let first = before_write(Some(&turn), &root, "a", "create");
     let rest: Vec<_> = (0..4).map(|_| before_write(Some(&turn), &root, "b", "create")).collect();
     assert_eq!(first, HookOutcome::Taken);
@@ -94,7 +100,7 @@ fn many_writes_in_one_turn_cost_one_checkpoint() {
 #[test]
 fn another_spelling_of_the_same_workspace_shares_the_throttle() {
     let (_keep, root) = workspace();
-    let turn = HookConfig { min_gap: Duration::from_secs(60), ..HookConfig::default() };
+    let turn = HookConfig { min_gap: Duration::from_secs(60), ..config() };
     assert_eq!(before_write(Some(&turn), &root, "a", "create"), HookOutcome::Taken);
     let dotted = root.join("..").join("ws");
     assert_eq!(before_write(Some(&turn), &dotted, "a", "create"), HookOutcome::Throttled);
