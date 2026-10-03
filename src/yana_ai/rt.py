@@ -83,7 +83,11 @@ def _check_version_compat(binary: str) -> None:
     be the reason a working setup stops working."""
     try:
         result = subprocess.run(
-            [binary, "--version"], capture_output=True, text=True, timeout=5
+            [binary, "--version"], capture_output=True, text=True, timeout=5,
+            # Defense in depth: if a shim ever slips past _usable, the child
+            # must see the re-entry guard here too, not only in _run().
+            # Without it, PyPI 1.5.0 fork-bombed via this exact call (2026-09-29).
+            env={**os.environ, _RECURSION_GUARD: "1"},
         )
         match = _VERSION_RE.search(result.stdout)
         if not match:
@@ -167,11 +171,17 @@ def _find_binary() -> str | None:
     if override and _usable(override):
         return override
 
-    # 2. System PATH
+    # 2. System PATH — every entry, not just the first match. pipx puts
+    #    this wrapper's own shim in ~/.local/bin, usually ahead of
+    #    ~/.cargo/bin; stopping at shutil.which()'s first hit meant a real
+    #    binary later on PATH was never found (2026-09-29).
     import shutil
-    on_path = shutil.which("yana-rt")
-    if on_path and _usable(on_path):
-        return on_path
+    for directory in os.environ.get("PATH", "").split(os.pathsep):
+        if not directory:
+            continue
+        on_path = shutil.which("yana-rt", path=directory)
+        if on_path and _usable(on_path):
+            return on_path
 
     # 3. Pre-built platform binary
     pb = _platform_bin()
@@ -205,7 +215,7 @@ def _run(extra_args: list[str] | None = None) -> None:
         print(
             "yana-rt: binary not found.\n\n"
             "To install, run one of:\n"
-            f"  cargo install --path {_PKG_ROOT}  # build from source (requires Rust)\n"
+            "  cargo install yana-rt  # from crates.io (requires Rust)\n"
             "  export YANA_RT_BIN=/path/to/yana-rt\n\n"
             "Do NOT set YANA_RT_BIN to the output of `which yana-rt` — on a\n"
             "pip install that path is this wrapper itself, not a compiled binary.",

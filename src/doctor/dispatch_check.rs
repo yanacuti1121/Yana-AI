@@ -298,3 +298,6 @@ pub fn cmd_doctor_dispatch(target: &str, as_json: bool) {
     println!("  \x1b[31m{} finding(s)\x1b[0m\n", report.findings.len());
     std::process::exit(1);
 }
+
+#[cfg(test)]
+mod tests;

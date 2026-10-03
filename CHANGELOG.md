@@ -8,6 +8,31 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## yana-ai (PyPI) 1.5.1: fix `yana-rt` fork bomb on default pipx installs — 2026-09-29
+
+**Upgrade now if you installed `yana-ai` 1.4.2 or 1.5.0 from PyPI.**
+On those versions, running `yana-rt` or `yana-ai-rt` (or any hook that
+calls `yana-rt`) could spawn hundreds of `yana-rt --version` processes
+and pin the CPU at 100%. It happens on the default pipx layout, where
+`~/.local/bin/yana-rt` (the wrapper's own shim) comes first on `$PATH`.
+
+- Upgrade: `pipx upgrade yana-ai` (or `pip install -U yana-ai`).
+- Stuck on an affected version: `pkill -f 'bin/yana-rt'`, then
+  `export YANA_RT_BIN="$HOME/.cargo/bin/yana-rt"` until you can upgrade.
+
+Fixed in this release:
+- The wrapper rejects script shims by checking for a native binary
+  header (landed on main 2026-09-17 but was never released).
+- The `--version` compatibility probe now passes the re-entry guard to
+  its child, so a shim can no longer recurse through it.
+- `$PATH` is searched entry by entry, so a real binary in
+  `~/.cargo/bin` is found even when the shim comes first.
+- CI now fails when `src/yana_ai/` changes without a version bump past
+  the latest `py-v*` tag (`scripts/check_py_release_drift.py`). The
+  17 September fix stayed unreleased because the version was never bumped.
+
+---
+
 ## v1.5.0 — ecosystem launch: yana.vutam.link rebuilt, Product/PyPI/crates.io synced — 2026-09-10
 
 First coordinated version bump across all three independent axes

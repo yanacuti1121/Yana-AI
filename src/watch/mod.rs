@@ -97,6 +97,12 @@ fn diff(prev: &Snapshot, curr: &Snapshot) -> Vec<Change> {
     changes
 }
 
+/// Watched directories that do not exist. A mistyped `--dirs` value used to
+/// make the watcher run forever without ever reporting anything.
+fn missing_dirs(dirs: &[PathBuf]) -> Vec<&PathBuf> {
+    dirs.iter().filter(|d| !d.is_dir()).collect()
+}
+
 // ── Runner ────────────────────────────────────────────────────────────────────
 
 fn run(dirs_arg: String, interval: u64, max_changes: u32) {
@@ -105,6 +111,9 @@ fn run(dirs_arg: String, interval: u64, max_changes: u32) {
         .map(|s| PathBuf::from(s.trim()))
         .collect();
 
+    for missing in missing_dirs(&watch_dirs) {
+        println!("[watch] warning: '{}' does not exist, so nothing will be reported for it", missing.display());
+    }
     println!("[watch] monitoring: {}", dirs_arg);
     println!("[watch] interval: {}s  |  Ctrl+C to stop", interval);
     println!("{}", "─".repeat(56));
@@ -146,3 +155,6 @@ fn run(dirs_arg: String, interval: u64, max_changes: u32) {
         }
     }
 }
+
+#[cfg(test)]
+mod tests;

@@ -23,6 +23,8 @@ use std::collections::BTreeMap;
 use std::net::ToSocketAddrs;
 use std::path::Path;
 
+use crate::design::is_private_ip;
+
 const VT_HOST: &str = "www.virustotal.com";
 const VT_API_BASE: &str = "https://www.virustotal.com/api/v3/files";
 // Hashing an arbitrarily large file blocks the CLI for a long time for no
@@ -45,15 +47,6 @@ pub fn dispatch(action: FilescanAction) {
     if let Err(e) = result {
         eprintln!("[filescan] error: {e}");
         std::process::exit(1);
-    }
-}
-
-fn is_private_ip(ip: std::net::IpAddr) -> bool {
-    match ip {
-        std::net::IpAddr::V4(v4) => {
-            v4.is_loopback() || v4.is_private() || v4.is_link_local() || v4.is_unspecified()
-        }
-        std::net::IpAddr::V6(v6) => v6.is_loopback() || v6.is_unspecified(),
     }
 }
 
@@ -131,8 +124,8 @@ struct VtEngineResult {
     result: Option<String>,
 }
 
-fn cmd_check(path_str: &str) -> Result<()> {
-    let path = Path::new(path_str);
+/// The file must exist, be a regular file, and be small enough to hash quickly.
+fn validate_file(path: &Path) -> Result<()> {
     let meta = std::fs::metadata(path)
         .map_err(|e| anyhow::anyhow!("cannot read '{}': {e}", path.display()))?;
     if !meta.is_file() {
@@ -146,6 +139,12 @@ fn cmd_check(path_str: &str) -> Result<()> {
             MAX_FILE_SIZE_BYTES
         );
     }
+    Ok(())
+}
+
+fn cmd_check(path_str: &str) -> Result<()> {
+    let path = Path::new(path_str);
+    validate_file(path)?;
 
     let api_key = std::env::var("VT_API_KEY").map_err(|_| {
         anyhow::anyhow!(
@@ -196,42 +195,53 @@ fn cmd_check(path_str: &str) -> Result<()> {
 }
 
 fn print_unknown(path: &Path) {
-    println!();
-    println!("UNKNOWN — this file's hash has never been submitted to VirusTotal.");
-    println!("This does NOT mean it's safe — it means no one has scanned this exact file before.");
-    println!(
-        "Recommendation: do not open '{}' unless you trust the source.",
+    print!("{}", render_unknown(path));
+}
+
+fn render_unknown(path: &Path) -> String {
+    format!(
+        "\nUNKNOWN — this file's hash has never been submitted to VirusTotal.\n\
+         This does NOT mean it's safe — it means no one has scanned this exact file before.\n\
+         Recommendation: do not open '{}' unless you trust the source.\n\
+         For certainty, submit it for a full scan: https://www.virustotal.com/gui/home/upload\n",
         path.display()
-    );
-    println!("For certainty, submit it for a full scan: https://www.virustotal.com/gui/home/upload");
+    )
 }
 
 fn print_result(path: &Path, hash: &str, resp: &VtEnvelope) {
+    print!("{}", render_result(path, hash, resp));
+}
+
+fn render_result(path: &Path, hash: &str, resp: &VtEnvelope) -> String {
     let stats = &resp.data.attributes.last_analysis_stats;
     let flagged = stats.malicious + stats.suspicious;
     let total = stats.malicious + stats.suspicious + stats.undetected + stats.harmless + stats.timeout;
 
-    println!();
+    let mut out = String::from("\n");
     if flagged > 0 {
-        println!("FLAGGED — do not open: {}", path.display());
-        println!("  {flagged}/{total} engines flagged this as malicious/suspicious:");
+        out.push_str(&format!("FLAGGED — do not open: {}\n", path.display()));
+        out.push_str(&format!("  {flagged}/{total} engines flagged this as malicious/suspicious:\n"));
         for (engine, result) in &resp.data.attributes.last_analysis_results {
             if result.category == "malicious" || result.category == "suspicious" {
-                println!(
-                    "  - {engine}: {} ({})",
+                out.push_str(&format!(
+                    "  - {engine}: {} ({})\n",
                     result.category,
                     result.result.as_deref().unwrap_or("?")
-                );
+                ));
             }
         }
     } else {
-        println!("CLEAN — {}/{total} engines checked, none flagged it.", stats.harmless + stats.undetected);
+        out.push_str(&format!("CLEAN — {}/{total} engines checked, none flagged it.\n", stats.harmless + stats.undetected));
     }
-    println!("  Hash: {hash}");
+    out.push_str(&format!("  Hash: {hash}\n"));
     if let Some(name) = &resp.data.attributes.meaningful_name {
-        println!("  Known filename on VirusTotal: {name}");
+        out.push_str(&format!("  Known filename on VirusTotal: {name}\n"));
     }
+    out
 }
+
+#[cfg(test)]
+mod checks_tests;
 
 #[cfg(test)]
 mod tests {

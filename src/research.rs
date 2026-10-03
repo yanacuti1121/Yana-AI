@@ -292,16 +292,34 @@ fn cmd_audit(max_age_days: i64, json: bool) -> Result<(), String> {
 }
 
 fn public_https_host(source: &str) -> Result<String, String> {
-    if !source.starts_with("https://") { return Err("probe accepts https sources only".into()); }
-    let host = crate::design::extract_url_host(source).ok_or_else(|| "cannot extract source host".to_string())?;
-    if host.is_empty() { return Err("source host cannot be empty".into()); }
-    let resolved: Vec<_> = format!("{host}:443").to_socket_addrs()
-        .map_err(|error| format!("DNS resolution failed for '{host}': {error}"))?.collect();
-    if resolved.is_empty() { return Err(format!("DNS returned no addresses for '{host}'")); }
-    if resolved.iter().any(|address| crate::design::is_private_ip(address.ip())) {
+    // Read the URL with the same parser rules the client uses, and refuse the
+    // spellings different parsers disagree on (credentials, a backslash before
+    // an `@`, whitespace) instead of hoping a DNS lookup of the odd host fails.
+    let url = url::Url::parse(source).map_err(|error| format!("invalid source URL: {error}"))?;
+    if url.scheme() != "https" { return Err("probe accepts https sources only".into()); }
+    if !url.username().is_empty() || url.password().is_some() {
+        return Err("source URL must not contain credentials".into());
+    }
+    if source.contains('\\') || source.chars().any(char::is_whitespace) {
+        return Err("source URL contains characters that different parsers read differently".into());
+    }
+    let port = url.port_or_known_default().unwrap_or(443);
+    let (host, addresses): (String, Vec<std::net::IpAddr>) = match url.host() {
+        Some(url::Host::Ipv4(ip)) => (ip.to_string(), vec![ip.into()]),
+        Some(url::Host::Ipv6(ip)) => (ip.to_string(), vec![ip.into()]),
+        Some(url::Host::Domain(name)) => {
+            let resolved: Vec<_> = (name, port).to_socket_addrs()
+                .map_err(|error| format!("DNS resolution failed for '{name}': {error}"))?
+                .map(|address| address.ip()).collect();
+            (name.to_string(), resolved)
+        }
+        None => return Err("source host cannot be empty".into()),
+    };
+    if addresses.is_empty() { return Err(format!("DNS returned no addresses for '{host}'")); }
+    if addresses.iter().any(|address| crate::design::is_private_ip(*address)) {
         return Err(format!("source host '{host}' resolves to a private or internal address"));
     }
-    Ok(host.into())
+    Ok(host)
 }
 
 fn cmd_probe(prefix: &str) -> Result<(), String> {
@@ -327,6 +345,9 @@ fn cmd_probe(prefix: &str) -> Result<(), String> {
     println!("source reachable: HTTP {status}\n  host: {host}\n  claim freshness unchanged — re-review the claim before changing observed_at");
     Ok(())
 }
+
+#[cfg(test)]
+mod host_tests;
 
 #[cfg(test)]
 mod tests {

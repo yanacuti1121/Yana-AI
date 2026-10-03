@@ -2,6 +2,8 @@ use anyhow::Result;
 use clap::Subcommand;
 use std::path::Path;
 
+mod workflow;
+
 #[derive(Subcommand, Debug)]
 pub enum FixAction {
     /// Auto-apply a safe fix for a specific finding ID
@@ -90,60 +92,82 @@ fn fix_ac001(target: &str, dry_run: bool) -> Result<()> {
     Ok(())
 }
 
+/// The lines AC002 adds for the patterns `doctor` expects but `.gitignore`
+/// does not yet cover. Missing `.env` also brings its usual variants.
+fn ac002_missing_lines(existing: &str) -> Vec<&'static str> {
+    let mut lines = Vec::new();
+    for pattern in crate::doctor::GITIGNORE_PATTERNS {
+        if crate::doctor::gitignore_covers(existing, pattern) {
+            continue;
+        }
+        lines.push(pattern);
+        if pattern == ".env" {
+            lines.extend([".env.*", "*.env"]);
+        }
+    }
+    lines
+}
+
 fn fix_ac002(target: &str, dry_run: bool) -> Result<()> {
     let path = Path::new(target).join(".gitignore");
-    let entries = "\n# Environment files\n.env\n.env.*\n*.env\n*.pem\n*.key\n";
-    if path.exists() {
-        let content = std::fs::read_to_string(&path)?;
-        if content.contains(".env") {
-            println!("[fix/AC002] .gitignore already has .env entries — skipping");
-            return Ok(());
-        }
-        if dry_run {
-            println!("[dry-run] would append to .gitignore:\n{}", entries);
-        } else {
-            let mut f = std::fs::OpenOptions::new().append(true).open(&path)?;
+    let existing = if path.exists() { Some(std::fs::read_to_string(&path)?) } else { None };
+    let lines = ac002_missing_lines(existing.as_deref().unwrap_or(""));
+    if existing.is_some() && lines.is_empty() {
+        println!("[fix/AC002] .gitignore already covers every sensitive pattern — skipping");
+        return Ok(());
+    }
+    let block = format!("\n# Environment and credential files\n{}\n", lines.join("\n"));
+    match (&existing, dry_run) {
+        (Some(_), true) => println!("[dry-run] would append to .gitignore:\n{block}"),
+        (None, true) => println!("[dry-run] would create .gitignore with:\n{block}"),
+        (Some(_), false) => {
             use std::io::Write;
-            f.write_all(entries.as_bytes())?;
-            println!("[fix/AC002] Appended .env entries to .gitignore");
+            let mut f = std::fs::OpenOptions::new().append(true).open(&path)?;
+            f.write_all(block.as_bytes())?;
+            println!("[fix/AC002] Appended {} pattern(s) to .gitignore", lines.len());
         }
-    } else {
-        if dry_run {
-            println!("[dry-run] would create .gitignore with .env entries");
-        } else {
-            std::fs::write(&path, format!("# gitignore{}", entries))?;
-            println!("[fix/AC002] Created .gitignore with .env entries");
+        (None, false) => {
+            std::fs::write(&path, format!("# gitignore{block}"))?;
+            println!("[fix/AC002] Created .gitignore with {} pattern(s)", lines.len());
         }
     }
     Ok(())
 }
 
+/// Workflow files (`*.yml`, `*.yaml`) under `.github/workflows/`, sorted, or
+/// None when that directory does not exist.
+fn workflow_files(target: &str) -> Result<Option<Vec<std::path::PathBuf>>> {
+    let dir = Path::new(target).join(".github/workflows");
+    if !dir.exists() {
+        return Ok(None);
+    }
+    let mut files: Vec<_> = std::fs::read_dir(&dir)?
+        .flatten()
+        .map(|entry| entry.path())
+        .filter(|p| matches!(p.extension().and_then(|e| e.to_str()), Some("yml" | "yaml")))
+        .collect();
+    files.sort();
+    Ok(Some(files))
+}
+
+fn file_name(path: &Path) -> String {
+    path.file_name().unwrap_or_default().to_string_lossy().into_owned()
+}
+
 fn fix_ac003(target: &str, dry_run: bool) -> Result<()> {
-    let wf_dir = Path::new(target).join(".github/workflows");
-    if !wf_dir.exists() {
+    let Some(files) = workflow_files(target)? else {
         println!("[fix/AC003] No .github/workflows/ found");
         return Ok(());
-    }
+    };
     let mut fixed = 0usize;
-    for entry in std::fs::read_dir(&wf_dir)?.flatten() {
-        let path = entry.path();
-        if path.extension().and_then(|e| e.to_str()) != Some("yml") &&
-           path.extension().and_then(|e| e.to_str()) != Some("yaml") { continue; }
-        let content = std::fs::read_to_string(&path)?;
-        if content.contains("timeout-minutes:") { continue; }
-        // Add timeout after first `runs-on:` line
-        let patched = content.lines().map(|l| {
-            if l.trim().starts_with("runs-on:") {
-                format!("{}\n      timeout-minutes: 30", l)
-            } else {
-                l.to_string()
-            }
-        }).collect::<Vec<_>>().join("\n");
+    for path in files {
+        let (patched, jobs) = workflow::add_job_timeouts(&std::fs::read_to_string(&path)?);
+        if jobs == 0 { continue; }
         if dry_run {
-            println!("[dry-run] would add timeout-minutes: 30 to {}", path.display());
+            println!("[dry-run] would add timeout-minutes: 30 to {jobs} job(s) in {}", path.display());
         } else {
             std::fs::write(&path, patched)?;
-            println!("[fix/AC003] Added timeout-minutes: 30 to {}", path.file_name().unwrap_or_default().to_string_lossy());
+            println!("[fix/AC003] Added timeout-minutes: 30 to {jobs} job(s) in {}", file_name(&path));
             fixed += 1;
         }
     }
@@ -152,33 +176,47 @@ fn fix_ac003(target: &str, dry_run: bool) -> Result<()> {
 }
 
 fn fix_ci007(target: &str, dry_run: bool) -> Result<()> {
-    let wf_dir = Path::new(target).join(".github/workflows");
-    if !wf_dir.exists() {
+    let Some(files) = workflow_files(target)? else {
         println!("[fix/CI007] No .github/workflows/ found");
         return Ok(());
-    }
+    };
     let publish_patterns = ["npm publish", "cargo publish", "gh release", "pypi", "pip upload"];
-    for entry in std::fs::read_dir(&wf_dir)?.flatten() {
-        let path = entry.path();
-        if path.extension().and_then(|e| e.to_str()) != Some("yml") &&
-           path.extension().and_then(|e| e.to_str()) != Some("yaml") { continue; }
-        let content = std::fs::read_to_string(&path)?;
-        if !publish_patterns.iter().any(|p| content.contains(p)) { continue; }
-        if content.contains("environment:") { continue; }
-        // Insert environment: production before the first publish step
-        let patched = content.lines().map(|l| {
-            if publish_patterns.iter().any(|p| l.contains(p)) {
-                format!("      environment: production\n{}", l)
-            } else { l.to_string() }
-        }).collect::<Vec<_>>().join("\n");
+    for path in files {
+        let (patched, jobs) = workflow::add_job_environment(&std::fs::read_to_string(&path)?, &publish_patterns);
+        if jobs == 0 { continue; }
         if dry_run {
-            println!("[dry-run] would add environment: production to {}", path.display());
+            println!("[dry-run] would add environment: production to {jobs} job(s) in {}", path.display());
         } else {
             std::fs::write(&path, patched)?;
-            println!("[fix/CI007] Added environment: production gate to {}", path.file_name().unwrap_or_default().to_string_lossy());
+            println!("[fix/CI007] Added environment: production gate to {jobs} job(s) in {}", file_name(&path));
         }
     }
     Ok(())
+}
+
+/// A filesystem server has a name word that is `fs` or starts with `file`
+/// (`files`, `filesystem`, `my-files`), not one that merely contains those
+/// letters (`profs-search`, `profile-manager`).
+fn is_filesystem_server(name: &str) -> bool {
+    name.to_lowercase()
+        .split(|c: char| !c.is_ascii_alphanumeric())
+        .any(|word| word == "fs" || word.starts_with("file"))
+}
+
+/// Adds `--read-only` to one server config; true when it changed anything.
+/// A missing `args` becomes `["--read-only"]`; a config that is not an object,
+/// or whose `args` is not an array, is left exactly as it was.
+fn add_read_only(cfg: &mut serde_json::Value) -> bool {
+    let Some(obj) = cfg.as_object_mut() else { return false };
+    let args = obj.entry("args").or_insert_with(|| serde_json::json!([]));
+    match args.as_array_mut() {
+        Some(list) if list.iter().any(|v| v.as_str() == Some("--read-only")) => false,
+        Some(list) => {
+            list.push(serde_json::json!("--read-only"));
+            true
+        }
+        None => false,
+    }
 }
 
 fn fix_mcp001(target: &str, dry_run: bool) -> Result<()> {
@@ -189,26 +227,31 @@ fn fix_mcp001(target: &str, dry_run: bool) -> Result<()> {
         let content = std::fs::read_to_string(&full)?;
         let mut data: serde_json::Value = serde_json::from_str(&content)?;
         let key = if data.get("mcpServers").is_some() { "mcpServers" } else { "servers" };
-        if let Some(servers) = data[key].as_object_mut() {
+        let mut changed: Vec<String> = Vec::new();
+        if let Some(servers) = data.get_mut(key).and_then(|v| v.as_object_mut()) {
             for (name, cfg) in servers.iter_mut() {
-                if name.contains("file") || name.contains("fs") {
-                    if cfg["args"].as_array().map(|a| a.iter().any(|v| v.as_str() == Some("--read-only"))).unwrap_or(false) {
-                        continue;
-                    }
-                    if dry_run {
+                if !is_filesystem_server(name) { continue; }
+                if dry_run {
+                    if add_read_only(&mut cfg.clone()) {
                         println!("[dry-run] would add --read-only to MCP server '{}'", name);
-                    } else if let Some(args) = cfg["args"].as_array_mut() {
-                        args.push(serde_json::json!("--read-only"));
                     }
+                } else if add_read_only(cfg) {
+                    changed.push(name.clone());
                 }
             }
         }
-        if !dry_run {
+        if dry_run { return Ok(()); }
+        if changed.is_empty() {
+            println!("[fix/MCP001] No filesystem MCP server in {} needed --read-only", p);
+        } else {
             std::fs::write(&full, serde_json::to_string_pretty(&data)?)?;
-            println!("[fix/MCP001] Added --read-only to filesystem MCP servers in {}", p);
+            println!("[fix/MCP001] Added --read-only to {} in {}", changed.join(", "), p);
         }
         return Ok(());
     }
     println!("[fix/MCP001] No MCP config found");
     Ok(())
 }
+
+#[cfg(test)]
+mod tests;
