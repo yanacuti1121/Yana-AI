@@ -1,0 +1,149 @@
+# Dependabot version updates. Security updates (the PRs that fix a published advisory)
+# are switched on in the repository settings and are not delayed by `cooldown`.
+#
+# Each ecosystem is grouped so a week of updates arrives as one PR per directory,
+# not one PR per package. The sample projects under core/skills and .claude/skills
+# are templates for users and are deliberately not listed here.
+version: 2
+
+updates:
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 3
+    groups:
+      cargo-minor-and-patch:
+        update-types: [minor, patch]
+      cargo-security:
+        applies-to: security-updates
+        patterns: ["*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 3
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 2
+    groups:
+      pip-dev:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 2
+    groups:
+      npm-root:
+        patterns: ["*"]
+        update-types: [minor, patch]
+      npm-root-security:
+        applies-to: security-updates
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /site
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 2
+    groups:
+      site:
+        patterns: ["*"]
+        update-types: [minor, patch]
+      site-security:
+        applies-to: security-updates
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /github-app
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 2
+    groups:
+      github-app:
+        patterns: ["*"]
+        update-types: [minor, patch]
+      github-app-security:
+        applies-to: security-updates
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /tools/yana-web
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 2
+    groups:
+      yana-web:
+        patterns: ["*"]
+        update-types: [minor, patch]
+      yana-web-security:
+        applies-to: security-updates
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /tools/yana-studio
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 2
+    groups:
+      yana-studio:
+        patterns: ["*"]
+        update-types: [minor, patch]
+      yana-studio-security:
+        applies-to: security-updates
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /tools/yana-desktop
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 2
+    groups:
+      yana-desktop:
+        patterns: ["*"]
+        update-types: [minor, patch]
+      yana-desktop-security:
+        applies-to: security-updates
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /tools/yana-pixel-bridge
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 2
+    groups:
+      yana-pixel-bridge:
+        patterns: ["*"]
+        update-types: [minor, patch]
+      yana-pixel-bridge-security:
+        applies-to: security-updates
+        patterns: ["*"]
