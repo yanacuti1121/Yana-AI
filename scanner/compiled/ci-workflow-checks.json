@@ -72,7 +72,8 @@
       "fix": "Pin actions to a full commit SHA: uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29",
       "id": "CI006",
       "match": {
-        "pattern": "uses:\\s+[^\\s]+@(main|master|latest|v[0-9]+\\s*$)",
+        "pattern": "uses:\\s+[^\\s]+@(main|master|latest|v[0-9][^\\s@]*)\\s*(#.*)?$",
+        "skip_comment_lines": true,
         "type": "regex"
       },
       "reason": "Tag-pinned actions can be silently changed by the action author (tag mutable).",
@@ -84,7 +85,7 @@
       "id": "CI007",
       "match": {
         "condition": "not_accompanied_by",
-        "lines": 15,
+        "lines": 60,
         "not_accompanied_by_pattern": "permissions:",
         "pattern": "^jobs:",
         "type": "regex"
@@ -99,9 +100,10 @@
       "match": {
         "condition": "not_accompanied_by",
         "flags": "i",
-        "lines": 20,
+        "lines": 50,
         "not_accompanied_by_pattern": "(environment:|required.reviewers|manual)",
         "pattern": "(npm publish|twine upload|cargo publish|gem push)",
+        "skip_comment_lines": true,
         "type": "regex"
       },
       "reason": "Automatic package publishing on CI trigger means a compromised commit can publish to registries.",

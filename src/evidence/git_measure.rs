@@ -66,6 +66,13 @@ impl std::error::Error for GitMeasureError {}
 /// `execution-environment.md` safe-wrapper requirement (no `sh -c`, no
 /// interpolation).
 pub fn measure_since(repo_dir: &Path, since_ref: &str) -> Result<GitChurn, GitMeasureError> {
+    // A ref beginning with `-` would make `<ref>..HEAD` an option for git
+    // (`--output=<path>..HEAD` creates a file), so refuse it before running git.
+    if since_ref.is_empty() || since_ref.starts_with('-') {
+        return Err(GitMeasureError::CommandFailed(format!(
+            "since_ref must be a commit-ish, not an option or empty: {since_ref:?}"
+        )));
+    }
     let range = format!("{since_ref}..HEAD");
 
     let numstat_output = run_git(repo_dir, &["diff", "--numstat", &range])?;
@@ -263,3 +270,6 @@ mod tests {
         fs::remove_dir_all(&dir).ok();
     }
 }
+
+#[cfg(test)]
+mod option_tests;

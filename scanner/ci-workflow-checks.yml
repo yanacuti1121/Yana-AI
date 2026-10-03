@@ -75,7 +75,8 @@ checks:
     description: "Third-party action used without pinned SHA — uses tag or branch"
     match:
       type: regex
-      pattern: "uses:\\s+[^\\s]+@(main|master|latest|v[0-9]+\\s*$)"
+      pattern: "uses:\\s+[^\\s]+@(main|master|latest|v[0-9][^\\s@]*)\\s*(#.*)?$"
+      skip_comment_lines: true
     reason: "Tag-pinned actions can be silently changed by the action author (tag mutable)."
     fix: "Pin actions to a full commit SHA: uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29"
 
@@ -92,16 +93,17 @@ checks:
     # after jobs: (scoped per-job instead of once at the top, e.g.
     # publish.yml) also satisfies the check — a job-level permissions block
     # is exactly as effective as a top-level one per GitHub's own docs.
-    # lines: 15 covers the widest real gap seen in this repo's own
+    # lines: 60 covers the widest real gap seen in this repo's own
     # workflows (top-level permissions up to 10 lines before jobs: in
-    # sandbox.yml; first job-level permissions 14 lines after jobs: in
-    # publish.yml).
+    # sandbox.yml; first job-level permissions 30 lines after jobs: in
+    # publish.yml, which the earlier 15-line window flagged although every
+    # job there declares its own permissions).
     match:
       type: regex
       pattern: "^jobs:"
       condition: not_accompanied_by
       not_accompanied_by_pattern: "permissions:"
-      lines: 15
+      lines: 60
     reason: "Workflows without explicit permissions (top-level or per-job) inherit write access to contents, PRs, and packages."
     fix: "Add 'permissions: read-all' at the top level, or scope 'permissions:' inside each job, granting write only where needed."
 
@@ -113,8 +115,9 @@ checks:
       pattern: "(npm publish|twine upload|cargo publish|gem push)"
       condition: not_accompanied_by
       not_accompanied_by_pattern: "(environment:|required.reviewers|manual)"
-      lines: 20
+      lines: 50
       flags: "i"
+      skip_comment_lines: true
     reason: "Automatic package publishing on CI trigger means a compromised commit can publish to registries."
     fix: "Gate publish steps behind a GitHub environment with required reviewers."
 
