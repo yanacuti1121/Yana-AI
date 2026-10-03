@@ -22,6 +22,9 @@ pub mod run_command;
 use super::tool_types::ToolSpec;
 use crate::session_context::SessionContext;
 
+mod notices;
+pub use notices::hidden_tool_notices;
+
 /// The MVP's tool catalog: exactly `read_file` and `run_command` when both
 /// backing capabilities are available for `ctx` — identical output to the
 /// old hardcoded 2-tool `vec![...]` for every `SessionContext` in practice

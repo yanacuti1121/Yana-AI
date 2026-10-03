@@ -162,7 +162,15 @@ pub(super) fn mcp_prompt_lines(
     lines
 }
 
-pub(super) fn draw_approval_prompt(frame: &mut Frame, pending: &PendingApproval, area: Rect) {
+/// Draws the prompt and says whether the whole call was shown. For a command or an
+/// MCP call that is the condition for accepting `y`: a prompt that had to be cut
+/// off is a notice instead, and cannot be approved.
+pub(super) fn draw_approval_prompt(frame: &mut Frame, pending: &PendingApproval, area: Rect) -> bool {
+    let whole = match pending {
+        PendingApproval::Command { command, guard_verdict: None, .. } => super::command_prompt::lines(command, area).is_some(),
+        PendingApproval::McpCall { .. } => mcp_prompt_fits(area.width, area.height),
+        _ => true,
+    };
     let (title, border_color, lines): (&str, Color, Vec<Line>) = match pending {
         PendingApproval::McpCall { disclosure, arguments, .. } => (
             " approve external program ",
@@ -198,15 +206,7 @@ pub(super) fn draw_approval_prompt(frame: &mut Frame, pending: &PendingApproval,
         PendingApproval::Command { command, .. } => (
             " approve command ",
             Color::Yellow,
-            vec![
-                Line::styled(
-                    "Run this command? [y]es / [N]o",
-                    Style::default()
-                        .fg(Color::Yellow)
-                        .add_modifier(Modifier::BOLD),
-                ),
-                Line::raw(command.clone()),
-            ],
+            super::command_prompt::lines(command, area).unwrap_or_else(|| super::command_prompt::too_long_notice(command)),
         ),
         PendingApproval::WebSearch { query, disclosure, .. } => (
             " approve web search ",
@@ -257,6 +257,7 @@ pub(super) fn draw_approval_prompt(frame: &mut Frame, pending: &PendingApproval,
         )
         .wrap(Wrap { trim: false });
     frame.render_widget(widget, area);
+    whole
 }
 
 #[cfg(test)]
@@ -310,7 +311,9 @@ mod tests {
         };
         let mut terminal = Terminal::new(TestBackend::new(80, WEB_SEARCH_PROMPT_HEIGHT)).unwrap();
         terminal
-            .draw(|frame| draw_approval_prompt(frame, &pending, frame.area()))
+            .draw(|frame| {
+                draw_approval_prompt(frame, &pending, frame.area());
+            })
             .unwrap();
         let buffer = terminal.backend().buffer().clone();
         let rows: Vec<String> = (0..WEB_SEARCH_PROMPT_HEIGHT).map(|y| (0..80).map(|x| buffer[(x, y)].symbol().to_string()).collect::<String>()).collect();
@@ -342,7 +345,7 @@ mod tests {
         use ratatui::backend::TestBackend;
         use ratatui::Terminal;
         let mut terminal = Terminal::new(TestBackend::new(width, height)).unwrap();
-        terminal.draw(|frame| draw_approval_prompt(frame, pending, frame.area())).unwrap();
+        terminal.draw(|frame| { draw_approval_prompt(frame, pending, frame.area()); }).unwrap();
         let buffer = terminal.backend().buffer().clone();
         (0..height).map(|y| (0..width).map(|x| buffer[(x, y)].symbol().to_string()).collect::<String>()).collect()
     }
@@ -411,7 +414,9 @@ mod tests {
             disclosure: keyed(),
         };
         let mut terminal = Terminal::new(TestBackend::new(80, 5)).unwrap();
-        terminal.draw(|frame| draw_approval_prompt(frame, &pending, frame.area())).unwrap();
+        terminal.draw(|frame| {
+                draw_approval_prompt(frame, &pending, frame.area());
+            }).unwrap();
         let buffer = terminal.backend().buffer().clone();
         let screen: String = (0..5u16).flat_map(|y| (0..80u16).map(move |x| (x, y))).map(|(x, y)| buffer[(x, y)].symbol().to_string()).collect();
         assert!(!screen.contains("query:"), "in 5 rows the last line is clipped, which is why the box is taller for a search");

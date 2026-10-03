@@ -4,8 +4,8 @@
 //! read `App`'s private fields directly instead of needing a getter for
 //! every one of them.
 
+mod command_prompt;
 mod render_tools;
-pub(super) use render_tools::mcp_prompt_fits;
 #[cfg(test)]
 mod tests;
 
@@ -72,13 +72,14 @@ fn palette(theme: ThemeName) -> Palette {
 pub fn draw_ui(frame: &mut Frame, app: &mut App) {
     let colors = palette(app.settings.theme);
     let header_inner_w = frame.area().width;
-    let header_lines = banner::header_lines(
+    let mut header_lines = banner::header_lines(
         &app.banner_info,
         app.provider.name(),
         &app.model,
         &app.session_id,
         header_inner_w,
     );
+    header_lines.extend(app.tool_notices.iter().map(|notice| Line::styled(notice.clone(), Style::default().fg(colors.warning))));
     let header_height = header_lines.len() as u16 + 1;
     let input_height = if matches!(app.turn, TurnState::AwaitingApproval(PendingApproval::WebSearch { .. })) {
         // Title, destination, key, query: all four must be visible (see
@@ -86,6 +87,9 @@ pub fn draw_ui(frame: &mut Frame, app: &mut App) {
         render_tools::WEB_SEARCH_PROMPT_HEIGHT
     } else if matches!(app.turn, TurnState::AwaitingApproval(PendingApproval::McpCall { .. })) {
         render_tools::MCP_PROMPT_HEIGHT
+    } else if let TurnState::AwaitingApproval(PendingApproval::Command { command, guard_verdict: None, .. }) = &app.turn {
+        // Grows to hold the whole command; one too long for the largest box gets the standard box and a refusal notice.
+        command_prompt::needed_height(command, frame.area().width).unwrap_or(command_prompt::MIN_HEIGHT)
     } else if matches!(app.turn, TurnState::AwaitingApproval(_)) {
         5
     } else {
@@ -126,8 +130,10 @@ pub fn draw_ui(frame: &mut Frame, app: &mut App) {
     } else {
         draw_history(frame, app, history_area);
     }
+    app.shown_whole_call = None;
     if let TurnState::AwaitingApproval(pending) = &app.turn {
-        render_tools::draw_approval_prompt(frame, pending, input_area);
+        let whole = render_tools::draw_approval_prompt(frame, pending, input_area);
+        app.shown_whole_call = whole.then(|| pending.call().id.clone());
         draw_status_bar(frame, app, status_area, colors);
         return;
     }

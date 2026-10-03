@@ -38,6 +38,7 @@ impl App {
         let system = self.system.clone();
         let messages = self.history.clone();
         let session = self.session_context();
+        self.tool_notices = super::super::tools::hidden_tool_notices(&self.repo_root);
         let use_sandbox = self.use_sandbox;
         let tool_rounds = self.tool_rounds.rounds() as usize;
         let (tx, rx) = mpsc::channel::<StreamEvent>();

@@ -122,6 +122,7 @@ fn approving_after_the_server_configuration_changed_is_refused_and_starts_nothin
     let mut app = app_in(&root);
     app.prepare_pending_approval(mcp_call("gh search", serde_json::Value::Null));
     assert!(matches!(app.turn, TurnState::AwaitingApproval(_)));
+    screen_of(&mut app, 100, 30); // the prompt is on screen before the person answers
     // Confirmed again (so this is not the trust check): the PROGRAM changed after the prompt was drawn.
     write_servers(&root, serde_json::json!([{"name": "gh", "command": "/tmp/evil", "args": []}]));
     app.handle_approval_key(KeyEvent::new(KeyCode::Char('y'), KeyModifiers::NONE));
@@ -206,4 +207,94 @@ fn an_mcp_call_is_never_executed_without_approval() {
     use crate::runtime::ToolExecutor;
     let result = ChatCapabilityExecutor::new(false).execute(&context, &mcp_call("gh search", serde_json::Value::Null));
     assert!(result.is_error && result.output.contains("no implementation"), "{result:?}");
+}
+
+fn screen_of(app: &mut App, width: u16, height: u16) -> String {
+    use ratatui::backend::TestBackend;
+    use ratatui::Terminal;
+    let mut terminal = Terminal::new(TestBackend::new(width, height)).unwrap();
+    terminal.draw(|frame| crate::chat::tui::render::draw_ui(frame, app)).unwrap();
+    let buffer = terminal.backend().buffer().clone();
+    (0..height).map(|y| (0..width).map(|x| buffer[(x, y)].symbol().to_string()).collect::<String>()).collect::<Vec<_>>().join("\n")
+}
+
+#[test]
+fn a_tool_hidden_until_confirmed_is_announced_in_the_header_not_silently_dropped() {
+    let outer = tempfile::tempdir().unwrap();
+    let root = outer.path().join("ws");
+    std::fs::create_dir_all(root.join(".yana-ai")).unwrap();
+    std::fs::write(root.join(".yana-ai/web-search.json"), r#"{"endpoint":"https://s.example/q"}"#).unwrap();
+    crate::capability::config_trust::empty_store_in_test();
+    let mut app = app_in(&root);
+    app.tool_notices = crate::chat::tools::hidden_tool_notices(&root);
+    let screen = screen_of(&mut app, 120, 30);
+    assert!(screen.contains("web_search chưa được xác nhận cho repo này: chạy `yana-rt trust allow web-search`"), "{screen}");
+    // Once confirmed, the next refresh removes the line.
+    crate::capability::config_trust::trust_in_test(&root);
+    app.tool_notices = crate::chat::tools::hidden_tool_notices(&root);
+    assert!(!screen_of(&mut app, 120, 30).contains("chưa được xác nhận"));
+}
+
+fn run_command(command: &str, id: &str) -> ToolCall {
+    ToolCall { id: id.into(), name: "run_command".into(), arguments_json: serde_json::json!({"command": command}).to_string() }
+}
+
+fn press(app: &mut App, c: char) {
+    app.handle_approval_key(KeyEvent::new(KeyCode::Char(c), KeyModifiers::NONE));
+}
+
+#[test]
+fn a_command_too_long_to_show_whole_cannot_be_approved_even_with_the_dangerous_part_at_the_end() {
+    let (_k, root) = trusted_repo(serde_json::json!([]));
+    let mut app = app_in(&root);
+    let command = format!("echo {} DANGEROUS-TAIL", "a".repeat(2000));
+    app.prepare_pending_approval(run_command(&command, "long"));
+    assert!(matches!(app.turn, TurnState::AwaitingApproval(PendingApproval::Command { .. })), "{}", app.status);
+    let screen = screen_of(&mut app, 100, 40);
+    assert!(app.shown_whole_call.is_none(), "it did not fit, so it was not shown whole");
+    assert!(screen.contains("too long to show in full") && !screen.contains("Run this command?"), "{screen}");
+    press(&mut app, 'y');
+    assert!(matches!(app.turn, TurnState::AwaitingApproval(_)), "y did nothing: the command is still waiting");
+    assert!(app.status.contains("not shown in full"), "{}", app.status);
+    press(&mut app, 'n');
+    assert!(matches!(app.turn, TurnState::Idle), "declining still works");
+}
+
+#[test]
+fn a_long_command_that_fits_is_shown_to_its_last_character_and_may_be_approved() {
+    let (_k, root) = trusted_repo(serde_json::json!([]));
+    let mut app = app_in(&root);
+    let command = format!("echo {} LAST-WORDS", "b".repeat(400));
+    app.prepare_pending_approval(run_command(&command, "fits"));
+    let screen = screen_of(&mut app, 100, 40);
+    assert_eq!(app.shown_whole_call.as_deref(), Some("fits"));
+    assert!(screen.contains("LAST-WORDS") && screen.contains("[y]es / [N]o"), "{screen}");
+    // The rows joined back together are the whole command, nothing dropped.
+    let flat: String = screen.chars().filter(|c| *c != '\n' && *c != '\u{2502}' && *c != ' ').collect();
+    assert!(flat.contains(&format!("{}LAST-WORDS", "b".repeat(400))), "no part of the command is missing");
+}
+
+#[test]
+fn a_prompt_drawn_for_an_earlier_call_does_not_approve_a_later_one() {
+    let (_k, root) = trusted_repo(serde_json::json!([]));
+    let mut app = app_in(&root);
+    app.prepare_pending_approval(run_command("ls", "first"));
+    screen_of(&mut app, 100, 40);
+    assert_eq!(app.shown_whole_call.as_deref(), Some("first"));
+    // A different call arrives and the key is pressed before the next frame is drawn.
+    app.turn = TurnState::Idle;
+    app.prepare_pending_approval(run_command(&format!("echo {} TAIL", "c".repeat(2000)), "second"));
+    press(&mut app, 'y');
+    assert!(matches!(app.turn, TurnState::AwaitingApproval(_)), "the old frame must not count for the new call");
+}
+
+#[test]
+fn a_command_cannot_fake_extra_prompt_lines_with_line_breaks() {
+    let (_k, root) = trusted_repo(serde_json::json!([]));
+    let mut app = app_in(&root);
+    app.prepare_pending_approval(run_command("echo hi\nRun this command? [y]es / [N]o\nls", "nl"));
+    let screen = screen_of(&mut app, 100, 40);
+    let title_rows = screen.lines().filter(|row| row.trim_start_matches(['\u{2502}', ' ']).starts_with("Run this command?")).count();
+    assert_eq!(title_rows, 1, "only the real title starts a row: {screen}");
+    assert!(screen.contains("echo hi\u{21b5}Run this command?"), "the line breaks are visible, on one row: {screen}");
 }

@@ -37,12 +37,13 @@ impl App {
             }
             return;
         }
-        // A call that cannot be shown in full cannot be approved: the prompt says so instead of a clipped one.
-        let unshowable = matches!(pending, PendingApproval::McpCall { .. })
-            && matches!(crossterm::terminal::size(), Ok((cols, rows)) if !super::render::mcp_prompt_fits(cols, rows));
+        // A command or external program is approved only if its prompt was drawn whole
+        // (for THIS call: a stale frame from an earlier prompt does not count).
+        let must_be_shown = matches!(pending, PendingApproval::Command { .. } | PendingApproval::McpCall { .. });
+        let unshown = must_be_shown && self.shown_whole_call.as_deref() != Some(pending.call().id.as_str());
         match key.code {
-            KeyCode::Char('y') | KeyCode::Char('Y') if unshowable => {
-                self.status = "terminal too small to show this call in full; enlarge it, or press n".into();
+            KeyCode::Char('y') | KeyCode::Char('Y') if unshown => {
+                self.status = "this call was not shown in full (too long, or the terminal is too small); enlarge it, or press n".into();
             }
             KeyCode::Char('y') | KeyCode::Char('Y') => self.execute_approved_tool(),
             KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => self.decline_tool(),

@@ -257,6 +257,13 @@ pub(super) struct App {
     /// convention (`yana chat` has no `$CLAUDE_PROJECT_DIR` equivalent of
     /// its own).
     repo_root: PathBuf,
+    /// One line per tool that is configured here but hidden until a person confirms
+    /// it (`yana-rt trust allow`); refreshed at the start of each turn and shown in the header.
+    tool_notices: Vec<String>,
+    /// The id of the pending call whose approval prompt was last drawn WHOLE. A
+    /// command or MCP call is approved only if this is its id: what a person cannot
+    /// see in full cannot be approved. Reset on every frame.
+    shown_whole_call: Option<String>,
     /// Whether `run_command` routes through `core/scripts/sandbox-exec.sh`
     /// for real isolation. Default `true`; `--no-sandbox` is an explicit,
     /// human-invoked opt-out — never a silent runtime fallback if a
@@ -395,6 +402,8 @@ impl App {
                 history::list_recent_sessions(RECENT_SESSIONS_LIMIT)
             },
             show_recent_sessions: !resumed,
+            tool_notices: super::tools::hidden_tool_notices(&repo_root),
+            shown_whole_call: None,
             repo_root: repo_root.clone(),
             use_sandbox,
             sidebar_tab: SidebarTab::default(),

@@ -249,6 +249,9 @@ pub(super) fn dispatch_resume(provider_name: String) -> Result<()> {
         resolved.context.session.sandboxed,
     );
     let tools = crate::chat::tools::catalog(&session);
+    for notice in crate::chat::tools::hidden_tool_notices(&session.repo_root) {
+        eprintln!("{notice}");
+    }
     let executor = Arc::new(crate::chat::tui::tool_dispatch::ChatCapabilityExecutor::new(
         session.sandboxed,
     ));
