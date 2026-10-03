@@ -124,7 +124,7 @@ import Nav from '../components/Nav.astro';
   <script is:inline slot="scripts">
   let SKILLS=[],AGENTS=[],HOOKS=[],COMMANDS=[],RULES=[],ALL=[];
   let currentType='all',currentCat='all',currentQ='';
-  const SKILL_CAT_MAP={yana-ai:{label:'Yana AI Core',icon:'🛡️',color:'#3b82f6'},openai:{label:'OpenAI Plugins',icon:'🔌',color:'#10a37f'},terminal:{label:'TerminalSkills',icon:'⚡',color:'#6366f1'},venice:{label:'Venice AI',icon:'🎨',color:'#f59e0b'},sports:{label:'Sports',icon:'🏆',color:'#22c55e'}};
+  const SKILL_CAT_MAP={"yana-ai":{label:'Yana AI Core',icon:'🛡️',color:'#3b82f6'},openai:{label:'OpenAI Plugins',icon:'🔌',color:'#10a37f'},terminal:{label:'TerminalSkills',icon:'⚡',color:'#6366f1'},venice:{label:'Venice AI',icon:'🎨',color:'#f59e0b'},sports:{label:'Sports',icon:'🏆',color:'#22c55e'}};
   const AGENT_DOM_MAP={core:{label:'Core Dev',icon:'⚙️',color:'#3b82f6'},quality:{label:'QA/Review',icon:'✅',color:'#10a37f'},infra:{label:'Infra/DevOps',icon:'🏗️',color:'#6366f1'},business:{label:'Business',icon:'💼',color:'#f59e0b'},'data-ai':{label:'Data / AI',icon:'🧠',color:'#bc8cff'}};
   const MODEL_COLORS={opus:'#f43f5e',sonnet:'#3b82f6',haiku:'#10a37f'};
   function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
