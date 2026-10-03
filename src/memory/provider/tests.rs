@@ -97,9 +97,9 @@ fn credentials_and_confidential_notes_are_refused_and_nothing_is_written() {
     let dir = tempfile::tempdir().unwrap();
     let memory = memory_in(&dir);
     let secret = memory.remember(new_fact("aws", "AKIA0123456789ABCDEF"));
-    assert!(matches!(secret, Err(MemoryError::Refused(_))), "{secret:?}");
+    assert!(matches!(secret, Err(MemoryError::Refused(_))), "memory accepted a credential-looking fact");
     let confidential = memory.remember(new_fact("deal", "M&A negotiation terms"));
-    assert!(matches!(confidential, Err(MemoryError::Refused(_))), "{confidential:?}");
+    assert!(matches!(confidential, Err(MemoryError::Refused(_))), "memory accepted a confidential note");
     let in_tag = {
         let mut fact = new_fact("ok", "fine");
         fact.tags.push("sk-ant-api03-ABCDEFGHIJKLMNOP1234".to_string());
