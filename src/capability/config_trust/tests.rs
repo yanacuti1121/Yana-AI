@@ -1,4 +1,5 @@
 use super::*;
+use std::io::BufRead;
 use std::path::PathBuf;
 
 const SEARCH: &str = r#"{"endpoint":"https://s.example/q"}"#;
@@ -217,4 +218,133 @@ fn the_default_store_is_under_the_home_directory_and_per_profile() {
             assert!(dir.starts_with(PathBuf::from(home).join(".yana-ai").join("trust")), "{dir:?}");
         }
     }
+}
+
+/// Input that rewrites the configuration at the moment the person "types": the
+/// time a real person spends reading is exactly when a file can change under them.
+struct RewriteWhileReading {
+    path: PathBuf,
+    typed: std::io::Cursor<Vec<u8>>,
+}
+
+impl std::io::Read for RewriteWhileReading {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        self.typed.read(buf)
+    }
+}
+
+impl BufRead for RewriteWhileReading {
+    fn fill_buf(&mut self) -> std::io::Result<&[u8]> {
+        std::fs::write(&self.path, r#"{"endpoint":"https://evil.example/q"}"#).unwrap();
+        self.typed.fill_buf()
+    }
+    fn consume(&mut self, amount: usize) {
+        self.typed.consume(amount)
+    }
+}
+
+#[test]
+fn a_file_rewritten_while_the_person_reads_is_not_the_one_that_gets_trusted() {
+    let fx = fixture();
+    let mut input = RewriteWhileReading { path: fx.root.join(".yana-ai/web-search.json"), typed: std::io::Cursor::new(b"yes\n".to_vec()) };
+    let error = confirm_and_allow(&fx.store, &fx.root, ConfigKind::WebSearch, true, &mut input, &mut Vec::new()).unwrap_err().to_string();
+    assert!(error.contains("changed after it was shown"), "{error}");
+    assert!(require_in(&fx.store, &fx.root, ConfigKind::WebSearch).is_err(), "neither version is trusted");
+    assert!(!record_path(&fx.store, &fx.root).unwrap().exists(), "nothing was recorded");
+}
+
+#[test]
+fn the_hash_a_person_is_shown_is_the_one_that_is_recorded() {
+    let fx = fixture();
+    let (shown, hash) = cli::review_text(&fx.root, ConfigKind::WebSearch).unwrap();
+    assert!(shown.ends_with(&format!("sha256 {hash}")));
+    assert!(allow_hash_in(&fx.store, &fx.root, ConfigKind::WebSearch, &hash).unwrap());
+    assert_eq!(read_record(&fx.store, &fx.root).entries.get("web-search.json"), Some(&hash));
+    assert!(allow_hash_in(&fx.store, &fx.root, ConfigKind::WebSearch, &"0".repeat(64)).is_err(), "a hash the file does not have");
+}
+
+#[test]
+fn the_bytes_that_are_checked_are_the_bytes_that_are_returned_for_parsing() {
+    let fx = fixture();
+    allow_in(&fx.store, &fx.root, ConfigKind::WebSearch).unwrap();
+    assert_eq!(trusted_bytes_in(&fx.store, &fx.root, ConfigKind::WebSearch).unwrap(), SEARCH.as_bytes());
+    rewrite(&fx, "web-search.json", "{}");
+    assert!(trusted_bytes_in(&fx.store, &fx.root, ConfigKind::WebSearch).is_err(), "changed bytes are never handed over");
+}
+
+#[test]
+fn a_huge_file_is_not_read_and_not_trusted() {
+    let fx = fixture();
+    rewrite(&fx, "web-search.json", &" ".repeat(MAX_CONFIG_BYTES as usize + 1));
+    assert!(matches!(fingerprint(&fx.root, ConfigKind::WebSearch), Err(CapabilityError::InvalidInput { .. })));
+    assert!(allow_in(&fx.store, &fx.root, ConfigKind::WebSearch).is_err());
+    rewrite(&fx, "web-search.json", &" ".repeat(MAX_CONFIG_BYTES as usize));
+    assert!(fingerprint(&fx.root, ConfigKind::WebSearch).is_ok(), "exactly the limit is accepted");
+}
+
+#[cfg(unix)]
+#[test]
+fn a_pipe_or_other_non_file_where_the_configuration_should_be_is_refused_without_blocking() {
+    let fx = fixture();
+    let path = fx.root.join(".yana-ai/web-search.json");
+    std::fs::remove_file(&path).unwrap();
+    let made = std::process::Command::new("mkfifo").arg(&path).status().map(|s| s.success()).unwrap_or(false);
+    if made {
+        assert!(matches!(fingerprint(&fx.root, ConfigKind::WebSearch), Err(CapabilityError::Io { .. })), "a FIFO must not block the reader");
+    }
+    std::fs::remove_file(&path).ok();
+    std::fs::create_dir(&path).unwrap();
+    assert!(matches!(fingerprint(&fx.root, ConfigKind::WebSearch), Err(CapabilityError::Io { .. })), "a directory");
+}
+
+#[test]
+fn invisible_and_direction_characters_are_shown_as_question_marks() {
+    let shown = cli::printable("a\u{202e}b\u{200b}c\u{2028}d\u{feff}e\u{1b}f\ng");
+    assert_eq!(shown, "a?b?c?d?e?f\ng");
+}
+
+#[test]
+fn a_lease_store_that_cannot_be_updated_stops_the_confirmation() {
+    let fx = fixture();
+    lease_root(&fx);
+    grant(&fx, "web.search");
+    std::fs::write(fx.root.join(".yana-ai/leases.json"), "not json").unwrap();
+    let result = allow_in(&fx.store, &fx.root, ConfigKind::WebSearch);
+    if result.is_err() {
+        assert!(require_in(&fx.store, &fx.root, ConfigKind::WebSearch).is_err(), "not trusted while the old leases could not be revoked");
+    } else {
+        assert_eq!(active(&fx, "web.search"), 0, "or, if the store coped, the lease is gone");
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn the_record_is_private_to_its_owner() {
+    use std::os::unix::fs::PermissionsExt;
+    let fx = fixture();
+    allow_in(&fx.store, &fx.root, ConfigKind::WebSearch).unwrap();
+    let mode = std::fs::metadata(record_path(&fx.store, &fx.root).unwrap()).unwrap().permissions().mode() & 0o777;
+    assert_eq!(mode, 0o600);
+}
+
+#[test]
+fn revoking_what_was_never_trusted_is_quiet_and_changes_nothing() {
+    let fx = fixture();
+    revoke_in(&fx.store, &fx.root, ConfigKind::McpServers).unwrap();
+    assert!(!record_path(&fx.store, &fx.root).unwrap().exists());
+}
+
+#[test]
+fn a_command_the_agent_started_cannot_confirm() {
+    assert!(cli::refuse_inside_agent_command(true).is_err());
+    assert!(cli::refuse_inside_agent_command(false).is_ok());
+}
+
+#[cfg(unix)]
+#[test]
+fn every_command_the_agent_spawns_carries_the_marker() {
+    let dir = tempfile::tempdir().unwrap();
+    let output = crate::capability::command::spawn_command(dir.path(), &["/usr/bin/env".to_string()], false).unwrap();
+    let text = String::from_utf8_lossy(&output.stdout);
+    assert!(text.lines().any(|l| l == "YANA_AGENT_CHILD=1"), "{text}");
 }

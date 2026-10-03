@@ -96,9 +96,38 @@ fn invisible_and_direction_characters_are_refused_in_what_an_approver_reads() {
 }
 
 #[test]
+fn a_command_line_or_variable_list_too_long_to_show_an_approver_is_refused() {
+    let long_arg = "a".repeat(MAX_COMMAND_LINE_CHARS);
+    let json = serde_json::json!({"servers": [{"name": "a", "command": "run", "args": [long_arg]}]}).to_string();
+    let (_k, root) = root_with(&json);
+    assert!(load_servers(&root).is_err(), "the whole command line is shown, so it must fit");
+    let fits = "a".repeat(MAX_COMMAND_LINE_CHARS - 10);
+    let json = serde_json::json!({"servers": [{"name": "a", "command": "run", "args": [fits]}]}).to_string();
+    let (_k2, root2) = root_with(&json);
+    assert!(load_servers(&root2).is_ok());
+    let names: Vec<String> = (0..12).map(|n| format!("SOME_LONG_NAME_{n}")).collect();
+    let json = serde_json::json!({"servers": [{"name": "a", "command": "run", "env": names}]}).to_string();
+    let (_k3, root3) = root_with(&json);
+    assert!(load_servers(&root3).is_err(), "the variable names are shown too");
+}
+
+#[test]
 fn the_command_line_is_quoted_so_two_arguments_cannot_look_like_one() {
     let (_k, root) = root_with(r#"{"servers":[{"name":"a","command":"run","args":["b c"]},{"name":"b","command":"run","args":["b","c"]}]}"#);
     let servers = load_servers(&root).unwrap();
     assert_ne!(servers[0].command_line(), servers[1].command_line());
     assert_eq!(servers[0].command_line(), "run 'b c'");
+}
+
+#[test]
+fn only_printable_ascii_is_allowed_in_what_an_approver_reads() {
+    // A character is one terminal column only for ASCII; wide characters could push the call out of the prompt.
+    for bad in ["x\u{4e2d}y", "caf\u{e9}", "x\u{a0}y", "x\ty"] {
+        let json = serde_json::json!({"servers": [{"name": "a", "command": bad}]}).to_string();
+        let (_k, root) = root_with(&json);
+        assert!(load_servers(&root).is_err(), "command {bad:?}");
+        let json = serde_json::json!({"servers": [{"name": "a", "command": "x", "args": [bad]}]}).to_string();
+        let (_k2, root2) = root_with(&json);
+        assert!(load_servers(&root2).is_err(), "arg {bad:?}");
+    }
 }

@@ -1,13 +1,9 @@
 //! `mcp.call`: the one door to every external MCP tool (WS3 T1,
-//! docs/contracts/ws3-tools.md 4 and 13).
+//! docs/contracts/ws3-tools.md 4, 13 and 14).
 //!
-//! The call text is `"<server>"` (list that server's tools) or
-//! `"<server> <tool>"` (call one), with exactly one ASCII space. That exact text
-//! is what a lease's `allow` and `deny` entries are matched against, token by
-//! token: `allow: ["github"]` covers the whole server, `["github search"]` one
-//! tool. The grammar is strict on purpose: authority tokenizes with
-//! `shell_words`, this module must read the SAME tokens, and any text the two
-//! could split differently (other kinds of whitespace, quotes) is refused here.
+//! The call grammar and the [`Disclosure`] an approver is shown live in
+//! `capability::mcp_disclosure` (the chat prompt needs them in every build);
+//! they are re-exported here.
 //!
 //! This module does NOT authorize. The caller must have passed the capability
 //! through `YanaAuthorityChain` (human approval per call, or a matching lease)
@@ -15,77 +11,16 @@
 //! shown: `mcp_call` runs only if the server's configuration still matches it.
 //! Output is untrusted: it is screened and wrapped by `capability::untrusted`.
 
-use super::config::{find_server, valid_server_name, ServerConfig};
-use super::session::{valid_tool_name, Session, ToolInfo, ToolOutput};
+#[allow(unused_imports)] // re-exported for callers and tests; not every build uses each name
+pub use crate::capability::mcp_disclosure::{disclose, disclosure_of, parse_command, Disclosure};
+
+use super::config::{find_server, ServerConfig};
+use super::session::{Session, ToolInfo, ToolOutput};
 use super::spawn::spawn_session;
 use crate::capability::untrusted::guard;
 use crate::capability::CapabilityError;
 use serde_json::{json, Value};
 use std::path::Path;
-
-fn invalid(detail: impl Into<String>) -> CapabilityError {
-    CapabilityError::InvalidInput { detail: detail.into() }
-}
-
-/// `"server"` or `"server tool"`: single ASCII spaces only, nothing else.
-pub fn parse_command(command: &str) -> Result<(String, Option<String>), CapabilityError> {
-    let mut words = command.split(' ');
-    let server = words.next().unwrap_or("");
-    let tool = words.next();
-    if words.next().is_some() {
-        return Err(invalid("command must be \"<server>\" or \"<server> <tool>\""));
-    }
-    if !valid_server_name(server) {
-        return Err(invalid(format!("{server:?} is not a valid server name")));
-    }
-    if let Some(tool) = tool.filter(|t| !valid_tool_name(t)) {
-        return Err(invalid(format!("{tool:?} is not a plain tool name")));
-    }
-    Ok((server.to_string(), tool.map(str::to_string)))
-}
-
-/// What an approver must see before an external program runs: which server, the
-/// exact command line, and which environment variable NAMES it receives. It is
-/// also the proof of what was approved: `mcp_call` compares against it.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Disclosure {
-    pub server: String,
-    pub tool: Option<String>,
-    pub command: String,
-    pub args: Vec<String>,
-    pub env_names: Vec<String>,
-    pub timeout_secs: u64,
-}
-
-impl Disclosure {
-    /// The command line, quoted, exactly as it will run.
-    pub fn command_line(&self) -> String {
-        shell_words::join(std::iter::once(self.command.as_str()).chain(self.args.iter().map(String::as_str)))
-    }
-
-    pub fn summary(&self) -> String {
-        let what = self.tool.as_deref().map_or("list its tools".to_string(), |t| format!("call its tool '{t}'"));
-        let env = if self.env_names.is_empty() { "no extra variables".to_string() } else { format!("variables {}", self.env_names.join(", ")) };
-        format!("MCP: start external program `{}` (server '{}', {env} passed) and {what}", self.command_line(), self.server)
-    }
-}
-
-fn disclosure_of(config: &ServerConfig, tool: Option<String>) -> Disclosure {
-    Disclosure {
-        server: config.name.clone(),
-        tool,
-        command: config.command.clone(),
-        args: config.args.clone(),
-        env_names: config.env.clone(),
-        timeout_secs: config.timeout().as_secs(),
-    }
-}
-
-/// Read-only: no process is started and no secret value is read.
-pub fn disclose(root: &Path, command: &str) -> Result<Disclosure, CapabilityError> {
-    let (server, tool) = parse_command(command)?;
-    Ok(disclosure_of(&find_server(root, &server)?, tool))
-}
 
 enum Outcome {
     Tools(Vec<ToolInfo>),

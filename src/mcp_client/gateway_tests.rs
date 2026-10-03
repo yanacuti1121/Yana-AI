@@ -9,7 +9,7 @@ use std::time::{Duration, Instant};
 
 /// A minimal MCP server in `sh`: answers initialize, tools/list and tools/call.
 /// The call result carries `call_text`.
-fn server_script(call_text: &str) -> String {
+pub(crate) fn server_script(call_text: &str) -> String {
     format!(
         r#"#!/bin/sh
 while IFS= read -r line; do

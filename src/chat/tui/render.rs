@@ -5,6 +5,7 @@
 //! every one of them.
 
 mod render_tools;
+pub(super) use render_tools::mcp_prompt_fits;
 #[cfg(test)]
 mod tests;
 
@@ -83,6 +84,8 @@ pub fn draw_ui(frame: &mut Frame, app: &mut App) {
         // Title, destination, key, query: all four must be visible (see
         // `render_tools::web_search_prompt_lines`).
         render_tools::WEB_SEARCH_PROMPT_HEIGHT
+    } else if matches!(app.turn, TurnState::AwaitingApproval(PendingApproval::McpCall { .. })) {
+        render_tools::MCP_PROMPT_HEIGHT
     } else if matches!(app.turn, TurnState::AwaitingApproval(_)) {
         5
     } else {

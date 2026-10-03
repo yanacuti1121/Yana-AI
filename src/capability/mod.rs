@@ -21,6 +21,8 @@ pub mod file_mutation;
 pub mod file_patch;
 pub mod git;
 pub mod lease;
+pub mod mcp_config;
+pub mod mcp_disclosure;
 pub mod patch;
 #[cfg(test)]
 mod patch_tests;

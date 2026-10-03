@@ -16,11 +16,46 @@ use crate::runtime::{ApprovedTool, ToolExecutor, TurnContext};
 /// rather than a second, independently-written executor.
 pub(crate) struct ChatCapabilityExecutor {
     use_sandbox: bool,
+    /// For an approved `mcp_call`: exactly what the approver saw. When present
+    /// the call runs that configuration or nothing; when absent (a resumed
+    /// remote approval) the configuration is disclosed again right before the
+    /// call, after `resume_turn` has checked it against the stored reason.
+    approved_mcp: Option<crate::capability::mcp_disclosure::Disclosure>,
 }
 
 impl ChatCapabilityExecutor {
     pub(crate) fn new(use_sandbox: bool) -> Self {
-        Self { use_sandbox }
+        Self { use_sandbox, approved_mcp: None }
+    }
+
+    pub(crate) fn with_approved_mcp(mut self, approved: Option<crate::capability::mcp_disclosure::Disclosure>) -> Self {
+        self.approved_mcp = approved;
+        self
+    }
+
+    /// Run an approved `mcp_call`. Needs the `mcp` feature; a build without it says so.
+    fn approved_mcp_call(&self, call: &ToolCall, root: &std::path::Path) -> ToolResultRecord {
+        let args: serde_json::Value = serde_json::from_str(&call.arguments_json).unwrap_or(serde_json::Value::Null);
+        let Some(command) = args.get("command").and_then(|c| c.as_str()) else {
+            return tool_result(call, "missing required argument 'command'".to_string(), true, false);
+        };
+        let arguments = args.get("arguments").cloned().unwrap_or(serde_json::Value::Null);
+        let disclosure = match self.approved_mcp.clone().map(Ok).unwrap_or_else(|| crate::capability::mcp_disclosure::disclose(root, command)) {
+            Ok(disclosure) => disclosure,
+            Err(error) => return tool_result(call, format!("mcp call refused: {error}"), true, false),
+        };
+        #[cfg(feature = "mcp")]
+        {
+            return match crate::mcp_client::gateway::mcp_call(root, command, &arguments, &disclosure) {
+                Ok(answer) => tool_result(call, answer, false, false),
+                Err(error) => tool_result(call, format!("mcp call failed: {error}"), true, false),
+            };
+        }
+        #[cfg(not(feature = "mcp"))]
+        {
+            let _ = (&arguments, &disclosure);
+            tool_result(call, "this build of yana-rt was made without MCP client support".to_string(), true, false)
+        }
     }
 }
 
@@ -94,6 +129,7 @@ impl ToolExecutor for ChatCapabilityExecutor {
                 let session_id = approved.context().session.session_id.clone();
                 file_write_result(call, approved.context(), session_id, true)
             }
+            "mcp_call" => self.approved_mcp_call(call, &approved.context().session.repo_root),
             "web_search" => match parse_string_arg(&call.arguments_json, "query") {
                 Some(query) => match crate::capability::web_search::web_search(&approved.context().session.repo_root, &query) {
                     Ok(answer) => tool_result(call, answer, false, false),
@@ -197,6 +233,7 @@ impl App {
             "write_file" => self.prepare_write_file_approval(call, false),
             "write_config" => self.prepare_write_file_approval(call, true),
             "web_search" => self.prepare_web_search_approval(call),
+            "mcp_call" => self.prepare_mcp_approval(call),
             other => {
                 self.push_tool_result(
                     &call.id,
@@ -204,6 +241,34 @@ impl App {
                     true,
                     true,
                 );
+                self.continue_after_tool_result();
+            }
+        }
+    }
+
+    /// Starting an external program is the point of an `mcp_call`, so the prompt
+    /// shows the exact command line (quoted) and the variable names passed. A
+    /// configuration nobody confirmed, a malformed call text, or an unlisted
+    /// server never reaches `AwaitingApproval`: the model is told why instead.
+    fn prepare_mcp_approval(&mut self, call: ToolCall) {
+        let args: serde_json::Value = serde_json::from_str(&call.arguments_json).unwrap_or(serde_json::Value::Null);
+        let Some(command) = args.get("command").and_then(|c| c.as_str()).map(str::to_string) else {
+            self.push_tool_result(&call.id, "missing required argument 'command'".to_string(), true, false);
+            self.continue_after_tool_result();
+            return;
+        };
+        let arguments = args.get("arguments").cloned().unwrap_or(serde_json::Value::Null);
+        if !(arguments.is_null() || arguments.is_object()) {
+            self.push_tool_result(&call.id, "'arguments' must be a JSON object".to_string(), true, false);
+            self.continue_after_tool_result();
+            return;
+        }
+        match crate::capability::mcp_disclosure::disclose(&self.session_context().repo_root, &command) {
+            Ok(disclosure) => {
+                self.turn = TurnState::AwaitingApproval(PendingApproval::McpCall { call, command, arguments, disclosure });
+            }
+            Err(error) => {
+                self.push_tool_result(&call.id, format!("cannot call: {error}"), true, false);
                 self.continue_after_tool_result();
             }
         }

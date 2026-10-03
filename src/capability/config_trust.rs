@@ -103,16 +103,41 @@ pub fn store_dir() -> Result<PathBuf, CapabilityError> {
     Ok(PathBuf::from(home).join(".yana-ai").join("trust").join(profile))
 }
 
-/// SHA-256 (hex) of the configuration file's exact bytes.
-pub fn fingerprint(root: &Path, kind: ConfigKind) -> Result<String, CapabilityError> {
+/// Largest configuration file read at all. The MCP loader allows 64 KiB; anything
+/// larger is "not trusted" without being read into memory.
+const MAX_CONFIG_BYTES: u64 = 64 * 1024;
+
+fn hex(bytes: &[u8]) -> String {
+    Sha256::digest(bytes).iter().map(|b| format!("{b:02x}")).collect()
+}
+
+/// The configuration file's bytes and their SHA-256 (hex), from ONE bounded read of
+/// a regular file (a FIFO, device or huge file is refused, not read). Callers that
+/// parse the file parse THESE bytes, so what was hashed is what is used.
+pub fn read_config(root: &Path, kind: ConfigKind) -> Result<(Vec<u8>, String), CapabilityError> {
+    use std::io::Read;
     let path = kind.path(root);
-    let bytes = fs::read(&path).map_err(|e| match e.kind() {
+    let io = |e: std::io::Error| match e.kind() {
         std::io::ErrorKind::NotFound => CapabilityError::Unsupported {
             detail: format!("{} is not configured: there is no .yana-ai/{} in this repository", kind.human(), kind.file_name()),
         },
         _ => CapabilityError::Io { detail: format!("read {}: {e}", kind.file_name()) },
-    })?;
-    Ok(Sha256::digest(&bytes).iter().map(|b| format!("{b:02x}")).collect())
+    };
+    if !fs::metadata(&path).map_err(io)?.is_file() {
+        return Err(CapabilityError::Io { detail: format!("{} is not a regular file", kind.file_name()) });
+    }
+    let mut bytes = Vec::new();
+    fs::File::open(&path).map_err(io)?.take(MAX_CONFIG_BYTES + 1).read_to_end(&mut bytes).map_err(io)?;
+    if bytes.len() as u64 > MAX_CONFIG_BYTES {
+        return Err(CapabilityError::InvalidInput { detail: format!("{} is larger than {MAX_CONFIG_BYTES} bytes", kind.file_name()) });
+    }
+    let hash = hex(&bytes);
+    Ok((bytes, hash))
+}
+
+/// SHA-256 (hex) of the configuration file's exact bytes.
+pub fn fingerprint(root: &Path, kind: ConfigKind) -> Result<String, CapabilityError> {
+    read_config(root, kind).map(|(_, hash)| hash)
 }
 
 #[derive(Debug, Default, serde::Serialize, serde::Deserialize)]
@@ -152,53 +177,75 @@ fn check_store_outside(store: &Path, root: &Path) -> Result<(), CapabilityError>
     Ok(())
 }
 
-/// Ok only if a person confirmed exactly this content of `kind`'s file in this repository.
-pub fn require_in(store: &Path, root: &Path, kind: ConfigKind) -> Result<(), CapabilityError> {
-    let now = fingerprint(root, kind)?;
+/// The file's bytes, if a person confirmed exactly this content of `kind`'s file in
+/// this repository. One read: what was checked is what the caller gets to parse.
+pub fn trusted_bytes_in(store: &Path, root: &Path, kind: ConfigKind) -> Result<Vec<u8>, CapabilityError> {
+    let (bytes, now) = read_config(root, kind)?;
     check_store_outside(store, root)?;
     match read_record(store, root).entries.get(kind.file_name()) {
         None => Err(not_trusted(kind, "never confirmed here")),
-        Some(recorded) if *recorded == now => Ok(()),
+        Some(recorded) if *recorded == now => Ok(bytes),
         Some(_) => Err(not_trusted(kind, "its content changed since it was confirmed")),
     }
 }
 
-pub fn require(root: &Path, kind: ConfigKind) -> Result<(), CapabilityError> {
+#[cfg(test)]
+pub fn require_in(store: &Path, root: &Path, kind: ConfigKind) -> Result<(), CapabilityError> {
+    trusted_bytes_in(store, root, kind).map(|_| ())
+}
+
+/// See [`trusted_bytes_in`], with the store from the environment.
+pub fn trusted_bytes(root: &Path, kind: ConfigKind) -> Result<Vec<u8>, CapabilityError> {
     match store_dir() {
-        Ok(store) => require_in(&store, root, kind),
+        Ok(store) => trusted_bytes_in(&store, root, kind),
         Err(_) => Err(not_trusted(kind, "no trust store available")),
     }
+}
+
+pub fn require(root: &Path, kind: ConfigKind) -> Result<(), CapabilityError> {
+    trusted_bytes(root, kind).map(|_| ())
 }
 
 pub fn is_trusted(root: &Path, kind: ConfigKind) -> bool {
     require(root, kind).is_ok()
 }
 
-/// Record a person's confirmation of `kind`'s current content. Does not ask
-/// anyone: the caller (`cmd_trust_allow`) must have. Returns whether the
-/// confirmed content differs from what was recorded before (so leases were revoked).
-pub fn allow_in(store: &Path, root: &Path, kind: ConfigKind) -> Result<bool, CapabilityError> {
-    let hash = fingerprint(root, kind)?;
+/// Record a person's confirmation of the content whose hash is `shown`: the hash
+/// they were shown, not whatever the file holds by now. Fails if the file differs.
+/// Leases for the capability are revoked FIRST and any failure stops the
+/// confirmation, so a trusted configuration never keeps a lease granted against
+/// another. Returns whether the confirmed content differs from the one recorded before.
+pub fn allow_hash_in(store: &Path, root: &Path, kind: ConfigKind, shown: &str) -> Result<bool, CapabilityError> {
+    if fingerprint(root, kind)? != shown {
+        return Err(refuse(format!("{} changed after it was shown; nothing was recorded", kind.file_name())));
+    }
     check_store_outside(store, root)?;
     let mut record = read_record(store, root);
-    let changed = record.entries.get(kind.file_name()) != Some(&hash);
-    record.repo = root.canonicalize().map(|p| p.to_string_lossy().into_owned()).unwrap_or_default();
-    record.entries.insert(kind.file_name().to_string(), hash);
-    write_record(store, root, &record)?;
+    let changed = record.entries.get(kind.file_name()).map(String::as_str) != Some(shown);
     if changed {
-        revoke_leases(root, kind);
+        revoke_leases(root, kind)?;
     }
+    record.repo = root.canonicalize().map(|p| p.to_string_lossy().into_owned()).unwrap_or_default();
+    record.entries.insert(kind.file_name().to_string(), shown.to_string());
+    write_record(store, root, &record)?;
     Ok(changed)
+}
+
+/// Confirm the content that is in the file right now (for callers that did not show it).
+#[cfg(test)]
+pub fn allow_in(store: &Path, root: &Path, kind: ConfigKind) -> Result<bool, CapabilityError> {
+    let hash = fingerprint(root, kind)?;
+    allow_hash_in(store, root, kind, &hash)
 }
 
 /// Forget the confirmation (and the leases that depended on it).
 pub fn revoke_in(store: &Path, root: &Path, kind: ConfigKind) -> Result<(), CapabilityError> {
     check_store_outside(store, root)?;
+    revoke_leases(root, kind)?;
     let mut record = read_record(store, root);
     if record.entries.remove(kind.file_name()).is_some() {
         write_record(store, root, &record)?;
     }
-    revoke_leases(root, kind);
     Ok(())
 }
 
@@ -218,105 +265,21 @@ fn write_record(store: &Path, root: &Path, record: &Record) -> Result<(), Capabi
 }
 
 /// Leases for the capability this configuration drives were granted against a
-/// configuration that is no longer the confirmed one.
-fn revoke_leases(root: &Path, kind: ConfigKind) {
+/// configuration that is no longer the confirmed one. Errors are reported, not hidden.
+fn revoke_leases(root: &Path, kind: ConfigKind) -> Result<usize, CapabilityError> {
     let store = super::lease::LeaseStore::for_root(root);
-    if let Ok(leases) = store.list() {
-        for lease in leases.iter().filter(|l| !l.revoked && l.capability == kind.lease_capability()) {
-            let _ = store.revoke(&lease.id);
-        }
+    let lease_err = |e: anyhow::Error| CapabilityError::Io { detail: format!("lease store: {e}") };
+    let leases = store.list().map_err(lease_err)?;
+    let mut revoked = 0;
+    for lease in leases.iter().filter(|l| !l.revoked && l.capability == kind.lease_capability()) {
+        store.revoke(&lease.id).map_err(lease_err)?;
+        revoked += 1;
     }
+    Ok(revoked)
 }
 
-// ── Command line (`yana-rt trust ...`) ───────────────────────────────────────
-
-use anyhow::{bail, Context, Result};
-use std::io::{BufRead, IsTerminal, Write};
-
-/// Most of the file shown for review. A longer file is refused rather than shown cut off.
-const MAX_REVIEW_BYTES: usize = 8 * 1024;
-
-fn parse_kind(text: &str) -> Result<ConfigKind> {
-    ConfigKind::parse(text).with_context(|| format!("unknown configuration {text:?}; use web-search or mcp-servers"))
-}
-
-/// Control characters shown as `?`: what is printed must not rewrite the terminal.
-fn printable(text: &str) -> String {
-    text.chars().map(|c| if c.is_control() && c != '\n' { '?' } else { c }).collect()
-}
-
-fn project_root() -> Result<PathBuf> {
-    std::env::current_dir().context("cannot resolve project root")
-}
-
-pub fn cmd_trust_status() -> Result<()> {
-    let root = project_root()?;
-    for kind in ConfigKind::ALL {
-        let state = match require(&root, kind) {
-            Ok(()) => "trusted".to_string(),
-            Err(CapabilityError::Unsupported { .. }) => "not present".to_string(),
-            Err(error) => format!("NOT trusted: {error}"),
-        };
-        println!("{:<12} {state}", kind.label());
-    }
-    Ok(())
-}
-
-fn review_text(root: &Path, kind: ConfigKind) -> Result<String> {
-    let hash = fingerprint(root, kind)?;
-    let bytes = fs::read(kind.path(root)).with_context(|| format!("read {}", kind.file_name()))?;
-    if bytes.len() > MAX_REVIEW_BYTES {
-        bail!("{} is larger than {MAX_REVIEW_BYTES} bytes; it is too long to review here", kind.file_name());
-    }
-    let text = printable(&String::from_utf8_lossy(&bytes));
-    Ok(format!("{}:\n{text}\n\nsha256 {hash}", kind.path(root).display()))
-}
-
-pub fn cmd_trust_show(kind: &str) -> Result<()> {
-    println!("{}", review_text(&project_root()?, parse_kind(kind)?)?);
-    Ok(())
-}
-
-/// The confirmation itself, with its input and output passed in so it can be tested.
-/// Refuses unless a person is at a terminal and types `yes`: an agent that runs
-/// this command through `run_command` has no terminal to type into.
-pub fn confirm_and_allow(
-    store: &Path,
-    root: &Path,
-    kind: ConfigKind,
-    interactive: bool,
-    input: &mut dyn BufRead,
-    output: &mut dyn Write,
-) -> Result<bool> {
-    if !interactive {
-        bail!("confirming a configuration must be done by a person in a terminal (stdin is not one)");
-    }
-    writeln!(output, "{}\n", review_text(root, kind)?)?;
-    write!(output, "Trust this exact content for {}? Type 'yes' to confirm: ", kind.file_name())?;
-    output.flush()?;
-    let mut answer = String::new();
-    input.read_line(&mut answer)?;
-    if answer.trim() != "yes" {
-        bail!("not confirmed; nothing was recorded");
-    }
-    Ok(allow_in(store, root, kind)?)
-}
-
-pub fn cmd_trust_allow(kind: &str) -> Result<()> {
-    let (root, kind) = (project_root()?, parse_kind(kind)?);
-    let store = store_dir()?;
-    let interactive = std::io::stdin().is_terminal() && std::io::stdout().is_terminal();
-    let changed = confirm_and_allow(&store, &root, kind, interactive, &mut std::io::stdin().lock(), &mut std::io::stdout())?;
-    println!("\nTrusted. {}", if changed { "Leases for this capability were revoked; grant them again if needed." } else { "Content was already trusted." });
-    Ok(())
-}
-
-pub fn cmd_trust_revoke(kind: &str) -> Result<()> {
-    let (root, kind) = (project_root()?, parse_kind(kind)?);
-    revoke_in(&store_dir()?, &root, kind)?;
-    println!("Trust for {} revoked.", kind.file_name());
-    Ok(())
-}
+mod cli;
+pub use cli::*;
 
 // ── Test support ─────────────────────────────────────────────────────────────
 
@@ -335,7 +298,8 @@ pub(crate) fn trust_in_test(root: &Path) {
     let store = empty_store_in_test();
     for kind in ConfigKind::ALL {
         if kind.path(root).is_file() {
-            allow_in(&store, root, kind).expect("trust a test configuration");
+            // An unconfirmable file (over the size cap, not a regular file) stays untrusted, as it would for a person.
+            let _ = allow_in(&store, root, kind);
         }
     }
 }

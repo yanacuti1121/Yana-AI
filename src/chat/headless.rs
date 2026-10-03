@@ -198,7 +198,7 @@ pub(super) fn dispatch(provider_name: String, model: Option<String>) -> Result<(
         } => {
             let store = PendingApprovalStore::for_root(&context.session.repo_root);
             let reason = reason_with_disclosure(&context.session.repo_root, &call, approval_reason)
-                .context("cannot ask for approval: the search backend cannot be disclosed")?;
+                .context("cannot ask for approval: where this call goes cannot be disclosed")?;
             let pending = store
                 .create(
                     context,
@@ -296,7 +296,7 @@ pub(super) fn dispatch_resume(provider_name: String) -> Result<()> {
             // same way the original dispatch does, rather than crash.
             let store = PendingApprovalStore::for_root(&resolved.context.session.repo_root);
             let reason = reason_with_disclosure(&resolved.context.session.repo_root, &call, approval_reason)
-                .context("cannot ask for approval: the search backend cannot be disclosed")?;
+                .context("cannot ask for approval: where this call goes cannot be disclosed")?;
             let pending = store
                 .create(
                     resolved.context.clone(),

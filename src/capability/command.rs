@@ -56,6 +56,12 @@ pub struct CommandOutcome {
 /// Reusing `execute_command` for that purpose would reproduce the exact
 /// class of bug `compact` exists to prevent: a count computed from output
 /// that was already silently cut.
+/// Set in the environment of every command the agent runs. `yana-rt trust allow`
+/// refuses to run with it set: confirming a configuration is for a person. This is
+/// defence in depth, not a barrier (a command can remove the variable); the barrier
+/// is that a command needs a person's approval to run at all.
+pub const AGENT_CHILD_ENV: &str = "YANA_AGENT_CHILD";
+
 pub fn spawn_command(
     root: &Path,
     argv: &[String],
@@ -85,6 +91,7 @@ pub fn spawn_command(
     };
     command
         .current_dir(root)
+        .env(AGENT_CHILD_ENV, "1")
         .output()
         .map_err(|error| CapabilityError::SpawnFailed {
             detail: error.to_string(),

@@ -20,6 +20,8 @@ mod approval;
 mod commands;
 #[cfg(test)]
 mod golden_e2e_tests;
+#[cfg(test)]
+mod mcp_approval_tests;
 mod keys;
 mod model_command;
 mod mouse;
@@ -105,6 +107,17 @@ enum PendingApproval {
         query: String,
         disclosure: crate::capability::web_search::SearchDisclosure,
     },
+    /// An `mcp_call`: start an external program the user configured, then list
+    /// or call a tool on it. `disclosure` is what the approver saw (the exact,
+    /// quoted command line and the variable NAMES passed); it is recomputed at
+    /// `y` and handed to the executor, which runs exactly that or nothing.
+    McpCall {
+        call: crate::model::tool::ToolCall,
+        /// `"<server>"` or `"<server> <tool>"`: also what a lease would be matched against.
+        command: String,
+        arguments: serde_json::Value,
+        disclosure: crate::capability::mcp_disclosure::Disclosure,
+    },
 }
 
 impl PendingApproval {
@@ -113,6 +126,7 @@ impl PendingApproval {
             PendingApproval::Command { call, .. } => call,
             PendingApproval::FileWrite { call, .. } => call,
             PendingApproval::WebSearch { call, .. } => call,
+            PendingApproval::McpCall { call, .. } => call,
         }
     }
 
@@ -134,6 +148,7 @@ impl PendingApproval {
                 let shown: String = query.chars().take(30).collect();
                 format!("search via {}: {shown}", disclosure.backend_host)
             }
+            PendingApproval::McpCall { command, .. } => format!("mcp {command}"),
         }
     }
 

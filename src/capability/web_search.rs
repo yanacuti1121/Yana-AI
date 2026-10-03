@@ -15,7 +15,6 @@ use super::error::CapabilityError;
 use super::untrusted::guard;
 use serde::Deserialize;
 use serde_json::Value;
-use std::fs;
 use std::path::Path;
 
 const CONFIG_PATH: &str = ".yana-ai/web-search.json";
@@ -47,19 +46,14 @@ fn invalid(detail: impl Into<String>) -> CapabilityError {
     CapabilityError::InvalidInput { detail: detail.into() }
 }
 
+/// The configuration, parsed from the very bytes a person confirmed. Nothing is
+/// read, let alone used, until `yana-rt trust allow web-search` has been run for this content.
 fn load_config(root: &Path) -> Result<SearchConfig, CapabilityError> {
-    let path = root.join(CONFIG_PATH);
-    let text = match fs::read_to_string(&path) {
-        Ok(text) if text.len() <= MAX_CONFIG_BYTES => text,
-        Ok(_) => return Err(invalid(format!("{CONFIG_PATH} is larger than {MAX_CONFIG_BYTES} bytes"))),
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-            return Err(CapabilityError::Unsupported {
-                detail: format!("web search is not configured: create {CONFIG_PATH} with an \"endpoint\" (https URL of a JSON search backend)"),
-            })
-        }
-        Err(e) => return Err(CapabilityError::Io { detail: format!("read {CONFIG_PATH}: {e}") }),
-    };
-    serde_json::from_str(&text).map_err(|e| invalid(format!("{CONFIG_PATH} is not valid: {e}")))
+    let bytes = super::config_trust::trusted_bytes(root, super::config_trust::ConfigKind::WebSearch)?;
+    if bytes.len() > MAX_CONFIG_BYTES {
+        return Err(invalid(format!("{CONFIG_PATH} is larger than {MAX_CONFIG_BYTES} bytes")));
+    }
+    serde_json::from_slice(&bytes).map_err(|e| invalid(format!("{CONFIG_PATH} is not valid: {e}")))
 }
 
 /// The key variable must be one set aside for this tool. The config file lives
@@ -135,8 +129,6 @@ pub fn is_configured(root: &Path) -> bool {
 
 /// The disclosure for the config in `root`, using the same checks `web_search` applies.
 pub fn disclose(root: &Path) -> Result<SearchDisclosure, CapabilityError> {
-    // A configuration nobody confirmed is not disclosed, let alone used.
-    super::config_trust::require(root, super::config_trust::ConfigKind::WebSearch)?;
     let config = load_config(root)?;
     let url = url::Url::parse(&config.endpoint).map_err(|e| invalid(format!("endpoint is not a valid URL: {e}")))?;
     let host = url.host_str().ok_or_else(|| invalid("endpoint has no host"))?;
@@ -157,7 +149,6 @@ pub fn disclose(root: &Path) -> Result<SearchDisclosure, CapabilityError> {
 
 /// Search with the config in `root`, the real network, and the real environment.
 pub fn web_search(root: &Path, query: &str) -> Result<String, CapabilityError> {
-    super::config_trust::require(root, super::config_trust::ConfigKind::WebSearch)?;
     let config = load_config(root)?;
     let env = |name: &str| std::env::var(name).ok();
     search_with(&config, &UreqTransport, &system_resolver, &env, query)

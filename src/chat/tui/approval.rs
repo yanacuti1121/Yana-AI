@@ -37,7 +37,13 @@ impl App {
             }
             return;
         }
+        // A call that cannot be shown in full cannot be approved: the prompt says so instead of a clipped one.
+        let unshowable = matches!(pending, PendingApproval::McpCall { .. })
+            && matches!(crossterm::terminal::size(), Ok((cols, rows)) if !super::render::mcp_prompt_fits(cols, rows));
         match key.code {
+            KeyCode::Char('y') | KeyCode::Char('Y') if unshowable => {
+                self.status = "terminal too small to show this call in full; enlarge it, or press n".into();
+            }
             KeyCode::Char('y') | KeyCode::Char('Y') => self.execute_approved_tool(),
             KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => self.decline_tool(),
             _ => {}
@@ -102,7 +108,27 @@ impl App {
         else {
             return;
         };
+        // For an MCP call: exactly what the approver saw, handed to the executor
+        // so it runs that configuration or nothing.
+        let mut approved_mcp: Option<crate::capability::mcp_disclosure::Disclosure> = None;
         let call = match &pending {
+            PendingApproval::McpCall { disclosure, command, .. } => {
+                let root = self.session_context().repo_root;
+                if crate::capability::mcp_disclosure::disclose(&root, command).as_ref() != Ok(disclosure) {
+                    self.push_tool_result(
+                        &pending.call().id,
+                        "blocked during execution revalidation: the MCP server configuration changed since approval; please retry"
+                            .to_string(),
+                        true,
+                        true,
+                    );
+                    self.continue_after_tool_result();
+                    return;
+                }
+                approved_mcp = Some(disclosure.clone());
+                let PendingApproval::McpCall { call, .. } = pending else { unreachable!() };
+                call
+            }
             PendingApproval::WebSearch { disclosure, .. } => {
                 // The approver saw this host and key variable. If the search
                 // configuration changed since, what they approved is gone.
@@ -206,7 +232,7 @@ impl App {
         };
         let context = TurnContext::new(self.session_context(), TurnOrigin::Terminal, true);
         let call_id = call.id.clone();
-        let executor = ChatCapabilityExecutor::new(self.use_sandbox);
+        let executor = ChatCapabilityExecutor::new(self.use_sandbox).with_approved_mcp(approved_mcp);
         let (tx, rx) = mpsc::channel::<ToolExecEvent>();
         thread::spawn(move || {
             let result = execute_approved_tool(

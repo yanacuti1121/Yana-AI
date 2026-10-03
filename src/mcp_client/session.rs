@@ -21,7 +21,7 @@ pub const MAX_PAGES: usize = 10;
 /// Largest tool result kept, in bytes; the rest is cut.
 pub const MAX_RESULT_BYTES: usize = 64 * 1024;
 const MAX_DESCRIPTION_CHARS: usize = 300;
-const MAX_TOOL_NAME_CHARS: usize = 64;
+pub use crate::capability::mcp_config::valid_tool_name;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Limits {
@@ -48,12 +48,6 @@ pub struct Session {
     child: Option<Child>,
     limits: Limits,
     label: String,
-}
-
-/// A tool name is passed to a lease matcher as one token, so only plain
-/// characters are accepted.
-pub fn valid_tool_name(name: &str) -> bool {
-    !name.is_empty() && name.len() <= MAX_TOOL_NAME_CHARS && name.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '_' | '-' | '.' | ':'))
 }
 
 fn external(label: &str, what: &str) -> CapabilityError {

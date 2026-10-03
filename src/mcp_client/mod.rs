@@ -6,10 +6,6 @@
 //! process with a clean environment), `gateway` (the single `mcp.call`
 //! entry point that screens output as untrusted).
 
-// Built ahead of its callers: nothing dispatches `mcp.call` to this module until
-// the chat approval prompt can show `gateway::Disclosure` (docs/contracts/ws3-tools.md 14).
-#![allow(dead_code)]
-
 pub mod bounded;
 pub mod config;
 pub mod gateway;
@@ -20,4 +16,4 @@ pub mod spawn;
 mod config_tests;
 // The fake servers are `sh` scripts and the checks use `kill -0`, so these are Unix-only.
 #[cfg(all(test, unix))]
-mod gateway_tests;
+pub(crate) mod gateway_tests;

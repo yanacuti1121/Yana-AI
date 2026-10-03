@@ -106,8 +106,76 @@ pub(super) fn web_search_prompt_lines(
     ]
 }
 
+/// The MCP approval box is a fixed grid: every part is cut into rows of exactly
+/// the width available (no word wrapping, no clipping), and the box is sized for
+/// the largest values configuration validation allows (ASCII only, so a character
+/// is a column) at the narrowest terminal that is accepted:
+/// two borders, the title, the command line (160 characters, 3 rows), the
+/// variable names (120, 2 rows), the call (up to 97, 2 rows), the arguments (71, 2 rows).
+pub(super) const MCP_PROMPT_HEIGHT: u16 = 12;
+/// Below this many columns or rows the call cannot be shown in full, so it is not
+/// shown at all and cannot be approved.
+pub(crate) const MCP_PROMPT_MIN_COLS: u16 = 70;
+const PROMPT_ARGS_CHARS: usize = 70;
+
+pub(crate) fn mcp_prompt_fits(cols: u16, rows: u16) -> bool {
+    cols >= MCP_PROMPT_MIN_COLS && rows >= MCP_PROMPT_HEIGHT
+}
+
+/// `text` after `label`, in rows of exactly `width` columns (continuations indented under the text).
+fn fixed_rows(label: &str, text: &str, width: usize) -> Vec<Line<'static>> {
+    let indent = " ".repeat(label.chars().count());
+    let room = width.saturating_sub(label.chars().count()).max(1);
+    let chars: Vec<char> = text.chars().collect();
+    let mut rows: Vec<Line<'static>> = chars
+        .chunks(room)
+        .enumerate()
+        .map(|(i, chunk)| Line::raw(format!("{}{}", if i == 0 { label } else { indent.as_str() }, chunk.iter().collect::<String>())))
+        .collect();
+    if rows.is_empty() {
+        rows.push(Line::raw(label.to_string()));
+    }
+    rows
+}
+
+pub(super) fn mcp_prompt_lines(
+    disclosure: &crate::capability::mcp_disclosure::Disclosure,
+    arguments: &serde_json::Value,
+    width: usize,
+) -> Vec<Line<'static>> {
+    let what = disclosure.tool.as_deref().map_or("(list its tools)".to_string(), str::to_string);
+    let raw = if arguments.is_null() { "(none)".to_string() } else { arguments.to_string() };
+    let shown: String = raw
+        .chars()
+        .map(|c| if c.is_control() || crate::capability::untrusted::is_invisible_format_char(c) { '?' } else { c })
+        .take(PROMPT_ARGS_CHARS)
+        .collect();
+    let cut = if raw.chars().count() > PROMPT_ARGS_CHARS { "\u{2026}" } else { "" };
+    let mut lines = vec![Line::styled(
+        "Run this external program? [y]es / [N]o",
+        Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+    )];
+    lines.extend(fixed_rows("run:  ", &disclosure.command_line(), width));
+    lines.extend(fixed_rows("env:  ", &disclosure.env_note(), width));
+    lines.extend(fixed_rows("call: ", &format!("{} {what}", disclosure.server), width));
+    lines.extend(fixed_rows("args: ", &format!("{shown}{cut}"), width));
+    lines
+}
+
 pub(super) fn draw_approval_prompt(frame: &mut Frame, pending: &PendingApproval, area: Rect) {
     let (title, border_color, lines): (&str, Color, Vec<Line>) = match pending {
+        PendingApproval::McpCall { disclosure, arguments, .. } => (
+            " approve external program ",
+            Color::Yellow,
+            if mcp_prompt_fits(area.width, area.height) {
+                mcp_prompt_lines(disclosure, arguments, area.width.saturating_sub(2) as usize)
+            } else {
+                vec![Line::styled(
+                    "Terminal too small to show this call in full: enlarge it, or press n.",
+                    Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+                )]
+            },
+        ),
         PendingApproval::Command {
             command,
             guard_verdict: Some(reason),
@@ -250,6 +318,84 @@ mod tests {
         assert!(screen.contains("to:    search.example"), "{screen}");
         assert!(screen.contains("$YANA_SEARCH_KEY WILL be sent"), "{screen}");
         assert!(screen.contains("[y]es / [N]o"), "{screen}");
+    }
+
+    fn longest_mcp_disclosure() -> crate::capability::mcp_disclosure::Disclosure {
+        // As long as configuration validation lets each part be: a 160-character
+        // command line, 120 characters of variable names, a 32-character server and 64-character tool.
+        let command = "/usr/bin/run".to_string();
+        let args = vec!["ARG-START".to_string(), "y".repeat(160 - command.len() - "ARG-START".len() - "ARG-END".len() - 3), "ARG-END".to_string()];
+        let env_names: Vec<String> = ["ENV_FIRST".to_string(), "M".repeat(99), "ENV_LAST".to_string()].to_vec();
+        crate::capability::mcp_disclosure::Disclosure { server: "s".repeat(32), tool: Some("t".repeat(64)), command, args, env_names, timeout_secs: 30 }
+    }
+
+    fn mcp_pending(d: crate::capability::mcp_disclosure::Disclosure) -> PendingApproval {
+        PendingApproval::McpCall {
+            call: crate::model::tool::ToolCall { id: "c".into(), name: "mcp_call".into(), arguments_json: "{}".into() },
+            command: format!("{} {}", d.server, d.tool.clone().unwrap_or_default()),
+            arguments: serde_json::json!({"text": "q".repeat(500)}),
+            disclosure: d,
+        }
+    }
+
+    fn render_rows(pending: &PendingApproval, width: u16, height: u16) -> Vec<String> {
+        use ratatui::backend::TestBackend;
+        use ratatui::Terminal;
+        let mut terminal = Terminal::new(TestBackend::new(width, height)).unwrap();
+        terminal.draw(|frame| draw_approval_prompt(frame, pending, frame.area())).unwrap();
+        let buffer = terminal.backend().buffer().clone();
+        (0..height).map(|y| (0..width).map(|x| buffer[(x, y)].symbol().to_string()).collect::<String>()).collect()
+    }
+
+    /// The text of each row between the borders, trimmed.
+    fn inner(rows: &[String]) -> Vec<String> {
+        rows.iter().skip(1).take(rows.len() - 2).map(|r| r.trim_matches('\u{2502}').trim_end().to_string()).collect()
+    }
+
+    #[test]
+    fn at_the_narrowest_accepted_terminal_and_at_80_columns_every_part_is_shown_whole_and_in_order() {
+        let d = longest_mcp_disclosure();
+        assert_eq!(d.command_line().chars().count(), crate::capability::mcp_config::MAX_COMMAND_LINE_CHARS, "the fixture is the longest allowed");
+        assert_eq!(d.env_note().chars().count(), crate::capability::mcp_config::MAX_ENV_LIST_CHARS, "and so are the variable names");
+        for width in [MCP_PROMPT_MIN_COLS, 80, 200] {
+            let rows = inner(&render_rows(&mcp_pending(d.clone()), width, MCP_PROMPT_HEIGHT));
+            let at = |prefix: &str| rows.iter().position(|r| r.starts_with(prefix)).unwrap_or_else(|| panic!("{prefix:?} missing at {width}:\n{}", rows.join("\n")));
+            let (title, run, env, call, args) = (at("Run this"), at("run:"), at("env:"), at("call:"), at("args:"));
+            assert!(title < run && run < env && env < call && call < args, "order at {width}");
+            // The command line, joined back from its rows, is the whole of it.
+            let joined = |from: usize, to: usize, label: &str| rows[from..to].iter().map(|r| r.chars().skip(label.chars().count()).collect::<String>()).collect::<String>();
+            assert_eq!(joined(run, env, "run:  "), d.command_line(), "command line at {width}");
+            assert_eq!(joined(env, call, "env:  "), d.env_note(), "variable names at {width}");
+            assert_eq!(joined(call, args, "call: "), format!("{} {}", d.server, "t".repeat(64)), "call at {width}");
+            assert!(rows[args].starts_with("args: ") && rows.len() > args, "arguments row at {width}");
+        }
+    }
+
+    #[test]
+    fn a_terminal_too_small_to_show_the_call_shows_no_part_of_it() {
+        let d = longest_mcp_disclosure();
+        for (w, h) in [(MCP_PROMPT_MIN_COLS - 1, MCP_PROMPT_HEIGHT), (80, MCP_PROMPT_HEIGHT - 1)] {
+            let screen = render_rows(&mcp_pending(d.clone()), w, h).join("\n");
+            assert!(screen.contains("too small") && !screen.contains("/usr/bin/run") && !screen.contains("[y]es"), "{w}x{h}:\n{screen}");
+        }
+        assert!(mcp_prompt_fits(MCP_PROMPT_MIN_COLS, MCP_PROMPT_HEIGHT) && !mcp_prompt_fits(MCP_PROMPT_MIN_COLS - 1, MCP_PROMPT_HEIGHT));
+    }
+
+    #[test]
+    fn the_mcp_prompt_shows_what_runs_before_what_the_model_chose_and_neutralizes_hidden_characters() {
+        let d = longest_mcp_disclosure();
+        let lines = mcp_prompt_lines(&d, &serde_json::json!({"x": "a\u{202e}b\u{7}c"}), 78);
+        let text = lines.iter().map(|l| l.to_string()).collect::<Vec<_>>().join("\n");
+        assert!(text.find("run:").unwrap() < text.find("env:").unwrap() && text.find("env:").unwrap() < text.find("call:").unwrap() && text.find("call:").unwrap() < text.find("args:").unwrap(), "{text}");
+        assert!(!text.contains('\u{202e}') && !text.contains('\u{7}'), "{text:?}");
+        let none = mcp_prompt_lines(&crate::capability::mcp_disclosure::Disclosure { tool: None, env_names: vec![], ..d }, &serde_json::Value::Null, 78);
+        let shown = none.iter().map(|l| l.to_string()).collect::<Vec<_>>().join("\n");
+        assert!(shown.contains("env:  none") && shown.contains("(list its tools)") && shown.contains("args: (none)"), "{shown}");
+    }
+
+    #[test]
+    fn the_mcp_box_is_taller_than_the_generic_one() {
+        assert!(MCP_PROMPT_HEIGHT > WEB_SEARCH_PROMPT_HEIGHT && MCP_PROMPT_HEIGHT > 5);
     }
 
     /// The old 5-row box (3 lines) is what clipped the key line; this pins that

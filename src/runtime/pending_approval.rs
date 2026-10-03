@@ -303,12 +303,27 @@ fn printable(text: &str) -> String {
     text.chars().map(|c| if c.is_control() { '?' } else { c }).collect()
 }
 
-/// For a `web_search` call: one line saying which host receives the (validated)
-/// query and whether an API key goes with it (variable NAME only). `Ok(None)` for
-/// any other call; an error when a web search cannot be disclosed (no or invalid
-/// configuration, missing or unacceptable query).
-fn web_search_summary(root: &Path, call: &ToolCall) -> Result<Option<String>, crate::capability::CapabilityError> {
+/// For a call that sends something out or starts a program: one line saying
+/// where it goes. `web_search`: which endpoint receives the (validated) query and
+/// whether an API key goes with it (variable NAME only). `mcp_call`: the exact,
+/// quoted command line that would be started and the variable names passed.
+/// `Ok(None)` for any other call; an error when the call cannot be disclosed (no
+/// or unconfirmed configuration, missing or unacceptable arguments).
+fn disclosure_summary(root: &Path, call: &ToolCall) -> Result<Option<String>, crate::capability::CapabilityError> {
     use crate::capability::web_search::{disclose, validate_query};
+    if call.name == "mcp_call" {
+        use crate::capability::mcp_disclosure::{disclose, Disclosure};
+        let args = serde_json::from_str::<serde_json::Value>(&call.arguments_json).unwrap_or_default();
+        let command = args
+            .get("command")
+            .and_then(serde_json::Value::as_str)
+            .ok_or_else(|| crate::capability::CapabilityError::InvalidInput { detail: "missing required argument 'command'".into() })?;
+        let arguments = args.get("arguments").cloned().unwrap_or_default();
+        if !(arguments.is_null() || arguments.is_object()) {
+            return Err(crate::capability::CapabilityError::InvalidInput { detail: "'arguments' must be a JSON object".into() });
+        }
+        return Ok(Some(format!("{}; arguments: {}", disclose(root, command)?.summary(), Disclosure::arguments_note(&arguments))));
+    }
     if call.name != "web_search" {
         return Ok(None);
     }
@@ -331,19 +346,19 @@ pub(crate) fn reason_with_disclosure(
     base: Option<String>,
 ) -> Result<String, crate::capability::CapabilityError> {
     let base = base.unwrap_or_else(|| "requires explicit human approval".to_string());
-    Ok(match web_search_summary(root, call)? {
+    Ok(match disclosure_summary(root, call)? {
         Some(summary) => format!("{base} | {summary}"),
         None => base,
     })
 }
 
-/// `Some(refusal)` when an approved `web_search` would now go somewhere other
-/// than what its approver was shown.
-fn web_search_changed(approval: &PendingApproval) -> Option<ToolResultRecord> {
-    if approval.pending_call.name != "web_search" {
+/// `Some(refusal)` when an approved `web_search` or `mcp_call` would now go
+/// somewhere (or start something) other than what its approver was shown.
+fn disclosure_changed(approval: &PendingApproval) -> Option<ToolResultRecord> {
+    if !matches!(approval.pending_call.name.as_str(), "web_search" | "mcp_call") {
         return None;
     }
-    let now = web_search_summary(&approval.context.session.repo_root, &approval.pending_call);
+    let now = disclosure_summary(&approval.context.session.repo_root, &approval.pending_call);
     // The summary is appended last when the reason is built, so it must be the end of it.
     let unchanged = matches!(&now, Ok(Some(summary)) if approval.authority_reason.ends_with(summary.as_str()));
     if unchanged {
@@ -351,7 +366,7 @@ fn web_search_changed(approval: &PendingApproval) -> Option<ToolResultRecord> {
     }
     Some(ToolResultRecord {
         call_id: approval.pending_call.id.clone(),
-        output: "blocked: the search backend configuration changed since this was approved; ask again".to_string(),
+        output: "blocked: the search backend or MCP server configuration changed since this was approved; ask again".to_string(),
         is_error: true,
         denied: true,
     })
@@ -395,7 +410,7 @@ pub(crate) fn resume_turn(
 
     let mut messages = approval.messages.clone();
     if decision {
-        if let Some(refusal) = web_search_changed(approval) {
+        if let Some(refusal) = disclosure_changed(approval) {
             push_tool_result(&mut messages, &refusal);
         } else {
             let result = super::execute_approved_tool(
@@ -499,6 +514,76 @@ mod tests {
         fs::remove_dir_all(&root).ok();
     }
 
+    fn mcp_call_record(command: &str) -> ToolCall {
+        ToolCall { id: "call-m".into(), name: "mcp_call".into(), arguments_json: serde_json::json!({"command": command, "arguments": {}}).to_string() }
+    }
+
+    fn write_mcp_config(root: &Path, servers: serde_json::Value) {
+        fs::create_dir_all(root.join(".yana-ai")).unwrap();
+        fs::write(root.join(".yana-ai/mcp-servers.json"), serde_json::json!({"servers": servers}).to_string()).unwrap();
+        crate::capability::config_trust::trust_in_test(root);
+    }
+
+    #[test]
+    fn an_mcp_reason_carries_the_exact_quoted_command_line_and_variable_names() {
+        let root = temp_root();
+        write_mcp_config(&root, serde_json::json!([{"name": "gh", "command": "npx", "args": ["-y", "a b"], "env": ["GITHUB_TOKEN"]}]));
+        let reason = reason_with_disclosure(&root, &mcp_call_record("gh search"), Some("base".into())).unwrap();
+        assert!(reason.starts_with("base | MCP: start external program `npx -y 'a b'`"), "{reason}");
+        assert!(reason.contains("GITHUB_TOKEN") && reason.contains("call its tool 'search'"), "{reason}");
+        assert!(reason.contains("timeout 30s") && reason.ends_with("arguments: \"{}\""), "timeout and the model's arguments are shown: {reason}");
+        fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn what_the_model_passes_is_shown_masked_and_cut_and_must_be_an_object() {
+        let root = temp_root();
+        write_mcp_config(&root, serde_json::json!([{"name": "gh", "command": "npx"}]));
+        let call = |arguments: serde_json::Value| ToolCall {
+            id: "c".into(),
+            name: "mcp_call".into(),
+            arguments_json: serde_json::json!({"command": "gh delete", "arguments": arguments}).to_string(),
+        };
+        let reason = reason_with_disclosure(&root, &call(serde_json::json!({"path": "a\u{202e}b\nc"})), None).unwrap();
+        assert!(reason.contains("arguments: ") && reason.contains("a?b"), "{reason}");
+        assert!(!reason.contains('\u{202e}') && !reason.contains('\n'), "no direction override, no line break: {reason:?}");
+        let long = reason_with_disclosure(&root, &call(serde_json::json!({"x": "y".repeat(500)})), None).unwrap();
+        assert!(long.ends_with("...\""), "cut, not pushed out of view: {long}");
+        assert!(long.len() < 800, "{}", long.len());
+        assert!(reason_with_disclosure(&root, &call(serde_json::json!([1, 2])), None).is_err(), "not an object");
+        fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn an_mcp_call_that_cannot_be_disclosed_is_an_error_not_a_blind_approval() {
+        let root = temp_root();
+        assert!(reason_with_disclosure(&root, &mcp_call_record("gh search"), None).is_err(), "no server list");
+        write_mcp_config(&root, serde_json::json!([{"name": "gh", "command": "npx"}]));
+        for bad in ["other", "gh  search", "gh\u{a0}x", ""] {
+            assert!(reason_with_disclosure(&root, &mcp_call_record(bad), None).is_err(), "{bad:?}");
+        }
+        let missing = ToolCall { id: "c".into(), name: "mcp_call".into(), arguments_json: "{}".into() };
+        assert!(reason_with_disclosure(&root, &missing, None).is_err());
+        fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn resuming_an_mcp_call_is_refused_when_the_program_changed_after_approval() {
+        let root = temp_root();
+        write_mcp_config(&root, serde_json::json!([{"name": "gh", "command": "npx"}]));
+        let reason = reason_with_disclosure(&root, &mcp_call_record("gh search"), Some("needs approval".into())).unwrap();
+        let pending = PendingApprovalStore::for_root(&root)
+            .create(context(&root), "m".into(), None, Vec::new(), 0, mcp_call_record("gh search"), reason, 20)
+            .unwrap();
+        assert!(disclosure_changed(&pending).is_none(), "unchanged: allowed to run");
+        write_mcp_config(&root, serde_json::json!([{"name": "gh", "command": "/tmp/evil"}]));
+        let refusal = disclosure_changed(&pending).expect("a different program must be refused");
+        assert!(refusal.denied && refusal.is_error, "{refusal:?}");
+        write_mcp_config(&root, serde_json::json!([{"name": "gh", "command": "npx", "args": ["--extra"]}]));
+        assert!(disclosure_changed(&pending).is_some(), "an added argument is a change too");
+        fs::remove_dir_all(&root).ok();
+    }
+
     #[test]
     fn other_calls_keep_the_plain_reason() {
         let root = temp_root();
@@ -539,11 +624,11 @@ mod tests {
     fn a_reason_that_merely_contains_the_summary_in_the_middle_does_not_pass() {
         let root = temp_root();
         write_search_config(&root, r#"{"endpoint":"https://good.example/q"}"#);
-        let summary = web_search_summary(&root, &search_call()).unwrap().unwrap();
+        let summary = disclosure_summary(&root, &search_call()).unwrap().unwrap();
         let forged = PendingApprovalStore::for_root(&root)
             .create(context(&root), "m".into(), None, Vec::new(), 0, search_call(), format!("{summary} | something appended"), 20)
             .unwrap();
-        assert!(web_search_changed(&forged).is_some());
+        assert!(disclosure_changed(&forged).is_some());
         fs::remove_dir_all(&root).ok();
     }
 
@@ -552,14 +637,14 @@ mod tests {
         let root = temp_root();
         write_search_config(&root, r#"{"endpoint":"https://good.example/q"}"#);
         let pending = paused_search(&root);
-        assert!(web_search_changed(&pending).is_none(), "unchanged configuration: allowed to run");
+        assert!(disclosure_changed(&pending).is_none(), "unchanged configuration: allowed to run");
         write_search_config(&root, r#"{"endpoint":"https://evil.example/q"}"#);
-        let refusal = web_search_changed(&pending).expect("a different host must be refused");
+        let refusal = disclosure_changed(&pending).expect("a different host must be refused");
         assert!(refusal.is_error && refusal.denied && refusal.output.contains("changed since this was approved"), "{refusal:?}");
         write_search_config(&root, r#"{"endpoint":"https://good.example/q","api_key_env":"YANA_SEARCH_KEY"}"#);
-        assert!(web_search_changed(&pending).is_some(), "adding a key to the same host is also a change");
+        assert!(disclosure_changed(&pending).is_some(), "adding a key to the same host is also a change");
         fs::remove_file(root.join(".yana-ai/web-search.json")).unwrap();
-        assert!(web_search_changed(&pending).is_some(), "a vanished configuration is refused, not run");
+        assert!(disclosure_changed(&pending).is_some(), "a vanished configuration is refused, not run");
         fs::remove_dir_all(&root).ok();
     }
 
@@ -569,7 +654,7 @@ mod tests {
         let pending = PendingApprovalStore::for_root(&root)
             .create(context(&root), "m".into(), None, Vec::new(), 0, call(), "x".into(), 20)
             .unwrap();
-        assert!(web_search_changed(&pending).is_none());
+        assert!(disclosure_changed(&pending).is_none());
         fs::remove_dir_all(&root).ok();
     }
 
