@@ -80,7 +80,7 @@ impl ChatCapabilityExecutor {
         self
     }
 
-    /// Run an approved `lsp_query`. Needs the `mcp` feature; a build without it says so.
+    /// Run an approved `lsp_query`. Needs the `lsp` feature; a build without it says so.
     fn approved_lsp_call(&self, call: &ToolCall, root: &std::path::Path) -> ToolResultRecord {
         if self.resume_refused {
             return tool_result(call, RESUME_REFUSED.to_string(), true, true);

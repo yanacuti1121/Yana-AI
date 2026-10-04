@@ -19,7 +19,7 @@ pub mod session;
 #[cfg(feature = "mcp")]
 pub mod spawn;
 
-#[cfg(all(test, feature = "mcp"))]
+#[cfg(all(test, any(feature = "mcp", feature = "lsp")))]
 mod config_tests;
 // The fake servers are `sh` scripts and the checks use `kill -0`, so these are Unix-only.
 #[cfg(all(test, unix, feature = "mcp"))]

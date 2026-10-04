@@ -97,7 +97,7 @@ mod tests {
     }
 
     #[test]
-    fn both_unconfirmed_give_two_lines_in_a_stable_order() {
+    fn every_unconfirmed_list_gives_a_line_in_a_stable_order() {
         let (_k, root) = repo(&[("web-search.json", SEARCH), ("mcp-servers.json", SERVERS), ("lsp-servers.json", SERVERS)]);
         empty_store_in_test();
         let lines = hidden_tool_notices(&root);

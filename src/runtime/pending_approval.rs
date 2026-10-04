@@ -346,6 +346,24 @@ pub(crate) fn disclosure_summary(root: &Path, call: &ToolCall) -> Result<Option<
 /// what cannot be seen in full cannot be approved.
 const MAX_REMOTE_COMMAND_CHARS: usize = 600;
 
+/// A word whose shape says it may carry a credential that the shape rules above do not hide:
+/// `NAME=value` with a secret-sounding name, an `Authorization`/`Bearer` text, a URL with
+/// user information, or the flag that introduces a header, user or cookie.
+fn may_hold_unmasked_secret(word: &str) -> bool {
+    const NAMES: [&str; 6] = ["token", "secret", "key", "pass", "auth", "cred"];
+    const FLAGS: [&str; 6] = ["-h", "--header", "--user", "--proxy-user", "--cookie", "--oauth2-bearer"];
+    let lower = word.to_ascii_lowercase();
+    if FLAGS.contains(&lower.as_str()) || lower.contains("authorization") || lower.contains("bearer") {
+        return true;
+    }
+    if let Some((name, _)) = lower.split_once('=') {
+        if NAMES.iter().any(|n| name.contains(n)) {
+            return true;
+        }
+    }
+    lower.split_once("://").is_some_and(|(_, rest)| rest.split('/').next().is_some_and(|authority| authority.contains('@')))
+}
+
 /// The command a remote approver is asked about: parsed into words, secret-looking values
 /// replaced by a placeholder (the same token-level rule the audit trail uses), control and
 /// invisible characters made visible, and quoted so word boundaries show. A person at the
@@ -358,12 +376,17 @@ fn run_command_summary(call: &ToolCall) -> Result<String, crate::capability::Cap
     if words.is_empty() {
         return Err(invalid("the command is empty".into()));
     }
-    let hidden = crate::os::redact_argv(&words);
-    let count = hidden.iter().filter(|word| word.as_str() == crate::os::REDACTED_PLACEHOLDER).count();
-    let line: String = shell_words::join(&hidden)
-        .chars()
-        .map(|c| if c.is_control() || crate::capability::untrusted::is_invisible_format_char(c) { '?' } else { c })
-        .collect();
+    let (hidden, all_by_name) = crate::os::redact_argv_checked(&words);
+    // What is hidden must be explainable: a token hidden only because it looks like a secret
+    // (or the program name itself) cannot be checked by someone who cannot see it.
+    if !all_by_name || hidden[0] != words[0] {
+        return Err(invalid("part of the command looks like a secret only by its shape, so it cannot be shown or hidden reliably to a remote approver: approve it at the terminal".into()));
+    }
+    if hidden.iter().zip(&words).any(|(shown, original)| shown == original && may_hold_unmasked_secret(original)) {
+        return Err(invalid("the command may carry a secret in a form that cannot be hidden reliably (a credentialed URL, an Authorization header, NAME=secret): approve it at the terminal".into()));
+    }
+    let count = hidden.iter().zip(&words).filter(|(shown, original)| shown != original).count();
+    let line = crate::capability::command::visible_line(&shell_words::join(&hidden));
     if line.chars().count() > MAX_REMOTE_COMMAND_CHARS {
         return Err(invalid(format!("the command is longer than {MAX_REMOTE_COMMAND_CHARS} characters: it cannot be shown to a remote approver in full, so approve it at the terminal")));
     }
@@ -721,6 +744,11 @@ mod tests {
         assert!(reason.ends_with("(1 secret-looking value is hidden)") && !reason.contains("abc123"), "{reason}");
         let plain = reason_with_disclosure(&root, &command_record("git status --short"), None).unwrap();
         assert!(plain.ends_with("run command: `git status --short`"), "nothing hidden, nothing said about hiding: {plain}");
+        // Hidden only by its shape, or unhideable: not shown remotely at all.
+        for risky in ["cargo run abcdefghij0123456789ABCDEFG", "curl -H 'Authorization: Bearer abc' https://x.test", "env GITHUB_TOKEN=ghp_x git status", "git clone https://user:pw@host.test/r.git"] {
+            let refusal = reason_with_disclosure(&root, &command_record(risky), None).unwrap_err().to_string();
+            assert!(refusal.contains("approve it at the terminal"), "{risky}: {refusal}");
+        }
         let two = reason_with_disclosure(&root, &command_record("x --password p1 --secret p2"), None).unwrap();
         assert!(two.contains("2 secret-looking values are hidden") && !two.contains("p1") && !two.contains("p2"), "{two}");
         fs::remove_dir_all(&root).ok();

@@ -22,6 +22,38 @@ pub struct ValidatedCommand {
 /// lease's `allow`/`deny` entries are compared against the same token
 /// boundaries the command will actually be split on, not a second,
 /// independently-written parser that could disagree with this one.
+/// Most zero-width characters (combining marks) shown on one base character. More would
+/// stack up and can spill over neighbouring rows in some terminals.
+const MAX_COMBINING_MARKS: usize = 2;
+
+/// `text` as a person is shown it in an approval: control and invisible format characters
+/// become `?`, and a zero-width character is kept only right after a visible one and at
+/// most `MAX_COMBINING_MARKS` times (so decomposed Vietnamese letters stay readable, while
+/// a stack of marks, or marks with nothing to attach to, cannot hide or blur anything).
+pub(crate) fn visible_line(text: &str) -> String {
+    use unicode_width::UnicodeWidthChar;
+    let mut out = String::with_capacity(text.len());
+    let mut marks = 0usize;
+    for c in text.chars() {
+        let bad = c.is_control() || crate::capability::untrusted::is_invisible_format_char(c);
+        if bad {
+            out.push('?');
+            marks = 0;
+        } else if c.width() == Some(0) {
+            if out.is_empty() || marks >= MAX_COMBINING_MARKS || out.ends_with('?') {
+                out.push('?');
+            } else {
+                out.push(c);
+                marks += 1;
+            }
+        } else {
+            out.push(c);
+            marks = 0;
+        }
+    }
+    out
+}
+
 pub fn tokenize_command(command: &str) -> Result<Vec<String>, CapabilityError> {
     let argv = shell_words::split(command).map_err(|e| CapabilityError::CommandParseError {
         detail: e.to_string(),

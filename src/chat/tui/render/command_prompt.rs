@@ -4,10 +4,10 @@
 //! no clipping) and the box grows to hold them. A command too long to show whole
 //! in the largest box is not shown cut off: the prompt says so and `y` is refused
 //! (see `approval.rs`), so the part a person cannot see can never be the part that matters.
-//! Every character that is not ASCII is counted as two columns, which can only
-//! over-count (never overflow) without a width table.
+//! A character's width comes from `unicode-width` (the table ratatui uses); a stack of
+//! combining marks is cut short and shown as `?` (see `visible_line`).
 
-use crate::capability::untrusted::is_invisible_format_char;
+use crate::capability::command::visible_line;
 use ratatui::layout::Rect;
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::Line;
@@ -30,20 +30,17 @@ pub(super) enum Unshown {
     TooSmall,
 }
 
-/// One character as it is shown: line breaks, control and invisible characters are
-/// made visible, so a break cannot start a row that imitates the title and nothing blank
-/// can hide an argument.
-fn shown(c: char) -> char {
-    match c {
-        '\n' | '\r' => '\u{21b5}',
-        c if c.is_control() || is_invisible_format_char(c) => '?',
-        c => c,
-    }
+/// `text` as it is shown: line breaks, control and invisible characters are made visible,
+/// so a break cannot start a row that imitates the title and nothing blank can hide an
+/// argument.
+fn shown(text: &str) -> String {
+    let with_breaks: String = text.chars().map(|c| if matches!(c, '\n' | '\r') { '\u{21b5}' } else { c }).collect();
+    visible_line(&with_breaks)
 }
 
 /// `text` as a person is shown it.
 pub(super) fn masked(text: &str) -> String {
-    text.chars().map(shown).collect()
+    shown(text)
 }
 
 /// Terminal cells one character takes (the width ratatui itself uses): a Vietnamese
@@ -58,7 +55,7 @@ pub(super) fn rows_of(text: &str, width: usize) -> Vec<String> {
     let mut rows = Vec::new();
     let mut row = String::new();
     let mut used = 0;
-    for c in text.chars().map(shown) {
+    for c in shown(text).chars() {
         let w = cells(c);
         if used + w > width {
             rows.push(std::mem::take(&mut row));
@@ -145,6 +142,16 @@ mod tests {
         let cjk: String = "\u{6f22}".repeat(40);
         assert_eq!(rows_of(&cjk, 40).len(), 2);
         assert!(rows_of(&cjk, 40).iter().all(|r| r.chars().map(cells).sum::<usize>() <= 40));
+    }
+
+    #[test]
+    fn a_stack_of_combining_marks_or_marks_with_no_base_are_shown_as_question_marks() {
+        let decomposed = "Tra\u{0302}\u{0300}n";
+        assert_eq!(visible_line(decomposed), decomposed, "two marks on one letter stay");
+        let stacked = format!("a{}b", "\u{0301}".repeat(5));
+        assert_eq!(visible_line(&stacked), "a\u{0301}\u{0301}???b");
+        assert_eq!(visible_line("\u{0301}x"), "?x", "nothing to attach to");
+        assert_eq!(visible_line("a\u{202e}\u{0301}"), "a??", "a mark after an invisible character has no base either");
     }
 
     #[test]
