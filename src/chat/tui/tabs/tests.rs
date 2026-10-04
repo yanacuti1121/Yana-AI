@@ -42,6 +42,7 @@ impl ChatProvider for FakeProvider {
             ChatUsage {
                 input_tokens: 1,
                 output_tokens: 4,
+                ..Default::default()
             },
             StreamOutcome::Text,
         ))
