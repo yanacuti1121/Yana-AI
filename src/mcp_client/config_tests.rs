@@ -147,3 +147,18 @@ fn a_bare_command_is_resolved_outside_the_repository_and_an_unresolvable_one_is_
     assert_eq!(find_server(&root3, "a").unwrap().command, "/opt/x");
     assert_eq!(find_server(&root3, "b").unwrap().command, "./local-server");
 }
+
+#[cfg(unix)]
+#[test]
+fn a_program_that_exists_only_inside_the_repository_is_never_the_one_found() {
+    use std::os::unix::fs::PermissionsExt;
+    let (_k, root) = root_with(r#"{"servers":[{"name":"a","command":"repo-only-mcp"}]}"#);
+    let bin = root.join("node_modules/.bin");
+    std::fs::create_dir_all(&bin).unwrap();
+    std::fs::write(bin.join("repo-only-mcp"), "#!/bin/sh\n").unwrap();
+    std::fs::set_permissions(bin.join("repo-only-mcp"), std::fs::Permissions::from_mode(0o755)).unwrap();
+    // PATH as a shell with direnv-style additions would have it: a relative entry and an absolute in-repository one.
+    let path = std::env::join_paths([std::path::Path::new("node_modules/.bin"), bin.as_path(), std::path::Path::new("/usr/bin")]).unwrap();
+    let error = crate::capability::mcp_config::find_server_with_path(&root, "a", Some(&path)).unwrap_err().to_string();
+    assert!(error.contains("not found in PATH"), "{error}");
+}

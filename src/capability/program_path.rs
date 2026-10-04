@@ -70,7 +70,10 @@ pub(crate) fn resolve_program_in(command: &str, root: &Path, path_var: Option<&O
         if inside(&dir) || !is_executable_file(&candidate) || inside(&candidate) {
             continue;
         }
-        return candidate.to_str().map(str::to_string).ok_or_else(|| invalid("that program's path is not valid text"));
+        match candidate.to_str() {
+            Some(text) => return Ok(text.to_string()),
+            None => continue, // a path that is not valid text cannot be shown to an approver: try the next entry
+        }
     }
     Err(invalid(format!("'{command}' was not found in PATH (relative entries and directories inside the repository are ignored); give an absolute path")))
 }

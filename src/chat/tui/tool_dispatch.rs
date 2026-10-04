@@ -14,6 +14,8 @@ use crate::runtime::{ApprovedTool, ToolExecutor, TurnContext};
 /// approval continuation (Authority Hardening item #5) so Desktop/packaged
 /// Web get the exact same capability dispatch Terminal already has,
 /// rather than a second, independently-written executor.
+const RESUME_REFUSED: &str = "blocked: the configuration of this external program could not be read, or is not the one that was approved (it, or the environment's PATH, may have changed); ask again";
+
 pub(crate) struct ChatCapabilityExecutor {
     use_sandbox: bool,
     /// For an approved `mcp_call`: exactly what the approver saw. When present
@@ -23,11 +25,14 @@ pub(crate) struct ChatCapabilityExecutor {
     approved_mcp: Option<crate::capability::mcp_disclosure::Disclosure>,
     /// The same for an approved `lsp_query`.
     approved_lsp: Option<crate::capability::lsp_disclosure::LspDisclosure>,
+    /// A resumed approval whose configuration could not be disclosed, or no longer matches what
+    /// was approved: every external-program call is refused.
+    resume_refused: bool,
 }
 
 impl ChatCapabilityExecutor {
     pub(crate) fn new(use_sandbox: bool) -> Self {
-        Self { use_sandbox, approved_mcp: None, approved_lsp: None }
+        Self { use_sandbox, approved_mcp: None, approved_lsp: None, resume_refused: false }
     }
 
     pub(crate) fn with_approved_mcp(mut self, approved: Option<crate::capability::mcp_disclosure::Disclosure>) -> Self {
@@ -36,20 +41,36 @@ impl ChatCapabilityExecutor {
     }
 
     /// For a resumed approval: disclose the call's configuration NOW, before the turn is resumed,
-    /// and bind the executor to it. `resume_turn` then checks the stored approval against the
-    /// configuration, and the gateway checks this disclosure against the configuration read at
-    /// run time, so a configuration changed at any point in between runs nothing. Calls that
-    /// start no external program, or that cannot be disclosed (the executor then refuses them
-    /// itself), are left alone.
-    pub(crate) fn bound_to_current_configuration(mut self, call: &ToolCall, root: &std::path::Path) -> Self {
+    /// require that it is exactly what the stored approval was for (`authority_reason` ends with
+    /// ` | <summary>`), and bind the executor to it. `resume_turn` then checks the stored
+    /// approval again and the gateway checks this disclosure against the configuration read at
+    /// run time, so a configuration changed at any point in between runs nothing. Anything that
+    /// cannot be disclosed or does not match the approval makes the executor REFUSE the call
+    /// (it never falls back to disclosing again later). Calls that start no external program
+    /// are left alone.
+    pub(crate) fn bound_to_current_configuration(mut self, call: &ToolCall, root: &std::path::Path, authority_reason: &str) -> Self {
+        if !matches!(call.name.as_str(), "mcp_call" | "lsp_query") {
+            return self;
+        }
         let args: serde_json::Value = serde_json::from_str(&call.arguments_json).unwrap_or(serde_json::Value::Null);
+        let matches_approval = matches!(
+            crate::runtime::disclosure_summary(root, call),
+            Ok(Some(summary)) if authority_reason.ends_with(&format!(" | {summary}"))
+        );
+        if !matches_approval {
+            self.resume_refused = true;
+            return self;
+        }
         match call.name.as_str() {
             "mcp_call" => {
                 let command = args.get("command").and_then(|c| c.as_str()).unwrap_or("");
                 self.approved_mcp = crate::capability::mcp_disclosure::disclose(root, command).ok();
+                self.resume_refused = self.approved_mcp.is_none();
             }
-            "lsp_query" => self.approved_lsp = crate::capability::lsp_disclosure::disclose(root, &args).ok(),
-            _ => {}
+            _ => {
+                self.approved_lsp = crate::capability::lsp_disclosure::disclose(root, &args).ok();
+                self.resume_refused = self.approved_lsp.is_none();
+            }
         }
         self
     }
@@ -61,6 +82,9 @@ impl ChatCapabilityExecutor {
 
     /// Run an approved `lsp_query`. Needs the `mcp` feature; a build without it says so.
     fn approved_lsp_call(&self, call: &ToolCall, root: &std::path::Path) -> ToolResultRecord {
+        if self.resume_refused {
+            return tool_result(call, RESUME_REFUSED.to_string(), true, true);
+        }
         let arguments: serde_json::Value = serde_json::from_str(&call.arguments_json).unwrap_or(serde_json::Value::Null);
         let disclosure = match self.approved_lsp.clone().map(Ok).unwrap_or_else(|| crate::capability::lsp_disclosure::disclose(root, &arguments)) {
             Ok(disclosure) => disclosure,
@@ -82,6 +106,9 @@ impl ChatCapabilityExecutor {
 
     /// Run an approved `mcp_call`. Needs the `mcp` feature; a build without it says so.
     fn approved_mcp_call(&self, call: &ToolCall, root: &std::path::Path) -> ToolResultRecord {
+        if self.resume_refused {
+            return tool_result(call, RESUME_REFUSED.to_string(), true, true);
+        }
         let args: serde_json::Value = serde_json::from_str(&call.arguments_json).unwrap_or(serde_json::Value::Null);
         let Some(command) = args.get("command").and_then(|c| c.as_str()) else {
             return tool_result(call, "missing required argument 'command'".to_string(), true, false);

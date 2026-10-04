@@ -223,7 +223,8 @@ fn a_resumed_call_is_bound_to_the_configuration_seen_when_the_executor_was_built
     let (_k, root) = lsp_repo(Vec::new());
     let marker = serve(&root, "null");
     let call = lsp_call("hover", "src/lib.rs", 1);
-    let executor = ChatCapabilityExecutor::new(false).bound_to_current_configuration(&call, &root);
+    let reason = format!("needs approval | {}", crate::runtime::disclosure_summary(&root, &call).unwrap().unwrap());
+    let executor = ChatCapabilityExecutor::new(false).bound_to_current_configuration(&call, &root, &reason);
     // The program is swapped (and confirmed again) after the executor was built, before it runs.
     let evil = root.join("evil.sh");
     std::fs::write(&evil, format!("#!/bin/sh\ntouch '{}'\n", root.join("evil-ran").display())).unwrap();
@@ -234,8 +235,23 @@ fn a_resumed_call_is_bound_to_the_configuration_seen_when_the_executor_was_built
     // Unchanged, the same executor design runs it.
     let (_k2, root2) = lsp_repo(Vec::new());
     serve(&root2, r#"{"contents":"ok"}"#);
-    let bound = ChatCapabilityExecutor::new(false).bound_to_current_configuration(&call, &root2);
+    let reason2 = format!("needs approval | {}", crate::runtime::disclosure_summary(&root2, &call).unwrap().unwrap());
+    let bound = ChatCapabilityExecutor::new(false).bound_to_current_configuration(&call, &root2, &reason2);
     assert!(!run_approved(&root2, &bound, &call).is_error);
+}
+
+#[cfg(all(feature = "mcp", unix))]
+#[test]
+fn a_resumed_lsp_query_that_does_not_match_the_stored_approval_is_refused_outright() {
+    let (_k, root) = lsp_repo(Vec::new());
+    let marker = serve(&root, "null");
+    let call = lsp_call("hover", "src/lib.rs", 1);
+    for reason in ["needs approval | LSP: start external program `/usr/bin/other`", "", "no separator"] {
+        let bound = ChatCapabilityExecutor::new(false).bound_to_current_configuration(&call, &root, reason);
+        let result = run_approved(&root, &bound, &call);
+        assert!(result.is_error && result.denied && result.output.contains("ask again"), "{reason:?}: {result:?}");
+    }
+    assert!(!marker.exists(), "nothing was started");
 }
 
 #[cfg(not(feature = "mcp"))]

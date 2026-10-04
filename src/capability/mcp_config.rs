@@ -152,6 +152,10 @@ fn parse_servers(bytes: &[u8]) -> Result<Vec<ServerConfig>, CapabilityError> {
 /// (`yana-rt trust allow mcp-servers`), and what is parsed here is the very bytes
 /// that were checked.
 pub fn find_server(root: &Path, name: &str) -> Result<ServerConfig, CapabilityError> {
+    find_server_with_path(root, name, std::env::var_os("PATH").as_deref())
+}
+
+pub(crate) fn find_server_with_path(root: &Path, name: &str, path_var: Option<&std::ffi::OsStr>) -> Result<ServerConfig, CapabilityError> {
     let bytes = config_trust::trusted_bytes(root, ConfigKind::McpServers)?;
     let mut server = parse_servers(&bytes)?.into_iter().find(|s| s.name == name).ok_or_else(|| CapabilityError::NotFound {
         requested: format!("MCP server '{name}' (not listed in {CONFIG_PATH})"),
@@ -160,7 +164,7 @@ pub fn find_server(root: &Path, name: &str) -> Result<ServerConfig, CapabilityEr
     // the gateway runs the real program, not one the repository could place on a relative PATH
     // entry. An absolute or explicitly relative ("./x") command is already what it says.
     if program_path::is_bare_name(&server.command) {
-        server.command = program_path::resolve_program(&server.command, root)?;
+        server.command = program_path::resolve_program_in(&server.command, root, path_var)?;
     }
     Ok(server)
 }

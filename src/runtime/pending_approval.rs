@@ -309,7 +309,7 @@ fn printable(text: &str) -> String {
 /// quoted command line that would be started and the variable names passed.
 /// `Ok(None)` for any other call; an error when the call cannot be disclosed (no
 /// or unconfirmed configuration, missing or unacceptable arguments).
-fn disclosure_summary(root: &Path, call: &ToolCall) -> Result<Option<String>, crate::capability::CapabilityError> {
+pub(crate) fn disclosure_summary(root: &Path, call: &ToolCall) -> Result<Option<String>, crate::capability::CapabilityError> {
     use crate::capability::web_search::{disclose, validate_query};
     if call.name == "lsp_query" {
         let arguments = serde_json::from_str::<serde_json::Value>(&call.arguments_json).unwrap_or_default();

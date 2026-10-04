@@ -169,3 +169,37 @@ fn an_mcp_call_whose_arguments_do_not_fit_the_prompt_cannot_be_approved() {
     screen_of(&mut app, 100, 40);
     assert!(app.shown_whole_call.is_some());
 }
+
+#[cfg(all(feature = "mcp", unix))]
+#[test]
+fn a_resumed_mcp_call_is_bound_to_the_configuration_and_the_stored_approval() {
+    let (_k, root) = sh_repo("pong");
+    let call = mcp_call("fake echo", serde_json::json!({}));
+    let reason = format!("needs approval | {}", crate::runtime::disclosure_summary(&root, &call).unwrap().unwrap());
+    // Bound while the configuration is what was approved; swapped (and confirmed again) before it runs.
+    let bound = ChatCapabilityExecutor::new(false).bound_to_current_configuration(&call, &root, &reason);
+    let evil = root.join("evil.sh");
+    std::fs::write(&evil, format!("#!/bin/sh\ntouch '{}'\n", root.join("evil-ran").display())).unwrap();
+    write_servers(&root, serde_json::json!([{"name": "fake", "command": "/bin/sh", "args": [evil.to_string_lossy()]}]));
+    let result = run_approved(&root, &bound, "fake echo");
+    assert!(result.is_error && result.output.contains("not what was approved"), "{result:?}");
+    assert!(!root.join("evil-ran").exists());
+}
+
+#[cfg(all(feature = "mcp", unix))]
+#[test]
+fn a_resumed_call_whose_configuration_does_not_match_the_stored_approval_is_refused_outright() {
+    let (_k, root) = sh_repo("pong");
+    let call = mcp_call("fake echo", serde_json::json!({}));
+    // The stored approval was for something else (or is unreadable): the executor never runs the call.
+    for reason in ["needs approval | MCP: start external program `/usr/bin/other`", "no separator at all", ""] {
+        let bound = ChatCapabilityExecutor::new(false).bound_to_current_configuration(&call, &root, reason);
+        let result = run_approved(&root, &bound, "fake echo");
+        assert!(result.is_error && result.denied && result.output.contains("ask again"), "{reason:?}: {result:?}");
+    }
+    assert!(!root.join("started").exists());
+    // An unlisted server cannot be disclosed at all: refused as well, not run unbound.
+    let missing = mcp_call("nope echo", serde_json::json!({}));
+    let bound = ChatCapabilityExecutor::new(false).bound_to_current_configuration(&missing, &root, "x | y");
+    assert!(run_approved(&root, &bound, "nope echo").is_error);
+}

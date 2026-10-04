@@ -255,7 +255,7 @@ pub(super) fn dispatch_resume(provider_name: String) -> Result<()> {
     // Bound to the configuration as it is now, before the turn resumes (see the method's doc).
     let executor = Arc::new(
         crate::chat::tui::tool_dispatch::ChatCapabilityExecutor::new(session.sandboxed)
-            .bound_to_current_configuration(&resolved.pending_call, &session.repo_root),
+            .bound_to_current_configuration(&resolved.pending_call, &resolved.context.session.repo_root, &resolved.authority_reason),
     );
     let cancellation = CancellationToken::default();
     let mut output = io::BufWriter::new(io::stdout().lock());
