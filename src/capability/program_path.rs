@@ -17,6 +17,29 @@ fn invalid(detail: impl Into<String>) -> CapabilityError {
     CapabilityError::InvalidInput { detail: detail.into() }
 }
 
+/// The directory whose contents are treated as "the repository" when PATH is filtered: the
+/// nearest enclosing directory that holds a `.git` (file or directory), else `root` itself.
+/// The chat may be started in a subdirectory of a checkout, and a PATH entry that is inside
+/// the checkout but outside that subdirectory (`/checkout/node_modules/.bin`) is just as much
+/// the repository's as one inside it.
+///
+/// The home directory and `/` are never taken as the enclosing checkout: a home directory
+/// that is itself a git repository (dotfiles) would otherwise make every tool installed
+/// under it (`~/.cargo/bin`, `~/.nvm`) count as "inside the repository".
+pub fn repository_bounds(root: &Path) -> Option<PathBuf> {
+    let home = std::env::var_os("HOME").and_then(|h| PathBuf::from(h).canonicalize().ok());
+    repository_bounds_with_home(root, home.as_deref())
+}
+
+pub(crate) fn repository_bounds_with_home(root: &Path, home: Option<&Path>) -> Option<PathBuf> {
+    let canonical = root.canonicalize().ok()?;
+    let enclosing = canonical
+        .ancestors()
+        .find(|dir| dir.join(".git").exists() && Some(*dir) != home && dir.parent().is_some())
+        .map(Path::to_path_buf);
+    Some(enclosing.unwrap_or(canonical))
+}
+
 /// A command with no path separator or drive marker: the kind that is looked up on PATH.
 pub fn is_bare_name(command: &str) -> bool {
     !command.is_empty() && !command.contains(['/', '\\', ':'])
@@ -25,7 +48,7 @@ pub fn is_bare_name(command: &str) -> bool {
 /// `path` without the entries a repository could use to supply a program: empty and relative
 /// entries, directories inside `root`, and directories that do not exist. `None` when nothing is left.
 pub fn safe_path_var(path: &OsStr, root: &Path) -> Option<OsString> {
-    let repository = root.canonicalize().ok()?;
+    let repository = repository_bounds(root)?;
     let kept: Vec<PathBuf> = std::env::split_paths(path)
         .filter(|dir| dir.is_absolute() && dir.canonicalize().map(|c| !c.starts_with(&repository)).unwrap_or(false))
         .collect();
@@ -59,7 +82,7 @@ pub(crate) fn resolve_program_in(command: &str, root: &Path, path_var: Option<&O
     if Path::new(command).is_absolute() {
         return Ok(command.to_string());
     }
-    let repository = root.canonicalize().map_err(|e| CapabilityError::Io { detail: format!("resolve repository: {e}") })?;
+    let repository = repository_bounds(root).ok_or_else(|| CapabilityError::Io { detail: "resolve repository".into() })?;
     for dir in std::env::split_paths(path_var.unwrap_or_default()) {
         if !dir.is_absolute() {
             continue;
@@ -127,6 +150,38 @@ mod tests {
         assert_eq!(resolve_program_in("/bin/sh", &root, Some(&path)).unwrap(), "/bin/sh");
     }
 
+
+    #[cfg(unix)]
+    #[test]
+    fn when_started_in_a_subdirectory_the_whole_checkout_counts_as_the_repository() {
+        let outer = tempfile::tempdir().unwrap();
+        let base = outer.path().canonicalize().unwrap();
+        let checkout = base.join("checkout");
+        let sub = checkout.join("sub/dir");
+        std::fs::create_dir_all(checkout.join(".git")).unwrap();
+        std::fs::create_dir_all(&sub).unwrap();
+        let elsewhere = bin_with(&base, "usr-bin", "tool");
+        let in_checkout = bin_with(&checkout, "node_modules/.bin", "tool");
+        assert_eq!(repository_bounds(&sub).unwrap(), checkout, "the nearest directory with a .git");
+        // The entry is outside the subdirectory but inside the checkout: skipped all the same.
+        let path = std::env::join_paths([in_checkout.as_path(), elsewhere.as_path()]).unwrap();
+        assert_eq!(resolve_program_in("tool", &sub, Some(&path)).unwrap(), elsewhere.join("tool").to_str().unwrap());
+        let only_inside = std::env::join_paths([in_checkout.as_path()]).unwrap();
+        assert!(resolve_program_in("tool", &sub, Some(&only_inside)).is_err());
+        let safe = safe_path_var(&path, &sub).unwrap();
+        assert_eq!(std::env::split_paths(&safe).collect::<Vec<_>>(), [elsewhere]);
+        // A home directory that is itself a git repository (dotfiles) is not "the checkout".
+        let dotfiles_home = base.join("home");
+        let project = dotfiles_home.join("projects/app");
+        std::fs::create_dir_all(dotfiles_home.join(".git")).unwrap();
+        std::fs::create_dir_all(&project).unwrap();
+        assert_eq!(repository_bounds_with_home(&project, Some(&dotfiles_home)).unwrap(), project, "the project directory, not the whole home");
+        assert_eq!(repository_bounds_with_home(&project, None).unwrap(), dotfiles_home, "without that rule the home would be taken");
+        // Without any .git above, the directory itself is the repository.
+        let plain = base.join("plain");
+        std::fs::create_dir_all(&plain).unwrap();
+        assert_eq!(repository_bounds(&plain).unwrap(), plain);
+    }
 
     #[test]
     fn only_bare_names_are_looked_up_on_path() {

@@ -14,7 +14,7 @@ use crate::runtime::{ApprovedTool, ToolExecutor, TurnContext};
 /// approval continuation (Authority Hardening item #5) so Desktop/packaged
 /// Web get the exact same capability dispatch Terminal already has,
 /// rather than a second, independently-written executor.
-const RESUME_REFUSED: &str = "blocked: the configuration of this external program could not be read, or is not the one that was approved (it, or the environment's PATH, may have changed); ask again";
+const RESUME_REFUSED: &str = "blocked: the configuration of this external program could not be read, or is not the one that was approved (it, or the PATH of this process, may differ from the one that created the approval); ask again from the process that created the approval";
 
 pub(crate) struct ChatCapabilityExecutor {
     use_sandbox: bool,

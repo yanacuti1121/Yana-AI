@@ -372,7 +372,7 @@ fn disclosure_changed(approval: &PendingApproval) -> Option<ToolResultRecord> {
     }
     Some(ToolResultRecord {
         call_id: approval.pending_call.id.clone(),
-        output: "blocked: the search backend, MCP server or language server configuration changed since this was approved (or the question is not the one approved); ask again".to_string(),
+        output: "blocked: the search backend, MCP server or language server configuration changed since this was approved (or the question is not the one approved, or this process has a different PATH from the one that created the approval); ask again from the process that created the approval".to_string(),
         is_error: true,
         denied: true,
     })
