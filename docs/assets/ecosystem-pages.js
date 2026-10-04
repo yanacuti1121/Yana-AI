@@ -237,7 +237,10 @@
       "evidence.html": "evidence-en.html", "evidence-en.html": "evidence.html",
       "safety.html": "safety-en.html", "safety-en.html": "safety.html",
       "architecture.html": "architecture-en.html", "architecture-en.html": "architecture.html",
-      "download.html": "download-en.html", "download-en.html": "download.html"
+      "download.html": "download-en.html", "download-en.html": "download.html",
+      "updates.html": "updates-en.html", "updates-en.html": "updates.html",
+      "account.html": "account-en.html", "account-en.html": "account.html",
+      "history.html": "history-en.html", "history-en.html": "history.html"
     };
 
     const copy = isVietnamese ? {
@@ -359,17 +362,6 @@
       group.addEventListener("toggle", () => {
         if (group.open) closeGroups(group);
       });
-      if (window.matchMedia("(hover: hover)").matches) {
-        let closeTimer;
-        group.addEventListener("pointerenter", () => {
-          window.clearTimeout(closeTimer);
-          closeGroups(group);
-          group.open = true;
-        });
-        group.addEventListener("pointerleave", () => {
-          closeTimer = window.setTimeout(() => group.removeAttribute("open"), 120);
-        });
-      }
     });
     document.addEventListener("pointerdown", (event) => {
       if (!nav.contains(event.target)) closeAll();
