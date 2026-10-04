@@ -4,10 +4,7 @@
 
 use super::error::CapabilityError;
 use super::MAX_COMMAND_OUTPUT_BYTES;
-use std::{
-    path::Path,
-    process::{Command, Output},
-};
+use std::{path::Path, process::Output};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ValidatedCommand {
@@ -99,35 +96,8 @@ pub fn spawn_command(
     argv: &[String],
     use_sandbox: bool,
 ) -> Result<Output, CapabilityError> {
-    if argv.is_empty() {
-        return Err(CapabilityError::EmptyCommand);
-    }
-    let root = root.canonicalize().map_err(|error| CapabilityError::Io {
-        detail: format!("resolve command root: {error}"),
-    })?;
-    if !root.is_dir() {
-        return Err(CapabilityError::NotADirectory {
-            requested: root.display().to_string(),
-        });
-    }
-    let mut command = if use_sandbox {
-        let mut command = Command::new("bash");
-        command
-            .arg(root.join("core/scripts/sandbox-exec.sh"))
-            .args(argv);
-        command
-    } else {
-        let mut command = Command::new(&argv[0]);
-        command.args(&argv[1..]);
-        command
-    };
-    command
-        .current_dir(root)
-        .env(AGENT_CHILD_ENV, "1")
-        .output()
-        .map_err(|error| CapabilityError::SpawnFailed {
-            detail: error.to_string(),
-        })
+    // The local backend is the code that used to live here, moved unchanged (WS6 E0).
+    crate::exec_backend::LocalBackend::new(use_sandbox).spawn(root, argv)
 }
 
 pub fn execute_command(
@@ -165,6 +135,7 @@ mod tests {
     use super::*;
     use std::fs;
     use std::path::PathBuf;
+    use std::process::Command;
 
     fn tmp_repo(tag: &str) -> PathBuf {
         let root =

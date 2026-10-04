@@ -11,6 +11,7 @@ mod cost;
 mod design;
 mod doctor;
 mod evidence;
+mod exec_backend;
 mod filescan;
 mod fix;
 mod graph;
