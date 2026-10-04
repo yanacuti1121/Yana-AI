@@ -15,13 +15,6 @@ pub struct ValidatedCommand {
     pub guard_verdict: Option<&'static str>,
 }
 
-/// The canonical command tokenizer — the one place `shell_words::split` is
-/// called for a command about to be validated or matched against a lease
-/// scope. `validate_command` uses it for real execution;
-/// `capability::lease::command_matches` uses the exact same function so a
-/// lease's `allow`/`deny` entries are compared against the same token
-/// boundaries the command will actually be split on, not a second,
-/// independently-written parser that could disagree with this one.
 /// Most zero-width characters (combining marks) shown on one base character. More would
 /// stack up and can spill over neighbouring rows in some terminals.
 const MAX_COMBINING_MARKS: usize = 2;
@@ -54,6 +47,13 @@ pub(crate) fn visible_line(text: &str) -> String {
     out
 }
 
+/// The canonical command tokenizer — the one place `shell_words::split` is
+/// called for a command about to be validated or matched against a lease
+/// scope. `validate_command` uses it for real execution;
+/// `capability::lease::command_matches` uses the exact same function so a
+/// lease's `allow`/`deny` entries are compared against the same token
+/// boundaries the command will actually be split on, not a second,
+/// independently-written parser that could disagree with this one.
 pub fn tokenize_command(command: &str) -> Result<Vec<String>, CapabilityError> {
     let argv = shell_words::split(command).map_err(|e| CapabilityError::CommandParseError {
         detail: e.to_string(),
