@@ -1,4 +1,4 @@
 PyYAML==6.0.3
 jsonschema==4.26.0
-pytest==8.3.5
+pytest==9.0.3
 pip-audit==2.10.1
