@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Yana AI — 명령어 안내</title>
+<meta name="description" content="Yana AI가 제공하는 모든 명령 — 실제 yana-ai / yana-rt CLI (59 + 34개의 상위 수준 명령)와 170개의 Claude Code 슬래시 명령이 소스에 대해 검증되었으며 검색 가능합니다." />
+<link rel="canonical" href="https://yana.vutam.link/commands-ko.html" />
+
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Yana AI — 명령어 안내" />
+<meta property="og:description" content="Yana AI와 yana-rt의 실제 CLI와 Claude Code 슬래시 명령 170개를 소스 코드와 대조해 검색할 수 있습니다." />
+<meta property="og:image" content="https://yana.vutam.link/yana-mark.svg" />
+<meta property="og:url" content="https://yana.vutam.link/commands-ko.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Yana AI — 명령어 안내" />
+<meta name="twitter:image" content="https://yana.vutam.link/yana-mark.svg" />
+
+<link rel="icon" type="image/png" href="yana-mark.svg" />
+<link rel="apple-touch-icon" href="yana-mark.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Same blue as the current brand logo + index.html's own --accent —
+     this page is a reference/tool, not marketing, so it borrows the
+     site's existing accent rather than inventing a new one. */
+  --bg:        #f5f8fc;
+  --bg-card:   #ffffff;
+  --bg-card-2: #eef3fa;
+  --primary:   #0f62c9;
+  --primary-h: #0b4fa8;
+  --fg:        #10203a;
+  --fg-muted:  #55698a;
+  --fg-faint:  #8b9ab8;
+  --border:    rgba(16, 32, 58, 0.10);
+  --border-strong: rgba(16, 32, 58, 0.18);
+  --good:      #0f9d6b;
+  --good-soft: #e3f8ef;
+  --warn:      #b45309;
+  --warn-soft: #fef3e2;
+  --radius:    14px;
+  --sans: "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+.dark {
+  --bg:        #0a1526;
+  --bg-card:   #101f36;
+  --bg-card-2: #14294a;
+  --primary:   #5aa3ff;
+  --primary-h: #7fb8ff;
+  --fg:        #e7eefc;
+  --fg-muted:  #9ab0d6;
+  --fg-faint:  #64789e;
+  --border:    rgba(230, 240, 255, 0.10);
+  --border-strong: rgba(230, 240, 255, 0.18);
+  --good:      #34d399;
+  --good-soft: rgba(52,211,153,.14);
+  --warn:      #fbbf24;
+  --warn-soft: rgba(251,191,36,.14);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not(.light):not(.dark) {
+    --bg:        #0a1526;
+    --bg-card:   #101f36;
+    --bg-card-2: #14294a;
+    --primary:   #5aa3ff;
+    --primary-h: #7fb8ff;
+    --fg:        #e7eefc;
+    --fg-muted:  #9ab0d6;
+    --fg-faint:  #64789e;
+    --border:    rgba(230, 240, 255, 0.10);
+    --border-strong: rgba(230, 240, 255, 0.18);
+    --good:      #34d399;
+    --good-soft: rgba(52,211,153,.14);
+    --warn:      #fbbf24;
+    --warn-soft: rgba(251,191,36,.14);
+  }
+}
+
+html { scroll-behavior: smooth; word-break: keep-all; }
+:is(h1,h2,h3,p,li,a,button,summary) { overflow-wrap: break-word; }
+body { font-family: var(--sans); background: var(--bg); color: var(--fg); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+code, .mono { font-family: var(--mono); }
+@media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+/* ── nav (matches index.html's site-wide pattern) ─────────────── */
+nav {
+  position: sticky; top: 0; z-index: 30;
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 1.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px;
+}
+.nav-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.05rem; }
+.nav-brand img { width: 28px; height: 28px; border-radius: 7px; }
+.nav-links { display: flex; align-items: center; gap: 1.4rem; font-size: .875rem; color: var(--fg-muted); }
+.nav-links a:hover { color: var(--fg); }
+.nav-cta {
+  background: var(--primary); color: #fff;
+  padding: .45rem 1.1rem; border-radius: 8px;
+  font-size: .875rem; font-weight: 600; transition: background .15s;
+  white-space: nowrap;
+}
+.nav-cta:hover { background: var(--primary-h); }
+
+/* ── header block ───────────────────────────────────────────────── */
+.page-head { max-width: 1180px; margin: 0 auto; padding: 2.4rem 1.5rem 1.2rem; }
+.eyebrow { font-family: var(--mono); font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: var(--primary); font-weight: 600; }
+h1 { margin: .3rem 0 0; font-size: clamp(1.5rem, 3.2vw, 2.1rem); font-weight: 800; letter-spacing: -.01em; text-wrap: balance; }
+.lede { max-width: 68ch; color: var(--fg-muted); font-size: .95rem; margin-top: .5rem; }
+
+.stat-strip { max-width: 1180px; margin: 1rem auto 0; padding: 0 1.5rem; display: grid; gap: .6rem; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+.stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: .65rem .85rem; }
+.stat b { display: block; font-family: var(--mono); font-size: 1.35rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--primary); }
+.stat span { font-size: .7rem; color: var(--fg-muted); }
+
+.tabs { max-width: 1180px; margin: 1.1rem auto 0; padding: 0 1.5rem; }
+.tabs-inner { display: flex; gap: 4px; background: var(--bg-card-2); padding: 4px; border-radius: 11px; width: fit-content; }
+.tab-btn { font-family: var(--mono); font-size: .8125rem; font-weight: 600; border: none; background: transparent; color: var(--fg-muted); padding: .55rem 1rem; border-radius: 8px; cursor: pointer; }
+.tab-btn[aria-selected="true"] { background: var(--bg-card); color: var(--primary); box-shadow: 0 1px 2px rgba(16,32,58,.06), 0 6px 16px -10px rgba(16,32,58,.2); }
+.tab-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+main { max-width: 1180px; margin: 0 auto; padding: 1.4rem 1.5rem 5rem; }
+.panel[hidden] { display: none; }
+
+.callout { border: 1px solid var(--border); border-left: 4px solid var(--warn); background: var(--warn-soft); border-radius: 10px; padding: .9rem 1rem; margin: 0 0 1.3rem; font-size: .83rem; }
+.callout code { background: rgba(0,0,0,.06); padding: 1px 5px; border-radius: 4px; font-size: .78rem; }
+.dark .callout code, :root:not(.light):not(.dark) .callout code { background: rgba(255,255,255,.1); }
+
+h2.sec { font-family: var(--mono); font-size: .82rem; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--fg-muted); margin: 2rem 0 .7rem; padding-top: .3rem; border-top: 1px solid var(--border); }
+main > h2.sec:first-of-type { border-top: none; margin-top: 0; }
+.sec-note { margin: -.5rem 0 .85rem; font-size: .8rem; color: var(--fg-muted); max-width: 70ch; }
+
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-card); }
+table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+th { text-align: left; font-family: var(--mono); font-size: .68rem; letter-spacing: .07em; text-transform: uppercase; color: var(--fg-muted); font-weight: 600; padding: .6rem .85rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+td { padding: .6rem .85rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+td.cmd { font-family: var(--mono); font-weight: 600; color: var(--primary); white-space: nowrap; }
+
+.cli-group { border: 1px solid var(--border); border-radius: 12px; background: var(--bg-card); margin-bottom: .7rem; overflow: hidden; }
+.cli-group summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: .8rem 1rem; gap: .6rem; }
+.cli-group summary::-webkit-details-marker { display: none; }
+.cli-group summary .ttl { font-family: var(--mono); font-weight: 600; font-size: .82rem; display: flex; align-items: center; gap: .6rem; }
+.count-pill { font-family: var(--mono); font-size: .7rem; font-weight: 600; color: var(--primary); background: var(--bg-card-2); border-radius: 20px; padding: 1px 8px; font-variant-numeric: tabular-nums; }
+.chev { color: var(--fg-muted); font-size: .72rem; transition: transform .15s ease; }
+.cli-group[open] .chev { transform: rotate(90deg); }
+.cli-rows { border-top: 1px solid var(--border); }
+.cli-row { display: grid; grid-template-columns: 170px 1fr; gap: 2px 1rem; padding: .55rem 1rem; border-bottom: 1px solid var(--border); font-size: .8rem; }
+.cli-row:last-child { border-bottom: none; }
+.cli-row .nm { font-family: var(--mono); font-weight: 600; color: var(--primary); white-space: nowrap; }
+.cli-row .ds { color: var(--fg-muted); }
+@media (max-width: 560px) { .cli-row { grid-template-columns: 1fr; } }
+
+.tree-grid { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); }
+.tree-card { border: 1px solid var(--border); border-radius: 12px; background: var(--bg-card); padding: .8rem .9rem; }
+.tree-card .root { font-family: var(--mono); font-weight: 700; font-size: .8rem; color: var(--primary); margin: 0 0 .3rem; }
+.tree-card .subs { font-size: .76rem; color: var(--fg-muted); line-height: 1.55; }
+
+.filter-bar { position: sticky; top: 56px; z-index: 5; background: var(--bg); padding: .2rem 0 .85rem; display: flex; flex-direction: column; gap: .6rem; }
+.search-input { width: 100%; padding: .68rem .85rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-card); color: var(--fg); font-family: var(--sans); font-size: .9rem; }
+.search-input:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.search-input::placeholder { color: var(--fg-faint); }
+.chip-row { display: flex; flex-wrap: wrap; gap: .35rem; }
+.chip { font-family: var(--mono); font-size: .7rem; font-weight: 600; border: 1px solid var(--border); background: var(--bg-card); color: var(--fg-muted); padding: .38rem .68rem; border-radius: 20px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--bg-card-2); border-color: var(--primary); color: var(--primary); }
+.chip:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.result-count { font-size: .76rem; color: var(--fg-muted); font-variant-numeric: tabular-nums; }
+
+.cmd-list { display: flex; flex-direction: column; gap: 1.2rem; margin-top: .3rem; }
+.cmd-cat h3 { font-family: var(--mono); font-size: .8rem; font-weight: 600; margin: 0 0 .5rem; display: flex; align-items: center; gap: .5rem; }
+.cmd-cat-rows { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--bg-card); }
+.cmd-row { display: grid; grid-template-columns: 185px 1fr; gap: 1px .95rem; padding: .55rem .85rem; border-bottom: 1px solid var(--border); font-size: .8rem; }
+.cmd-row:last-child { border-bottom: none; }
+.cmd-row .nm { font-family: var(--mono); font-weight: 600; color: var(--primary); white-space: nowrap; }
+.cmd-row .nm::before { content: "/"; color: var(--fg-faint); font-weight: 400; }
+.cmd-row .ds { color: var(--fg-muted); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+@media (max-width: 560px) { .cmd-row { grid-template-columns: 1fr; } }
+.empty-state { padding: 2.4rem 1rem; text-align: center; color: var(--fg-muted); font-size: .82rem; }
+
+footer { display: flex; flex-wrap: wrap; gap: 1rem 1.4rem; align-items: center; justify-content: center; max-width: 1180px; margin: 0 auto; padding: 1.6rem 1.5rem 2.5rem; color: var(--fg-muted); font-size: .8rem; border-top: 1px solid var(--border); }
+footer a:hover { color: var(--fg); }
+</style>
+</head>
+<body>
+
+<header>
+<nav aria-label="기본 탐색">
+  <a href="/ko.html" class="nav-brand">
+    <img src="yana-mark.svg" alt="Yana AI" />
+    Yana AI
+  </a>
+  <div class="nav-links">
+    <a href="/ko.html#prologue">생태계</a>
+    <a href="/governance-ko.html">거버넌스</a>
+    <a href="https://github.com/yanacuti1121/Yana-AI" target="_blank">GitHub</a>
+  </div>
+  <a href="commands.html" lang="vi" aria-label="베트남어 버전 보기">VI</a>
+  <a href="commands-en.html" lang="en" aria-label="영어 버전 보기">EN</a>
+  <a href="commands-ko.html" lang="ko" aria-current="page">KO</a>
+  <a class="nav-cta" href="https://github.com/yanacuti1121/Yana-AI/releases" target="_blank">최신 릴리스</a>
+</nav>
+</header>
+
+<div class="page-head">
+  <div class="eyebrow">Yana AI · 명령 참조</div>
+  <h1>Yana AI 명령어 목록</h1>
+  <p class="lede">Yana에는 서로 다른 두 종류의 명령이 있습니다. 터미널에서 실행하는 CLI 명령(<code>yana-ai</code> / <code>yana-rt</code>)과 Claude Code 세션 안에서만 사용하는 슬래시 명령입니다.</p>
+</div>
+<div class="stat-strip">
+  <div class="stat"><b>59</b><span>최상위 명령 — yana-ai CLI</span></div>
+  <div class="stat"><b>34</b><span>최상위 명령 — yana-rt (Rust)</span></div>
+  <div class="stat"><b>170</b><span>슬래시 명령 — Claude Code</span></div>
+  <div class="stat"><b>5</b><span>실행 파일 진입점</span></div>
+</div>
+<div class="tabs">
+  <div class="tabs-inner" role="tablist" aria-label="명령 표면 선택">
+    <button class="tab-btn" id="tab-cli" role="tab" aria-selected="true" aria-controls="panel-cli">실제 CLI (yana-ai / yana-rt)</button>
+    <button class="tab-btn" id="tab-slash" role="tab" aria-selected="false" aria-controls="panel-slash">슬래시 명령 (Claude Code)</button>
+  </div>
+</div>
+
+<main>
+  <!-- ══════════════════════ CLI PANEL ══════════════════════ -->
+  <section class="panel" id="panel-cli" role="tabpanel" aria-labelledby="tab-cli">
+
+    <div class="callout">
+      <b>알려진 문제(아직 수정되지 않음):</b> 로컬의 <code>target/release/yana-rt</code> 실행 파일이 소스 HEAD보다 오래되었을 수 있습니다.
+      <code>bin/yana</code>는 <code>debug</code>보다 <code>release</code> 실행 파일을 우선 사용합니다(<code>bin/yana:30</code> 참조).
+      따라서 <code>cargo build</code>로 디버그 빌드를 만든 뒤에도 <code>yana-ai os status</code> 같은 새 Rust 명령이 이전 릴리스 실행 파일로 전달되어 인식되지 않을 수 있습니다.
+      새 명령을 테스트하기 전에 <code>cargo build --release</code>를 실행하거나 <code>target/release/yana-rt</code>를 제거해 디버그 빌드를 사용하세요.
+    </div>
+
+    <h2 class="sec" id="cli">5개의 진입점</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>터미널 명령</th><th>역할</th></tr></thead>
+        <tbody>
+          <tr><td class="cmd">yana-ai</td><td>사용하기 쉬운 공개 CLI — 최상위 명령 59개, 대부분 yana-rt로 전달</td></tr>
+          <tr><td class="cmd">yana-rt</td><td>Rust 런타임 직접 실행 — 최상위 명령 34개(기본 32개, 기능 플래그가 필요한 mcp와 remote 2개)</td></tr>
+          <tr><td class="cmd">yana-ai-rt</td><td>npm/PyPI로 설치했을 때 <code>yana-rt chat</code>을 바로 여는 별칭</td></tr>
+          <tr><td class="cmd">yana-ai-install</td><td>내부 설치 프로그램</td></tr>
+          <tr><td class="cmd">pty_bridge</td><td>Electron 데스크톱용 PTY 브리지 — 공개 CLI는 아닙니다.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sec-note">59개와 34개를 합산하면 안 됩니다. 대부분의 <code>yana-ai</code> 명령은 <code>yana-rt</code>로 전달되는 사용하기 쉬운 진입점입니다(예: <code>yana-ai task</code> → <code>rt task</code>).</p>
+
+    <h2 class="sec">그룹별 yana-ai 명령 59개</h2>
+    <div id="cli-groups"></div>
+
+    <h2 class="sec">주요 명령 트리</h2>
+    <p class="sec-note">일부 명령에는 하위 명령이 있습니다. <code>yana-ai os</code>가 가장 큰 트리이며, 로컬 에이전트·인증 정보·리소스를 관리하는 Program K의 명령입니다. 소스(<code>src/os/mod.rs</code>)에서 주요 하위 명령 9개를 확인할 수 있습니다.</p>
+    <div class="tree-grid" id="tree-grid"></div>
+  </section>
+
+  <!-- ══════════════════════ SLASH PANEL ══════════════════════ -->
+  <section class="panel" id="panel-slash" role="tabpanel" aria-labelledby="tab-slash" hidden>
+    <p class="sec-note" style="margin-top:0"><code>core/commands/</code> 아래에 슬래시 명령 파일 170개가 있습니다. Claude Code 세션에서 <code>/&lt;name&gt;</code>을 입력해 실행합니다. 터미널 명령과는 다릅니다.</p>
+
+    <div class="filter-bar">
+      <input class="search-input" id="search" type="text" placeholder="이름이나 설명을 검색하세요 — 예: 디버그, 테스트, 릴리스, 메모리..." autocomplete="off">
+      <div class="chip-row" id="chips"></div>
+      <div class="result-count" id="result-count"></div>
+    </div>
+
+    <div class="cmd-list" id="cmd-list"></div>
+  </section>
+</main>
+
+<footer>
+  <span>© 2026 Yana AI · Apache 2.0</span>
+  <a href="/ko.html">홈</a>
+  <a href="https://github.com/yanacuti1121/Yana-AI">GitHub</a>
+  <a href="https://github.com/yanacuti1121/Yana-AI/releases">릴리스</a>
+  <span class="mono" style="color:var(--fg-faint)">core/commands/*.md + bin/yana + src/main.rs에서 빌드되었으며 소스와 직접 비교되었습니다. v1.5.0 · 2026-09-10.</span>
+</footer>
+
+<script>
+// ── tab switching ──────────────────────────────────────────────────
+const tabCli = document.getElementById('tab-cli');
+const tabSlash = document.getElementById('tab-slash');
+const panelCli = document.getElementById('panel-cli');
+const panelSlash = document.getElementById('panel-slash');
+function selectTab(which){
+  const cli = which === 'cli';
+  tabCli.setAttribute('aria-selected', cli);
+  tabSlash.setAttribute('aria-selected', !cli);
+  panelCli.hidden = !cli;
+  panelSlash.hidden = cli;
+}
+tabCli.addEventListener('click', () => selectTab('cli'));
+tabSlash.addEventListener('click', () => selectTab('slash'));
+if (location.hash === '#slash') selectTab('slash');
+
+// ── CLI data (verified against bin/yana + src/main.rs, 2026-08-20) ──
+const CLI_GROUPS = [
+  { name: "채팅 및 인터페이스", items: [
+    ["chat","대화형 REPL — 클라우드 (Anthropic/OpenAI) 또는 로컬 (Ollama/LM Studio/llama.cpp)"],
+    ["mcp","stdio 기반 MCP 서버 — 기능 플래그로 켜는 실험 기능이며 검증된 클라이언트 사용 사례는 아직 없습니다."],
+    ["remote","원격 인터페이스 (Discord 단계) — 호스트와 도구 접근 없이 허용 목록 기반 대화"],
+  ]},
+  { name: "안전 및 검증", items: [
+    ["doctor","환경과 의존성의 전반적인 상태 검사"],
+    ["audit","비밀 정보, CVE와 공급망 위험 보안 검사"],
+    ["guard","프로젝트의 가드 훅 설치 및 관리 — yana-rt 내부 가드와 별개"],
+    ["hunt","OWASP 문제, 인젝션과 SSRF 관련 보안 패턴 검사"],
+    ["filescan","VirusTotal 해시를 사용한 다운로드 파일 악성코드 검사"],
+    ["verify","Git 상태, 훅과 설정 불일치를 확인하는 시스템 무결성 검사"],
+    ["check","파일 하나를 빠르게 검사"],
+    ["check-context","작업 실행 전에 맥락 검사"],
+    ["ci-check","전체 CI 검증 단계 실행"],
+    ["map","AI가 접근할 수 있는 설정, MCP 인터페이스와 워크플로의 영향 범위 표시"],
+    ["score","감점 내역을 포함한 감사 점수"],
+    ["fix","지정한 문제 ID에 알려진 안전한 수정 적용"],
+    ["explain","시스템의 결정이나 검사 결과 설명"],
+    ["provenance","가져온 코드 (core/lib/*_adapted)의 출처와 저작권 확인"],
+    ["evidence","서명된 Truth Gate 증거 기록 생성 또는 첨부 증거가 모델의 가공이 아닌지 검증"],
+  ]},
+  { name: "런타임 및 자동화", items: [
+    ["task","작업 생성, 추적과 증거를 갖춘 완료 처리"],
+    ["eval","작업 증거를 스키마와 비교해 평가"],
+    ["bus","에이전트 메시지 버스 — 발송, 읽기, 답장과 수신함"],
+    ["memory","세션 간 공유하는 L3 워크스페이스 사실"],
+    ["mission","병렬 미션 조정 — 에이전트 생성, 배정과 상태 확인"],
+    ["route","작업을 단순, 복잡 또는 외부 작업으로 분류"],
+    ["workspace","맥락, 메모리, 수신함과 통제된 작업을 위한 로컬 워크스페이스"],
+    ["os","로컬 에이전트, 인증 정보와 자원 관리용 Program K — 가장 큰 명령 트리"],
+    ["giamthi","독립 감독 서비스의 설치, 상태 확인, 복구와 제거"],
+    ["observability","audit-chain.log 기반 읽기 전용 활동 대시보드"],
+    ["skill-quality","실제 PASS/FAIL 판정에 따른 스킬별 품질 기록"],
+    ["cost","토큰 사용량과 비용 대시보드"],
+    ["plugin","저장소를 포크하지 않고 사용자 정의 가드 훅 등록"],
+  ]},
+  { name: "지식 및 디자인", items: [
+    ["graph","지식 그래프 구축, 표시, 검색, 온보딩과 변경 비교"],
+    ["vault","다국어 번역 링크를 갖춘 베트남어 우선 지식 저장소"],
+    ["design","URL이나 파일에서 색상, 글꼴, 간격과 CSS 변수 추출"],
+    ["spec","Yana AI 작업 명세를 스키마와 비교해 검증"],
+    ["validate-spec","명세 파일 하나의 유효성 검사"],
+  ]},
+  { name: "정책 및 구성", items: [
+    ["policy","준수 정책 관리"],
+    ["init-policy","프로젝트 정책 설정 초기화"],
+    ["config","프로젝트의 Yana AI 설정 확인 및 변경"],
+    ["rule","사용자 정의 규칙 추가, 목록 확인, 제거, 가져오기와 테스트"],
+    ["template","프로젝트 템플릿 관리"],
+    ["lint","린트 설정과 규칙"],
+    ["router","작업을 적절한 에이전트로 연결하는 내부 CLI"],
+  ]},
+  { name: "운영 및 보고", items: [
+    ["install","새 프로젝트에 가드와 훅 설치"],
+    ["init","대화형 설정 도구로 프로젝트의 Yana AI 초기화"],
+    ["upgrade","Yana AI를 최신 버전으로 업그레이드"],
+    ["watch","설정 변경을 감지해 다시 검사하고 점수 차이 표시"],
+    ["monitor","실시간 시스템 상태 확인"],
+    ["stats","세션과 에이전트 활동 통계 표시"],
+    ["snapshot","상태 스냅샷 저장, 검사, 비교와 삭제"],
+    ["export","데이터나 보고서 내보내기"],
+    ["report","HTML 또는 PDF 감사 보고서 내보내기"],
+    ["diff-report","변경 비교 보고서 생성"],
+    ["scan-url","URL의 위험 요소 검사"],
+    ["harness","통합 테스트 하네스 실행"],
+  ]},
+  { name: "유틸리티", items: [
+    ["badge","프로젝트 상태 배지 생성"],
+    ["version","현재 CLI 버전 출력"],
+    ["banner","Yana AI 배너 출력"],
+    ["help","사용 도움말 표시"],
+  ]},
+];
+
+const cliGroupsEl = document.getElementById('cli-groups');
+CLI_GROUPS.forEach((g, i) => {
+  const det = document.createElement('details');
+  det.className = 'cli-group';
+  if (i === 0) det.open = true;
+  const rowsHtml = g.items.map(([n,d]) =>
+    `<div class="cli-row"><div class="nm">yana-ai ${n}</div><div class="ds">${d}</div></div>`
+  ).join('');
+  det.innerHTML = `<summary><span class="ttl"><span class="chev">›</span>${g.name}</span><span class="count-pill">${g.items.length}</span></summary>
+    <div class="cli-rows">${rowsHtml}</div>`;
+  cliGroupsEl.appendChild(det);
+});
+
+// ── notable command trees ────────────────────────────────────────
+const TREES = [
+  ["yana-ai doctor","기본 동작: run · dispatch도 사용 가능"],
+  ["yana-ai task","create, list, done, status, drop"],
+  ["yana-ai eval","run, judge, schema"],
+  ["yana-ai bus","emit, read, reply, inbox"],
+  ["yana-ai memory","store, get, list, promote, import"],
+  ["yana-ai cost","show, log, breakdown"],
+  ["yana-ai plugin","list, add, remove, enable, disable, run"],
+  ["yana-ai mission","create, task, dispatch, done, fail, cancel, retry, status, report, list"],
+  ["yana-ai workspace","create, update, link, show, search, inbox, remember, action request/approve, export, status"],
+  ["yana-ai graph","build, show, search, onboard, diff"],
+  ["yana-ai vault","init, new, list, search, show, stats, import, link"],
+  ["yana-ai policy","list, show, apply, fixes, check"],
+  ["yana-ai guard","list, status, install, remove"],
+  ["yana-ai rule","add, list, remove, import, test"],
+  ["yana-ai config","list, get, set, reset, show"],
+  ["yana-ai snapshot","save, list, show, diff, delete"],
+  ["yana-ai report","html, pdf"],
+  ["yana-ai template","list, show"],
+  ["yana-ai giamthi","install, status, repair, uninstall, run"],
+  ["yana-ai evidence","run, verify"],
+  ["yana-ai observability","show, breakdown"],
+  ["yana-ai skill-quality","show, promote"],
+  ["yana-ai os","agent · credential · resource · governor · monitor · host · supervisor · autonomy · identity (하위 명령 9개 · 소스: src/os/mod.rs)"],
+];
+const treeGrid = document.getElementById('tree-grid');
+TREES.forEach(([root, subs]) => {
+  const card = document.createElement('div');
+  card.className = 'tree-card';
+  card.innerHTML = `<p class="root">${root}</p><p class="subs">${subs}</p>`;
+  treeGrid.appendChild(card);
+});
+
+// ── slash command data (170, from core/commands/*.md frontmatter) ──
+const SLASH_DATA = {"cats":{"A":"Git 및 릴리스","B":"아키텍처 및 계획","C":"검토 및 품질 감사","D":"디버깅 및 수정","E":"리팩토링 및 정리","F":"테스트 및 TDD","G":"기능 개발","H":"배포 및 인프라","I":"비용 및 세션 예산","J":"데이터 및 ML","K":"문서화","L":"세션 및 메모리","M":"거버넌스 및 안전","N":"다중 에이전트 조정","O":"프로젝트 관리","P":"유틸리티 및 설정"},"cmds":[{"n":"accessibility-audit","d":"접근성 감사 및 테스트","c":"C"},{"n":"add-authentication-system","d":"인증 시스템 추가","c":"P"},{"n":"add-package","d":"워크스페이스에 패키지 추가","c":"P"},{"n":"agent-map","d":"19개 에이전트의 역할, 사용 시점, 함께 사용하면 안 되는 조합을 한눈에 보여줍니다.","c":"N"},{"n":"ai-assistant","d":"AI 어시스턴트 개발","c":"J"},{"n":"ai-review","d":"AI/ML 코드 검토","c":"C"},{"n":"api-mock","d":"API 모킹 프레임워크","c":"P"},{"n":"api-scaffold","d":"API 스캐폴드 생성기","c":"P"},{"n":"arch-adr","d":"중요한 기술적 결정을 문서화하는 아키텍처 의사결정 기록을 작성합니다.","c":"B"},{"n":"arch-design-review","d":"모듈, 기능 또는 시스템 구성 요소에 대한 구조화된 설계 검토를 수행합니다.","c":"B"},{"n":"arch-diagram","d":"코드베이스 분석이나 설명을 바탕으로 Mermaid 다이어그램을 생성합니다.","c":"B"},{"n":"arch-plan","d":"요청한 기능이나 변경 사항을 구현할 구조화된 계획을 작성합니다.","c":"B"},{"n":"architecture-review","d":"아키텍처 검토 명령","c":"B"},{"n":"architecture-scenario-explorer","d":"아키텍처 시나리오 탐색기","c":"B"},{"n":"audit","d":"품질 관리 에이전트 5개로 시스템을 가볍게 점검합니다. 파일을 변경하지 않고 문제를 보고합니다.","c":"M"},{"n":"autoplan","d":"하나의 계획이나 기능 아이디어를 기술 검토, 비즈니스/PMF 검토, 구조 설계 검토 순서로 살펴봅니다.","c":"B"},{"n":"budget-mode","d":"현재 프로젝트의 예산 모드를 전환해 비용 보호 규칙을 강화합니다. 전체 규칙은 CLAUDE.md에 있습니다. 사용법: /budget-mode [on|off|status]","c":"I"},{"n":"challenge","d":"기능 아이디어가 PRD.md에 들어가기 전에 논리, 보안, UX, 확장성 관점에서 반론을 제기합니다.","c":"B"},{"n":"checkpoint","d":"문서 상태를 확인하고 사용 가능한 린트와 테스트를 실행한 뒤, 작업을 보존할 WIP 커밋을 만듭니다.","c":"L"},{"n":"ci-setup","d":"CI/CD 설정 명령","c":"H"},{"n":"clean-branches","d":"사용하지 않는 브랜치를 정리합니다.","c":"A"},{"n":"code-migrate","d":"코드 이식 어시스턴트","c":"E"},{"n":"code-review","d":"포괄적인 코드 품질 검토","c":"C"},{"n":"code-simplify","d":"동작을 바꾸지 않고 불필요한 코드, 과도한 추상화와 중복 로직을 줄입니다.","c":"E"},{"n":"commit-push-pr","d":"검증 완료 후 커밋 & PR & 머지 + MCP 알림 (v6)","c":"A"},{"n":"compliance-check","d":"규제 준수 확인","c":"C"},{"n":"config-validate","d":"구성 검증","c":"M"},{"n":"containerize-application","d":"애플리케이션 컨테이너화","c":"H"},{"n":"context-restore","d":"협업을 위해 저장된 프로젝트 맥락을 복원합니다.","c":"L"},{"n":"context-save","d":"이후 작업을 이어갈 수 있도록 현재 프로젝트 맥락을 저장합니다.","c":"L"},{"n":"cost-forecast","d":"큰 작업 전에 범위와 예상 도구 호출 수를 분석해 토큰 사용량과 USD 비용을 추정합니다. 사용법: /cost-forecast [작업 설명]","c":"I"},{"n":"cost-optimize","d":"클라우드 비용 최적화","c":"H"},{"n":"cost-report","d":"token-budget.json + 세션 JSONL에서 가져온 실시간 토큰 비용 대시보드입니다. 각 도구 호출 횟수, 서킷 브레이커 상태, 루프 시도 횟수 및 빠른 계층 활성화를 표시합니다.","c":"I"},{"n":"create-architecture-documentation","d":"아키텍처 문서 생성","c":"B"},{"n":"create-feature","d":"기능 개발","c":"G"},{"n":"create-onboarding-guide","d":"온보딩 가이드 만들기","c":"K"},{"n":"csp","d":"웹 애플리케이션을 위한 콘텐츠 보안 정책 헤더를 생성합니다.","c":"M"},{"n":"data-driven-feature","d":"전문 에이전트를 활용해 데이터 파이프라인과 머신러닝 기능을 구현합니다.","c":"G"},{"n":"data-pipeline","d":"데이터 파이프라인 아키텍처","c":"J"},{"n":"data-validation","d":"데이터 검증 파이프라인","c":"J"},{"n":"db-migrate","d":"데이터베이스 마이그레이션 전략 및 구현","c":"J"},{"n":"debug-error","d":"체계적으로 오류를 디버그하고 수정합니다","c":"D"},{"n":"debug-trace","d":"디버그 및 트레이스 구성","c":"D"},{"n":"debug","d":"수정 전에 근본 원인을 체계적으로 분석해 무작위 시행착오를 줄입니다.","c":"D"},{"n":"dependency-audit","d":"의존성 감사 명령","c":"C"},{"n":"deploy-checklist","d":"배포 체크리스트 및 구성","c":"H"},{"n":"deps-upgrade","d":"의존성 업그레이드 전략","c":"P"},{"n":"diff-review","d":"커밋 전에 현재 Git 변경 사항의 버그, 보안 위험, 범위 위반과 악성 파일을 빠르게 검토합니다. 사용법: /diff-review","c":"A"},{"n":"doc-api","d":"API 문서 생성기 명령","c":"K"},{"n":"docker-optimize","d":"도커 최적화","c":"H"},{"n":"dockerfile","d":"현재 프로젝트에 맞는 최적화된 Dockerfile을 생성합니다.","c":"H"},{"n":"env-check","d":".env와 .env.example을 비교해 누락된 키, 추가된 키와 빈 값을 찾습니다.","c":"M"},{"n":"error-analysis","d":"오류 분석 및 해결","c":"D"},{"n":"error-trace","d":"오류 추적 및 모니터링","c":"D"},{"n":"estimate-assistant","d":"추정 보조자","c":"O"},{"n":"eval","d":"평가 기반 개발 워크플로를 관리합니다(정의, 확인, 보고, 목록 표시).","c":"F"},{"n":"explain-code","d":"코드의 동작을 분석하고 설명합니다.","c":"K"},{"n":"fact-check","d":"주장을 제시하기 전에 근거를 확인하고 확신 수준을 평가합니다.","c":"M"},{"n":"fix-issue","d":"문제 수정 명령","c":"D"},{"n":"fix","d":"최신 /audit 보고서를 바탕으로 최소한의 패치를 적용합니다. 각 변경 전 사람의 명시적 승인이 필요합니다.","c":"D"},{"n":"freeze","d":"이 세션의 파일 편집 범위를 지정한 경로 또는 패턴으로 제한합니다. 훅이 이 경계를 강제합니다.","c":"M"},{"n":"full-review","d":"Task 도구로 여러 전문 에이전트를 명시적으로 호출해 종합 검토를 수행합니다.","c":"C"},{"n":"full-stack-feature","d":"에이전트 협업으로 여러 계층의 풀스택 기능을 구현합니다.","c":"G"},{"n":"generate-api-documentation","d":"API 문서 생성","c":"K"},{"n":"generate-coverage","d":"프로젝트에 설정된 실제 커버리지 스크립트를 실행합니다. 가짜 커버리지 보고서는 만들지 않습니다.","c":"F"},{"n":"generate-test-cases","d":"테스트 케이스 생성","c":"F"},{"n":"git-changelog","d":"마지막 태그 또는 지정된 참조 지점 이후의 git 이력을 사용하여 변경 로그를 생성합니다.","c":"A"},{"n":"git-commit","d":"스테이징된 변경 사항 (git diff --cached)을 분석해 Conventional Commit 형식의 메시지를 만듭니다.","c":"A"},{"n":"git-pr-create","d":"현재 브랜치의 변경 사항을 바탕으로 설명이 구조화된 풀 리퀘스트를 만듭니다.","c":"A"},{"n":"git-pr-review","d":"번호로 지정한 풀 리퀘스트의 변경 사항을 검토하고 리뷰 의견을 게시합니다.","c":"A"},{"n":"git-worktree","d":"여러 브랜치에서 병렬 개발할 수 있도록 Git 워크트리를 설정합니다.","c":"A"},{"n":"handoff-verify","d":"빌드/테스트/린트를 한 번에 자동 검증합니다.","c":"L"},{"n":"handoff","d":"현재 상태, 미완료 작업과 근본 원인 분석을 기록해 다른 에이전트, 세션 또는 사람이 작업을 이어갈 수 있게 합니다.","c":"L"},{"n":"hook-review","d":"훅의 효과, 테스트와 버전 호환성을 검토합니다. 3~6개월마다 또는 주요 Claude Code 릴리스 후 실행합니다. 사용법: /hook-review","c":"M"},{"n":"idea-loop","d":"Tâm을 위한 개인 실행 보조자: 브리핑, 개인 기억, 일일 우선순위 및 위험 레이더. 세션이 열릴 때 실행됩니다. 사용: /idea-loop","c":"L"},{"n":"improve-agent","d":"최근 작업 결과를 바탕으로 기존 에이전트의 지침을 개선합니다.","c":"N"},{"n":"improve-skill","d":"스킬을 테스트 시나리오에 적용해 실패를 분석합니다. 한 번에 한 가지 변경만 제안하고 사람의 승인을 기다립니다.","c":"N"},{"n":"incident-response","d":"전문 에이전트와 협업해 운영 환경의 장애에 대응합니다.","c":"H"},{"n":"incremental-feature-build","d":"점진적 기능 빌드 명령","c":"G"},{"n":"init-claude","d":"기술 스택, 아키텍처와 작업 규칙을 확인해 프로젝트에 맞는 CLAUDE.md를 생성합니다.","c":"P"},{"n":"integration-test","d":"모듈에 대한 통합 테스트를 생성하여 구성 요소 간의 실제 상호작용을 테스트합니다.","c":"F"},{"n":"issue-triage","d":"이슈를 분류합니다.","c":"D"},{"n":"issue","d":"지정한 GitHub 이슈를 분석하고 수정합니다. 사용법: /issue $ARGUMENTS","c":"D"},{"n":"k8s-manifest","d":"현재 애플리케이션을 배포하기 위해 Kubernetes 매니피스트를 생성합니다.","c":"H"},{"n":"langchain-agent","d":"LangChain/LangGraph 에이전트 스캐폴드","c":"J"},{"n":"learn","d":"교훈 기록 + 자동화 제안 (v6 - suggest-automation 통합)","c":"M"},{"n":"legacy-modernize","d":"전문 에이전트와 함께 레거시 코드를 현대화합니다.","c":"E"},{"n":"mcp-audit","d":"MCP 서버 사용 현황을 분석하고 서버별 사용량에 맞는 계층 분류를 제안합니다.","c":"M"},{"n":"memory","d":"L1과 L2 메모리를 검색합니다. 사용법: /memory [키워드]","c":"L"},{"n":"ml-pipeline","d":"머신 러닝 파이프라인","c":"J"},{"n":"monitor-setup","d":"모니터링 및 관측 도구 설정","c":"H"},{"n":"monitor","d":"애플리케이션의 모니터링, 알림과 관측 기능을 설정합니다.","c":"H"},{"n":"multi-agent-optimize","d":"전문 최적화 에이전트와 함께 애플리케이션 스택을 최적화합니다.","c":"N"},{"n":"multi-agent-review","d":"전문 검토자들과 종합적인 코드 검토를 수행합니다.","c":"C"},{"n":"multi-platform","d":"여러 플랫폼에서 같은 기능을 구현합니다.","c":"G"},{"n":"multi-run","d":"독립적인 작업에서 여러 에이전트를 병렬로 실행하며, 단일 에이전트 모드보다 더 엄격한 규칙을 적용합니다. 사용법: /multi-run <task1> | <task2> | <task3>","c":"N"},{"n":"next-task","d":"다음 작업 추천 (v6)","c":"L"},{"n":"optimize-build","d":"빌드 명령 최적화","c":"H"},{"n":"optimize-bundle-size","d":"번들 크기 최적화","c":"H"},{"n":"optimize-database-performance","d":"데이터베이스 성능 최적화","c":"H"},{"n":"optimize-prompt","d":"토큰 효율성을 높이도록 프롬프트를 최적화합니다.","c":"P"},{"n":"orchestrate","d":"의존성을 분석하고 단계별 실행 계획을 세웁니다. 프로젝트 관리자와 협의하고 기능 브랜치에서 여러 에이전트의 작업을 조정합니다.","c":"G"},{"n":"output-budget","d":"세션 출력 볼륨(도구 호출, 읽거나 쓰는 파일, 예산 모드)에 대한 프록시 보고서를 표시합니다. 실제 API 토큰을 측정하지 않습니다. 사용법: /output-budget [report|watch]","c":"I"},{"n":"output-raw","d":"필터링 없이 마지막 명령의 전체 출력을 가져옵니다. 터미널 출력 필터가 필요한 세부 정보를 생략할 때 유용합니다. 사용법: /output-raw [last|<명령 설명>]","c":"I"},{"n":"performance-audit","d":"성능을 분석하고 점검합니다.","c":"C"},{"n":"plan-ceo-review","d":"기술적 타당성뿐 아니라 지금 만들 가치가 있는지 비즈니스/PMF 관점에서 검토합니다.","c":"B"},{"n":"pr-enhance","d":"풀 리퀘스트 향상","c":"A"},{"n":"prepare-release","d":"릴리스를 준비합니다.","c":"A"},{"n":"prime","d":"복잡한 작업을 위한 향상된 AI 모드","c":"L"},{"n":"project-health-check","d":"프로젝트 상태 점검","c":"O"},{"n":"prompt-optimize","d":"AI 프롬프트 최적화","c":"P"},{"n":"quick-commit","d":"간단한 수정용 빠른 커밋 (v6)","c":"A"},{"n":"refactor-clean","d":"테스트 검증을 통해 죽은 코드를 안전하게 식별하고 제거합니다.","c":"E"},{"n":"refactor-cleanup","d":"죽은 코드, 사용하지 않는 임포트와 도달할 수 없는 분기를 찾아 제거합니다.","c":"E"},{"n":"refactor-code","d":"코드를 재작성해 코드 품질을 개선합니다.","c":"E"},{"n":"refactor-extract","d":"기존 코드에서 함수, 구성 요소 또는 모듈을 자체 단위로 추출합니다.","c":"E"},{"n":"refactor-rename","d":"코드베이스 전체에서 변수, 함수, 클래스와 파일의 이름을 바꿉니다.","c":"E"},{"n":"refactor-simplify","d":"가독성과 유지보수성을 높이도록 코드를 단순화합니다.","c":"E"},{"n":"release","d":"백로그 준비 상태, QA, 문서와 CI/CD 파이프라인을 배포 전에 점검합니다.","c":"A"},{"n":"remove-dead-code","d":"멀티 에이전트 분석과 자동 백업 브랜치를 사용하여 죽은 코드를 안전하게 스캔하고 제거하고 검증합니다.","c":"E"},{"n":"resume","d":"체크포인트, 메모리, Git 상태와 인수인계 자료를 사용해 작업 맥락을 복원합니다.","c":"L"},{"n":"retrospective-analyzer","d":"회고 분석기","c":"O"},{"n":"review","d":"최근 변경된 파일의 아키텍처 불일치, 테스트 범위와 구현 품질을 여러 에이전트가 검토합니다.","c":"C"},{"n":"risk-scan","d":"실행 전에 세션 계획의 각 작업을 평가해 위험도가 높은 조치를 표시합니다.","c":"M"},{"n":"rollback","d":"저장된 체크포인트를 확인하고 변경 비교를 미리 본 뒤, 사용자 확인을 받아 작업 트리를 복원합니다.","c":"L"},{"n":"route","d":"v10 라우팅 지도로 적절한 전문 에이전트를 선택합니다. 사용법: /route <작업 설명>","c":"N"},{"n":"run-e2e","d":"Yana AI 래퍼로 실제 Playwright E2E 명령을 실행합니다. 실수로 전체 테스트를 실행하지 않도록 기본 동작은 목록 표시입니다.","c":"F"},{"n":"scope-declare","d":"쓰기 작업을 시작하기 전에 수정할 파일 범위를 선언합니다. 3개 이상 파일을 바꾸는 작업에 필요합니다.","c":"M"},{"n":"secrets-scan","d":"코드베이스에서 유출된 비밀 정보, API 키, 토큰과 인증 정보를 검사합니다.","c":"M"},{"n":"security-audit","d":"보안 감사 명령","c":"C"},{"n":"security-hardening","d":"보안 강화","c":"C"},{"n":"security-scan","d":"Red/Blue/Purple 팀 스킬 패키지로 현재 코드베이스의 보안을 검사합니다. 소유권 확인이 필요합니다.","c":"C"},{"n":"session-cost","d":"Claude Code 세션 JSONL 로그에서 실제 토큰과 예상 비용을 보고합니다. API를 호출하지 않고 로컬 파일을 읽습니다. 사용법: /session-cost [last|all|session <id>]","c":"I"},{"n":"session-stats","d":"현재 세션의 훅 실행과 차단 횟수, 위험 점수 이력과 신뢰 점수를 표시합니다.","c":"L"},{"n":"session-trace","d":"현재 세션의 도구 호출, 훅 결정, 위험 점수와 차단 이벤트를 시간순으로 보여줍니다.","c":"L"},{"n":"session","d":"Yana AI L2 세션 메모리 관리 — 세션 범위의 사실을 추가, 검색 및 삭제합니다. 사용법: /session [키워드] | /session --add | /session --clear | /session --all","c":"L"},{"n":"setup-comprehensive-testing","d":"포괄적인 테스트 설정","c":"F"},{"n":"slo-implement","d":"SLO 구현 가이드","c":"H"},{"n":"smart-debug","d":"전문 디버깅 에이전트와 함께 복잡한 문제를 분석하고 수정합니다.","c":"D"},{"n":"smart-fix","d":"Task 도구를 통한 명시적인 호출과 자동 에이전트 선택으로 문제를 해결합니다.","c":"D"},{"n":"snapshot-test","d":"UI 구성 요소 또는 시리얼화 가능한 출력에 대한 스냅샷 테스트를 생성합니다.","c":"F"},{"n":"spec","d":"별도의 계획, 실행, 검증 에이전트로 기능을 구현합니다. 조용한 실패와 범위 확장을 줄이며 하위 작업이 3개 이상인 기능에 사용합니다.","c":"B"},{"n":"sprint-planning","d":"스프린트 계획","c":"O"},{"n":"standup-report","d":"스탠드업 보고서","c":"O"},{"n":"start","d":"START_HERE.md를 읽고 설정 절차를 실행해 온보딩을 시작합니다. 사용법: /start","c":"P"},{"n":"status","d":"TODO.md, 최근 Git 이력, 열린 PR과 PRD의 미해결 질문을 바탕으로 프로젝트 상태를 요약합니다.","c":"O"},{"n":"suggest-automation","d":"반복 패턴 분석을 통해 자동화 기회 제안 (주기적 실행 권장)","c":"M"},{"n":"sync-docs","d":"prompt_plan.md, spec.md, CLAUDE.md + rules/ 문서 동기화 (v7)","c":"K"},{"n":"sync-template","d":"업스트림에서 .claude 템플릿을 동기화하면서 로컬 전용 프로젝트 사용자 정의를 보존합니다. 사용법: /sync-template","c":"P"},{"n":"tdd-cycle","d":"실패 테스트 작성, 최소 구현, 리팩터링 순서로 테스트 주도 개발(TDD) 워크플로를 실행합니다.","c":"F"},{"n":"tdd-green","d":"TDD 그린 단계에서 실패한 테스트를 통과시킬 최소한의 코드를 구현합니다.","c":"F"},{"n":"tdd-red","d":"TDD 레드 단계의 원칙에 따라 먼저 실패하는 테스트를 작성합니다.","c":"F"},{"n":"tdd-refactor","d":"테스트를 안전망으로 사용해 코드를 리팩터링합니다.","c":"F"},{"n":"tech-debt","d":"TODO, FIXME, HACK, XXX 표시를 검색해 우선순위가 있는 기술 부채 보고서를 만듭니다.","c":"E"},{"n":"test-coverage","d":"테스트 커버리지 명령","c":"F"},{"n":"test-fix","d":"프로젝트에서 실패한 테스트를 진단하고 수정합니다.","c":"D"},{"n":"test-harness","d":"포괄적인 테스트 하네스 생성기","c":"F"},{"n":"troubleshooting-guide","d":"문제 해결 가이드 생성기 명령","c":"D"},{"n":"ultra-think","d":"심층 분석 및 문제 해결 모드","c":"P"},{"n":"unfreeze","d":"/freeze로 설정한 파일 편집 범위 제한을 해제합니다.","c":"M"},{"n":"v10-audit","d":"v10 신뢰성 감사를 실행해 패키지, 훅 상태, 라우팅, 메모리 검색과 허위 주장 방지 기능을 확인합니다. 사용법: /v10-audit [선택 주제]","c":"M"},{"n":"v10-fix","d":"/v10-audit에서 발견한 신뢰성 문제에 최소한의 수정을 적용합니다. 에이전트나 기능을 새로 추가하지 않습니다. 사용법: /v10-fix","c":"M"},{"n":"verify-pack","d":"Claude Code 템플릿 팩의 에이전트, 명령, 훅, 라우팅 맵, 잠금 파일과 훅 상태를 확인합니다. 사용법: /verify-pack","c":"M"},{"n":"verify","d":"Git 상태, 훅 문법, 훅 테스트와 드리프트 보고서를 확인하고 실제 명령 출력을 표시합니다. 사용법: /verify","c":"M"},{"n":"wiki","d":"gitnexus 지식 그래프로 정적 위키를 생성하거나 갱신해 docs/wiki/에 커밋합니다. 에이전트가 매번 코드를 읽는 대신 위키를 참고할 수 있게 합니다.","c":"K"},{"n":"workflow-automate","d":"워크플로우 자동화","c":"H"},{"n":"worktree-cleanup","d":"PR 완료 후 Git Worktree 정리 (v6)","c":"A"},{"n":"worktree-start","d":"병렬 개발용 Git Worktree 생성 + 도메인 템플릿 (v6)","c":"A"},{"n":"wrap-up","d":"구조화된 요약을 작성하고 메모리를 갱신해 현재 세션을 마무리합니다.","c":"L"},{"n":"write-tests","d":"테스트 작성 명령","c":"F"}]};
+
+// ── slash panel: chips + search + render ─────────────────────────
+const chipsEl = document.getElementById('chips');
+const listEl = document.getElementById('cmd-list');
+const searchEl = document.getElementById('search');
+const countEl = document.getElementById('result-count');
+const activeCats = new Set();
+
+Object.entries(SLASH_DATA.cats).forEach(([code, label]) => {
+  const n = SLASH_DATA.cmds.filter(c => c.c === code).length;
+  const chip = document.createElement('button');
+  chip.className = 'chip';
+  chip.type = 'button';
+  chip.setAttribute('aria-pressed', 'false');
+  chip.dataset.cat = code;
+  chip.textContent = `${label} (${n})`;
+  chip.addEventListener('click', () => {
+    if (activeCats.has(code)) { activeCats.delete(code); chip.setAttribute('aria-pressed','false'); }
+    else { activeCats.add(code); chip.setAttribute('aria-pressed','true'); }
+    render();
+  });
+  chipsEl.appendChild(chip);
+});
+
+const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+})[char]);
+
+function render(){
+  const q = searchEl.value.trim().toLowerCase();
+  const filtered = SLASH_DATA.cmds.filter(c => {
+    if (activeCats.size && !activeCats.has(c.c)) return false;
+    if (!q) return true;
+    return c.n.toLowerCase().includes(q) || c.d.toLowerCase().includes(q);
+  });
+  countEl.textContent = `전체 ${SLASH_DATA.cmds.length}개 명령어 중 ${filtered.length}개 표시`;
+
+  listEl.innerHTML = '';
+  if (!filtered.length){
+    listEl.innerHTML = '<div class="empty-state">일치하는 명령어가 없습니다. 다른 검색어를 입력해 주세요.</div>';
+    return;
+  }
+  const byCat = {};
+  filtered.forEach(c => { (byCat[c.c] ||= []).push(c); });
+  Object.keys(SLASH_DATA.cats).forEach(code => {
+    if (!byCat[code]) return;
+    const group = document.createElement('div');
+    group.className = 'cmd-cat';
+    const rows = byCat[code].map(c =>
+      `<div class="cmd-row"><div class="nm">${escapeHtml(c.n)}</div><div class="ds" title="${escapeHtml(c.d)}">${escapeHtml(c.d)}</div></div>`
+    ).join('');
+    group.innerHTML = `<h3>${escapeHtml(SLASH_DATA.cats[code])}<span class="count-pill">${byCat[code].length}</span></h3><div class="cmd-cat-rows">${rows}</div>`;
+    listEl.appendChild(group);
+  });
+}
+searchEl.addEventListener('input', render);
+render();
+
+// respect explicit theme choice if the site ever wires one in localStorage,
+// mirroring index.html's own convention
+try {
+  const saved = localStorage.getItem('yana-theme');
+  if (saved === 'dark') document.documentElement.classList.add('dark');
+  if (saved === 'light') document.documentElement.classList.add('light');
+} catch (e) {}
+</script>
+</body>
+</html>

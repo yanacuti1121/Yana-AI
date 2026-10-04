@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Yana 아키텍처 — 하나의 시스템, 여러 권한 계층</title>
+  <meta name="description" content="사용자 화면에서 Giám Thị, 제어 계층, TurnEngine, 모델과 기능, 실행 증거까지 이어지는 아키텍처입니다.">
+  <link rel="icon" href="yana-mark.svg"><link rel="stylesheet" href="assets/ecosystem-pages.css?v=20260926a"><link rel="stylesheet" href="assets/sakura-site.css?v=20260926a">
+<link rel="stylesheet" href="assets/yana-white.css?v=20261003kopolish"></head>
+<body class="sakura-site"><div class="yana-opening yana-opening--inner" aria-label="Yana"><div class="opening-center"><div class="opening-mark"><img src="yana-mark.svg" alt="" width="58" height="58"></div><div class="opening-word" aria-hidden="true"><span>Y</span><span>a</span><span>n</span><span>a</span></div><p class="opening-caption">AI가 일합니다. 결정권은 당신에게 있습니다.</p></div><button class="opening-skip" type="button">인트로 건너뛰기 <span aria-hidden="true">↗</span></button></div>
+<nav class="site-nav"></nav>
+<main>
+  <section class="hero"><div class="hero-inner"><p class="eyebrow">시스템 아키텍처</p><h1>하나의 시스템.<br>여러 권한 계층.</h1><p class="hero-copy">Yana는 지능, 권한, 실행, 연속성, 증거, 인터페이스를 명확한 계약으로 연결된 독립 계층으로 나눕니다.</p><div class="hero-actions"><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="#stack"><span class="lbl">전체 구조 보기</span></a></div><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="governance-ko.html"><span class="lbl">거버넌스 보기</span></a></div></div><div class="hero-stage"><div class="window-bar"><i></i><i></i><i></i></div><div style="padding:28px;display:grid;gap:10px"><div class="visual-row"><strong>01 · 사용자 인터페이스</strong><span>Studio · 터미널 · 웹 · Discord</span></div><div class="visual-row"><strong>02 · 감독자</strong><span>최상위 안전 권한</span></div><div class="visual-row"><strong>03 · Yana 제어 계층</strong><span>정책 · 작업 · 메모리</span></div><div class="visual-row"><strong>04 · Rust TurnEngine</strong><span>형식이 정의된 턴 · 스트리밍 · 취소</span></div><div class="visual-row"><strong>05 · 모델 + 기능</strong><span>로컬 / 클라우드 · 통제된 도구</span></div><div class="visual-row"><strong>06 · 증거</strong><span>증거 기록 · 감사 · Git</span></div></div></div></div></section>
+  <section class="section" id="stack"><div class="section-head"><p class="eyebrow">스택</p><h2>모델은 교체 가능한 구성 요소 중 하나입니다.</h2><p>권한과 시스템 상태는 모델 밖에 있으므로 제공자나 에이전트를 바꿔도 권한 경계는 유지됩니다.</p></div><div class="product-grid"><article class="product-card"><div><h3>지능 계층</h3><p>로컬 및 클라우드 모델 제공자는 하나의 권한 모델을 공유합니다. 다만 새로운 제공자 게이트웨이가 아직 모든 호출의 처리 경로는 아닙니다.</p></div><div class="product-art"><code>OpenAI · Anthropic
+Groq · Gemini
+Ollama · 로컬</code></div></article><article class="product-card"><div><h3>실행 계층</h3><p>Rust TurnEngine은 형식이 정의된 턴, 스트리밍, 취소와 표준 기능 호출을 관리합니다.</p></div><div class="product-art"><code>작업 턴 → 스트리밍
+        → 도구 호출 루프
+        → 취소
+        → 부분 출력</code></div></article><article class="product-card"><div><h3>권한 계층</h3><p>감독자(Giám Thị), YanaAuthorityChain, 승인, 범위가 정해진 권한 부여와 HALT가 모델의 추론 밖에서 권한을 유지합니다.</p></div><div class="product-art"><code>사람
+  ↓
+감독자
+  ↓
+Yana 제어 계층</code></div></article></div></section>
+  <section class="section feature system-map" id="system-map"><div class="feature-copy"><p class="eyebrow">시스템 지도</p><h2>하나의 제어 계층.<br>인터페이스마다 권한 범위는 다릅니다.</h2><p>최종 결정권은 사람에게 있습니다. 감독자는 최상위 안전 권한을 가지며, 검토되지 않은 변경을 감지하면 세션 전체를 HALT할 수 있습니다. Studio와 Runtime CLI는 같은 Yana 제어 계층을 거쳐 Rust TurnEngine으로 연결됩니다 (<code>yana-rt</code>). Wheelbot은 별도의 WebSocket/MCP 기기 브리지를 가진 하드웨어 프로젝트입니다. 같은 TurnEngine 경로를 처음부터 끝까지 거친다고 주장하지 않습니다.</p><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="runtime-ko.html"><span class="lbl">Yana 런타임 보기 →</span></a></div></div><div class="feature-visual"><div class="system-diagram">
+    <div class="diagram-node tier-human"><strong>사람</strong><span>최종 권한</span></div>
+    <div class="diagram-arrow">↓</div>
+    <div class="diagram-node tier-guard"><strong>감독자</strong><span>최상위 안전 권한 · 오류 시 차단하는 HALT</span></div>
+    <div class="diagram-arrow">↓</div>
+    <div class="diagram-node tier-control"><strong>Yana 제어 계층</strong><span>정책 · 신원 · 증거 · 기능</span></div>
+    <div class="diagram-arrow">↓</div>
+    <div class="diagram-node tier-control"><strong>Rust TurnEngine (yana-rt)</strong><span>스트림 · 취소 · 도구 루프</span></div>
+    <div class="diagram-arrow">↓</div>
+    <div class="diagram-row">
+      <div class="diagram-node tier-model"><strong>모델 및 제공자 계층</strong><span>Anthropic · OpenAI · Gemini · Groq · DeepSeek · OpenRouter · Ollama</span></div>
+      <div class="diagram-node tier-model"><strong>표준 기능</strong><span>파일 · Git · 명령 (셸 / 프로세스) · 시스템, 기능 명세로 범위 제한</span></div>
+    </div>
+    <div class="diagram-arrow">↓</div>
+    <div class="diagram-row">
+      <div class="diagram-node tier-audit"><strong>감사 체인</strong><span>각 도구 호출을 해시 체인으로 연결해 변조 감지</span></div>
+      <div class="diagram-node tier-audit"><strong>실행 증거 기록</strong><span>HMAC으로 서명된 실행 결과 (Truth Gate)</span></div>
+    </div>
+    <div class="diagram-arrow">↓</div>
+    <div class="diagram-row">
+      <div class="diagram-node tier-surface"><strong>Studio · 런타임 CLI</strong><span>동일 TurnEngine, 검증됨</span></div>
+      <div class="diagram-node tier-surface"><strong>Wheelbot</strong><span>별도의 기기 브리지 · 전체 경로 미검증</span></div>
+    </div>
+  </div></div></section>
+  <section class="section feature"><div class="feature-copy"><p class="eyebrow">제어 + 작업 연속성</p><h2>작업은 하나의 대화 기록에만 묶이지 않습니다.</h2><p>작업 그래프, 미션, L1/L2 메모리와 프로젝트 메모리가 지속 가능한 상태를 만듭니다. 완전한 Continuity Engine은 아직 로드맵에 있습니다.</p><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="continuity-ko.html"><span class="lbl">연속성 보기</span></a></div></div><div class="feature-visual"><div class="visual-window"><div class="visual-row"><strong>작업 그래프</strong><span>운영 중</span></div><div class="visual-row"><strong>미션</strong><span>운영 중 · 계속 개선 중</span></div><div class="visual-row"><strong>L1 / L2 메모리</strong><span>운영 중</span></div><div class="visual-row"><strong>Continuity Engine</strong><span>로드맵</span></div></div></div></section>
+  <section class="section feature reverse"><div class="feature-copy"><p class="eyebrow">기능 + 증거</p><h2>실제 실행에는 검증 가능한 기록이 남습니다.</h2><p>매니페스트 조회, 위험 평가, 승인, 원자적 파일 쓰기, TOCTOU 재검사, 감사 체인이 도구 호출을 검증 가능한 실행으로 만듭니다.</p><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="governance-ko.html"><span class="lbl">거버넌스 보기</span></a></div></div><div class="feature-visual"><div class="visual-window"><div class="visual-row"><strong>제안</strong><span>모델</span></div><div class="visual-row"><strong>결정</strong><span>권한</span></div><div class="visual-row"><strong>실행</strong><span>허용된 기능</span></div><div class="visual-row"><strong>증거</strong><span>실행 기록 + 산출물</span></div></div></div></section>
+  <section class="section"><div class="section-head"><p class="eyebrow">인터페이스 경계</p><h2>모든 인터페이스는 서로 다른 수준의 권한을 가지고 있습니다.</h2><p>Yana는 모든 실행 환경이 같은 기능을 제공한다고 가정하지 않습니다.</p></div><div class="product-grid"><article class="product-card"><div><h3>터미널</h3><p>현재 변경 기능의 승인 후 계속 실행을 지원하는 유일한 채팅 경로입니다.</p></div><div class="product-art"><code>대화형 실행
+승인 후 계속 실행
+상태를 변경하는 기능</code></div></article><article class="product-card"><div><h3>Studio + 배포된 웹</h3><p>헤드리스 stdin/NDJSON 계약을 사용합니다. 현재 헤드리스 모드는 상태를 변경하는 기능을 제공하지 않습니다.</p></div><div class="product-art"><code>형식이 정의된 턴
+로컬 프로세스
+헤드리스 모드에서 변경 기능 없음</code></div></article><article class="product-card"><div><h3>MCP + 어댑터</h3><p>MCP는 선택 사항이며 스스로 승인을 부여하지 않습니다. 실행 환경별 어댑터의 지원 수준도 서로 다릅니다.</p></div><div class="product-art"><code>MCP       실험 단계
+승인      외부에서 부여
+어댑터    지원 수준 차이</code></div></article></div></section>
+  <section class="quote-band"><p class="eyebrow">핵심 원칙</p><h2>지능은 바뀔 수 있어도<br>권한은 유지되어야 합니다.</h2><p>그래서 Yana는 단순한 모델 래퍼가 아니라 제어 계층과 개인 에이전트 운영체제입니다.</p></section>
+</main>
+<footer class="site-footer"><div class="footer-inner"><div><a class="brand" href="ko.html"><img src="yana-mark.svg" alt=""><span>Yana</span></a><p>사람이 통제하는 AI 작업을 위한 개인 에이전트 운영체제.</p></div><div class="footer-links"><strong>제품</strong><a href="studio-ko.html">Studio 1.5</a><a href="runtime-ko.html">런타임</a><a href="wheelbot-ko.html">Wheelbot</a></div><div class="footer-links"><strong>출처</strong><a href="https://github.com/yanacuti1121/Yana-AI">GitHub</a><a href="https://gitlab.com/yana-ai-group/Yana-AI-project">GitLab 미러</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ROADMAP.md">로드맵</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/SECURITY.md">안전</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ACKNOWLEDGEMENTS.md">감사의 말</a></div><div class="footer-links"><strong>연락</strong><a href="mailto:phamlongh230@gmail.com">phamlongh230@gmail.com</a><a href="https://yana.vutam.link">yana.vutam.link</a><a href="https://github.com/yanacuti1121/Yana-AI">yanacuti1121/Yana-AI</a></div></div><div class="footer-ack"><strong>감사의 말</strong><p>Yana AI는 Apache 2.0, MIT 및 기타 허용 라이선스 하에 라이선스된 프로젝트를 포함하여 오픈소스 커뮤니티의 아이디어, 패턴 및 도구를 기반으로 구축되었습니다. 모든 제3자 소스는 각 라이선스에 따라 준수하여 사용됩니다. 이 프로젝트는 개인이나 조직의 지적 재산권을 복사, 오해하거나 침해할 의도가 없습니다. 특정 프로젝트가 디자인 결정에 직접적인 영향을 미친 경우, 관련 소스 파일 및 규칙 문서에 출처가 명시됩니다.</p></div><div class="footer-bottom">© 2026 Yana AI · Apache 2.0</div></footer><script src="assets/ecosystem-pages.js?v=20261001ko"></script><script src="assets/sakura-site.js?v=20261003kopolish"></script>
+<script src="assets/yana-motion.js?v=20260929b"></script></body></html>

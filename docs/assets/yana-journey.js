@@ -9,6 +9,7 @@
     ko: { rail: "Yana 이야기 살펴보기", next: "다음 장", kicker: "다음 장" }
   }[language] || { rail: "Explore the Yana story", next: "Next chapter", kicker: "NEXT CHAPTER" };
   const chapters = [
+    ["live-demo", "Trải nghiệm 60 giây", "60-second tour", "60초 체험"],
     ["how-it-works", "Cách hoạt động", "How it works", "작동 방식"],
     ["terminal-origin", "Khởi đầu", "Origins", "시작"],
     ["prologue", "Hệ sinh thái", "Ecosystem", "생태계"],
@@ -97,6 +98,7 @@
   };
   addEventListener("scroll", schedule, { passive: true });
   addEventListener("resize", measure, { passive: true });
+  addEventListener("yana:discovery-resize", measure);
   addEventListener("load", measure, { once: true });
   document.fonts?.ready.then(measure);
   measure();
