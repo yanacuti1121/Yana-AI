@@ -39,17 +39,16 @@ pub mod system;
 pub mod untrusted;
 pub mod web_search;
 
-pub use archive::{extract_zip, inspect_zip, ExtractionResult, ZipEntryInfo, ZipInspection};
+pub use archive::{extract_zip, inspect_zip};
 pub use archive_create::create_zip;
 pub use command::{execute_command, validate_command, CommandOutcome, ValidatedCommand};
 pub use config_write::{apply_config_write, propose_config_write};
 pub use error::CapabilityError;
-pub use evidence::ToolEvidence;
-pub use file_mutation::{apply_file_write, propose_file_write, FileMutationDiff, FileMutationKind, FileMutationOutcome};
+pub use file_mutation::{apply_file_write, propose_file_write, FileMutationDiff, FileMutationKind};
 pub use git::{git_commit, git_diff, git_diff_path, git_stage, git_status, git_unstage};
-pub use registry::{AccessMode, ApprovalRequirement, CapabilityDescriptor, Manifest, RiskTier};
+pub use registry::{ApprovalRequirement, Manifest};
 pub use repo::{
-    read_file, read_file_observation, repo_tree, resolve_existing, search_code, FileReadObservation,
+    read_file, read_file_observation, repo_tree, resolve_existing, search_code,
 };
 pub use system::{host_summary, list_processes, process_details};
 

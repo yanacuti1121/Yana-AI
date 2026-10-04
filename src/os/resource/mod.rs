@@ -19,5 +19,4 @@ pub mod topology;
 
 pub use policy::{
     check, legacy_status, policy as get_policy, print_decision, print_policy, set_policy,
-    ResourceDecision,
 };

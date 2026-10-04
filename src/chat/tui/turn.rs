@@ -3,6 +3,8 @@
 //! line-count budget; this is the network-call lifecycle for one chat
 //! turn, still logically part of `App`.
 
+#[cfg(test)]
+use anyhow::Result;
 use super::super::provider::{ChatMessage, ChatProvider, ChatUsage, Role};
 use super::super::tool_types::ToolSpec;
 use super::tool_dispatch::ChatCapabilityExecutor;
@@ -12,7 +14,6 @@ use crate::runtime::{
     YanaAuthorityChain,
 };
 use crate::session_context::SessionContext;
-use anyhow::Result;
 use std::sync::{mpsc, Arc};
 use std::thread;
 use std::time::Instant;

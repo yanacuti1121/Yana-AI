@@ -29,5 +29,3 @@ pub mod attribution;
 pub mod manager;
 pub mod runtime;
 
-pub use attribution::{spawn, GovernedChild, ProcessAttribution};
-pub use manager::{ServiceDefinition, ServiceManager, ServiceStatus};

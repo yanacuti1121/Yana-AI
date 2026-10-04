@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use uuid::Uuid;
 
 mod pack;
-pub use pack::{build_memory_pack, rank_facts, MemoryPack, RankedFact};
+pub use pack::{build_memory_pack, rank_facts};
 
 pub fn now() -> String { Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string() }
 
