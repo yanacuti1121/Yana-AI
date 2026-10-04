@@ -28,6 +28,12 @@ pub struct LspDisclosure {
     pub character: u32,
 }
 
+/// Control, invisible and direction-changing characters made visible: a path or program name
+/// comes from real file names and must not reorder or hide what a remote approver reads.
+fn visible(text: &str) -> String {
+    text.chars().map(|c| if c.is_control() || crate::capability::untrusted::is_invisible_format_char(c) { '?' } else { c }).collect()
+}
+
 impl LspDisclosure {
     /// The program and its arguments as one quoted line: `a "b c"` and `a b c` read differently.
     pub fn command_line(&self) -> String {
@@ -46,8 +52,8 @@ impl LspDisclosure {
     /// What is asked, about where.
     pub fn question(&self) -> String {
         match self.operation {
-            Operation::DocumentSymbols => format!("document_symbols of {}", self.path),
-            op => format!("{} at {}:{}:{}", op.label(), self.path, self.line, self.character),
+            Operation::DocumentSymbols => format!("document_symbols of {}", visible(&self.path)),
+            op => format!("{} at {}:{}:{}", op.label(), visible(&self.path), self.line, self.character),
         }
     }
 
@@ -56,8 +62,8 @@ impl LspDisclosure {
         let env = if self.env_names.is_empty() { "no extra variables".to_string() } else { format!("variables {}", self.env_names.join(", ")) };
         format!(
             "LSP: start external program `{}` (server '{}', {env} passed, timeout {}s) and ask for {}",
-            self.command_line(),
-            self.server,
+            visible(&self.command_line()),
+            visible(&self.server),
             self.timeout_secs,
             self.question()
         )
@@ -124,6 +130,17 @@ mod tests {
         assert_eq!(d.summary(), "LSP: start external program `/bin/sh '--log file' x` (server 'rust', variables RUST_LOG passed, timeout 90s) and ask for definition at src/lib.rs:2:5");
         let symbols = disclose(&root, &json!({"server": "rust", "operation": "document_symbols", "path": "src/lib.rs"})).unwrap();
         assert!(symbols.summary().ends_with("ask for document_symbols of src/lib.rs"), "{}", symbols.summary());
+    }
+
+    #[test]
+    fn hidden_and_direction_characters_never_reach_the_summary() {
+        let (_k, root) = repo(one());
+        let mut d = disclose(&root, &call("definition", "src/lib.rs", 2)).unwrap();
+        d.command = "/bin/with\nnewline\u{202e}".into();
+        d.path = "src/a\u{e0041}b\u{202e}.rs".into();
+        let summary = d.summary();
+        assert!(!summary.contains('\u{202e}') && !summary.contains('\u{e0041}') && !summary.contains("with\nnewline"), "{summary:?}");
+        assert!(summary.contains("src/a?b?.rs"), "{summary}");
     }
 
     #[test]

@@ -363,8 +363,10 @@ fn disclosure_changed(approval: &PendingApproval) -> Option<ToolResultRecord> {
         return None;
     }
     let now = disclosure_summary(&approval.context.session.repo_root, &approval.pending_call);
-    // The summary is appended last when the reason is built, so it must be the end of it.
-    let unchanged = matches!(&now, Ok(Some(summary)) if approval.authority_reason.ends_with(summary.as_str()));
+    // The summary is appended last, after " | ", when the reason is built: it must be the end
+    // of it AND start right after that separator, so text inside an earlier part of the reason
+    // cannot stand in for it.
+    let unchanged = matches!(&now, Ok(Some(summary)) if approval.authority_reason.ends_with(&format!(" | {summary}")));
     if unchanged {
         return None;
     }
@@ -646,6 +648,21 @@ mod tests {
             .create(context(&root), "m".into(), None, Vec::new(), 0, lsp_call_record("references", 1), pending.authority_reason.clone(), 20)
             .unwrap();
         assert!(disclosure_changed(&other).is_some(), "an approval for one question does not cover another");
+        fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn the_stored_summary_must_come_right_after_the_separator() {
+        let root = temp_root();
+        write_lsp_config(&root, "/bin/sh");
+        let honest = reason_with_disclosure(&root, &lsp_call_record("hover", 1), Some("needs approval".into())).unwrap();
+        let summary = honest.rsplit_once(" | ").unwrap().1.to_string();
+        let store = PendingApprovalStore::for_root(&root);
+        let make = |reason: String| store.create(context(&root), "m".into(), None, Vec::new(), 0, lsp_call_record("hover", 1), reason, 20).unwrap();
+        assert!(disclosure_changed(&make(honest.clone())).is_none(), "the honest reason passes");
+        // The same text without the separator in front is not what was stored by this code.
+        assert!(disclosure_changed(&make(format!("needs approval{summary}"))).is_some());
+        assert!(disclosure_changed(&make(summary.clone())).is_some(), "a reason that is only the summary was not built here");
         fs::remove_dir_all(&root).ok();
     }
 

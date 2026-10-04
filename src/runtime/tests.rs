@@ -529,6 +529,74 @@ fn resume_an_mcp_call(swap_program_before_resume: bool) -> (usize, String, Strin
     (executor_calls.load(Ordering::SeqCst), given, reason)
 }
 
+/// The same for a language server question: pause, store the reason with the resolved program
+/// and the whole question, approve, optionally swap the program, resume.
+#[cfg(feature = "mcp")]
+fn resume_an_lsp_query(swap_program_before_resume: bool) -> (usize, String, String) {
+    let root = tempfile::tempdir().unwrap();
+    write_flock_marker(root.path());
+    std::fs::create_dir_all(root.path().join(".yana-ai")).unwrap();
+    std::fs::create_dir_all(root.path().join("src")).unwrap();
+    std::fs::write(root.path().join("src/lib.rs"), "pub fn alpha() {}\n").unwrap();
+    let config = root.path().join(".yana-ai/lsp-servers.json");
+    std::fs::write(&config, r#"{"servers":[{"name":"rust","command":"/bin/sh","args":["--version"]}]}"#).unwrap();
+    crate::capability::config_trust::trust_in_test(root.path());
+    let arguments = r#"{"server":"rust","operation":"hover","path":"src/lib.rs","line":1,"character":3}"#;
+    let call = ToolCall { id: "l1".into(), name: "lsp_query".into(), arguments_json: arguments.into() };
+    let executor_calls = Arc::new(AtomicUsize::new(0));
+    let provider = Arc::new(MockProvider::new([MockResponse::Tool(call.clone()), MockResponse::Text(vec!["after"])], Arc::new(AtomicUsize::new(0))));
+    let executor = Arc::new(ApprovingExecutor { calls: Arc::clone(&executor_calls) });
+    let engine = TurnEngine::new(
+        Arc::clone(&provider) as Arc<dyn crate::model::provider::ChatProvider>,
+        Arc::new(YanaAuthorityChain),
+        Arc::clone(&executor) as Arc<dyn ToolExecutor>,
+    );
+    let TurnOutcome::AwaitingApproval { call, continuation_messages, tool_rounds, .. } =
+        engine.run(request(root.path()), &CancellationToken::default(), &mut |_| {}).unwrap()
+    else {
+        panic!("a language server must pause for approval");
+    };
+    let reason = crate::runtime::reason_with_disclosure(root.path(), &call, Some("yana_control_plane: needs approval".into())).unwrap();
+    assert!(reason.contains("`/bin/sh --version`") && reason.ends_with("ask for hover at src/lib.rs:1:3"), "the program and the whole question are in the stored reason: {reason}");
+    let store = crate::runtime::PendingApprovalStore::for_root(root.path());
+    let created = store.create(request(root.path()).context, "mock-model".into(), None, continuation_messages, tool_rounds, call, reason.clone(), 20).unwrap();
+    let resolved = store.resolve(&created.approval_id, true, "human:test".into()).unwrap();
+    if swap_program_before_resume {
+        std::fs::write(&config, r#"{"servers":[{"name":"rust","command":"/tmp/evil"}]}"#).unwrap();
+        // Confirmed again: this is about the approval binding, not the trust check.
+        crate::capability::config_trust::trust_in_test(root.path());
+    }
+    let outcome = crate::runtime::resume_turn(
+        &resolved,
+        Arc::clone(&provider) as Arc<dyn crate::model::provider::ChatProvider>,
+        Arc::clone(&executor) as Arc<dyn ToolExecutor>,
+        Vec::new(),
+        None,
+        &CancellationToken::default(),
+        &mut |_| {},
+    )
+    .unwrap();
+    let TurnOutcome::Completed { continuation_messages, .. } = outcome else { panic!("the resumed turn must finish") };
+    let given = continuation_messages.iter().rev().find_map(|m| m.tool_result.as_ref()).map(|r| r.output.clone()).unwrap_or_default();
+    (executor_calls.load(Ordering::SeqCst), given, reason)
+}
+
+#[cfg(feature = "mcp")]
+#[test]
+fn resuming_an_approved_lsp_query_runs_it_once_when_the_program_is_unchanged() {
+    let (ran, given, _) = resume_an_lsp_query(false);
+    assert_eq!(ran, 1);
+    assert_eq!(given, "approved and executed");
+}
+
+#[cfg(feature = "mcp")]
+#[test]
+fn resuming_an_approved_lsp_query_does_not_run_a_program_swapped_after_approval() {
+    let (ran, given, _) = resume_an_lsp_query(true);
+    assert_eq!(ran, 0, "the executor must not be reached");
+    assert!(given.contains("configuration changed since this was approved"), "{given}");
+}
+
 #[cfg(feature = "mcp")]
 #[test]
 fn resuming_an_approved_mcp_call_runs_it_once_when_the_program_is_unchanged() {
