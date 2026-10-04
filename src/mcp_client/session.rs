@@ -12,6 +12,7 @@ use rmcp::transport::IntoTransport;
 use rmcp::{model::CallToolRequestParams, model::PaginatedRequestParams, ServiceExt};
 use serde_json::{Map, Value};
 use std::time::Duration;
+use super::process::kill_tree;
 use tokio::process::Child;
 
 /// Most tools taken from a listing; extra ones are ignored.
@@ -145,20 +146,6 @@ impl Session {
             kill_tree(child).await;
         }
     }
-}
-
-/// Kill the server and everything it started (`npx`, `sh -c` wrappers and the
-/// like leave helpers behind), then reap it. The child was put in its own
-/// process group when it was spawned, so the group id is its pid.
-pub(crate) async fn kill_tree(child: &mut Child) {
-    #[cfg(unix)]
-    if let Some(pid) = child.id() {
-        // SAFETY: plain signal to a process group this module created.
-        unsafe {
-            let _ = libc::kill(-(pid as i32), libc::SIGKILL);
-        }
-    }
-    let _ = child.kill().await;
 }
 
 /// The text of a reply. Non-text content is named, not included.

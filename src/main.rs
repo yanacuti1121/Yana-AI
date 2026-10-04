@@ -42,8 +42,9 @@ mod workspace;
 // default build.
 #[cfg(feature = "mcp")]
 mod mcp;
-// WS3 T1: MCP client (uses external MCP servers); same feature gate as `mcp`.
-#[cfg(feature = "mcp")]
+// WS3 T1: client side of external servers. The MCP protocol parts are gated inside on `mcp`;
+// the child-process helpers are shared with the LSP client, so either feature builds them.
+#[cfg(any(feature = "mcp", feature = "lsp"))]
 mod mcp_client;
 // WS3 LSP client (docs/contracts/ws3-tools.md section 17); its async parts are gated inside.
 mod lsp_client;

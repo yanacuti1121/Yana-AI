@@ -133,11 +133,16 @@ pub(super) fn descriptors() -> Vec<CapabilityDescriptor> {
                 "truncated": {"type": "boolean"}
             }
         }),
-        availability: mcp_client_built,
+        availability: lsp_client_built,
     }]
 }
 
 /// The client only exists in builds with the `mcp` feature.
 fn mcp_client_built(_ctx: &SessionContext) -> bool {
     cfg!(feature = "mcp")
+}
+
+/// The language-server client only exists in builds with the `lsp` feature.
+fn lsp_client_built(_ctx: &SessionContext) -> bool {
+    cfg!(feature = "lsp")
 }

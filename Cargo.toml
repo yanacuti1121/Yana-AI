@@ -66,6 +66,9 @@ wasm = ["wasm-bindgen", "js-sys"]
 # required feature set (rt-multi-thread/macros/io-std, likely) once this
 # graduates past prototype.
 mcp = ["rmcp", "tokio"]
+# The read-only language-server client (docs/contracts/ws3-tools.md section 17). It
+# needs the async runtime but not the MCP protocol crate, so it does not depend on `mcp`.
+lsp = ["tokio"]
 # `pty_bridge` binary only — isolated from `cli` the same way `mcp` is,
 # so the default `yana-rt` build never pulls in portable-pty.
 pty-bridge = ["portable-pty"]

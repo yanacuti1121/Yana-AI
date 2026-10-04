@@ -533,7 +533,7 @@ fn resume_an_mcp_call(swap_program_before_resume: bool) -> (usize, String, Strin
 
 /// The same for a language server question: pause, store the reason with the resolved program
 /// and the whole question, approve, optionally swap the program, resume.
-#[cfg(feature = "mcp")]
+#[cfg(feature = "lsp")]
 fn resume_an_lsp_query(swap_program_before_resume: bool) -> (usize, String, String) {
     let root = tempfile::tempdir().unwrap();
     write_flock_marker(root.path());
@@ -583,7 +583,7 @@ fn resume_an_lsp_query(swap_program_before_resume: bool) -> (usize, String, Stri
     (executor_calls.load(Ordering::SeqCst), given, reason)
 }
 
-#[cfg(feature = "mcp")]
+#[cfg(feature = "lsp")]
 #[test]
 fn resuming_an_approved_lsp_query_runs_it_once_when_the_program_is_unchanged() {
     let (ran, given, _) = resume_an_lsp_query(false);
@@ -591,7 +591,7 @@ fn resuming_an_approved_lsp_query_runs_it_once_when_the_program_is_unchanged() {
     assert_eq!(given, "approved and executed");
 }
 
-#[cfg(feature = "mcp")]
+#[cfg(feature = "lsp")]
 #[test]
 fn resuming_an_approved_lsp_query_does_not_run_a_program_swapped_after_approval() {
     let (ran, given, _) = resume_an_lsp_query(true);

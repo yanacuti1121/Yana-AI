@@ -142,7 +142,7 @@ fn the_plain_executor_has_no_lsp_branch_so_nothing_runs_without_approval() {
     assert!(result.is_error && result.output.contains("no implementation"), "{result:?}");
 }
 
-#[cfg(all(feature = "mcp", unix))]
+#[cfg(all(feature = "lsp", unix))]
 fn run_approved(root: &Path, executor: &ChatCapabilityExecutor, call: &ToolCall) -> ToolResultRecord {
     use crate::runtime::{execute_approved_tool, CancellationToken, TurnContext, TurnOrigin, YanaAuthorityChain};
     let session = crate::session_context::SessionContext::new("s", root.to_path_buf(), "mock", "mock", false);
@@ -150,7 +150,7 @@ fn run_approved(root: &Path, executor: &ChatCapabilityExecutor, call: &ToolCall)
     execute_approved_tool(&YanaAuthorityChain, executor, &context, call, &CancellationToken::default(), &mut |_| {}).unwrap()
 }
 
-#[cfg(all(feature = "mcp", unix))]
+#[cfg(all(feature = "lsp", unix))]
 const HELPERS: &str = r#"
 read_frame() {
   len=0
@@ -165,7 +165,7 @@ send() { body="$1"; printf 'Content-Length: %d\r\n\r\n%s' "${#body}" "$body"; }
 "#;
 
 /// Lists a fake language server whose script answers the question with `answer`.
-#[cfg(all(feature = "mcp", unix))]
+#[cfg(all(feature = "lsp", unix))]
 fn serve(root: &Path, answer: &str) -> PathBuf {
     let marker = root.join("started");
     let script = root.join("server.sh");
@@ -187,7 +187,7 @@ read_frame
     marker
 }
 
-#[cfg(all(feature = "mcp", unix))]
+#[cfg(all(feature = "lsp", unix))]
 #[test]
 fn after_approval_the_executor_runs_exactly_the_approved_program() {
     let (_k, root) = lsp_repo(Vec::new());
@@ -202,7 +202,7 @@ fn after_approval_the_executor_runs_exactly_the_approved_program() {
     assert!(!resumed.is_error && resumed.output.contains("fn alpha()"), "{resumed:?}");
 }
 
-#[cfg(all(feature = "mcp", unix))]
+#[cfg(all(feature = "lsp", unix))]
 #[test]
 fn a_program_swapped_after_approval_does_not_run_even_if_the_new_one_was_confirmed() {
     let (_k, root) = lsp_repo(Vec::new());
@@ -217,7 +217,7 @@ fn a_program_swapped_after_approval_does_not_run_even_if_the_new_one_was_confirm
     assert!(!root.join("evil-ran").exists(), "the swapped program must not have run");
 }
 
-#[cfg(all(feature = "mcp", unix))]
+#[cfg(all(feature = "lsp", unix))]
 #[test]
 fn a_resumed_call_is_bound_to_the_configuration_seen_when_the_executor_was_built() {
     let (_k, root) = lsp_repo(Vec::new());
@@ -240,7 +240,7 @@ fn a_resumed_call_is_bound_to_the_configuration_seen_when_the_executor_was_built
     assert!(!run_approved(&root2, &bound, &call).is_error);
 }
 
-#[cfg(all(feature = "mcp", unix))]
+#[cfg(all(feature = "lsp", unix))]
 #[test]
 fn a_resumed_lsp_query_that_does_not_match_the_stored_approval_is_refused_outright() {
     let (_k, root) = lsp_repo(Vec::new());
@@ -254,7 +254,7 @@ fn a_resumed_lsp_query_that_does_not_match_the_stored_approval_is_refused_outrig
     assert!(!marker.exists(), "nothing was started");
 }
 
-#[cfg(not(feature = "mcp"))]
+#[cfg(not(feature = "lsp"))]
 #[test]
 fn a_build_without_the_client_refuses_at_the_authority_chain_before_anything_starts() {
     use crate::runtime::{execute_approved_tool, CancellationToken, TurnContext, TurnOrigin, YanaAuthorityChain};

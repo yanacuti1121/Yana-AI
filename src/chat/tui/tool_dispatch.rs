@@ -90,14 +90,14 @@ impl ChatCapabilityExecutor {
             Ok(disclosure) => disclosure,
             Err(error) => return tool_result(call, format!("language server query refused: {error}"), true, false),
         };
-        #[cfg(feature = "mcp")]
+        #[cfg(feature = "lsp")]
         {
             return match crate::lsp_client::gateway::lsp_query(root, &arguments, &disclosure) {
                 Ok(answer) => tool_result(call, answer, false, false),
                 Err(error) => tool_result(call, format!("language server query failed: {error}"), true, false),
             };
         }
-        #[cfg(not(feature = "mcp"))]
+        #[cfg(not(feature = "lsp"))]
         {
             let _ = (&arguments, &disclosure);
             tool_result(call, "this build of yana-rt was made without language server support".to_string(), true, false)

@@ -3,7 +3,7 @@
 
 use super::*;
 use crate::lsp_client::operation::{parse_query, Operation};
-use crate::mcp_client::gateway_tests::{is_dead, wait_for};
+use crate::mcp_client::test_support::{is_dead, wait_for};
 use std::path::PathBuf;
 use std::time::Instant as StdInstant;
 

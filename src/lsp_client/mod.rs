@@ -8,19 +8,19 @@
 //! `connection` (one JSON-RPC conversation and what to answer when the server asks
 //! something), `session` (start the program, ask, stop it) and `gateway` (the one
 //! door, with approval comparison and untrusted-content screening) need the async
-//! runtime and are built with the `mcp` feature.
+//! runtime and are built with the `lsp` feature.
 
 // Without the client only the question and its presentation exist; the helpers the async
 // parts use (positions, URIs, request parameters) have no caller in that build.
-#![cfg_attr(not(feature = "mcp"), allow(dead_code))]
+#![cfg_attr(not(feature = "lsp"), allow(dead_code))]
 
-#[cfg(feature = "mcp")]
+#[cfg(feature = "lsp")]
 pub mod codec;
-#[cfg(feature = "mcp")]
+#[cfg(feature = "lsp")]
 pub mod connection;
-#[cfg(feature = "mcp")]
+#[cfg(feature = "lsp")]
 pub mod gateway;
 pub mod operation;
 pub mod present;
-#[cfg(feature = "mcp")]
+#[cfg(feature = "lsp")]
 pub mod session;

@@ -177,7 +177,7 @@ mod tests {
     }
 
     #[test]
-    fn lsp_query_is_offered_only_in_an_mcp_build_with_a_confirmed_server_list() {
+    fn lsp_query_is_offered_only_in_an_lsp_build_with_a_confirmed_server_list() {
         let outer = tempfile::tempdir().unwrap();
         let root = outer.path().join("ws");
         std::fs::create_dir_all(root.join(".yana-ai")).unwrap();
@@ -187,7 +187,7 @@ mod tests {
         std::fs::write(root.join(".yana-ai/lsp-servers.json"), r#"{"servers":[{"name":"a","command":"/bin/sh"}]}"#).unwrap();
         assert_eq!(names(&ctx_at(&root)), base, "a list nobody confirmed is not offered");
         crate::capability::config_trust::trust_in_test(&root);
-        if cfg!(feature = "mcp") {
+        if cfg!(feature = "lsp") {
             assert_eq!(names(&ctx_at(&root)), ["read_file", "run_command", "write_file", "write_config", "lsp_query"]);
             let spec = catalog(&ctx_at(&root)).into_iter().find(|t| t.name == "lsp_query").unwrap();
             assert_eq!(spec.parameters_schema["required"], serde_json::json!(["server", "operation", "path"]));
