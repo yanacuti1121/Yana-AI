@@ -30,7 +30,7 @@ pub struct LspDisclosure {
 
 /// Control, invisible and direction-changing characters made visible: a path or program name
 /// comes from real file names and must not reorder or hide what a remote approver reads.
-fn visible(text: &str) -> String {
+pub(crate) fn visible(text: &str) -> String {
     text.chars().map(|c| if c.is_control() || crate::capability::untrusted::is_invisible_format_char(c) { '?' } else { c }).collect()
 }
 

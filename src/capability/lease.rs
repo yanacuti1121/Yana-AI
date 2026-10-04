@@ -175,12 +175,12 @@ impl LeaseStore {
         }
     }
 
-    #[allow(clippy::too_many_arguments)]
     /// Capabilities that a lease must never cover. `lsp.query` has no command text, so a
     /// lease on it would match EVERY question to EVERY listed language server with no
     /// prompt; each call needs a person's approval instead (contract section 17).
     const NEVER_LEASED: [&'static str; 1] = ["lsp.query"];
 
+    #[allow(clippy::too_many_arguments)]
     pub fn grant(
         &self,
         subject: String,

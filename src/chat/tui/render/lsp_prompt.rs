@@ -12,9 +12,12 @@ use crate::capability::lsp_disclosure::LspDisclosure;
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::Line;
 
-/// Two borders, the title, the program line (a resolved absolute path plus arguments,
-/// up to 4 rows at the narrowest accepted terminal), the variable names (2), the
-/// question (up to 4: a 200-character path, an operation and a position) and slack.
+/// Two borders, the title, the program line (a resolved absolute path plus arguments:
+/// up to 5 rows at the narrowest accepted terminal, about 310 characters), the variable
+/// names (2) and the question (up to 4: a 200-character ASCII path, an operation and a
+/// position). That is 12 of the 14 rows at worst, with no slack; anything larger (a
+/// longer program line, or a non-ASCII path, which counts 2 cells per character) is
+/// refused rather than shown cut off.
 pub(super) const HEIGHT: u16 = 14;
 /// Below this many columns or rows the question cannot be laid out, so it is not
 /// shown and cannot be approved.

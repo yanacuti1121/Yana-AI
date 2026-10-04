@@ -6,7 +6,7 @@ use super::tool_dispatch::ChatCapabilityExecutor;
 use super::*;
 use crate::chat::tool_types::ToolCall;
 use crate::model::tool::ToolResultRecord;
-use serde_json::{json, Value};
+use serde_json::json;
 use std::path::{Path, PathBuf};
 
 const SOURCE: &str = "pub fn alpha() {}\nlet beta = alpha();\n";
@@ -119,7 +119,21 @@ fn a_question_that_was_not_shown_whole_cannot_be_approved() {
 }
 
 #[test]
-fn an_lsp_query_is_never_executed_without_approval_so_a_lease_cannot_run_it() {
+fn a_prompt_drawn_for_an_earlier_question_does_not_approve_a_different_one_with_the_same_call_id() {
+    let (_k, root) = lsp_repo(Vec::new());
+    let mut app = app_in(&root);
+    app.prepare_pending_approval(lsp_call("hover", "src/lib.rs", 1));
+    screen_of(&mut app, 100, 40);
+    assert!(app.shown_whole_call.is_some());
+    // Same call id, different question, key pressed before the next frame is drawn.
+    app.turn = TurnState::Idle;
+    app.prepare_pending_approval(lsp_call("references", "src/lib.rs", 2));
+    press(&mut app, 'y');
+    assert!(matches!(app.turn, TurnState::AwaitingApproval(_)), "the old frame must not count for the new question");
+}
+
+#[test]
+fn the_plain_executor_has_no_lsp_branch_so_nothing_runs_without_approval() {
     let (_k, root) = lsp_repo(Vec::new());
     let session = crate::session_context::SessionContext::new("s", root.clone(), "mock", "mock", false);
     let context = crate::runtime::TurnContext::new(session, crate::runtime::TurnOrigin::Terminal, true);
@@ -128,6 +142,7 @@ fn an_lsp_query_is_never_executed_without_approval_so_a_lease_cannot_run_it() {
     assert!(result.is_error && result.output.contains("no implementation"), "{result:?}");
 }
 
+#[cfg(all(feature = "mcp", unix))]
 fn run_approved(root: &Path, executor: &ChatCapabilityExecutor, call: &ToolCall) -> ToolResultRecord {
     use crate::runtime::{execute_approved_tool, CancellationToken, TurnContext, TurnOrigin, YanaAuthorityChain};
     let session = crate::session_context::SessionContext::new("s", root.to_path_buf(), "mock", "mock", false);
@@ -178,7 +193,7 @@ fn after_approval_the_executor_runs_exactly_the_approved_program() {
     let (_k, root) = lsp_repo(Vec::new());
     let marker = serve(&root, r#"{"contents":"fn alpha()"}"#);
     let call = lsp_call("hover", "src/lib.rs", 1);
-    let approved = crate::capability::lsp_disclosure::disclose(&root, &serde_json::from_str::<Value>(&call.arguments_json).unwrap()).unwrap();
+    let approved = crate::capability::lsp_disclosure::disclose(&root, &serde_json::from_str::<serde_json::Value>(&call.arguments_json).unwrap()).unwrap();
     let result = run_approved(&root, &ChatCapabilityExecutor::new(false).with_approved_lsp(Some(approved)), &call);
     assert!(!result.is_error && result.output.contains("fn alpha()") && result.output.contains("UNTRUSTED EXTERNAL CONTENT"), "{result:?}");
     assert!(marker.exists(), "the server really ran");
@@ -193,7 +208,7 @@ fn a_program_swapped_after_approval_does_not_run_even_if_the_new_one_was_confirm
     let (_k, root) = lsp_repo(Vec::new());
     serve(&root, "null");
     let call = lsp_call("hover", "src/lib.rs", 1);
-    let approved = crate::capability::lsp_disclosure::disclose(&root, &serde_json::from_str::<Value>(&call.arguments_json).unwrap()).unwrap();
+    let approved = crate::capability::lsp_disclosure::disclose(&root, &serde_json::from_str::<serde_json::Value>(&call.arguments_json).unwrap()).unwrap();
     let evil = root.join("evil.sh");
     std::fs::write(&evil, format!("#!/bin/sh\ntouch '{}'\n", root.join("evil-ran").display())).unwrap();
     list(&root, "/bin/sh", vec![evil.to_string_lossy().into_owned()]);
@@ -212,5 +227,5 @@ fn a_build_without_the_client_refuses_at_the_authority_chain_before_anything_sta
     let error = execute_approved_tool(&YanaAuthorityChain, &ChatCapabilityExecutor::new(false), &context, &lsp_call("hover", "src/lib.rs", 1), &CancellationToken::default(), &mut |_| {})
         .unwrap_err()
         .to_string();
-    assert!(error.contains("unavailable in this session") || error.contains("lsp.query"), "{error}");
+    assert!(error.contains("capability 'lsp.query' is unavailable in this session"), "{error}");
 }

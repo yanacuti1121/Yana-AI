@@ -78,6 +78,16 @@ mod tests {
         assert!(hidden_tool_notices(&root).is_empty());
     }
 
+    #[cfg(feature = "mcp")]
+    #[test]
+    fn an_unconfirmed_language_server_list_says_so_and_names_its_command() {
+        let (_k, root) = repo(&[("lsp-servers.json", SERVERS)]);
+        empty_store_in_test();
+        assert_eq!(hidden_tool_notices(&root), ["lsp_query chưa được xác nhận cho repo này: chạy `yana-rt trust allow lsp-servers`"]);
+        trust_in_test(&root);
+        assert!(hidden_tool_notices(&root).is_empty());
+    }
+
     #[cfg(not(feature = "mcp"))]
     #[test]
     fn without_the_client_no_confirmation_is_asked_for() {

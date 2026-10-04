@@ -164,7 +164,11 @@ impl PendingApproval {
                 format!("search via {}: {shown}", disclosure.backend_host)
             }
             PendingApproval::McpCall { command, .. } => format!("mcp {command}"),
-            PendingApproval::LspQuery { disclosure, .. } => format!("lsp {} {}", disclosure.operation.label(), disclosure.path),
+            PendingApproval::LspQuery { disclosure, .. } => {
+                // The path comes from real file names: masked, and cut like the search line.
+                let path: String = crate::capability::lsp_disclosure::visible(&disclosure.path).chars().take(60).collect();
+                format!("lsp {} {path}", disclosure.operation.label())
+            }
         }
     }
 
