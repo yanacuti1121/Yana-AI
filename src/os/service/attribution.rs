@@ -183,7 +183,7 @@ fn record_spawn(
         timestamp_unix_secs,
         pid,
         owner,
-        argv_redacted: redact_argv(argv),
+        argv_redacted: redact_argv_checked(argv).0,
     };
     let path = root.join(RECEIPTS_RELATIVE_PATH);
     if let Some(parent) = path.parent() {
@@ -212,6 +212,7 @@ fn record_spawn(
 /// sensitive flag name is left visible (it carries no secret on its own),
 /// but the argv element immediately following it is always redacted,
 /// regardless of what it looks like.
+#[cfg(test)]
 pub(crate) fn redact_argv(argv: &[String]) -> Vec<String> {
     redact_argv_checked(argv).0
 }
