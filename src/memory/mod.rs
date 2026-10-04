@@ -5,8 +5,12 @@ use std::io::Write;
 use std::path::PathBuf;
 use uuid::Uuid;
 
+mod guard;
 mod pack;
-pub use pack::{build_memory_pack, rank_facts};
+mod provider;
+pub use pack::{build_memory_pack, rank_facts, MemoryPack, RankedFact};
+#[allow(unused_imports)]
+pub use provider::{FactFilter, FactId, LocalMemory, MemoryError, MemoryProvider, NewFact};
 
 pub fn now() -> String { Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string() }
 

@@ -1,8 +1,20 @@
+#[cfg(test)]
+mod audit_tests;
+#[cfg(test)]
+mod diff_tests;
+#[cfg(test)]
+mod precision_tests;
 pub mod files;
 mod matchers;
+#[cfg(test)]
+mod matchers_tests;
 pub mod mod_types;
 pub mod render;
+#[cfg(test)]
+mod render_tests;
 mod rules;
+#[cfg(test)]
+mod rules_tests;
 
 pub use mod_types::*;
 

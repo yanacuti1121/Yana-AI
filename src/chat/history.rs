@@ -287,6 +287,8 @@ fn append_line(session_id: &str, line: &HistoryLine) -> Result<()> {
         .append(true)
         .open(history_path(session_id))?;
     writeln!(file, "{json}")?;
+    // After the line is safely on disk; never fails the caller.
+    mirror::mirror_line(line);
     Ok(())
 }
 
@@ -553,6 +555,7 @@ pub fn load(session_id: &str) -> Result<Vec<ChatMessage>> {
     Ok(messages)
 }
 
+mod mirror;
 mod repair;
 pub use repair::repair_dangling_tool_call;
 

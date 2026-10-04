@@ -53,7 +53,11 @@ cli = [
   "tree-sitter", "tree-sitter-rust", "tree-sitter-typescript",
   "tree-sitter-javascript", "tree-sitter-python", "tree-sitter-go",
   "flock-v1",
+  "session-db",
 ]
+# Session database (WS4, docs/contracts/ws4-state.md section 4). Kept as its own
+# feature so a build without SQLite is still possible; it is part of `cli`.
+session-db = ["rusqlite", "unicode-normalization", "chrono"]
 wasm = ["wasm-bindgen", "js-sys"]
 # Program J (docs/programs/PROGRAM-J-SKELETON.md) Phase 9 Research/Prototype
 # spike ONLY — not wired into any live client path, not part of default
@@ -106,6 +110,11 @@ serde_yml  = { version = "0.0.13",                   optional = true }
 sha2       = { version = "0.10",                     optional = true }
 libc       = { version = "0.2",                      optional = true }
 url        = { version = "2",                        optional = true }
+# SQLite for the session database (WS4). Pinned exactly (rule 44) and with
+# default features off, so the optional statement cache and its `hashlink`
+# dependency stay out. `bundled` compiles SQLite from C source (libsqlite3-sys
+# uses the `cc` crate) instead of linking a system library.
+rusqlite   = { version = "=0.40.2", default-features = false, features = ["bundled"], optional = true }
 # TUI for `yana chat` — synchronous poll/read API only, deliberately not
 # opting into crossterm's `event-stream` feature (would pull in async/
 # futures plumbing this crate has nowhere else).

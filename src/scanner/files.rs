@@ -180,32 +180,34 @@ pub fn is_ignored(rel_path: &str, patterns: &[String]) -> bool {
     PathMatcher::new(patterns).matches_path_or_basename(rel_path)
 }
 
-pub fn get_diff_files(base: &str, target: &str) -> HashSet<String> {
+/// Files changed against `base` (working tree and index). Errors when `base` is
+/// not a revision, or looks like a git option, instead of returning an empty
+/// set: an empty set would make an audit scan nothing and report clean, and an
+/// option such as `--output=<path>` would make git overwrite that file.
+pub fn get_diff_files(base: &str, target: &str) -> Result<HashSet<String>, String> {
     use std::process::Command;
-    let mut files = HashSet::new();
-    let run = |args: &[&str]| -> Vec<String> {
-        Command::new("git")
+    if base.starts_with('-') {
+        return Err(format!("--diff base must be a revision, not an option: '{base}'"));
+    }
+    let run = |args: &[&str]| -> Result<Vec<String>, String> {
+        let out = Command::new("git")
             .args(args)
             .current_dir(target)
             .output()
-            .ok()
-            .filter(|o| o.status.success())
-            .map(|o| {
-                String::from_utf8_lossy(&o.stdout)
-                    .lines()
-                    .map(|l| l.trim().to_string())
-                    .filter(|l| !l.is_empty())
-                    .collect()
-            })
-            .unwrap_or_default()
+            .map_err(|e| format!("could not run git: {e}"))?;
+        if !out.status.success() {
+            return Err(format!("git {} failed: {}", args.join(" "), String::from_utf8_lossy(&out.stderr).trim()));
+        }
+        Ok(String::from_utf8_lossy(&out.stdout)
+            .lines()
+            .map(|l| l.trim().to_string())
+            .filter(|l| !l.is_empty())
+            .collect())
     };
-    for f in run(&["diff", "--name-only", base]) {
-        files.insert(f);
-    }
-    for f in run(&["diff", "--name-only", "--cached"]) {
-        files.insert(f);
-    }
-    files
+    let mut files = HashSet::new();
+    files.extend(run(&["diff", "--name-only", base])?);
+    files.extend(run(&["diff", "--name-only", "--cached"])?);
+    Ok(files)
 }
 
 #[cfg(test)]

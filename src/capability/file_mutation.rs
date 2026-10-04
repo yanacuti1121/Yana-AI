@@ -24,6 +24,7 @@
 //! hash/size/mtime evidence every read capability already produces —
 //! not a second, weaker evidence type).
 
+use super::checkpoint_hook;
 use super::error::CapabilityError;
 use super::evidence::ToolEvidence;
 use std::fs;
@@ -289,8 +290,26 @@ pub fn apply_file_write(
     new_content: &str,
     session_id: Option<String>,
 ) -> Result<FileMutationOutcome, CapabilityError> {
+    apply_file_write_with(root, requested, kind, new_content, session_id, checkpoint_hook::from_env().as_ref())
+}
+
+/// `apply_file_write` with the optional pre-write checkpoint decided by the
+/// caller instead of the environment (`None` = off). `pub(super)` so tests can
+/// compare settings, and inject a missing git, without process-wide state.
+pub(super) fn apply_file_write_with(
+    root: &Path,
+    requested: &str,
+    kind: FileMutationKind,
+    new_content: &str,
+    session_id: Option<String>,
+    checkpoints: Option<&checkpoint_hook::HookConfig>,
+) -> Result<FileMutationOutcome, CapabilityError> {
     let diff = propose_file_write(root, requested, kind, new_content)?;
     let target = resolve_for_write(root, requested)?;
+    // Everything above is validation only; nothing has been written yet. The
+    // result of the hook is ignored on purpose: it can never change the write.
+    let action = if diff.existed_before { "overwrite" } else { "create" };
+    let _ = checkpoint_hook::before_write(checkpoints, root, requested, action);
 
     let backup_path = if diff.existed_before {
         Some(write_backup(root, requested, &target)?)

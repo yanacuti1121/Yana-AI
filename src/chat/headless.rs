@@ -141,6 +141,12 @@ pub(super) fn dispatch(provider_name: String, model: Option<String>) -> Result<(
     }
     let history_messages = validate_history(input.history)?;
     let repo_root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    // Notes go to stderr: stdout is the NDJSON protocol channel.
+    let wiring = crate::chat::wire_provider(provider, &crate::chat::configured_fallbacks(&repo_root));
+    for note in &wiring.notes {
+        eprintln!("[chat/headless] {note}");
+    }
+    let provider = wiring.provider;
     let session = SessionContext::new(
         validate_session_id(input.session_id.as_deref())?,
         repo_root,
@@ -236,6 +242,11 @@ pub(super) fn dispatch_resume(provider_name: String) -> Result<()> {
         crate::model::catalog::try_select_provider(&provider_name).map_err(anyhow::Error::msg)?;
     let input = read_resume_input()?;
     let repo_root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    let wiring = crate::chat::wire_provider(provider, &crate::chat::configured_fallbacks(&repo_root));
+    for note in &wiring.notes {
+        eprintln!("[chat/headless] {note}");
+    }
+    let provider = wiring.provider;
     let store = PendingApprovalStore::for_root(&repo_root);
     let resolved = store
         .resolve(&input.approval_id, input.decision, input.decided_by)
@@ -556,6 +567,8 @@ fn write_event(output: &mut impl Write, event: RuntimeEvent) -> Result<()> {
             "type": "metrics",
             "input_tokens": usage.input_tokens,
             "output_tokens": usage.output_tokens,
+            "cache_read_tokens": usage.cache_read_tokens,
+            "cache_write_tokens": usage.cache_write_tokens,
         })),
         RuntimeEvent::AuthorityDenied { authority, reason } => Some(json!({
             "type": "authority_denied",
@@ -770,6 +783,8 @@ mod tests {
             RuntimeEvent::Metrics(crate::model::provider::ChatUsage {
                 input_tokens: 4,
                 output_tokens: 7,
+                cache_read_tokens: 300,
+                cache_write_tokens: 40,
             }),
         )
         .unwrap();
@@ -784,6 +799,8 @@ mod tests {
         );
         assert_eq!(parsed[1]["input_tokens"], 4);
         assert_eq!(parsed[1]["output_tokens"], 7);
+        assert_eq!(parsed[1]["cache_read_tokens"], 300);
+        assert_eq!(parsed[1]["cache_write_tokens"], 40);
     }
 
     #[test]

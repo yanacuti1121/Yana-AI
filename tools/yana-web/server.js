@@ -5,6 +5,7 @@ const https = require('https');
 const fs    = require('fs');
 const os    = require('os');
 const path  = require('path');
+const { resolveStaticFile } = require('./static-path');
 const url   = require('url');
 
 // Minimal .env.local loader — local-only secrets (currently: Google OAuth
@@ -366,11 +367,9 @@ function readBody(req, maxBytes) {
 }
 
 function serveStatic(res, reqPath) {
-  const filePath = path.resolve(STATIC_DIR, '.' + reqPath);
-  const rel = path.relative(STATIC_DIR, filePath);
-  const escapes  = rel.startsWith('..') || path.isAbsolute(rel);
-  const hidden   = rel.split(path.sep).some(seg => seg.startsWith('.') || seg === 'node_modules');
-  if (escapes || hidden) {
+  // static-path.js refuses `..`, dotfiles, node_modules and symlinks that lead outside STATIC_DIR
+  const filePath = resolveStaticFile(STATIC_DIR, reqPath);
+  if (!filePath) {
     res.writeHead(404, { 'Content-Type': 'text/plain' }); res.end('Not Found'); return;
   }
   const contentType = MIME[path.extname(filePath)] || 'text/plain';

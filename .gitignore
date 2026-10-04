@@ -93,8 +93,9 @@ artifacts/release-gate/
 .yana-ai/exports/
 .yana-ai/os/
 yana-ai-*.html
-# the English Yana AI page is a real website page, not a generated audit report
+# These localized Yana AI pages are real website pages, not generated audit reports.
 !docs/yana-ai-en.html
+!docs/yana-ai-ko.html
 yana-ai-*.sarif
 releases/*.zip
 releases/*.bundle
