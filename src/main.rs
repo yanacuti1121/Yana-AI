@@ -31,6 +31,7 @@ mod route;
 pub mod scanner;
 mod score;
 mod session_context;
+mod session_db;
 mod skill_quality;
 mod spec;
 mod task;
