@@ -11,6 +11,11 @@
 // second backend and the approval prompt use them (E1); only `LocalBackend::run` is used.
 #![allow(dead_code)]
 
+pub mod docker;
+mod docker_run;
+#[cfg(test)]
+mod docker_tests;
+
 use crate::capability::command::AGENT_CHILD_ENV;
 use crate::capability::CapabilityError;
 use std::path::{Path, PathBuf};
@@ -37,6 +42,10 @@ pub struct ExecOutput {
     pub stdout: Vec<u8>,
     pub stderr: Vec<u8>,
     pub exit_code: Option<i32>,
+    /// The wall-clock limit ran out and the command was killed (`exit_code` is then `None`).
+    pub timed_out: bool,
+    /// More output than the backend's cap was produced; the rest was dropped.
+    pub truncated: bool,
 }
 
 pub trait ExecBackend: Send + Sync {
@@ -107,6 +116,8 @@ impl ExecBackend for LocalBackend {
             exit_code: output.status.code(),
             stdout: output.stdout,
             stderr: output.stderr,
+            timed_out: false,
+            truncated: false,
         })
     }
 }
