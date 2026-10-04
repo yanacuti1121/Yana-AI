@@ -124,6 +124,8 @@ impl ServerConfig {
 }
 
 /// All configured servers, read without any trust check (listing only). A missing file is an empty list.
+/// Only the tests list servers so far, so it is built for tests alone.
+#[cfg(test)]
 pub fn load_servers(root: &Path) -> Result<Vec<ServerConfig>, CapabilityError> {
     match config_trust::read_config(root, ConfigKind::McpServers) {
         Ok((bytes, _)) => parse_servers(&bytes),

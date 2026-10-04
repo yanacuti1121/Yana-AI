@@ -47,6 +47,9 @@ pub fn is_bare_name(command: &str) -> bool {
 
 /// `path` without the entries a repository could use to supply a program: empty and relative
 /// entries, directories inside `root`, and directories that do not exist. `None` when nothing is left.
+// Used by the child-process helper of the MCP and LSP clients, which exist only with one of
+// those features (and by this module's tests).
+#[cfg(any(feature = "mcp", feature = "lsp", test))]
 pub fn safe_path_var(path: &OsStr, root: &Path) -> Option<OsString> {
     let repository = repository_bounds(root)?;
     let kept: Vec<PathBuf> = std::env::split_paths(path)

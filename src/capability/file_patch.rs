@@ -7,6 +7,12 @@
 //! optional checkpoint are exactly those of `file.write` (Overwrite). Nothing
 //! here writes a file itself.
 
+// `file.patch` is a described capability (registry descriptor, contract section 7) that no
+// chat or MCP path calls yet: the contract says wiring it needs `authorize` plus a
+// refused-without-approval test, which is a separate piece of work. Until then only the tests
+// call this module, so its dead-code warnings are expected and reasoned.
+#![allow(dead_code)]
+
 use super::error::CapabilityError;
 use super::file_mutation::{apply_file_write, propose_file_write, FileMutationDiff, FileMutationKind, FileMutationOutcome};
 use super::patch::{apply_edits, EditReport, FileEdit};

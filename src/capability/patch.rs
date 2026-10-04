@@ -13,6 +13,12 @@
 //! rules. More than one match is an error unless `replace_all` is set, and the
 //! loose levels never run when the exact level found something.
 
+// `file.patch` is a described capability (registry descriptor, contract section 7) that no
+// chat or MCP path calls yet: the contract says wiring it needs `authorize` plus a
+// refused-without-approval test, which is a separate piece of work. Until then only the tests
+// call this module, so its dead-code warnings are expected and reasoned.
+#![allow(dead_code)]
+
 use super::error::CapabilityError;
 
 /// Most edits accepted in one call.
