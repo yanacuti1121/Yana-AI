@@ -16,7 +16,7 @@ use ratatui::text::Line;
 /// up to 5 rows at the narrowest accepted terminal, about 310 characters), the variable
 /// names (2) and the question (up to 4: a 200-character ASCII path, an operation and a
 /// position). That is 12 of the 14 rows at worst, with no slack; anything larger (a
-/// longer program line, or a non-ASCII path, which counts 2 cells per character) is
+/// longer program line, or a path of wide characters, which count 2 cells each) is
 /// refused rather than shown cut off.
 pub(super) const HEIGHT: u16 = 14;
 /// Below this many columns or rows the question cannot be laid out, so it is not

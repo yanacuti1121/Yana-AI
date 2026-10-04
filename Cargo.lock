@@ -4141,6 +4141,7 @@ dependencies = [
  "tree-sitter-typescript",
  "tungstenite",
  "unicode-normalization",
+ "unicode-width",
  "ureq",
  "url",
  "uuid",

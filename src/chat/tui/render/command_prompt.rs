@@ -46,12 +46,10 @@ pub(super) fn masked(text: &str) -> String {
     text.chars().map(shown).collect()
 }
 
+/// Terminal cells one character takes (the width ratatui itself uses): a Vietnamese
+/// letter with its diacritics is 1, a CJK character 2.
 fn cells(c: char) -> usize {
-    if c.is_ascii() {
-        1
-    } else {
-        2
-    }
+    unicode_width::UnicodeWidthChar::width(c).unwrap_or(1)
 }
 
 /// `text` in rows of at most `width` cells.
@@ -132,6 +130,21 @@ mod tests {
 
     fn area(width: u16, height: u16) -> Rect {
         Rect::new(0, 0, width, height)
+    }
+
+    #[test]
+    fn vietnamese_text_takes_one_cell_per_letter_and_wide_characters_two() {
+        // Precomposed and decomposed (base letter + combining mark) forms of the same text.
+        let precomposed = "Tr\u{1ea7}n V\u{0103}n T\u{00e2}m \u{0111}\u{1ec3} ki\u{1ec3}m tra";
+        let decomposed = "Tra\u{0302}\u{0300}n Va\u{0306}n Ta\u{0302}m";
+        assert!(precomposed.chars().all(|c| cells(c) == 1), "{precomposed}");
+        assert_eq!(decomposed.chars().map(cells).sum::<usize>(), "Tran Van Tam".chars().count(), "combining marks add no cell");
+        // 40 Vietnamese letters fit a 40-cell row whole; 40 CJK characters need two rows.
+        let viet: String = "\u{1ec7}".repeat(40);
+        assert_eq!(rows_of(&viet, 40).len(), 1);
+        let cjk: String = "\u{6f22}".repeat(40);
+        assert_eq!(rows_of(&cjk, 40).len(), 2);
+        assert!(rows_of(&cjk, 40).iter().all(|r| r.chars().map(cells).sum::<usize>() <= 40));
     }
 
     #[test]
