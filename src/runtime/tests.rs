@@ -66,6 +66,7 @@ impl ChatProvider for MockProvider {
                     ChatUsage {
                         input_tokens: 2,
                         output_tokens: 3,
+                        ..Default::default()
                     },
                     StreamOutcome::Text,
                 ))
@@ -74,6 +75,7 @@ impl ChatProvider for MockProvider {
                 ChatUsage {
                     input_tokens: 1,
                     output_tokens: 1,
+                    ..Default::default()
                 },
                 StreamOutcome::ToolCalls(vec![call]),
             )),
