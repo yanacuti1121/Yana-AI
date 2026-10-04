@@ -11,6 +11,7 @@
 
 use super::config_trust::{self, ConfigKind};
 use super::mcp_config::{validate, ServerConfig};
+pub use super::program_path::resolve_program;
 use super::CapabilityError;
 use serde::Deserialize;
 use std::path::Path;
@@ -107,49 +108,6 @@ fn parse(bytes: &[u8]) -> Result<Vec<LspServer>, CapabilityError> {
         }
     }
     Ok(file.servers)
-}
-
-/// The absolute path of the program that would run for `command`, decided in this process
-/// BEFORE the working directory is changed to the repository. An absolute command is itself.
-/// A bare name is looked for in the PATH entries that are absolute and outside the repository:
-/// a relative or empty entry (which a shell may add for `.` or `./node_modules/.bin`) and a
-/// directory inside the repository are skipped, so the repository cannot supply the program
-/// by putting one where PATH would find it. The result is what an approver is shown and what is run.
-pub fn resolve_program(command: &str, root: &Path) -> Result<String, CapabilityError> {
-    resolve_program_in(command, root, std::env::var_os("PATH").as_deref())
-}
-
-fn is_executable_file(path: &Path) -> bool {
-    let Ok(meta) = std::fs::metadata(path) else { return false };
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        meta.is_file() && meta.permissions().mode() & 0o111 != 0
-    }
-    #[cfg(not(unix))]
-    {
-        meta.is_file()
-    }
-}
-
-pub(crate) fn resolve_program_in(command: &str, root: &Path, path_var: Option<&std::ffi::OsStr>) -> Result<String, CapabilityError> {
-    if Path::new(command).is_absolute() {
-        return Ok(command.to_string());
-    }
-    let repository = root.canonicalize().map_err(|e| CapabilityError::Io { detail: format!("resolve repository: {e}") })?;
-    for dir in std::env::split_paths(path_var.unwrap_or_default()) {
-        if !dir.is_absolute() {
-            continue;
-        }
-        let candidate = dir.join(command);
-        // Neither the directory nor, through links, the program itself may be inside the repository.
-        let inside = |p: &Path| p.canonicalize().map(|c| c.starts_with(&repository)).unwrap_or(true);
-        if inside(&dir) || !is_executable_file(&candidate) || inside(&candidate) {
-            continue;
-        }
-        return candidate.to_str().map(str::to_string).ok_or_else(|| invalid("that program's path is not valid text"));
-    }
-    Err(invalid(format!("'{command}' was not found in PATH (relative entries and directories inside the repository are ignored); give an absolute path")))
 }
 
 /// The one server called `name`. What is parsed here is the very bytes that were
@@ -251,51 +209,6 @@ mod tests {
             assert!(rust.check_extension(bad).is_err(), "{bad}");
         }
         assert!(find_lsp_server(&root, "any").unwrap().check_extension("anything.xyz").is_ok());
-    }
-
-    /// A directory of programs, with one executable file named `name` in it.
-    fn bin_with(parent: &std::path::Path, dir: &str, name: &str) -> std::path::PathBuf {
-        let bin = parent.join(dir);
-        std::fs::create_dir_all(&bin).unwrap();
-        let program = bin.join(name);
-        std::fs::write(&program, "#!/bin/sh\n").unwrap();
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            std::fs::set_permissions(&program, std::fs::Permissions::from_mode(0o755)).unwrap();
-        }
-        bin
-    }
-
-    #[cfg(unix)]
-    #[test]
-    fn a_bare_name_is_resolved_outside_the_repository_and_never_from_a_relative_or_inside_entry() {
-        let outer = tempfile::tempdir().unwrap();
-        let root = outer.path().canonicalize().unwrap().join("repo");
-        std::fs::create_dir_all(&root).unwrap();
-        let inside = bin_with(&root, "node_modules/.bin", "lsp-x");
-        let trusted = bin_with(&outer.path().canonicalize().unwrap(), "usr-bin", "lsp-x");
-        let join = |dirs: &[&std::path::Path]| std::env::join_paths(dirs.iter().map(|d| d.as_os_str())).unwrap();
-        let resolve = |path: &std::ffi::OsStr| resolve_program_in("lsp-x", &root, Some(path));
-        // A relative entry ("." or "node_modules/.bin"), an empty entry and an in-repository entry are all skipped.
-        let path = join(&[std::path::Path::new("."), std::path::Path::new("node_modules/.bin"), std::path::Path::new(""), &inside, &trusted]);
-        assert_eq!(resolve(&path).unwrap(), trusted.join("lsp-x").to_str().unwrap(), "the program outside the repository wins");
-        // With only skipped entries nothing resolves, and the repository's program is NOT used.
-        let only_bad = join(&[std::path::Path::new("."), &inside]);
-        assert!(resolve(&only_bad).unwrap_err().to_string().contains("not found in PATH"));
-        assert!(resolve_program_in("lsp-x", &root, None).is_err(), "no PATH at all");
-        // A file that is not executable is not a program.
-        let plain = outer.path().canonicalize().unwrap().join("plain");
-        std::fs::create_dir_all(&plain).unwrap();
-        std::fs::write(plain.join("lsp-x"), "x").unwrap();
-        assert!(resolve(&join(&[&plain])).is_err());
-        // A link outside the repository that points back into it is skipped as well.
-        let linked = outer.path().canonicalize().unwrap().join("linked");
-        std::fs::create_dir_all(&linked).unwrap();
-        std::os::unix::fs::symlink(inside.join("lsp-x"), linked.join("lsp-x")).unwrap();
-        assert!(resolve(&join(&[&linked])).is_err(), "a link into the repository is the repository's program");
-        // An absolute command is itself, whatever PATH says.
-        assert_eq!(resolve_program_in("/bin/sh", &root, Some(&path)).unwrap(), "/bin/sh");
     }
 
     #[test]

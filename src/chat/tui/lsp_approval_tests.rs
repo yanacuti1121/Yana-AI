@@ -217,6 +217,27 @@ fn a_program_swapped_after_approval_does_not_run_even_if_the_new_one_was_confirm
     assert!(!root.join("evil-ran").exists(), "the swapped program must not have run");
 }
 
+#[cfg(all(feature = "mcp", unix))]
+#[test]
+fn a_resumed_call_is_bound_to_the_configuration_seen_when_the_executor_was_built() {
+    let (_k, root) = lsp_repo(Vec::new());
+    let marker = serve(&root, "null");
+    let call = lsp_call("hover", "src/lib.rs", 1);
+    let executor = ChatCapabilityExecutor::new(false).bound_to_current_configuration(&call, &root);
+    // The program is swapped (and confirmed again) after the executor was built, before it runs.
+    let evil = root.join("evil.sh");
+    std::fs::write(&evil, format!("#!/bin/sh\ntouch '{}'\n", root.join("evil-ran").display())).unwrap();
+    list(&root, "/bin/sh", vec![evil.to_string_lossy().into_owned()]);
+    let result = run_approved(&root, &executor, &call);
+    assert!(result.is_error && result.output.contains("not what was approved"), "{result:?}");
+    assert!(!root.join("evil-ran").exists() && !marker.exists());
+    // Unchanged, the same executor design runs it.
+    let (_k2, root2) = lsp_repo(Vec::new());
+    serve(&root2, r#"{"contents":"ok"}"#);
+    let bound = ChatCapabilityExecutor::new(false).bound_to_current_configuration(&call, &root2);
+    assert!(!run_approved(&root2, &bound, &call).is_error);
+}
+
 #[cfg(not(feature = "mcp"))]
 #[test]
 fn a_build_without_the_client_refuses_at_the_authority_chain_before_anything_starts() {

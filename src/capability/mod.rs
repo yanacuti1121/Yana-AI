@@ -26,6 +26,7 @@ pub mod lsp_disclosure;
 pub mod mcp_config;
 pub mod mcp_disclosure;
 pub mod patch;
+pub mod program_path;
 #[cfg(test)]
 mod patch_tests;
 #[cfg(test)]

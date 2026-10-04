@@ -15,7 +15,7 @@ fn mcp_call(command: &str, arguments: serde_json::Value) -> ToolCall {
 
 
 fn one_server() -> serde_json::Value {
-    serde_json::json!([{"name": "gh", "command": "npx", "args": ["-y", "a b"], "env": ["GITHUB_TOKEN"]}])
+    serde_json::json!([{"name": "gh", "command": "/usr/local/bin/npx", "args": ["-y", "a b"], "env": ["GITHUB_TOKEN"]}])
 }
 
 #[test]
@@ -26,7 +26,7 @@ fn an_mcp_call_waits_for_approval_showing_the_exact_command_line() {
     match &app.turn {
         TurnState::AwaitingApproval(pending @ PendingApproval::McpCall { command, disclosure, arguments, .. }) => {
             assert_eq!(command, "gh search");
-            assert_eq!(disclosure.command_line(), "npx -y 'a b'", "quoted, so two arguments cannot pass for one");
+            assert_eq!(disclosure.command_line(), "/usr/local/bin/npx -y 'a b'", "quoted, so two arguments cannot pass for one");
             assert_eq!(disclosure.env_names, ["GITHUB_TOKEN"]);
             assert_eq!(arguments, &serde_json::json!({"q": "rust"}));
             assert_eq!(pending.summary_line(), "mcp gh search");

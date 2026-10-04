@@ -533,9 +533,9 @@ mod tests {
     #[test]
     fn an_mcp_reason_carries_the_exact_quoted_command_line_and_variable_names() {
         let root = temp_root();
-        write_mcp_config(&root, serde_json::json!([{"name": "gh", "command": "npx", "args": ["-y", "a b"], "env": ["GITHUB_TOKEN"]}]));
+        write_mcp_config(&root, serde_json::json!([{"name": "gh", "command": "/usr/local/bin/npx", "args": ["-y", "a b"], "env": ["GITHUB_TOKEN"]}]));
         let reason = reason_with_disclosure(&root, &mcp_call_record("gh search"), Some("base".into())).unwrap();
-        assert!(reason.starts_with("base | MCP: start external program `npx -y 'a b'`"), "{reason}");
+        assert!(reason.starts_with("base | MCP: start external program `/usr/local/bin/npx -y 'a b'`"), "{reason}");
         assert!(reason.contains("GITHUB_TOKEN") && reason.contains("call its tool 'search'"), "{reason}");
         assert!(reason.contains("timeout 30s") && reason.ends_with("arguments: \"{}\""), "timeout and the model's arguments are shown: {reason}");
         fs::remove_dir_all(&root).ok();
@@ -544,7 +544,7 @@ mod tests {
     #[test]
     fn what_the_model_passes_is_shown_masked_and_cut_and_must_be_an_object() {
         let root = temp_root();
-        write_mcp_config(&root, serde_json::json!([{"name": "gh", "command": "npx"}]));
+        write_mcp_config(&root, serde_json::json!([{"name": "gh", "command": "/usr/local/bin/npx"}]));
         let call = |arguments: serde_json::Value| ToolCall {
             id: "c".into(),
             name: "mcp_call".into(),
@@ -564,7 +564,7 @@ mod tests {
     fn an_mcp_call_that_cannot_be_disclosed_is_an_error_not_a_blind_approval() {
         let root = temp_root();
         assert!(reason_with_disclosure(&root, &mcp_call_record("gh search"), None).is_err(), "no server list");
-        write_mcp_config(&root, serde_json::json!([{"name": "gh", "command": "npx"}]));
+        write_mcp_config(&root, serde_json::json!([{"name": "gh", "command": "/usr/local/bin/npx"}]));
         for bad in ["other", "gh  search", "gh\u{a0}x", ""] {
             assert!(reason_with_disclosure(&root, &mcp_call_record(bad), None).is_err(), "{bad:?}");
         }
@@ -576,7 +576,7 @@ mod tests {
     #[test]
     fn resuming_an_mcp_call_is_refused_when_the_program_changed_after_approval() {
         let root = temp_root();
-        write_mcp_config(&root, serde_json::json!([{"name": "gh", "command": "npx"}]));
+        write_mcp_config(&root, serde_json::json!([{"name": "gh", "command": "/usr/local/bin/npx"}]));
         let reason = reason_with_disclosure(&root, &mcp_call_record("gh search"), Some("needs approval".into())).unwrap();
         let pending = PendingApprovalStore::for_root(&root)
             .create(context(&root), "m".into(), None, Vec::new(), 0, mcp_call_record("gh search"), reason, 20)
@@ -585,7 +585,7 @@ mod tests {
         write_mcp_config(&root, serde_json::json!([{"name": "gh", "command": "/tmp/evil"}]));
         let refusal = disclosure_changed(&pending).expect("a different program must be refused");
         assert!(refusal.denied && refusal.is_error, "{refusal:?}");
-        write_mcp_config(&root, serde_json::json!([{"name": "gh", "command": "npx", "args": ["--extra"]}]));
+        write_mcp_config(&root, serde_json::json!([{"name": "gh", "command": "/usr/local/bin/npx", "args": ["--extra"]}]));
         assert!(disclosure_changed(&pending).is_some(), "an added argument is a change too");
         fs::remove_dir_all(&root).ok();
     }

@@ -35,6 +35,25 @@ impl ChatCapabilityExecutor {
         self
     }
 
+    /// For a resumed approval: disclose the call's configuration NOW, before the turn is resumed,
+    /// and bind the executor to it. `resume_turn` then checks the stored approval against the
+    /// configuration, and the gateway checks this disclosure against the configuration read at
+    /// run time, so a configuration changed at any point in between runs nothing. Calls that
+    /// start no external program, or that cannot be disclosed (the executor then refuses them
+    /// itself), are left alone.
+    pub(crate) fn bound_to_current_configuration(mut self, call: &ToolCall, root: &std::path::Path) -> Self {
+        let args: serde_json::Value = serde_json::from_str(&call.arguments_json).unwrap_or(serde_json::Value::Null);
+        match call.name.as_str() {
+            "mcp_call" => {
+                let command = args.get("command").and_then(|c| c.as_str()).unwrap_or("");
+                self.approved_mcp = crate::capability::mcp_disclosure::disclose(root, command).ok();
+            }
+            "lsp_query" => self.approved_lsp = crate::capability::lsp_disclosure::disclose(root, &args).ok(),
+            _ => {}
+        }
+        self
+    }
+
     pub(crate) fn with_approved_lsp(mut self, approved: Option<crate::capability::lsp_disclosure::LspDisclosure>) -> Self {
         self.approved_lsp = approved;
         self

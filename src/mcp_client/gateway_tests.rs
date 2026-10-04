@@ -176,10 +176,10 @@ fn the_disclosure_shows_the_exact_quoted_command_line_and_variable_names_and_sta
     let marker = tempfile::tempdir().unwrap();
     let marker_path = marker.path().join("started");
     let (_k, root) = workspace(&format!("#!/bin/sh\ntouch {}\n", marker_path.display()));
-    configure(&root, vec![json!({"name": "gh", "command": "npx", "args": ["-y", "a b", "c"], "env": ["GITHUB_TOKEN"]})]);
+    configure(&root, vec![json!({"name": "gh", "command": "/usr/local/bin/npx", "args": ["-y", "a b", "c"], "env": ["GITHUB_TOKEN"]})]);
     let d = disclose(&root, "gh search").unwrap();
     assert_eq!((d.server.as_str(), d.tool.as_deref()), ("gh", Some("search")));
-    assert_eq!(d.command_line(), "npx -y 'a b' c", "an argument with a space is quoted, so it cannot pass for two");
+    assert_eq!(d.command_line(), "/usr/local/bin/npx -y 'a b' c", "an argument with a space is quoted, so it cannot pass for two");
     let line = d.summary();
     assert!(line.contains("GITHUB_TOKEN") && line.contains("'search'") && line.contains("'a b'"), "{line}");
     assert!(disclose(&root, "gh").unwrap().summary().contains("list its tools"));

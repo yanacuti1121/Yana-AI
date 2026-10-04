@@ -252,9 +252,11 @@ pub(super) fn dispatch_resume(provider_name: String) -> Result<()> {
     for notice in crate::chat::tools::hidden_tool_notices(&session.repo_root) {
         eprintln!("{notice}");
     }
-    let executor = Arc::new(crate::chat::tui::tool_dispatch::ChatCapabilityExecutor::new(
-        session.sandboxed,
-    ));
+    // Bound to the configuration as it is now, before the turn resumes (see the method's doc).
+    let executor = Arc::new(
+        crate::chat::tui::tool_dispatch::ChatCapabilityExecutor::new(session.sandboxed)
+            .bound_to_current_configuration(&resolved.pending_call, &session.repo_root),
+    );
     let cancellation = CancellationToken::default();
     let mut output = io::BufWriter::new(io::stdout().lock());
     let mut approval_reason: Option<String> = None;

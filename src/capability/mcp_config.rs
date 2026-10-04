@@ -9,6 +9,7 @@
 use crate::capability::CapabilityError;
 use serde::Deserialize;
 use crate::capability::config_trust::{self, ConfigKind};
+use crate::capability::program_path;
 use std::path::Path;
 
 const CONFIG_PATH: &str = ".yana-ai/mcp-servers.json";
@@ -152,7 +153,14 @@ fn parse_servers(bytes: &[u8]) -> Result<Vec<ServerConfig>, CapabilityError> {
 /// that were checked.
 pub fn find_server(root: &Path, name: &str) -> Result<ServerConfig, CapabilityError> {
     let bytes = config_trust::trusted_bytes(root, ConfigKind::McpServers)?;
-    parse_servers(&bytes)?.into_iter().find(|s| s.name == name).ok_or_else(|| CapabilityError::NotFound {
+    let mut server = parse_servers(&bytes)?.into_iter().find(|s| s.name == name).ok_or_else(|| CapabilityError::NotFound {
         requested: format!("MCP server '{name}' (not listed in {CONFIG_PATH})"),
-    })
+    })?;
+    // A bare name ("npx") is resolved here, outside the repository, so the approver is shown and
+    // the gateway runs the real program, not one the repository could place on a relative PATH
+    // entry. An absolute or explicitly relative ("./x") command is already what it says.
+    if program_path::is_bare_name(&server.command) {
+        server.command = program_path::resolve_program(&server.command, root)?;
+    }
+    Ok(server)
 }

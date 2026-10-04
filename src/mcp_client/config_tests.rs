@@ -58,7 +58,7 @@ fn an_oversized_file_and_an_unreadable_one_are_errors_not_empty() {
 
 #[test]
 fn an_unlisted_server_is_not_found() {
-    let (_k, root) = root_with(r#"{"servers":[{"name":"a","command":"x"}]}"#);
+    let (_k, root) = root_with(r#"{"servers":[{"name":"a","command":"/opt/x"}]}"#);
     assert!(find_server(&root, "a").is_ok());
     assert!(matches!(find_server(&root, "b"), Err(CapabilityError::NotFound { .. })));
 }
@@ -130,4 +130,20 @@ fn only_printable_ascii_is_allowed_in_what_an_approver_reads() {
         let (_k2, root2) = root_with(&json);
         assert!(load_servers(&root2).is_err(), "arg {bad:?}");
     }
+}
+
+#[test]
+fn a_bare_command_is_resolved_outside_the_repository_and_an_unresolvable_one_is_refused() {
+    // "sh" exists in the real PATH on any machine that runs these tests: it is resolved to an absolute path.
+    let (_k, root) = root_with(r#"{"servers":[{"name":"a","command":"sh"}]}"#);
+    let found = find_server(&root, "a").unwrap();
+    assert!(found.command.starts_with('/') && found.command.ends_with("/sh"), "{}", found.command);
+    // A name that is nowhere on PATH is refused, so the approver is never shown a name that means nothing.
+    let (_k2, root2) = root_with(r#"{"servers":[{"name":"a","command":"definitely-not-installed-xyz"}]}"#);
+    let error = find_server(&root2, "a").unwrap_err().to_string();
+    assert!(error.contains("not found in PATH"), "{error}");
+    // An absolute command and an explicitly relative one are what they say; neither is looked up.
+    let (_k3, root3) = root_with(r#"{"servers":[{"name":"a","command":"/opt/x"},{"name":"b","command":"./local-server"}]}"#);
+    assert_eq!(find_server(&root3, "a").unwrap().command, "/opt/x");
+    assert_eq!(find_server(&root3, "b").unwrap().command, "./local-server");
 }

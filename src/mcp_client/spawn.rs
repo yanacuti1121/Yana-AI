@@ -17,7 +17,9 @@ use tokio::process::Command;
 pub(crate) fn command_for(config: &ServerConfig, root: &Path) -> Command {
     let mut command = Command::new(&config.command);
     command.args(&config.args).current_dir(root).env_clear();
-    if let Some(path) = std::env::var_os("PATH") {
+    // PATH without relative, empty and in-repository entries: a program the server starts by
+    // name is not looked up in the repository either.
+    if let Some(path) = std::env::var_os("PATH").and_then(|path| crate::capability::program_path::safe_path_var(&path, root)) {
         command.env("PATH", path);
     }
     for name in &config.env {
