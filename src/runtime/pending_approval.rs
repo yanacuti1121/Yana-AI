@@ -311,6 +311,9 @@ fn printable(text: &str) -> String {
 /// or unconfirmed configuration, missing or unacceptable arguments).
 pub(crate) fn disclosure_summary(root: &Path, call: &ToolCall) -> Result<Option<String>, crate::capability::CapabilityError> {
     use crate::capability::web_search::{disclose, validate_query};
+    if call.name == "run_command" {
+        return run_command_summary(call).map(Some);
+    }
     if call.name == "lsp_query" {
         let arguments = serde_json::from_str::<serde_json::Value>(&call.arguments_json).unwrap_or_default();
         return Ok(Some(crate::capability::lsp_disclosure::disclose(root, &arguments)?.summary()));
@@ -339,6 +342,39 @@ pub(crate) fn disclosure_summary(root: &Path, call: &ToolCall) -> Result<Option<
     Ok(Some(disclose(root)?.summary(&query)))
 }
 
+/// Longest command shown to a remote approver. A longer one is refused, not cut off:
+/// what cannot be seen in full cannot be approved.
+const MAX_REMOTE_COMMAND_CHARS: usize = 600;
+
+/// The command a remote approver is asked about: parsed into words, secret-looking values
+/// replaced by a placeholder (the same token-level rule the audit trail uses), control and
+/// invisible characters made visible, and quoted so word boundaries show. A person at the
+/// terminal sees the exact command; a remote one sees this, and is told how many values are hidden.
+fn run_command_summary(call: &ToolCall) -> Result<String, crate::capability::CapabilityError> {
+    let invalid = |detail: String| crate::capability::CapabilityError::InvalidInput { detail };
+    let args = serde_json::from_str::<serde_json::Value>(&call.arguments_json).unwrap_or_default();
+    let command = args.get("command").and_then(serde_json::Value::as_str).ok_or_else(|| invalid("missing required argument 'command'".into()))?;
+    let words = shell_words::split(command).map_err(|error| invalid(format!("cannot read the command: {error}")))?;
+    if words.is_empty() {
+        return Err(invalid("the command is empty".into()));
+    }
+    let hidden = crate::os::redact_argv(&words);
+    let count = hidden.iter().filter(|word| word.as_str() == crate::os::REDACTED_PLACEHOLDER).count();
+    let line: String = shell_words::join(&hidden)
+        .chars()
+        .map(|c| if c.is_control() || crate::capability::untrusted::is_invisible_format_char(c) { '?' } else { c })
+        .collect();
+    if line.chars().count() > MAX_REMOTE_COMMAND_CHARS {
+        return Err(invalid(format!("the command is longer than {MAX_REMOTE_COMMAND_CHARS} characters: it cannot be shown to a remote approver in full, so approve it at the terminal")));
+    }
+    let note = match count {
+        0 => String::new(),
+        1 => " (1 secret-looking value is hidden)".to_string(),
+        n => format!(" ({n} secret-looking values are hidden)"),
+    };
+    Ok(format!("run command: `{line}`{note}"))
+}
+
 /// The reason to store and show with a pending approval. For a web search it
 /// also carries where the query goes, so a remote approver sees the host and
 /// the key variable name, and `resume_turn` can tell if they changed. A web
@@ -359,7 +395,7 @@ pub(crate) fn reason_with_disclosure(
 /// `Some(refusal)` when an approved `web_search`, `mcp_call` or `lsp_query` would now go
 /// somewhere (or start something) other than what its approver was shown.
 fn disclosure_changed(approval: &PendingApproval) -> Option<ToolResultRecord> {
-    if !matches!(approval.pending_call.name.as_str(), "web_search" | "mcp_call" | "lsp_query") {
+    if !matches!(approval.pending_call.name.as_str(), "web_search" | "mcp_call" | "lsp_query" | "run_command") {
         return None;
     }
     let now = disclosure_summary(&approval.context.session.repo_root, &approval.pending_call);
@@ -372,7 +408,9 @@ fn disclosure_changed(approval: &PendingApproval) -> Option<ToolResultRecord> {
     }
     Some(ToolResultRecord {
         call_id: approval.pending_call.id.clone(),
-        output: "blocked: the search backend, MCP server or language server configuration changed since this was approved (or the question is not the one approved, or this process has a different PATH from the one that created the approval); ask again from the process that created the approval".to_string(),
+        output: if approval.pending_call.name == "run_command" {
+            "blocked: the command shown to the approver is not the stored call; ask again".to_string()
+        } else { "blocked: the search backend, MCP server or language server configuration changed since this was approved (or the question is not the one approved, or this process has a different PATH from the one that created the approval); ask again from the process that created the approval".to_string() },
         is_error: true,
         denied: true,
     })
@@ -491,6 +529,11 @@ mod tests {
             name: "run_command".into(),
             arguments_json: "{\"command\":\"cargo test\"}".into(),
         }
+    }
+
+    /// A call that neither starts a program nor sends anything out: its reason stays plain.
+    fn read_call() -> ToolCall {
+        ToolCall { id: "call-r".into(), name: "read_file".into(), arguments_json: "{\"path\":\"README.md\"}".into() }
     }
 
     fn search_call() -> ToolCall {
@@ -666,11 +709,58 @@ mod tests {
         fs::remove_dir_all(&root).ok();
     }
 
+    fn command_record(command: &str) -> ToolCall {
+        ToolCall { id: "call-c".into(), name: "run_command".into(), arguments_json: serde_json::json!({"command": command}).to_string() }
+    }
+
+    #[test]
+    fn a_remote_approver_sees_the_command_with_secret_looking_values_hidden() {
+        let root = temp_root();
+        let reason = reason_with_disclosure(&root, &command_record("cargo test --token abc123 -- --nocapture"), Some("base".into())).unwrap();
+        assert!(reason.starts_with("base | run command: `cargo test --token '[REDACTED]' -- --nocapture`"), "{reason}");
+        assert!(reason.ends_with("(1 secret-looking value is hidden)") && !reason.contains("abc123"), "{reason}");
+        let plain = reason_with_disclosure(&root, &command_record("git status --short"), None).unwrap();
+        assert!(plain.ends_with("run command: `git status --short`"), "nothing hidden, nothing said about hiding: {plain}");
+        let two = reason_with_disclosure(&root, &command_record("x --password p1 --secret p2"), None).unwrap();
+        assert!(two.contains("2 secret-looking values are hidden") && !two.contains("p1") && !two.contains("p2"), "{two}");
+        fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn a_command_that_cannot_be_shown_whole_or_read_is_not_paused_for_remote_approval() {
+        let root = temp_root();
+        let long = format!("echo {}", "a".repeat(MAX_REMOTE_COMMAND_CHARS));
+        assert!(reason_with_disclosure(&root, &command_record(&long), None).unwrap_err().to_string().contains("approve it at the terminal"));
+        for bad in ["echo 'unterminated", "", "   "] {
+            assert!(reason_with_disclosure(&root, &command_record(bad), None).is_err(), "{bad:?}");
+        }
+        let missing = ToolCall { id: "c".into(), name: "run_command".into(), arguments_json: "{}".into() };
+        assert!(reason_with_disclosure(&root, &missing, None).is_err());
+        // Control characters are visible, never raw.
+        let reason = reason_with_disclosure(&root, &command_record("echo 'a\u{202e}b'"), None).unwrap();
+        assert!(!reason.contains('\u{202e}') && reason.contains("a?b"), "{reason:?}");
+        fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn resuming_is_refused_when_the_stored_reason_is_not_the_stored_command() {
+        let root = temp_root();
+        let reason = reason_with_disclosure(&root, &command_record("git status"), Some("needs approval".into())).unwrap();
+        let store = PendingApprovalStore::for_root(&root);
+        let honest = store.create(context(&root), "m".into(), None, Vec::new(), 0, command_record("git status"), reason.clone(), 20).unwrap();
+        assert!(disclosure_changed(&honest).is_none());
+        // The approver was shown one command; the stored call is another.
+        let swapped = store.create(context(&root), "m".into(), None, Vec::new(), 0, command_record("git push --force"), reason, 20).unwrap();
+        let refusal = disclosure_changed(&swapped).expect("a different stored command must be refused");
+        assert!(refusal.denied && refusal.output.contains("not the stored call"), "{refusal:?}");
+        fs::remove_dir_all(&root).ok();
+    }
+
     #[test]
     fn other_calls_keep_the_plain_reason() {
         let root = temp_root();
-        assert_eq!(reason_with_disclosure(&root, &call(), Some("base".into())).unwrap(), "base");
-        assert_eq!(reason_with_disclosure(&root, &call(), None).unwrap(), "requires explicit human approval");
+        assert_eq!(reason_with_disclosure(&root, &read_call(), Some("base".into())).unwrap(), "base");
+        assert_eq!(reason_with_disclosure(&root, &read_call(), None).unwrap(), "requires explicit human approval");
         fs::remove_dir_all(&root).ok();
     }
 
@@ -731,10 +821,10 @@ mod tests {
     }
 
     #[test]
-    fn only_web_search_is_checked() {
+    fn only_calls_that_start_or_send_something_are_checked() {
         let root = temp_root();
         let pending = PendingApprovalStore::for_root(&root)
-            .create(context(&root), "m".into(), None, Vec::new(), 0, call(), "x".into(), 20)
+            .create(context(&root), "m".into(), None, Vec::new(), 0, read_call(), "x".into(), 20)
             .unwrap();
         assert!(disclosure_changed(&pending).is_none());
         fs::remove_dir_all(&root).ok();

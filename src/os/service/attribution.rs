@@ -32,7 +32,7 @@ use std::process::{Child, Command};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 const RECEIPTS_RELATIVE_PATH: &str = ".yana-ai/os/service-spawn-receipts.jsonl";
-const REDACTED_PLACEHOLDER: &str = "[REDACTED]";
+pub(crate) const REDACTED_PLACEHOLDER: &str = "[REDACTED]";
 const SENSITIVE_PREFIXES: &[&str] = &[
     "--token=",
     "--key=",
@@ -212,7 +212,7 @@ fn record_spawn(
 /// sensitive flag name is left visible (it carries no secret on its own),
 /// but the argv element immediately following it is always redacted,
 /// regardless of what it looks like.
-fn redact_argv(argv: &[String]) -> Vec<String> {
+pub(crate) fn redact_argv(argv: &[String]) -> Vec<String> {
     let mut redacted = Vec::with_capacity(argv.len());
     let mut redact_next = false;
     for token in argv {

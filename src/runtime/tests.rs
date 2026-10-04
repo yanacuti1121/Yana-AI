@@ -365,7 +365,7 @@ fn resume_turn_completes_the_paused_call_and_continues_to_a_final_answer() {
     let provider_calls = Arc::new(AtomicUsize::new(0));
     let provider = Arc::new(MockProvider::new(
         [
-            MockResponse::Tool(call("run_command")),
+            MockResponse::Tool(call_with_command("run_command", "cargo test")),
             MockResponse::Text(vec!["done after resume"]),
         ],
         Arc::clone(&provider_calls),
@@ -394,6 +394,8 @@ fn resume_turn_completes_the_paused_call_and_continues_to_a_final_answer() {
     assert_eq!(executor_calls.load(Ordering::SeqCst), 0, "must not execute before a human decides");
 
     let store = crate::runtime::PendingApprovalStore::for_root(root.path());
+    // The reason is built the way the real creation sites build it, so it names the command that was shown.
+    let reason = crate::runtime::reason_with_disclosure(root.path(), &call, Some("requires explicit human approval".into())).unwrap();
     let created = store
         .create(
             request(root.path()).context,
@@ -402,7 +404,7 @@ fn resume_turn_completes_the_paused_call_and_continues_to_a_final_answer() {
             continuation_messages,
             tool_rounds,
             call,
-            "requires explicit human approval".into(),
+            reason,
             20,
         )
         .unwrap();
