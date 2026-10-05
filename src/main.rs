@@ -142,6 +142,8 @@ enum Commands {
     /// `.yana-ai/mcp-servers.json`, `.yana-ai/lsp-servers.json`) before it is used, like `direnv allow`.
     /// A repository you cloned can ship these files; nothing in them is used
     /// until a person has reviewed this exact content.
+    ///
+    /// DOCTOR_DISPATCH_EXEMPT: run directly as `yana-rt trust allow <name>` by the person at the terminal, as the chat notice tells them to; it is deliberately not reachable through `bin/yana`, so a script or agent that only drives the wrapper cannot confirm configuration on someone's behalf.
     Trust {
         #[command(subcommand)]
         action: TrustAction,

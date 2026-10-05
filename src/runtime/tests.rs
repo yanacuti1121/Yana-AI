@@ -459,7 +459,7 @@ fn resume_a_search(change_backend_before_resume: bool) -> (usize, String) {
         panic!("a web search must pause for approval");
     };
     let reason = crate::runtime::reason_with_disclosure(root.path(), &call, Some("yana_control_plane: needs approval".into())).unwrap();
-    assert!(reason.contains("good.example") && reason.contains("no API key is sent"), "{reason}");
+    assert!(reason.contains("good.example") && reason.contains("no API key is sent"));
     let store = crate::runtime::PendingApprovalStore::for_root(root.path());
     let created = store.create(request(root.path()).context, "mock-model".into(), None, continuation_messages, tool_rounds, call, reason, 20).unwrap();
     let resolved = store.resolve(&created.approval_id, true, "human:test".into()).unwrap();
@@ -509,7 +509,7 @@ fn resume_an_mcp_call(swap_program_before_resume: bool) -> (usize, String, Strin
         panic!("an external program must pause for approval");
     };
     let reason = crate::runtime::reason_with_disclosure(root.path(), &call, Some("yana_control_plane: needs approval".into())).unwrap();
-    assert!(reason.contains("`/usr/bin/gh-mcp --read-only`"), "the exact command line is in the stored reason: {reason}");
+    assert!(reason.contains("`/usr/bin/gh-mcp --read-only`"));
     let store = crate::runtime::PendingApprovalStore::for_root(root.path());
     let created = store.create(request(root.path()).context, "mock-model".into(), None, continuation_messages, tool_rounds, call, reason.clone(), 20).unwrap();
     let resolved = store.resolve(&created.approval_id, true, "human:test".into()).unwrap();
@@ -561,7 +561,7 @@ fn resume_an_lsp_query(swap_program_before_resume: bool) -> (usize, String, Stri
         panic!("a language server must pause for approval");
     };
     let reason = crate::runtime::reason_with_disclosure(root.path(), &call, Some("yana_control_plane: needs approval".into())).unwrap();
-    assert!(reason.contains("`/bin/sh --version`") && reason.ends_with("ask for hover at src/lib.rs:1:3"), "the program and the whole question are in the stored reason: {reason}");
+    assert!(reason.contains("`/bin/sh --version`") && reason.ends_with("ask for hover at src/lib.rs:1:3"));
     let store = crate::runtime::PendingApprovalStore::for_root(root.path());
     let created = store.create(request(root.path()).context, "mock-model".into(), None, continuation_messages, tool_rounds, call, reason.clone(), 20).unwrap();
     let resolved = store.resolve(&created.approval_id, true, "human:test".into()).unwrap();

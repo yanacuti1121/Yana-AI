@@ -162,7 +162,7 @@ fn the_disclosure_shows_the_exact_quoted_command_line_and_variable_names_and_sta
     assert_eq!((d.server.as_str(), d.tool.as_deref()), ("gh", Some("search")));
     assert_eq!(d.command_line(), "/usr/local/bin/npx -y 'a b' c", "an argument with a space is quoted, so it cannot pass for two");
     let line = d.summary();
-    assert!(line.contains("GITHUB_TOKEN") && line.contains("'search'") && line.contains("'a b'"), "{line}");
+    assert!(line.contains("GITHUB_TOKEN") && line.contains("'search'") && line.contains("'a b'"));
     assert!(disclose(&root, "gh").unwrap().summary().contains("list its tools"));
     assert!(disclose(&root, "nope").is_err());
     assert!(!marker_path.exists());

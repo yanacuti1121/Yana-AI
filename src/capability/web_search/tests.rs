@@ -186,7 +186,7 @@ fn the_disclosure_names_the_host_and_whether_a_key_goes_with_the_query() {
     let d = disclose(&keyed).unwrap();
     assert_eq!(d.key_variable.as_deref(), Some("YANA_SEARCH_KEY"));
     let line = d.summary("rust");
-    assert!(line.contains("s.example") && line.contains("$YANA_SEARCH_KEY WILL be sent"), "{line}");
+    assert!(line.contains("s.example") && line.contains("$YANA_SEARCH_KEY WILL be sent"));
 }
 
 #[test]
@@ -199,8 +199,8 @@ fn the_summary_puts_the_destination_and_key_first_and_the_query_last_escaped() {
     let to = line.find("https://s.example/q").unwrap();
     let key = line.find("$YANA_SEARCH_KEY WILL be sent").unwrap();
     let query = line.find("query: \"a\\\"").unwrap();
-    assert!(to < key && key < query, "{line}");
-    assert!(!line[..query].contains("docs.python.org"), "nothing the query says appears before the real facts: {line}");
+    assert!(to < key && key < query);
+    assert!(!line[..query].contains("docs.python.org"));
 }
 
 #[test]
@@ -248,7 +248,7 @@ fn the_disclosure_never_contains_a_secret_value_and_refuses_what_a_search_would_
     // Safe even when the variable holds a value: only its NAME is ever read into the text.
     let (_a, keyed) = config_dir(r#"{"endpoint":"https://s.example/","api_key_env":"YANA_SEARCH_KEY"}"#);
     let line = disclose(&keyed).unwrap().summary("q");
-    assert!(!line.to_lowercase().contains("bearer"), "{line}");
+    assert!(!line.to_lowercase().contains("bearer"));
     let (_b, wrong_prefix) = config_dir(r#"{"endpoint":"https://s.example/","api_key_env":"GITHUB_TOKEN"}"#);
     assert!(disclose(&wrong_prefix).is_err());
     let (_c, no_host) = config_dir(r#"{"endpoint":"file:///etc/hosts"}"#);

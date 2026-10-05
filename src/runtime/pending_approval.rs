@@ -581,8 +581,8 @@ mod tests {
         let root = temp_root();
         write_search_config(&root, r#"{"endpoint":"https://s.example/q","api_key_env":"YANA_SEARCH_KEY"}"#);
         let reason = reason_with_disclosure(&root, &search_call(), Some("base".into())).unwrap();
-        assert!(reason.starts_with("base | ") && reason.contains("s.example") && reason.contains("$YANA_SEARCH_KEY WILL be sent"), "{reason}");
-        assert!(reason.contains("rust release"), "{reason}");
+        assert!(reason.starts_with("base | ") && reason.contains("s.example") && reason.contains("$YANA_SEARCH_KEY WILL be sent"));
+        assert!(reason.contains("rust release"));
         fs::remove_dir_all(&root).ok();
     }
 
@@ -601,9 +601,9 @@ mod tests {
         let root = temp_root();
         write_mcp_config(&root, serde_json::json!([{"name": "gh", "command": "/usr/local/bin/npx", "args": ["-y", "a b"], "env": ["GITHUB_TOKEN"]}]));
         let reason = reason_with_disclosure(&root, &mcp_call_record("gh search"), Some("base".into())).unwrap();
-        assert!(reason.starts_with("base | MCP: start external program `/usr/local/bin/npx -y 'a b'`"), "{reason}");
-        assert!(reason.contains("GITHUB_TOKEN") && reason.contains("call its tool 'search'"), "{reason}");
-        assert!(reason.contains("timeout 30s") && reason.ends_with("arguments: \"{}\""), "timeout and the model's arguments are shown: {reason}");
+        assert!(reason.starts_with("base | MCP: start external program `/usr/local/bin/npx -y 'a b'`"));
+        assert!(reason.contains("GITHUB_TOKEN") && reason.contains("call its tool 'search'"));
+        assert!(reason.contains("timeout 30s") && reason.ends_with("arguments: \"{}\""));
         fs::remove_dir_all(&root).ok();
     }
 
@@ -617,10 +617,10 @@ mod tests {
             arguments_json: serde_json::json!({"command": "gh delete", "arguments": arguments}).to_string(),
         };
         let reason = reason_with_disclosure(&root, &call(serde_json::json!({"path": "a\u{202e}b\nc"})), None).unwrap();
-        assert!(reason.contains("arguments: ") && reason.contains("a?b"), "{reason}");
-        assert!(!reason.contains('\u{202e}') && !reason.contains('\n'), "no direction override, no line break: {reason:?}");
+        assert!(reason.contains("arguments: ") && reason.contains("a?b"));
+        assert!(!reason.contains('\u{202e}') && !reason.contains('\n'));
         let long = reason_with_disclosure(&root, &call(serde_json::json!({"x": "y".repeat(500)})), None).unwrap();
-        assert!(long.ends_with("...\""), "cut, not pushed out of view: {long}");
+        assert!(long.ends_with("...\""));
         assert!(long.len() < 800, "{}", long.len());
         assert!(reason_with_disclosure(&root, &call(serde_json::json!([1, 2])), None).is_err(), "not an object");
         fs::remove_dir_all(&root).ok();
@@ -677,8 +677,8 @@ mod tests {
         let root = temp_root();
         write_lsp_config(&root, "/bin/sh");
         let reason = reason_with_disclosure(&root, &lsp_call_record("references", 2), Some("base".into())).unwrap();
-        assert!(reason.starts_with("base | LSP: start external program `/bin/sh`"), "{reason}");
-        assert!(reason.contains("RUST_LOG") && reason.ends_with("ask for references at src/lib.rs:2:3"), "{reason}");
+        assert!(reason.starts_with("base | LSP: start external program `/bin/sh`"));
+        assert!(reason.contains("RUST_LOG") && reason.ends_with("ask for references at src/lib.rs:2:3"));
         fs::remove_dir_all(&root).ok();
     }
 
@@ -740,17 +740,17 @@ mod tests {
     fn a_remote_approver_sees_the_command_with_secret_looking_values_hidden() {
         let root = temp_root();
         let reason = reason_with_disclosure(&root, &command_record("cargo test --token abc123 -- --nocapture"), Some("base".into())).unwrap();
-        assert!(reason.starts_with("base | run command: `cargo test --token '[REDACTED]' -- --nocapture`"), "{reason}");
-        assert!(reason.ends_with("(1 secret-looking value is hidden)") && !reason.contains("abc123"), "{reason}");
+        assert!(reason.starts_with("base | run command: `cargo test --token '[REDACTED]' -- --nocapture`"));
+        assert!(reason.ends_with("(1 secret-looking value is hidden)") && !reason.contains("abc123"));
         let plain = reason_with_disclosure(&root, &command_record("git status --short"), None).unwrap();
-        assert!(plain.ends_with("run command: `git status --short`"), "nothing hidden, nothing said about hiding: {plain}");
+        assert!(plain.ends_with("run command: `git status --short`"));
         // Hidden only by its shape, or unhideable: not shown remotely at all.
         for risky in ["cargo run abcdefghij0123456789ABCDEFG", "curl -H 'Authorization: Bearer abc' https://x.test", "env GITHUB_TOKEN=ghp_x git status", "git clone https://user:pw@host.test/r.git"] {
             let refusal = reason_with_disclosure(&root, &command_record(risky), None).unwrap_err().to_string();
             assert!(refusal.contains("approve it at the terminal"), "{risky}: {refusal}");
         }
         let two = reason_with_disclosure(&root, &command_record("x --password p1 --secret p2"), None).unwrap();
-        assert!(two.contains("2 secret-looking values are hidden") && !two.contains("p1") && !two.contains("p2"), "{two}");
+        assert!(two.contains("2 secret-looking values are hidden") && !two.contains("p1") && !two.contains("p2"));
         fs::remove_dir_all(&root).ok();
     }
 
@@ -766,7 +766,7 @@ mod tests {
         assert!(reason_with_disclosure(&root, &missing, None).is_err());
         // Control characters are visible, never raw.
         let reason = reason_with_disclosure(&root, &command_record("echo 'a\u{202e}b'"), None).unwrap();
-        assert!(!reason.contains('\u{202e}') && reason.contains("a?b"), "{reason:?}");
+        assert!(!reason.contains('\u{202e}') && reason.contains("a?b"));
         fs::remove_dir_all(&root).ok();
     }
 

@@ -137,7 +137,7 @@ fn a_bare_command_is_resolved_outside_the_repository_and_an_unresolvable_one_is_
     // "sh" exists in the real PATH on any machine that runs these tests: it is resolved to an absolute path.
     let (_k, root) = root_with(r#"{"servers":[{"name":"a","command":"sh"}]}"#);
     let found = find_server(&root, "a").unwrap();
-    assert!(found.command.starts_with('/') && found.command.ends_with("/sh"), "{}", found.command);
+    assert!(found.command.starts_with('/') && found.command.ends_with("/sh"));
     // A name that is nowhere on PATH is refused, so the approver is never shown a name that means nothing.
     let (_k2, root2) = root_with(r#"{"servers":[{"name":"a","command":"definitely-not-installed-xyz"}]}"#);
     let error = find_server(&root2, "a").unwrap_err().to_string();

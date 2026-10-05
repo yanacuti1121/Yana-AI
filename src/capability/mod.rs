@@ -46,6 +46,9 @@ pub use command::{execute_command, validate_command, CommandOutcome, ValidatedCo
 pub use config_write::{apply_config_write, propose_config_write};
 pub use error::CapabilityError;
 pub use file_mutation::{apply_file_write, propose_file_write, FileMutationDiff, FileMutationKind};
+// Only the checkpoint hook tests name this type through `capability`; keep the path without a dead-code warning.
+#[cfg(test)]
+pub use file_mutation::FileMutationOutcome;
 pub use git::{git_commit, git_diff, git_diff_path, git_stage, git_status, git_unstage};
 pub use registry::{ApprovalRequirement, Manifest};
 pub use repo::{

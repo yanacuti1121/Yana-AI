@@ -129,7 +129,7 @@ mod tests {
         assert_eq!(d.command_line(), "/bin/sh '--log file' x", "quoted, so two arguments cannot pass for one");
         assert_eq!(d.summary(), "LSP: start external program `/bin/sh '--log file' x` (server 'rust', variables RUST_LOG passed, timeout 90s) and ask for definition at src/lib.rs:2:5");
         let symbols = disclose(&root, &json!({"server": "rust", "operation": "document_symbols", "path": "src/lib.rs"})).unwrap();
-        assert!(symbols.summary().ends_with("ask for document_symbols of src/lib.rs"), "{}", symbols.summary());
+        assert!(symbols.summary().ends_with("ask for document_symbols of src/lib.rs"));
     }
 
     #[test]
@@ -139,8 +139,8 @@ mod tests {
         d.command = "/bin/with\nnewline\u{202e}".into();
         d.path = "src/a\u{e0041}b\u{202e}.rs".into();
         let summary = d.summary();
-        assert!(!summary.contains('\u{202e}') && !summary.contains('\u{e0041}') && !summary.contains("with\nnewline"), "{summary:?}");
-        assert!(summary.contains("src/a?b?.rs"), "{summary}");
+        assert!(!summary.contains('\u{202e}') && !summary.contains('\u{e0041}') && !summary.contains("with\nnewline"));
+        assert!(summary.contains("src/a?b?.rs"));
     }
 
     #[test]
@@ -205,6 +205,6 @@ fn the_approver_is_shown_the_program_that_will_run_not_the_name_in_the_list() {
     let shown = disclose(&root, &serde_json::json!({"server": "rust", "operation": "hover", "path": "src/lib.rs", "line": 1, "character": 1}));
     // "sh" is found in the real PATH (outside any temporary repository) and shown as an absolute path.
     let shown = shown.unwrap();
-    assert!(shown.command.starts_with('/') && shown.command.ends_with("/sh"), "{}", shown.command);
-    assert!(shown.summary().contains(&format!("`{}", shown.command)), "{}", shown.summary());
+    assert!(shown.command.starts_with('/') && shown.command.ends_with("/sh"));
+    assert!(shown.summary().contains(&format!("`{}", shown.command)));
 }

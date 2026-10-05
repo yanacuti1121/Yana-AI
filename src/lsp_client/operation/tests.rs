@@ -105,7 +105,7 @@ fn files_that_hold_secrets_are_recognised_by_name() {
         ".envrc", ".env_local", ".netrc", ".pgpass", "id_ecdsa", "a/key.p8", "app.jks", "infra/terraform.tfstate", "prod.tfvars", ".kube/config", ".aws/config", ".docker/config.json", ".ssh/known_hosts",
         ".yana-ai/leases.json", "dir\\.env", ".env.",
     ] {
-        assert!(sensitive_path(secret), "{secret}");
+        assert!(sensitive_path(secret));
     }
     for fine in ["src/main.rs", "README.md", "docs/environment.md", "src/lib/envelope.rs", "src/tokenizer.rs", "src/secret_sharing.rs", "src/credentials_provider.py"] {
         assert!(!sensitive_path(fine), "{fine}");
