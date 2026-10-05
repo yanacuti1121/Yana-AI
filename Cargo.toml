@@ -144,7 +144,7 @@ tokio = { version = "1", features = ["full"], optional = true }
 # Discord remote adapter only (see `discord` feature above). Sync WebSocket
 # client with rustls (matches this crate's existing TLS choice elsewhere,
 # no new TLS stack), native-tls disabled.
-tungstenite = { version = "0.24", default-features = false, features = ["handshake", "rustls-tls-native-roots"], optional = true }
+tungstenite = { version = "0.30", default-features = false, features = ["handshake", "rustls-tls-native-roots"], optional = true }
 # Explicit crypto-provider install for tungstenite's gateway connection —
 # see `ensure_crypto_provider_installed`'s doc comment in discord.rs for
 # why this is needed despite `tungstenite` already depending on rustls
