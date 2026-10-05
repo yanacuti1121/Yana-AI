@@ -166,6 +166,11 @@ impl ChatMessage {
 pub struct ChatUsage {
     pub input_tokens: u64,
     pub output_tokens: u64,
+    /// Prompt tokens served from the provider's cache (billed at a lower
+    /// rate). Zero when the provider does not report it.
+    pub cache_read_tokens: u64,
+    /// Prompt tokens written to the provider's cache on this call.
+    pub cache_write_tokens: u64,
 }
 
 impl ChatUsage {
@@ -181,6 +186,12 @@ impl ChatUsage {
         }
         if other.output_tokens > 0 {
             self.output_tokens = other.output_tokens;
+        }
+        if other.cache_read_tokens > 0 {
+            self.cache_read_tokens = other.cache_read_tokens;
+        }
+        if other.cache_write_tokens > 0 {
+            self.cache_write_tokens = other.cache_write_tokens;
         }
     }
 }
@@ -381,6 +392,24 @@ pub fn read_sse_stream<R: Read>(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn merge_carries_cache_counts_and_never_zeroes_them() {
+        let mut usage = ChatUsage::default();
+        usage.merge(ChatUsage {
+            input_tokens: 12,
+            cache_read_tokens: 300,
+            cache_write_tokens: 40,
+            ..ChatUsage::default()
+        });
+        // A later event with only output tokens (Anthropic's message_delta)
+        // must not wipe what the first event reported.
+        usage.merge(ChatUsage { output_tokens: 55, ..ChatUsage::default() });
+        assert_eq!(usage.input_tokens, 12);
+        assert_eq!(usage.cache_read_tokens, 300);
+        assert_eq!(usage.cache_write_tokens, 40);
+        assert_eq!(usage.output_tokens, 55);
+    }
 
     struct UnavailableProvider;
 

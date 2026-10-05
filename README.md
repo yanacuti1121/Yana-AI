@@ -62,7 +62,7 @@ capability can grant permission to act.
 `Live` means shipped and in use. `In development` means real code exists but is
 not feature-complete. `Experimental` means opt-in and not independently verified.
 
-`yana-rt` has 39 subcommands. Zero Python dependency. This is the source-defined count across feature builds, including feature-gated ones.
+`yana-rt` has 40 subcommands. Zero Python dependency. This is the source-defined count across feature builds, including feature-gated ones.
 
 ```text
 core/

@@ -54,6 +54,15 @@ pub enum CapabilityError {
     Unsupported {
         detail: String,
     },
+    /// A time limit was reached and the operation was stopped (WS3 tools).
+    Timeout {
+        detail: String,
+    },
+    /// The failure came from outside Yana: an external MCP server, a search
+    /// backend, or content that was refused as untrusted.
+    External {
+        detail: String,
+    },
 }
 
 impl fmt::Display for CapabilityError {
@@ -76,6 +85,8 @@ impl fmt::Display for CapabilityError {
             Self::Io { detail } => write!(f, "{detail}"),
             Self::Serialize { detail } => write!(f, "serialize observation: {detail}"),
             Self::Unsupported { detail } => write!(f, "{detail}"),
+            Self::Timeout { detail } => write!(f, "timed out: {detail}"),
+            Self::External { detail } => write!(f, "{detail}"),
         }
     }
 }

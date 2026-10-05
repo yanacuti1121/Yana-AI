@@ -1,6 +1,6 @@
 use clap::Subcommand;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 #[derive(Subcommand)]
 pub enum InitAction {

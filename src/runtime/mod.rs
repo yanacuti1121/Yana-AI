@@ -24,11 +24,10 @@ pub(crate) use events::RuntimeEvent;
 pub(crate) use origin::{TurnContext, TurnOrigin};
 pub(crate) use outcome::TurnOutcome;
 pub(crate) use pending_approval::{
-    cmd_pending_approvals, resume_turn, PendingApproval, PendingApprovalStore,
+    cmd_pending_approvals, disclosure_summary, reason_with_disclosure, resume_turn, PendingApprovalStore,
 };
 pub(crate) use receipt::cmd_authority_executions;
 pub(crate) use receipt::cmd_authority_receipts;
-pub(crate) use receipt::record as record_authority_decision;
 pub(crate) use request::TurnRequest;
 
 #[cfg(test)]

@@ -2,47 +2,70 @@ use crate::graph::types::*;
 use anyhow::Result;
 
 pub fn cmd_show(data: &GraphData) {
+    print!("{}", render_show(data));
+}
+
+/// The first `n` bytes of a timestamp, or all of it when it is shorter (or
+/// `n` is not a character boundary), so an old or hand-edited graph file
+/// cannot make a report panic.
+fn date_prefix(stamp: &str, n: usize) -> &str {
+    stamp.get(..n).unwrap_or(stamp)
+}
+
+fn line(out: &mut String, text: impl AsRef<str>) {
+    out.push_str(text.as_ref());
+    out.push('\n');
+}
+
+fn render_show(data: &GraphData) -> String {
+    let mut out = String::new();
     let m = &data.meta;
     let layers = count_layers(&data.nodes);
     let file_nodes = data.nodes.iter().filter(|n| n.node_type == "file").count();
     let func_nodes = data.nodes.iter().filter(|n| n.node_type == "function").count();
     let class_nodes = data.nodes.iter().filter(|n| n.node_type == "class").count();
 
-    println!("\n  {}", m.project);
-    println!();
-    println!("  Languages   {}", m.languages.join(", "));
+    line(&mut out, format!("\n  {}", m.project));
+    line(&mut out, "");
+    line(&mut out, format!("  Languages   {}", m.languages.join(", ")));
     if !m.frameworks.is_empty() {
-        println!("  Frameworks  {}", m.frameworks.join(", "));
+        line(&mut out, format!("  Frameworks  {}", m.frameworks.join(", ")));
     }
-    println!("  Files       {}", file_nodes);
-    if func_nodes > 0  { println!("  Functions   {}", func_nodes); }
-    if class_nodes > 0 { println!("  Classes     {}", class_nodes); }
-    println!("  Edges       {}", data.edges.len());
-    println!("  Analysed    {}", &m.analysed_at[..19]);
-    println!();
-    println!("  Architecture");
+    line(&mut out, format!("  Files       {}", file_nodes));
+    if func_nodes > 0  { line(&mut out, format!("  Functions   {}", func_nodes)); }
+    if class_nodes > 0 { line(&mut out, format!("  Classes     {}", class_nodes)); }
+    line(&mut out, format!("  Edges       {}", data.edges.len()));
+    line(&mut out, format!("  Analysed    {}", date_prefix(&m.analysed_at, 19)));
+    line(&mut out, "");
+    line(&mut out, "  Architecture");
     let mut layer_list: Vec<_> = layers.iter().collect();
     layer_list.sort_by(|a, b| b.1.cmp(a.1));
     for (layer, count) in &layer_list {
-        println!("    {:<24} {} nodes", layer, count);
+        line(&mut out, format!("    {:<24} {} nodes", layer, count));
     }
-    println!();
-    println!("  Tour ({} steps)", data.tour.len());
+    line(&mut out, "");
+    line(&mut out, format!("  Tour ({} steps)", data.tour.len()));
     for step in data.tour.iter().take(5) {
-        println!("    {:>3}. {}", step.order, step.name);
+        line(&mut out, format!("    {:>3}. {}", step.order, step.name));
     }
     if data.tour.len() > 5 {
-        println!("    … and {} more (run `yana-rt graph onboard`)", data.tour.len() - 5);
+        line(&mut out, format!("    … and {} more (run `yana-rt graph onboard`)", data.tour.len() - 5));
     }
-    println!();
+    line(&mut out, "");
+    out
 }
 
 pub fn cmd_search(data: &GraphData, query: &str, expand: bool, limit: usize) {
+    print!("{}", render_search(data, query, expand, limit));
+}
+
+fn render_search(data: &GraphData, query: &str, expand: bool, limit: usize) -> String {
+    let mut out = String::new();
     let q = query.to_lowercase();
     let mut hits: Vec<&Node> = data.nodes.iter().filter(|n| {
         n.name.to_lowercase().contains(&q)
             || n.file_path.to_lowercase().contains(&q)
-            || n.tags.iter().any(|t| t.contains(&q))
+            || n.tags.iter().any(|t| t.to_lowercase().contains(&q))
             || n.language.to_lowercase().contains(&q)
     }).collect();
 
@@ -54,16 +77,16 @@ pub fn cmd_search(data: &GraphData, query: &str, expand: bool, limit: usize) {
     hits.truncate(limit);
 
     if hits.is_empty() {
-        println!("(no results for '{}')", query);
-        return;
+        line(&mut out, format!("(no results for '{}')", query));
+        return out;
     }
-    println!("\n  Search: {}", query);
-    println!("  {} result(s)\n", hits.len());
+    line(&mut out, format!("\n  Search: {}", query));
+    line(&mut out, format!("  {} result(s)\n", hits.len()));
     for n in &hits {
-        println!("  [{:<14}] {}", n.node_type, n.name);
-        println!("               {}", n.file_path);
+        line(&mut out, format!("  [{:<14}] {}", n.node_type, n.name));
+        line(&mut out, format!("               {}", n.file_path));
         if !n.summary.is_empty() {
-            println!("               {}", n.summary.chars().take(80).collect::<String>());
+            line(&mut out, format!("               {}", n.summary.chars().take(80).collect::<String>()));
         }
     }
 
@@ -79,16 +102,28 @@ pub fn cmd_search(data: &GraphData, query: &str, expand: bool, limit: usize) {
             .collect();
 
         if !connected.is_empty() {
-            println!("\n  Connected to '{}':", hits[0].name);
+            line(&mut out, format!("\n  Connected to '{}':", hits[0].name));
             for n in connected {
-                println!("    → {} ({})", n.name, n.file_path);
+                line(&mut out, format!("    → {} ({})", n.name, n.file_path));
             }
         }
     }
-    println!();
+    line(&mut out, "");
+    out
 }
 
 pub fn cmd_onboard(data: &GraphData, out_file: Option<&str>) -> Result<()> {
+    let md = render_onboard(data);
+    if let Some(path) = out_file {
+        std::fs::write(path, &md)?;
+        println!("[graph] onboarding guide → {}", path);
+    } else {
+        print!("{}", md);
+    }
+    Ok(())
+}
+
+fn render_onboard(data: &GraphData) -> String {
     let mut md = String::new();
     md.push_str(&format!("# {} — Onboarding Guide\n\n", data.meta.project));
     md.push_str(&format!(
@@ -102,7 +137,7 @@ pub fn cmd_onboard(data: &GraphData, out_file: Option<&str>) -> Result<()> {
         "**Languages:** {}  \n**Frameworks:** {}  \n**Analysed:** {}\n\n",
         data.meta.languages.join(", "),
         if data.meta.frameworks.is_empty() { "-".to_string() } else { data.meta.frameworks.join(", ") },
-        &data.meta.analysed_at[..10]
+        date_prefix(&data.meta.analysed_at, 10)
     ));
 
     let layers = count_layers(&data.nodes);
@@ -132,7 +167,7 @@ pub fn cmd_onboard(data: &GraphData, out_file: Option<&str>) -> Result<()> {
         }
         map.into_iter().collect()
     };
-    degree.sort_by(|a, b| b.1.cmp(&a.1));
+    degree.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(b.0)));
 
     md.push_str("## Most Connected Files\n\n");
     for (id, deg) in degree.iter().take(10) {
@@ -141,17 +176,14 @@ pub fn cmd_onboard(data: &GraphData, out_file: Option<&str>) -> Result<()> {
         }
     }
 
-    if let Some(path) = out_file {
-        std::fs::write(path, &md)?;
-        println!("[graph] onboarding guide → {}", path);
-    } else {
-        print!("{}", md);
-    }
-    Ok(())
+    md
 }
 
 pub fn cmd_diff(data: &GraphData, base: &str, target: &str) -> Result<()> {
     use std::process::Command;
+    if base.starts_with('-') {
+        anyhow::bail!("base must be a revision, not an option: '{base}'");
+    }
     let out = Command::new("git")
         .args(["diff", "--name-only", base])
         .current_dir(target)
@@ -171,15 +203,7 @@ pub fn cmd_diff(data: &GraphData, base: &str, target: &str) -> Result<()> {
         println!("  ✎  {}", f);
     }
 
-    // Find files that import the changed files (impact)
-    let changed_ids: Vec<String> = changed.iter()
-        .map(|f| format!("file:{}", f)).collect();
-    let mut impacted: Vec<&str> = data.edges.iter()
-        .filter(|e| changed_ids.contains(&e.target))
-        .filter_map(|e| data.nodes.iter().find(|n| n.id == e.source))
-        .map(|n| n.file_path.as_str())
-        .collect();
-    impacted.dedup();
+    let impacted = impacted_files(data, &changed);
 
     if !impacted.is_empty() {
         println!("\n  Impact (files that import changed files):\n");
@@ -191,6 +215,18 @@ pub fn cmd_diff(data: &GraphData, base: &str, target: &str) -> Result<()> {
     Ok(())
 }
 
+/// Files that import any of the changed files (the impact of a change).
+fn impacted_files<'a>(data: &'a GraphData, changed: &[&str]) -> Vec<&'a str> {
+    let changed_ids: Vec<String> = changed.iter().map(|f| format!("file:{}", f)).collect();
+    let mut seen = std::collections::HashSet::new();
+    data.edges.iter()
+        .filter(|e| changed_ids.contains(&e.target))
+        .filter_map(|e| data.nodes.iter().find(|n| n.id == e.source))
+        .map(|n| n.file_path.as_str())
+        .filter(|path| seen.insert(*path))
+        .collect()
+}
+
 fn count_layers(nodes: &[Node]) -> std::collections::HashMap<String, usize> {
     let mut map: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
     for n in nodes {
@@ -199,3 +235,6 @@ fn count_layers(nodes: &[Node]) -> std::collections::HashMap<String, usize> {
     }
     map
 }
+
+#[cfg(test)]
+mod tests;

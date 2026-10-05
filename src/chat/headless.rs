@@ -19,8 +19,8 @@
 
 use crate::model::provider::{ChatMessage, ImageAttachment, Role};
 use crate::runtime::{
-    resume_turn, CancellationToken, PendingApprovalStore, RuntimeEvent, TurnContext, TurnEngine,
-    TurnOrigin, TurnOutcome, TurnRequest, YanaAuthorityChain,
+    reason_with_disclosure, resume_turn, CancellationToken, PendingApprovalStore, RuntimeEvent,
+    TurnContext, TurnEngine, TurnOrigin, TurnOutcome, TurnRequest, YanaAuthorityChain,
 };
 use crate::session_context::SessionContext;
 use anyhow::{Context, Result};
@@ -141,6 +141,12 @@ pub(super) fn dispatch(provider_name: String, model: Option<String>) -> Result<(
     }
     let history_messages = validate_history(input.history)?;
     let repo_root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    // Notes go to stderr: stdout is the NDJSON protocol channel.
+    let wiring = crate::chat::wire_provider(provider, &crate::chat::configured_fallbacks(&repo_root));
+    for note in &wiring.notes {
+        eprintln!("[chat/headless] {note}");
+    }
+    let provider = wiring.provider;
     let session = SessionContext::new(
         validate_session_id(input.session_id.as_deref())?,
         repo_root,
@@ -197,6 +203,8 @@ pub(super) fn dispatch(provider_name: String, model: Option<String>) -> Result<(
             ..
         } => {
             let store = PendingApprovalStore::for_root(&context.session.repo_root);
+            let reason = reason_with_disclosure(&context.session.repo_root, &call, approval_reason)
+                .context("cannot ask for approval: where this call goes cannot be disclosed")?;
             let pending = store
                 .create(
                     context,
@@ -205,7 +213,7 @@ pub(super) fn dispatch(provider_name: String, model: Option<String>) -> Result<(
                     continuation_messages,
                     tool_rounds,
                     call,
-                    approval_reason.unwrap_or_else(|| "requires explicit human approval".to_string()),
+                    reason,
                     30,
                 )
                 .context("cannot persist pending approval")?;
@@ -234,6 +242,11 @@ pub(super) fn dispatch_resume(provider_name: String) -> Result<()> {
         crate::model::catalog::try_select_provider(&provider_name).map_err(anyhow::Error::msg)?;
     let input = read_resume_input()?;
     let repo_root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    let wiring = crate::chat::wire_provider(provider, &crate::chat::configured_fallbacks(&repo_root));
+    for note in &wiring.notes {
+        eprintln!("[chat/headless] {note}");
+    }
+    let provider = wiring.provider;
     let store = PendingApprovalStore::for_root(&repo_root);
     let resolved = store
         .resolve(&input.approval_id, input.decision, input.decided_by)
@@ -247,9 +260,14 @@ pub(super) fn dispatch_resume(provider_name: String) -> Result<()> {
         resolved.context.session.sandboxed,
     );
     let tools = crate::chat::tools::catalog(&session);
-    let executor = Arc::new(crate::chat::tui::tool_dispatch::ChatCapabilityExecutor::new(
-        session.sandboxed,
-    ));
+    for notice in crate::chat::tools::hidden_tool_notices(&session.repo_root) {
+        eprintln!("{notice}");
+    }
+    // Bound to the configuration as it is now, before the turn resumes (see the method's doc).
+    let executor = Arc::new(
+        crate::chat::tui::tool_dispatch::ChatCapabilityExecutor::new(session.sandboxed)
+            .bound_to_current_configuration(&resolved.pending_call, &resolved.context.session.repo_root, &resolved.authority_reason),
+    );
     let cancellation = CancellationToken::default();
     let mut output = io::BufWriter::new(io::stdout().lock());
     let mut approval_reason: Option<String> = None;
@@ -293,6 +311,8 @@ pub(super) fn dispatch_resume(provider_name: String) -> Result<()> {
             // capability right after the first) — pause again, the exact
             // same way the original dispatch does, rather than crash.
             let store = PendingApprovalStore::for_root(&resolved.context.session.repo_root);
+            let reason = reason_with_disclosure(&resolved.context.session.repo_root, &call, approval_reason)
+                .context("cannot ask for approval: where this call goes cannot be disclosed")?;
             let pending = store
                 .create(
                     resolved.context.clone(),
@@ -301,7 +321,7 @@ pub(super) fn dispatch_resume(provider_name: String) -> Result<()> {
                     continuation_messages,
                     tool_rounds,
                     call,
-                    approval_reason.unwrap_or_else(|| "requires explicit human approval".to_string()),
+                    reason,
                     30,
                 )
                 .context("cannot persist pending approval")?;
@@ -547,6 +567,8 @@ fn write_event(output: &mut impl Write, event: RuntimeEvent) -> Result<()> {
             "type": "metrics",
             "input_tokens": usage.input_tokens,
             "output_tokens": usage.output_tokens,
+            "cache_read_tokens": usage.cache_read_tokens,
+            "cache_write_tokens": usage.cache_write_tokens,
         })),
         RuntimeEvent::AuthorityDenied { authority, reason } => Some(json!({
             "type": "authority_denied",
@@ -761,6 +783,8 @@ mod tests {
             RuntimeEvent::Metrics(crate::model::provider::ChatUsage {
                 input_tokens: 4,
                 output_tokens: 7,
+                cache_read_tokens: 300,
+                cache_write_tokens: 40,
             }),
         )
         .unwrap();
@@ -775,6 +799,8 @@ mod tests {
         );
         assert_eq!(parsed[1]["input_tokens"], 4);
         assert_eq!(parsed[1]["output_tokens"], 7);
+        assert_eq!(parsed[1]["cache_read_tokens"], 300);
+        assert_eq!(parsed[1]["cache_write_tokens"], 40);
     }
 
     #[test]

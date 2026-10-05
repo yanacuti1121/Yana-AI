@@ -24,6 +24,7 @@
 //! hash/size/mtime evidence every read capability already produces —
 //! not a second, weaker evidence type).
 
+use super::checkpoint_hook;
 use super::error::CapabilityError;
 use super::evidence::ToolEvidence;
 use std::fs;
@@ -87,7 +88,32 @@ fn resolve_for_write(root: &Path, requested: &str) -> Result<PathBuf, Capability
             });
         }
     }
+    if is_protected_config(&root, &target) {
+        return Err(CapabilityError::InvalidInput {
+            detail: format!("'{requested}' is a protected configuration file; an agent write cannot change it (edit it yourself)"),
+        });
+    }
     Ok(target)
+}
+
+/// Files under `.yana-ai/` that decide where data is sent, which programs run,
+/// or who is allowed to do what (leases, pending approvals). They live inside
+/// the repository, so a model (or a cloned repo) must not be able to rewrite
+/// them through a governed write. (A human-approved `run_command` can still
+/// change them; for the search and MCP configs the approval prompt of the next
+/// call shows the real destination, which is what makes that acceptable.)
+const PROTECTED_CONFIGS: [&str; 5] = ["web-search.json", "mcp-servers.json", "lsp-servers.json", "leases.json", "pending-approvals.json"];
+
+/// True when `target` (already absolute and canonical in its parent) is one of
+/// `PROTECTED_CONFIGS` in the repo's `.yana-ai/` directory. The directory is
+/// resolved first, so `./`, `..`, a symlinked alias of the directory, and a
+/// different letter case (case-insensitive file systems) all reach the same answer.
+fn is_protected_config(root: &Path, target: &Path) -> bool {
+    let state = root.join(".yana-ai");
+    let state = state.canonicalize().unwrap_or(state);
+    let same_dir = target.parent().is_some_and(|p| p.to_string_lossy().eq_ignore_ascii_case(&state.to_string_lossy()));
+    let name = target.file_name().map(|n| n.to_string_lossy().to_ascii_lowercase());
+    same_dir && name.is_some_and(|n| PROTECTED_CONFIGS.contains(&n.as_str()))
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
@@ -264,8 +290,26 @@ pub fn apply_file_write(
     new_content: &str,
     session_id: Option<String>,
 ) -> Result<FileMutationOutcome, CapabilityError> {
+    apply_file_write_with(root, requested, kind, new_content, session_id, checkpoint_hook::from_env().as_ref())
+}
+
+/// `apply_file_write` with the optional pre-write checkpoint decided by the
+/// caller instead of the environment (`None` = off). `pub(super)` so tests can
+/// compare settings, and inject a missing git, without process-wide state.
+pub(super) fn apply_file_write_with(
+    root: &Path,
+    requested: &str,
+    kind: FileMutationKind,
+    new_content: &str,
+    session_id: Option<String>,
+    checkpoints: Option<&checkpoint_hook::HookConfig>,
+) -> Result<FileMutationOutcome, CapabilityError> {
     let diff = propose_file_write(root, requested, kind, new_content)?;
     let target = resolve_for_write(root, requested)?;
+    // Everything above is validation only; nothing has been written yet. The
+    // result of the hook is ignored on purpose: it can never change the write.
+    let action = if diff.existed_before { "overwrite" } else { "create" };
+    let _ = checkpoint_hook::before_write(checkpoints, root, requested, action);
 
     let backup_path = if diff.existed_before {
         Some(write_backup(root, requested, &target)?)
@@ -328,6 +372,24 @@ fn write_backup(root: &Path, requested: &str, target: &Path) -> Result<String, C
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The case logic, proven on paths alone so it holds on a case-sensitive
+    /// file system too (where a differently-cased real path would just not exist).
+    #[test]
+    fn protected_config_matching_ignores_letter_case_and_only_that_directory() {
+        let outer = tempfile::tempdir().unwrap();
+        let root = outer.path().canonicalize().unwrap();
+        std::fs::create_dir(root.join(".yana-ai")).unwrap();
+        let state = root.join(".yana-ai");
+        for name in ["web-search.json", "WEB-SEARCH.JSON", "Mcp-Servers.json", "leases.json", "Pending-Approvals.JSON"] {
+            assert!(is_protected_config(&root, &state.join(name)), "{name}");
+        }
+        let other_case_dir = root.join(".YANA-AI").join("web-search.json");
+        assert!(is_protected_config(&root, &other_case_dir), "a differently-cased directory name");
+        for fine in [state.join("notes.txt"), root.join("web-search.json"), root.join("docs").join("leases.json"), state.join("sub").join("web-search.json")] {
+            assert!(!is_protected_config(&root, &fine), "{fine:?}");
+        }
+    }
 
     fn tmp_repo(tag: &str) -> PathBuf {
         let root = std::env::temp_dir().join(format!(

@@ -35,9 +35,12 @@ impl App {
         };
 
         let api_key = if new_provider.requires_key() {
-            match std::env::var(new_provider.env_var()) {
-                Ok(k) if !k.is_empty() => Some(k),
-                _ => {
+            match crate::model::wiring::resolve_primary_key(
+                new_provider.env_var(),
+                &super::super::process_env,
+            ) {
+                Some(k) => Some(k),
+                None => {
                     self.status = format!(
                         "{} not set — export it before switching to {}",
                         new_provider.env_var(),
@@ -70,8 +73,17 @@ impl App {
             Ok(_) => {}
         }
 
-        self.status = format!("switched active tab to {} / {model}", new_provider.name());
-        self.provider = new_provider;
+        let provider_name = new_provider.name().to_string();
+        let repo_root = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
+        let wiring = super::super::wire_provider(
+            new_provider,
+            &super::super::configured_fallbacks(&repo_root),
+        );
+        self.status = format!("switched active tab to {provider_name} / {model}");
+        if !wiring.notes.is_empty() {
+            self.status.push_str(&format!(" · {}", wiring.notes.join("; ")));
+        }
+        self.provider = wiring.provider;
         self.model = model;
         self.api_key = api_key;
         self.provider_health = crate::chat::provider::ProviderHealth::Checking;

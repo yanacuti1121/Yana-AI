@@ -66,6 +66,7 @@ impl ChatProvider for MockProvider {
                     ChatUsage {
                         input_tokens: 2,
                         output_tokens: 3,
+                        ..Default::default()
                     },
                     StreamOutcome::Text,
                 ))
@@ -74,6 +75,7 @@ impl ChatProvider for MockProvider {
                 ChatUsage {
                     input_tokens: 1,
                     output_tokens: 1,
+                    ..Default::default()
                 },
                 StreamOutcome::ToolCalls(vec![call]),
             )),
@@ -365,7 +367,7 @@ fn resume_turn_completes_the_paused_call_and_continues_to_a_final_answer() {
     let provider_calls = Arc::new(AtomicUsize::new(0));
     let provider = Arc::new(MockProvider::new(
         [
-            MockResponse::Tool(call("run_command")),
+            MockResponse::Tool(call_with_command("run_command", "cargo test")),
             MockResponse::Text(vec!["done after resume"]),
         ],
         Arc::clone(&provider_calls),
@@ -394,6 +396,8 @@ fn resume_turn_completes_the_paused_call_and_continues_to_a_final_answer() {
     assert_eq!(executor_calls.load(Ordering::SeqCst), 0, "must not execute before a human decides");
 
     let store = crate::runtime::PendingApprovalStore::for_root(root.path());
+    // The reason is built the way the real creation sites build it, so it names the command that was shown.
+    let reason = crate::runtime::reason_with_disclosure(root.path(), &call, Some("requires explicit human approval".into())).unwrap();
     let created = store
         .create(
             request(root.path()).context,
@@ -402,7 +406,7 @@ fn resume_turn_completes_the_paused_call_and_continues_to_a_final_answer() {
             continuation_messages,
             tool_rounds,
             call,
-            "requires explicit human approval".into(),
+            reason,
             20,
         )
         .unwrap();
@@ -424,6 +428,207 @@ fn resume_turn_completes_the_paused_call_and_continues_to_a_final_answer() {
         outcome,
         TurnOutcome::Completed { ref message, .. } if message == "done after resume"
     ));
+}
+
+/// Pauses a `web_search` call for approval the way the headless path does (the
+/// stored reason carries the disclosure), resolves it as allowed, optionally
+/// changes the search configuration, resumes, and reports how many times the
+/// executor ran and what result the model was given.
+fn resume_a_search(change_backend_before_resume: bool) -> (usize, String) {
+    let root = tempfile::tempdir().unwrap();
+    write_flock_marker(root.path());
+    std::fs::create_dir_all(root.path().join(".yana-ai")).unwrap();
+    let config = root.path().join(".yana-ai/web-search.json");
+    std::fs::write(&config, r#"{"endpoint":"https://good.example/q"}"#).unwrap();
+    crate::capability::config_trust::trust_in_test(root.path());
+    let search = ToolCall { id: "s1".into(), name: "web_search".into(), arguments_json: r#"{"query":"rust release"}"#.into() };
+    let executor_calls = Arc::new(AtomicUsize::new(0));
+    let provider = Arc::new(MockProvider::new(
+        [MockResponse::Tool(search.clone()), MockResponse::Text(vec!["after"])],
+        Arc::new(AtomicUsize::new(0)),
+    ));
+    let executor = Arc::new(ApprovingExecutor { calls: Arc::clone(&executor_calls) });
+    let engine = TurnEngine::new(
+        Arc::clone(&provider) as Arc<dyn crate::model::provider::ChatProvider>,
+        Arc::new(YanaAuthorityChain),
+        Arc::clone(&executor) as Arc<dyn ToolExecutor>,
+    );
+    let TurnOutcome::AwaitingApproval { call, continuation_messages, tool_rounds, .. } =
+        engine.run(request(root.path()), &CancellationToken::default(), &mut |_| {}).unwrap()
+    else {
+        panic!("a web search must pause for approval");
+    };
+    let reason = crate::runtime::reason_with_disclosure(root.path(), &call, Some("yana_control_plane: needs approval".into())).unwrap();
+    assert!(reason.contains("good.example") && reason.contains("no API key is sent"));
+    let store = crate::runtime::PendingApprovalStore::for_root(root.path());
+    let created = store.create(request(root.path()).context, "mock-model".into(), None, continuation_messages, tool_rounds, call, reason, 20).unwrap();
+    let resolved = store.resolve(&created.approval_id, true, "human:test".into()).unwrap();
+    if change_backend_before_resume {
+        std::fs::write(&config, r#"{"endpoint":"https://evil.example/q"}"#).unwrap();
+        // Confirmed too: this test is about the approval binding, not the trust check.
+        crate::capability::config_trust::trust_in_test(root.path());
+    }
+    let outcome = crate::runtime::resume_turn(
+        &resolved,
+        Arc::clone(&provider) as Arc<dyn crate::model::provider::ChatProvider>,
+        Arc::clone(&executor) as Arc<dyn ToolExecutor>,
+        Vec::new(),
+        None,
+        &CancellationToken::default(),
+        &mut |_| {},
+    )
+    .unwrap();
+    let TurnOutcome::Completed { continuation_messages, .. } = outcome else { panic!("the resumed turn must finish") };
+    let given = continuation_messages.iter().rev().find_map(|m| m.tool_result.as_ref()).map(|r| r.output.clone()).unwrap_or_default();
+    (executor_calls.load(Ordering::SeqCst), given)
+}
+
+/// The same end-to-end shape for an external MCP program: pause, store the reason
+/// with the exact command line, approve, optionally swap the program, resume.
+/// (`mcp.call` only exists in builds with the client.)
+#[cfg(feature = "mcp")]
+fn resume_an_mcp_call(swap_program_before_resume: bool) -> (usize, String, String) {
+    let root = tempfile::tempdir().unwrap();
+    write_flock_marker(root.path());
+    std::fs::create_dir_all(root.path().join(".yana-ai")).unwrap();
+    let config = root.path().join(".yana-ai/mcp-servers.json");
+    std::fs::write(&config, r#"{"servers":[{"name":"gh","command":"/usr/bin/gh-mcp","args":["--read-only"]}]}"#).unwrap();
+    crate::capability::config_trust::trust_in_test(root.path());
+    let call = ToolCall { id: "m1".into(), name: "mcp_call".into(), arguments_json: r#"{"command":"gh search","arguments":{}}"#.into() };
+    let executor_calls = Arc::new(AtomicUsize::new(0));
+    let provider = Arc::new(MockProvider::new([MockResponse::Tool(call.clone()), MockResponse::Text(vec!["after"])], Arc::new(AtomicUsize::new(0))));
+    let executor = Arc::new(ApprovingExecutor { calls: Arc::clone(&executor_calls) });
+    let engine = TurnEngine::new(
+        Arc::clone(&provider) as Arc<dyn crate::model::provider::ChatProvider>,
+        Arc::new(YanaAuthorityChain),
+        Arc::clone(&executor) as Arc<dyn ToolExecutor>,
+    );
+    let TurnOutcome::AwaitingApproval { call, continuation_messages, tool_rounds, .. } =
+        engine.run(request(root.path()), &CancellationToken::default(), &mut |_| {}).unwrap()
+    else {
+        panic!("an external program must pause for approval");
+    };
+    let reason = crate::runtime::reason_with_disclosure(root.path(), &call, Some("yana_control_plane: needs approval".into())).unwrap();
+    assert!(reason.contains("`/usr/bin/gh-mcp --read-only`"));
+    let store = crate::runtime::PendingApprovalStore::for_root(root.path());
+    let created = store.create(request(root.path()).context, "mock-model".into(), None, continuation_messages, tool_rounds, call, reason.clone(), 20).unwrap();
+    let resolved = store.resolve(&created.approval_id, true, "human:test".into()).unwrap();
+    if swap_program_before_resume {
+        std::fs::write(&config, r#"{"servers":[{"name":"gh","command":"/tmp/evil"}]}"#).unwrap();
+        // Confirmed again: this is about the approval binding, not the trust check.
+        crate::capability::config_trust::trust_in_test(root.path());
+    }
+    let outcome = crate::runtime::resume_turn(
+        &resolved,
+        Arc::clone(&provider) as Arc<dyn crate::model::provider::ChatProvider>,
+        Arc::clone(&executor) as Arc<dyn ToolExecutor>,
+        Vec::new(),
+        None,
+        &CancellationToken::default(),
+        &mut |_| {},
+    )
+    .unwrap();
+    let TurnOutcome::Completed { continuation_messages, .. } = outcome else { panic!("the resumed turn must finish") };
+    let given = continuation_messages.iter().rev().find_map(|m| m.tool_result.as_ref()).map(|r| r.output.clone()).unwrap_or_default();
+    (executor_calls.load(Ordering::SeqCst), given, reason)
+}
+
+/// The same for a language server question: pause, store the reason with the resolved program
+/// and the whole question, approve, optionally swap the program, resume.
+#[cfg(feature = "lsp")]
+fn resume_an_lsp_query(swap_program_before_resume: bool) -> (usize, String, String) {
+    let root = tempfile::tempdir().unwrap();
+    write_flock_marker(root.path());
+    std::fs::create_dir_all(root.path().join(".yana-ai")).unwrap();
+    std::fs::create_dir_all(root.path().join("src")).unwrap();
+    std::fs::write(root.path().join("src/lib.rs"), "pub fn alpha() {}\n").unwrap();
+    let config = root.path().join(".yana-ai/lsp-servers.json");
+    std::fs::write(&config, r#"{"servers":[{"name":"rust","command":"/bin/sh","args":["--version"]}]}"#).unwrap();
+    crate::capability::config_trust::trust_in_test(root.path());
+    let arguments = r#"{"server":"rust","operation":"hover","path":"src/lib.rs","line":1,"character":3}"#;
+    let call = ToolCall { id: "l1".into(), name: "lsp_query".into(), arguments_json: arguments.into() };
+    let executor_calls = Arc::new(AtomicUsize::new(0));
+    let provider = Arc::new(MockProvider::new([MockResponse::Tool(call.clone()), MockResponse::Text(vec!["after"])], Arc::new(AtomicUsize::new(0))));
+    let executor = Arc::new(ApprovingExecutor { calls: Arc::clone(&executor_calls) });
+    let engine = TurnEngine::new(
+        Arc::clone(&provider) as Arc<dyn crate::model::provider::ChatProvider>,
+        Arc::new(YanaAuthorityChain),
+        Arc::clone(&executor) as Arc<dyn ToolExecutor>,
+    );
+    let TurnOutcome::AwaitingApproval { call, continuation_messages, tool_rounds, .. } =
+        engine.run(request(root.path()), &CancellationToken::default(), &mut |_| {}).unwrap()
+    else {
+        panic!("a language server must pause for approval");
+    };
+    let reason = crate::runtime::reason_with_disclosure(root.path(), &call, Some("yana_control_plane: needs approval".into())).unwrap();
+    assert!(reason.contains("`/bin/sh --version`") && reason.ends_with("ask for hover at src/lib.rs:1:3"));
+    let store = crate::runtime::PendingApprovalStore::for_root(root.path());
+    let created = store.create(request(root.path()).context, "mock-model".into(), None, continuation_messages, tool_rounds, call, reason.clone(), 20).unwrap();
+    let resolved = store.resolve(&created.approval_id, true, "human:test".into()).unwrap();
+    if swap_program_before_resume {
+        std::fs::write(&config, r#"{"servers":[{"name":"rust","command":"/tmp/evil"}]}"#).unwrap();
+        // Confirmed again: this is about the approval binding, not the trust check.
+        crate::capability::config_trust::trust_in_test(root.path());
+    }
+    let outcome = crate::runtime::resume_turn(
+        &resolved,
+        Arc::clone(&provider) as Arc<dyn crate::model::provider::ChatProvider>,
+        Arc::clone(&executor) as Arc<dyn ToolExecutor>,
+        Vec::new(),
+        None,
+        &CancellationToken::default(),
+        &mut |_| {},
+    )
+    .unwrap();
+    let TurnOutcome::Completed { continuation_messages, .. } = outcome else { panic!("the resumed turn must finish") };
+    let given = continuation_messages.iter().rev().find_map(|m| m.tool_result.as_ref()).map(|r| r.output.clone()).unwrap_or_default();
+    (executor_calls.load(Ordering::SeqCst), given, reason)
+}
+
+#[cfg(feature = "lsp")]
+#[test]
+fn resuming_an_approved_lsp_query_runs_it_once_when_the_program_is_unchanged() {
+    let (ran, given, _) = resume_an_lsp_query(false);
+    assert_eq!(ran, 1);
+    assert_eq!(given, "approved and executed");
+}
+
+#[cfg(feature = "lsp")]
+#[test]
+fn resuming_an_approved_lsp_query_does_not_run_a_program_swapped_after_approval() {
+    let (ran, given, _) = resume_an_lsp_query(true);
+    assert_eq!(ran, 0, "the executor must not be reached");
+    assert!(given.contains("configuration changed since this was approved"), "{given}");
+}
+
+#[cfg(feature = "mcp")]
+#[test]
+fn resuming_an_approved_mcp_call_runs_it_once_when_the_program_is_unchanged() {
+    let (ran, given, _) = resume_an_mcp_call(false);
+    assert_eq!(ran, 1);
+    assert_eq!(given, "approved and executed");
+}
+
+#[cfg(feature = "mcp")]
+#[test]
+fn resuming_an_approved_mcp_call_does_not_run_a_program_swapped_after_approval() {
+    let (ran, given, _) = resume_an_mcp_call(true);
+    assert_eq!(ran, 0, "the executor must not be reached");
+    assert!(given.contains("configuration changed since this was approved"), "{given}");
+}
+
+#[test]
+fn resuming_an_approved_search_runs_it_once_when_the_backend_is_unchanged() {
+    let (ran, given) = resume_a_search(false);
+    assert_eq!(ran, 1);
+    assert_eq!(given, "approved and executed");
+}
+
+#[test]
+fn resuming_an_approved_search_does_not_run_it_when_the_backend_changed_after_approval() {
+    let (ran, given) = resume_a_search(true);
+    assert_eq!(ran, 0, "the executor must not be reached");
+    assert!(given.contains("configuration changed since this was approved"), "{given}");
 }
 
 #[test]
