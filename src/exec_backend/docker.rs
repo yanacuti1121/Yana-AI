@@ -48,8 +48,6 @@ pub struct DockerConfig {
     pub program: PathBuf,
     /// `name@sha256:<64 hex>`: a pinned image, never a movable tag.
     pub image: String,
-    /// `uid:gid`, both numeric and non-zero. `None` uses this process's own ids.
-    pub user: Option<String>,
     pub limits: Limits,
     pub network: Network,
     /// Names of variables to pass (values are read from this process by the client, never put
@@ -87,12 +85,6 @@ impl DockerConfig {
         if !is_digest_image(&self.image) {
             return Err(invalid("the image must be pinned by digest: name@sha256:<64 lowercase hex>"));
         }
-        if let Some(user) = &self.user {
-            let numeric = user.split_once(':').is_some_and(|(u, g)| [u, g].iter().all(|p| !p.is_empty() && p.chars().all(|c| c.is_ascii_digit()) && p.parse::<u32>().is_ok_and(|n| n != 0)));
-            if !numeric {
-                return Err(invalid("the container user must be numeric uid:gid, neither of them 0"));
-            }
-        }
         if let Some(bad) = self.env_names.iter().find(|name| !valid_env_name(name)) {
             return Err(invalid(format!("the variable name {bad:?} cannot be passed into a container")));
         }
@@ -108,22 +100,6 @@ impl DockerConfig {
         Ok(())
     }
 
-    fn user_arg(&self) -> String {
-        if let Some(user) = &self.user {
-            return user.clone();
-        }
-        #[cfg(unix)]
-        {
-            // SAFETY: plain reads of this process's own ids.
-            let (uid, gid) = unsafe { (libc::getuid(), libc::getgid()) };
-            if uid != 0 && gid != 0 {
-                return format!("{uid}:{gid}");
-            }
-        }
-        // Running as root (or no ids): never map that into the container.
-        "65534:65534".to_string()
-    }
-
     /// The argument list of `docker run` for `argv` working in `work`, the private copy of the
     /// working directory (absolute). Pure.
     pub(crate) fn run_args(&self, work: &Path, argv: &[String], ctx: &RunContext) -> Result<Vec<String>, CapabilityError> {
@@ -137,7 +113,11 @@ impl DockerConfig {
         push(&["run", "--rm", "--init", "--pull", "never", "--name", &format!("yana-{id}")]);
         push(&["--label", &format!("yana.run={id}"), "--label", &format!("yana.owner={}", ctx.owner_pid)]);
         push(&["--label", &format!("yana.deadline={}", ctx.deadline_unix)]);
-        push(&["--user", &self.user_arg(), "--read-only", "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m"]);
+        let (uid, gid) = ctx.uid_gid;
+        if uid == 0 || gid == 0 {
+            return Err(invalid("Yana is running as root: the private copy would be root's, and a container is never run as root, so it could not use it. Run Yana as a normal user"));
+        }
+        push(&["--user", &format!("{uid}:{gid}"), "--read-only", "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m"]);
         push(&["--cap-drop", "ALL", "--security-opt", "no-new-privileges"]);
         let l = &self.limits;
         let memory = format!("{}m", l.memory_mb);
@@ -166,6 +146,9 @@ pub(crate) struct RunContext {
     pub deadline_unix: u64,
     /// The home directory, which a working directory may not be or contain.
     pub home: Option<PathBuf>,
+    /// The user and group Yana runs as. The container runs as them too, because the private
+    /// copy is theirs alone (mode 0700) and nobody else could read or write it.
+    pub uid_gid: (u32, u32),
 }
 
 pub struct DockerBackend {

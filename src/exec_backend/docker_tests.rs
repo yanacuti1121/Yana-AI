@@ -12,7 +12,6 @@ pub(super) fn config(program: &Path) -> DockerConfig {
     DockerConfig {
         program: program.to_path_buf(),
         image: DIGEST.into(),
-        user: Some("1000:1000".into()),
         limits: Limits::default(),
         network: Network::None,
         env_names: Vec::new(),
@@ -30,7 +29,7 @@ pub(super) fn pinned(dir: &Path) -> PathBuf {
 
 /// The per-run values, fixed so the argument list can be compared whole.
 pub(super) fn ctx() -> RunContext {
-    RunContext { run_id: "0123456789abcdef".into(), owner_pid: 4242, deadline_unix: 1_000_000, home: Some(PathBuf::from("/nonexistent-home")) }
+    RunContext { run_id: "0123456789abcdef".into(), owner_pid: 4242, deadline_unix: 1_000_000, home: Some(PathBuf::from("/nonexistent-home")), uid_gid: (1000, 1000) }
 }
 
 fn args_for(root: &Path) -> Result<Vec<String>, crate::capability::CapabilityError> {
@@ -67,12 +66,11 @@ fn no_variant_of_the_argument_list_widens_what_the_container_can_reach() {
     let dir = tempfile::tempdir().unwrap();
     let root = pinned(dir.path());
     for network in [Network::None, Network::Open] {
-        for user in [None, Some("2000:3000".to_string())] {
+        for ids in [(1000, 1000), (2000, 3000)] {
             let mut c = config(Path::new("/usr/bin/docker"));
             c.network = network;
-            c.user = user;
             c.env_names = vec!["GITHUB_TOKEN".into(), "LANG".into()];
-            let args = c.run_args(&root, &argv(&["sh", "-c", "id"]), &ctx()).unwrap();
+            let args = c.run_args(&root, &argv(&["sh", "-c", "id"]), &RunContext { uid_gid: ids, ..ctx() }).unwrap();
             let image_at = args.iter().position(|a| a == DIGEST).unwrap();
             let mine = &args[..image_at];
             let joined = mine.join(" ");
@@ -91,7 +89,7 @@ fn no_variant_of_the_argument_list_widens_what_the_container_can_reach() {
                 assert!(!pair[1].contains('=') || pair[1] == "HOME=/tmp" || pair[1] == "YANA_AGENT_CHILD=1", "{}", pair[1]);
             }
             let user = &mine[mine.iter().position(|a| a == "--user").unwrap() + 1];
-            assert!(!user.starts_with("0:") && !user.ends_with(":0") && !user.contains("root"), "{user}");
+            assert_eq!(user, &format!("{}:{}", ids.0, ids.1));
             assert_eq!(mine[mine.iter().position(|a| a == "--network").unwrap() + 1], if network == Network::None { "none" } else { "bridge" });
         }
     }
@@ -106,10 +104,6 @@ fn a_configuration_that_could_widen_access_is_refused() {
         ("movable tag", DockerConfig { image: "alpine:latest".into(), ..base.clone() }),
         ("upper-case digest", DockerConfig { image: DIGEST.replace('a', "A"), ..base.clone() }),
         ("option-looking image", DockerConfig { image: format!("-v/:/x@sha256:{}", "a".repeat(64)), ..base.clone() }),
-        ("root user", DockerConfig { user: Some("0:0".into()), ..base.clone() }),
-        ("root group", DockerConfig { user: Some("1000:0".into()), ..base.clone() }),
-        ("named user", DockerConfig { user: Some("root".into()), ..base.clone() }),
-        ("uid only", DockerConfig { user: Some("1000".into()), ..base.clone() }),
         ("memory too big", DockerConfig { limits: Limits { memory_mb: 100_000, ..Limits::default() }, ..base.clone() }),
         ("no time limit", DockerConfig { limits: Limits { wall: Duration::from_secs(0), ..Limits::default() }, ..base.clone() }),
         ("cpus zero", DockerConfig { limits: Limits { cpus: 0.0, ..Limits::default() }, ..base.clone() }),
@@ -153,8 +147,18 @@ fn a_real_container_cannot_see_the_home_directory() {
     let work = tempfile::tempdir().unwrap();
     let mut c = config(Path::new("/usr/local/bin/docker"));
     c.image = image;
-    c.user = None;
     let out = DockerBackend::new(c).unwrap().run(&ExecRequest { root: work.path().to_path_buf(), argv: argv(&["sh", "-c", "ls /Users /home /root 2>&1; id -u"]) }).unwrap();
     let text = String::from_utf8_lossy(&out.stdout).to_string();
     assert!(!text.lines().last().unwrap_or("").trim().eq("0"), "{text}");
+}
+
+#[test]
+fn a_container_is_never_run_as_root_and_runs_as_the_user_who_owns_the_copy() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = pinned(dir.path());
+    let c = config(Path::new("/usr/bin/docker"));
+    for ids in [(0, 1000), (1000, 0), (0, 0)] {
+        let error = c.run_args(&root, &argv(&["true"]), &RunContext { uid_gid: ids, ..ctx() }).unwrap_err();
+        assert!(error.to_string().contains("Yana is running as root"), "{ids:?}: {error}");
+    }
 }

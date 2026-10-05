@@ -144,6 +144,7 @@ pub(super) fn run(config: &DockerConfig, request: &ExecRequest) -> Result<ExecOu
         owner_pid: std::process::id(),
         deadline_unix: unix_now() + config.limits.wall.as_secs() + ORPHAN_GRACE_SECS,
         home: std::env::var_os("HOME").and_then(|home| PathBuf::from(home).canonicalize().ok()),
+        uid_gid: own_ids(),
     };
     let copies = std::env::temp_dir().canonicalize().unwrap_or_else(|_| std::env::temp_dir());
     check_root(&root, ctx.home.as_deref(), &copies)?;
@@ -216,6 +217,17 @@ fn container_gone(config: &DockerConfig, env: &[(OsString, OsString)], run_id: &
         }
     }
     false
+}
+
+/// The user and group this process runs as.
+fn own_ids() -> (u32, u32) {
+    #[cfg(unix)]
+    // SAFETY: plain reads of this process's own ids.
+    unsafe {
+        (libc::getuid(), libc::getgid())
+    }
+    #[cfg(not(unix))]
+    (0, 0)
 }
 
 fn unix_now() -> u64 {

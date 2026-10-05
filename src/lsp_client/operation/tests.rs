@@ -103,11 +103,12 @@ fn files_that_hold_secrets_are_recognised_by_name() {
     for secret in [
         ".env", "app/.env.production", "prod.env", "certs/server.pem", "a/b/private.key", "id_rsa", ".npmrc", ".git/config", "config/api_token.json", "credentials.json", "my_secret.txt", ".ENV", "Config/.Env.Local",
         ".envrc", ".env_local", ".netrc", ".pgpass", "id_ecdsa", "a/key.p8", "app.jks", "infra/terraform.tfstate", "prod.tfvars", ".kube/config", ".aws/config", ".docker/config.json", ".ssh/known_hosts",
-        ".yana-ai/leases.json", "dir\\.env", ".env.",
+        ".yana-ai/leases.json", "dir\\.env", ".env.", "kubeconfig", "deploy/service-account-prod.json", "gcp/Service_Account.json", "id_ed25519_work", ".dockercfg", "wp-config.php",
+        "vpn/client.ovpn", "db.kdbx", "krb/user.keytab", "terraform.tfstate.backup", ".git-credentials", ".vault-token", ".netrc", ".pypirc",
     ] {
         assert!(sensitive_path(secret), "{secret}");
     }
-    for fine in ["src/main.rs", "README.md", "docs/environment.md", "src/lib/envelope.rs", "src/tokenizer.rs", "src/secret_sharing.rs", "src/credentials_provider.py"] {
+    for fine in ["src/main.rs", "README.md", "docs/environment.md", "src/lib/envelope.rs", "src/tokenizer.rs", "src/secret_sharing.rs", "src/credentials_provider.py", "keys/id_rsa.pub", "docs/identity.md", "src/service_accounts.rs", "idea.txt"] {
         assert!(!sensitive_path(fine), "{fine}");
     }
     assert!(parse_query(&args(json!({"path": "config/.env"}))).is_err(), "a query about a secrets file is refused");
