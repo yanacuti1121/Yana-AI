@@ -12,9 +12,17 @@ use std::sync::Arc;
 const DEFAULT_MAX_TOOL_ROUNDS: usize = 8;
 const CANCELLED_MESSAGE: &str = "generation cancelled by user";
 
+/// Deepest chain of child tokens followed when asking whether a token is cancelled. Far
+/// beyond the delegation depth limit; it only keeps a malformed chain from looping.
+const MAX_TOKEN_DEPTH: usize = 16;
+
+/// A cancellation flag with an optional parent. A token is cancelled when it was cancelled
+/// itself or when any ancestor was; cancelling a child never cancels its parent. Cancelling
+/// a parent therefore cancels every run started beneath it (WS2 contract, sections 4 and 5).
 #[derive(Clone, Default)]
 pub(crate) struct CancellationToken {
     cancelled: Arc<AtomicBool>,
+    parent: Option<Arc<CancellationToken>>,
 }
 
 impl CancellationToken {
@@ -22,8 +30,51 @@ impl CancellationToken {
         self.cancelled.store(true, Ordering::Release);
     }
 
+    /// A new token that is cancelled whenever `self` is, and can also be cancelled alone.
+    #[cfg(any(test, feature = "session-db"))]
+    pub(crate) fn child(&self) -> CancellationToken {
+        CancellationToken { cancelled: Arc::default(), parent: Some(Arc::new(self.clone())) }
+    }
+
     pub(crate) fn is_cancelled(&self) -> bool {
-        self.cancelled.load(Ordering::Acquire)
+        let mut token = self;
+        for _ in 0..MAX_TOKEN_DEPTH {
+            if token.cancelled.load(Ordering::Acquire) {
+                return true;
+            }
+            match &token.parent {
+                Some(parent) => token = parent,
+                None => return false,
+            }
+        }
+        true
+    }
+}
+
+/// Which limit stopped a turn.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum LimitKind {
+    InputTokens,
+    OutputTokens,
+}
+
+/// Most tokens a turn may use in all. `0` means no limit. Checked before each round with
+/// what the provider has reported so far; a round already streaming is never cut short by it.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub(crate) struct TurnLimits {
+    pub max_input_tokens: u64,
+    pub max_output_tokens: u64,
+}
+
+impl TurnLimits {
+    fn exceeded(&self, used: &ChatUsage) -> Option<(LimitKind, u64)> {
+        if self.max_input_tokens > 0 && used.input_tokens >= self.max_input_tokens {
+            return Some((LimitKind::InputTokens, self.max_input_tokens));
+        }
+        if self.max_output_tokens > 0 && used.output_tokens >= self.max_output_tokens {
+            return Some((LimitKind::OutputTokens, self.max_output_tokens));
+        }
+        None
     }
 }
 
@@ -71,6 +122,11 @@ pub(crate) enum TurnError {
     ToolRoundLimit {
         limit: usize,
     },
+    /// The tokens used so far reached the turn's limit; no further round was started.
+    BudgetExceeded {
+        kind: LimitKind,
+        limit: u64,
+    },
     MultipleToolCallsUnsupported {
         count: usize,
     },
@@ -85,6 +141,9 @@ impl fmt::Display for TurnError {
             Self::Provider(message) => write!(formatter, "provider failed: {message}"),
             Self::ToolRoundLimit { limit } => {
                 write!(formatter, "tool-call round limit reached ({limit})")
+            }
+            Self::BudgetExceeded { kind, limit } => {
+                write!(formatter, "{kind:?} limit reached ({limit} tokens)")
             }
             Self::MultipleToolCallsUnsupported { count } => {
                 write!(
@@ -178,7 +237,7 @@ impl TurnEngine {
         }
     }
 
-    #[cfg(test)]
+    #[cfg(any(test, feature = "session-db"))]
     pub(crate) fn with_max_tool_rounds(mut self, limit: usize) -> Self {
         self.max_tool_rounds = limit;
         self
@@ -211,6 +270,11 @@ impl TurnEngine {
         loop {
             if cancellation.is_cancelled() {
                 return Ok(cancelled(String::new(), emit));
+            }
+            if let Some((kind, limit)) = request.limits.exceeded(&total_usage) {
+                let error = TurnError::BudgetExceeded { kind, limit };
+                emit(RuntimeEvent::Error { message: error.to_string() });
+                return Err(error);
             }
 
             let (reply, usage, stream_outcome) =

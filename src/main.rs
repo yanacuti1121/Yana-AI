@@ -1,5 +1,7 @@
 #![cfg(feature = "cli")]
 
+#[cfg(feature = "session-db")]
+mod agent_loop;
 mod bus;
 mod capability;
 mod chat;

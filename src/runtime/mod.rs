@@ -18,8 +18,10 @@ pub(crate) use authority::{
 };
 pub(crate) use controller::{
     execute_approved_tool, push_tool_result, ApprovedTool, CancellationToken, ToolExecutor,
-    TurnEngine, TurnError,
+    TurnEngine, TurnError, TurnLimits,
 };
+#[cfg(any(test, feature = "session-db"))]
+pub(crate) use controller::LimitKind;
 pub(crate) use events::RuntimeEvent;
 pub(crate) use origin::{TurnContext, TurnOrigin};
 pub(crate) use outcome::TurnOutcome;

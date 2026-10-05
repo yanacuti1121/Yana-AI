@@ -1050,3 +1050,52 @@ fn no_intent_declared_leaves_existing_approval_behavior_unchanged() {
         AuthorityDecision::Allow { .. }
     ), "with no declaration at all, the four pre-existing terms alone must still govern, unchanged");
 }
+
+#[test]
+fn a_child_token_follows_its_parent_but_not_the_other_way() {
+    let parent = CancellationToken::default();
+    let child = parent.child();
+    let grandchild = child.child();
+    assert!(!parent.is_cancelled() && !child.is_cancelled() && !grandchild.is_cancelled());
+    grandchild.cancel();
+    assert!(grandchild.is_cancelled() && !child.is_cancelled() && !parent.is_cancelled(), "cancelling a child never reaches up");
+    let sibling = child.child();
+    parent.cancel();
+    assert!(child.is_cancelled() && sibling.is_cancelled() && grandchild.is_cancelled(), "cancelling the parent reaches every descendant");
+    // A clone is the same token.
+    let again = CancellationToken::default();
+    let copy = again.clone();
+    again.cancel();
+    assert!(copy.is_cancelled());
+}
+
+#[test]
+fn a_turn_stops_before_the_round_that_would_pass_its_token_limit() {
+    let root = tempfile::tempdir().unwrap();
+    write_flock_marker(root.path());
+    let provider_calls = Arc::new(AtomicUsize::new(0));
+    let provider = Arc::new(MockProvider::new(
+        [MockResponse::Tool(call("read_file")), MockResponse::Tool(call("read_file")), MockResponse::Text(vec!["never reached"])],
+        Arc::clone(&provider_calls),
+    ));
+    let executor = Arc::new(RecordingExecutor { calls: Arc::new(AtomicUsize::new(0)) });
+    let engine = TurnEngine::new(provider, Arc::new(YanaAuthorityChain), executor);
+    // Each tool round reports 1 input and 1 output token.
+    let limited = request(root.path()).with_limits(TurnLimits { max_input_tokens: 2, max_output_tokens: 0 });
+    let mut events = Vec::new();
+    let error = engine.run(limited, &CancellationToken::default(), &mut |e| events.push(e)).unwrap_err();
+    assert_eq!(error, TurnError::BudgetExceeded { kind: LimitKind::InputTokens, limit: 2 });
+    assert_eq!(provider_calls.load(Ordering::SeqCst), 2, "no third round was started");
+    assert!(events.iter().any(|e| matches!(e, RuntimeEvent::Error { .. })));
+}
+
+#[test]
+fn no_limit_means_no_limit() {
+    let root = tempfile::tempdir().unwrap();
+    write_flock_marker(root.path());
+    let provider = Arc::new(MockProvider::new([MockResponse::Text(vec!["hi"])], Arc::new(AtomicUsize::new(0))));
+    let executor = Arc::new(RecordingExecutor { calls: Arc::new(AtomicUsize::new(0)) });
+    let engine = TurnEngine::new(provider, Arc::new(YanaAuthorityChain), executor);
+    let outcome = engine.run(request(root.path()), &CancellationToken::default(), &mut |_| {}).unwrap();
+    assert!(matches!(outcome, TurnOutcome::Completed { .. }));
+}

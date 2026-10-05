@@ -1,4 +1,4 @@
-use super::TurnContext;
+use super::{TurnContext, TurnLimits};
 use crate::model::provider::ChatMessage;
 use crate::model::tool::ToolSpec;
 
@@ -9,6 +9,7 @@ pub(crate) struct TurnRequest {
     pub messages: Vec<ChatMessage>,
     pub tools: Vec<ToolSpec>,
     pub tool_rounds_completed: usize,
+    pub limits: TurnLimits,
     api_key: Option<String>,
 }
 
@@ -25,6 +26,7 @@ impl TurnRequest {
             messages,
             tools: Vec::new(),
             tool_rounds_completed: 0,
+            limits: TurnLimits::default(),
             api_key: None,
         }
     }
@@ -41,6 +43,12 @@ impl TurnRequest {
 
     pub(crate) fn with_tool_rounds_completed(mut self, rounds: usize) -> Self {
         self.tool_rounds_completed = rounds;
+        self
+    }
+
+    #[cfg(any(test, feature = "session-db"))]
+    pub(crate) fn with_limits(mut self, limits: TurnLimits) -> Self {
+        self.limits = limits;
         self
     }
 
