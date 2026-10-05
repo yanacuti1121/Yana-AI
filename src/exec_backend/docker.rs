@@ -5,7 +5,9 @@
 //! tested string by string: the working directory at `/work`, a tmpfs `/tmp`, and nothing
 //! else of this machine. No home, no trust store, no Docker socket, no network by default.
 
-use super::docker_mounts::{check_root, mount_args, mountable, NOT_SEARCHED, READ_ONLY_PATHS, WORK};
+use super::docker_mounts::{mountable, WORK};
+use super::staging::{PROTECTED, VENDORED};
+pub use super::staging::StagingLimits;
 use super::{BackendDisclosure, ExecBackend, ExecOutput, ExecRequest};
 use crate::capability::CapabilityError;
 use std::path::{Path, PathBuf};
@@ -53,6 +55,8 @@ pub struct DockerConfig {
     /// Names of variables to pass (values are read from this process by the client, never put
     /// in the argument list).
     pub env_names: Vec<String>,
+    /// How much of the working directory is copied in, and how much may come back.
+    pub staging: StagingLimits,
 }
 
 fn invalid(detail: impl Into<String>) -> CapabilityError {
@@ -120,14 +124,13 @@ impl DockerConfig {
         "65534:65534".to_string()
     }
 
-    /// The argument list of `docker run` for `argv` in the working directory `root` (already
-    /// canonical). Pure apart from looking at what is under `root`.
-    pub(crate) fn run_args(&self, root: &Path, argv: &[String], ctx: &RunContext) -> Result<Vec<String>, CapabilityError> {
+    /// The argument list of `docker run` for `argv` working in `work`, the private copy of the
+    /// working directory (absolute). Pure.
+    pub(crate) fn run_args(&self, work: &Path, argv: &[String], ctx: &RunContext) -> Result<Vec<String>, CapabilityError> {
         self.validate()?;
         if argv.is_empty() {
             return Err(CapabilityError::EmptyCommand);
         }
-        check_root(root, ctx.home.as_deref())?;
         let mut args: Vec<String> = Vec::new();
         let mut push = |parts: &[&str]| args.extend(parts.iter().map(|p| p.to_string()));
         let id = &ctx.run_id;
@@ -144,8 +147,7 @@ impl DockerConfig {
         for name in &self.env_names {
             push(&["-e", name]);
         }
-        push(&["--mount", &format!("type=bind,source={},target={WORK}", mountable(root)?)]);
-        args.extend(mount_args(root)?);
+        push(&["--mount", &format!("type=bind,source={},target={WORK}", mountable(work)?)]);
         args.push(self.image.clone());
         args.extend(argv.iter().cloned());
         Ok(args)
@@ -180,10 +182,9 @@ impl ExecBackend for DockerBackend {
         let c = &self.config;
         let mut notes = vec![
             format!("image {}", c.image),
-            format!("sees only the working directory (at {WORK}) and an empty /tmp; not your home directory, keys, trust records or Docker socket"),
-            format!("read-only inside: {} (a .git that does not exist yet is not protected)", READ_ONLY_PATHS.join(", ")),
-            format!("hidden: files and folders named like secrets (.env, *.pem, .ssh...), except inside {}", NOT_SEARCHED.join(", ")),
-            "the working directory is writable: what a command writes there stays on this machine and can run later (build scripts, Makefile, package.json)".to_string(),
+            format!("runs on a private copy of the working directory (at {WORK}), not the real one; it sees an empty /tmp and nothing else of this machine: not your home directory, keys, trust records or Docker socket"),
+            format!("left out of the copy: {}, files and folders named like secrets (.env, *.pem, .ssh...), links and special files; and not searched or copied: {}", PROTECTED.join(", "), VENDORED.join(", ")),
+            "changes are copied back afterwards as plain files only, never over those, and never over a file that changed on this machine meanwhile; what a command writes (a Makefile, package.json, scripts) can run on this machine later".to_string(),
             format!("network: {}", if c.network == Network::None { "none" } else { "OPEN (container bridge network: reaches your local network and cloud metadata addresses)" }),
             format!("limits: {} s, {} CPU, {} MB, {} processes", c.limits.wall.as_secs(), c.limits.cpus, c.limits.memory_mb, c.limits.pids),
         ];

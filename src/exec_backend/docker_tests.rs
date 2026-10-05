@@ -1,7 +1,7 @@
 //! Docker backend tests. No real Docker: the `docker` program is a small `sh` script that
 //! records what it was asked and behaves as a control file says.
 
-use super::docker::{DockerBackend, DockerConfig, Limits, Network, RunContext};
+use super::docker::{DockerBackend, DockerConfig, Limits, Network, RunContext, StagingLimits};
 use super::{ExecBackend, ExecRequest};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
@@ -16,6 +16,7 @@ pub(super) fn config(program: &Path) -> DockerConfig {
         limits: Limits::default(),
         network: Network::None,
         env_names: Vec::new(),
+        staging: StagingLimits::default(),
     }
 }
 
@@ -52,119 +53,19 @@ fn the_argument_list_is_exactly_this() {
     .chain([
         "--mount".to_string(),
         format!("type=bind,source={},target=/work", root.display()),
-        "--mount".to_string(),
-        format!("type=bind,source={}/.yana-ai,target=/work/.yana-ai,readonly", root.display()),
         DIGEST.to_string(),
         "ls".into(),
         "-la".into(),
     ])
     .collect();
     assert_eq!(args, expected);
-    assert!(root.join(".yana-ai").is_dir(), "an absent .yana-ai is made empty so it can be mounted read-only");
-}
-
-#[test]
-fn config_and_secret_paths_are_kept_read_only_or_hidden_at_any_depth() {
-    let dir = tempfile::tempdir().unwrap();
-    let root = pinned(dir.path());
-    std::fs::create_dir_all(root.join(".yana-ai")).unwrap();
-    std::fs::create_dir_all(root.join(".git/hooks")).unwrap();
-    std::fs::write(root.join(".git/config"), "[core]").unwrap();
-    std::fs::write(root.join(".env"), "SECRET=1").unwrap();
-    std::fs::create_dir_all(root.join(".ssh")).unwrap();
-    std::fs::create_dir_all(root.join("config/prod")).unwrap();
-    std::fs::write(root.join("config/prod/id_rsa"), "key").unwrap();
-    std::fs::create_dir_all(root.join("node_modules/x")).unwrap();
-    std::fs::write(root.join("node_modules/x/.env"), "not searched").unwrap();
-    std::fs::write(root.join("main.rs"), "fn main() {}").unwrap();
-    let args = args_for(&root).unwrap().join(" ");
-    for protected in [".yana-ai", ".git/hooks", ".git/config"] {
-        let want = format!("source={}/{protected},target=/work/{protected},readonly", root.display());
-        assert!(args.contains(&want), "{protected}: {args}");
-    }
-    assert!(args.contains("source=/dev/null,target=/work/.env,readonly"), "{args}");
-    assert!(args.contains("source=/dev/null,target=/work/config/prod/id_rsa,readonly"), "a nested secret is hidden too: {args}");
-    assert!(args.contains("type=tmpfs,destination=/work/.ssh,tmpfs-size=4096,readonly"), "{args}");
-    assert!(!args.contains("main.rs") && !args.contains("node_modules"), "ordinary files and vendored folders are not mounted separately: {args}");
-}
-
-#[test]
-fn a_git_directory_stays_usable_with_only_its_hooks_and_config_read_only() {
-    let dir = tempfile::tempdir().unwrap();
-    let root = pinned(dir.path());
-    std::fs::create_dir_all(root.join(".git")).unwrap();
-    std::fs::write(root.join(".git/config"), "[core]").unwrap();
-    let args = args_for(&root).unwrap();
-    assert!(args.iter().all(|a| !a.contains("target=/work/.git,") && !a.contains("destination=/work/.git,")), "the whole .git must not be hidden or read-only: {args:?}");
-    assert!(root.join(".git/hooks").is_dir(), ".git/hooks is made inside a real .git so it can be read-only");
-    assert!(args.iter().any(|a| a.contains("target=/work/.git/hooks,readonly")), "{args:?}");
-}
-
-#[test]
-fn without_a_git_directory_nothing_git_is_created_on_the_host() {
-    let dir = tempfile::tempdir().unwrap();
-    let root = pinned(dir.path());
-    args_for(&root).unwrap();
-    assert!(!root.join(".git").exists());
-}
-
-#[test]
-fn secret_hiding_fails_closed_instead_of_leaving_a_secret_visible() {
-    let dir = tempfile::tempdir().unwrap();
-    let root = pinned(dir.path());
-    // A secret-named file a mount option cannot carry.
-    std::fs::write(root.join("a,b.pem"), "S=1").unwrap();
-    let error = args_for(&root).unwrap_err();
-    assert!(error.to_string().contains("mount cannot carry"), "{error}");
-    std::fs::remove_file(root.join("a,b.pem")).unwrap();
-    // Too many secret-looking files to hide.
-    std::fs::create_dir_all(root.join("keys")).unwrap();
-    for n in 0..70 {
-        std::fs::write(root.join(format!("keys/k{n}.pem")), "").unwrap();
-    }
-    let error = args_for(&root).unwrap_err();
-    assert!(error.to_string().contains("secret-looking files"), "{error}");
-}
-
-#[cfg(unix)]
-#[test]
-fn a_protected_path_that_is_or_goes_through_a_symbolic_link_stops_the_run() {
-    let elsewhere = tempfile::tempdir().unwrap();
-    std::fs::write(elsewhere.path().join("config"), "host secret").unwrap();
-    // `.yana-ai` itself, `.git` as a link (so `.git/config` resolves outside the repository),
-    // and `.git/hooks` as a link inside a real `.git`.
-    for (link, make_git) in [(".yana-ai", false), (".git", false), (".git/hooks", true)] {
-        let dir = tempfile::tempdir().unwrap();
-        let root = pinned(dir.path());
-        if make_git {
-            std::fs::create_dir_all(root.join(".git")).unwrap();
-        }
-        std::os::unix::fs::symlink(elsewhere.path(), root.join(link)).unwrap();
-        let error = args_for(&root).unwrap_err();
-        assert!(error.to_string().contains("symbolic link"), "{link}: {error}");
-    }
-}
-
-#[test]
-fn a_working_directory_that_is_the_home_a_parent_of_it_or_the_disk_is_refused() {
-    let outer = tempfile::tempdir().unwrap();
-    let home = pinned(outer.path()).join("home/me");
-    let project = home.join("project");
-    std::fs::create_dir_all(&project).unwrap();
-    let c = config(Path::new("/usr/bin/docker"));
-    let with_home = |root: &Path| c.run_args(root, &argv(&["true"]), &RunContext { home: Some(home.clone()), ..ctx() });
-    assert!(with_home(&project).is_ok(), "a project under the home directory is the normal case");
-    for root in [home.clone(), home.parent().unwrap().to_path_buf(), PathBuf::from("/")] {
-        let error = with_home(&root).unwrap_err();
-        assert!(error.to_string().contains("home directory"), "{}: {error}", root.display());
-    }
+    assert!(!root.join(".yana-ai").exists(), "nothing is created in the directory the arguments were built for");
 }
 
 #[test]
 fn no_variant_of_the_argument_list_widens_what_the_container_can_reach() {
     let dir = tempfile::tempdir().unwrap();
     let root = pinned(dir.path());
-    std::fs::create_dir_all(root.join(".yana-ai")).unwrap();
     for network in [Network::None, Network::Open] {
         for user in [None, Some("2000:3000".to_string())] {
             let mut c = config(Path::new("/usr/bin/docker"));
@@ -182,11 +83,9 @@ fn no_variant_of_the_argument_list_widens_what_the_container_can_reach() {
             for forbidden in ["docker.sock"] {
                 assert!(!joined.contains(forbidden), "{forbidden}: {joined}");
             }
-            // Every mount source is the working directory (or something under it) or /dev/null.
-            for mount in mine.iter().filter(|a| a.starts_with("type=bind")) {
-                let source = mount.split(',').find_map(|p| p.strip_prefix("source=")).unwrap();
-                assert!(source == "/dev/null" || Path::new(source).starts_with(&root), "{mount}");
-            }
+            // Exactly one mount, and its source is the private copy handed in.
+            let mounts: Vec<&String> = mine.iter().filter(|a| a.starts_with("type=")).collect();
+            assert_eq!(mounts, [&format!("type=bind,source={},target=/work", root.display())], "{joined}");
             // Variables go by name only, apart from two constants.
             for pair in mine.windows(2).filter(|w| w[0] == "-e") {
                 assert!(!pair[1].contains('=') || pair[1] == "HOME=/tmp" || pair[1] == "YANA_AGENT_CHILD=1", "{}", pair[1]);
@@ -239,7 +138,7 @@ fn the_disclosure_names_the_image_the_reach_the_network_and_the_limits() {
     let mut c = config(Path::new("/usr/bin/docker"));
     c.env_names = vec!["GITHUB_TOKEN".into()];
     let text = DockerBackend::new(c.clone()).unwrap().disclosure().notes.join("\n");
-    for needle in [DIGEST, "not your home directory", ".yana-ai, .git/hooks, .git/config", "network: none", "120 s", "GITHUB_TOKEN"] {
+    for needle in [DIGEST, "private copy of the working directory", "not your home directory", "left out of the copy: .git, .yana-ai", "never over a file that changed", "network: none", "120 s", "GITHUB_TOKEN"] {
         assert!(text.contains(needle), "{needle}: {text}");
     }
     c.network = Network::Open;

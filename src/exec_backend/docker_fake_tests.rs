@@ -23,6 +23,16 @@ case "$mode" in
   exit3) echo partial; echo oops >&2; exit 3;;
   exit125) echo "docker: Error response from daemon: boom" >&2; exit 125;;
   signal) kill -9 $$;;
+  write)
+    for a in "$@"; do case "$a" in type=bind,source=*) src=${a#type=bind,source=}; src=${src%%,target=*};; esac; done
+    echo "$src" > "$here/staging_path"
+    ls -A "$src" > "$here/staging_listing"
+    echo changed > "$src/a.txt"; echo made > "$src/out.txt"; rm "$src/b.txt"
+    mkdir -p "$src/.git"; echo evil > "$src/.git/config"; echo planted > "$src/.env"
+    echo done;;
+  writehang)
+    for a in "$@"; do case "$a" in type=bind,source=*) src=${a#type=bind,source=}; src=${src%%,target=*};; esac; done
+    echo "$src" > "$here/staging_path"; echo changed > "$src/a.txt"; sleep 30;;
   big) head -c 100000 /dev/zero | tr '\0' x;;
   env) env | cut -d= -f1 | sort;;
   *) echo hello; echo warn >&2;;
@@ -162,4 +172,59 @@ fn nothing_is_started_when_the_request_is_invalid() {
     assert!(backend.run(&ExecRequest { root: work.path().to_path_buf(), argv: Vec::new() }).is_err());
     assert!(backend.run(&ExecRequest { root: work.path().join("missing"), argv: argv(&["true"]) }).is_err());
     assert!(calls(bin.path()).is_empty());
+}
+
+fn project_for_sync() -> tempfile::TempDir {
+    let root = tempfile::tempdir().unwrap();
+    std::fs::write(root.path().join("a.txt"), "before").unwrap();
+    std::fs::write(root.path().join("b.txt"), "bye").unwrap();
+    std::fs::write(root.path().join(".env"), "TOKEN=real").unwrap();
+    std::fs::create_dir_all(root.path().join(".git")).unwrap();
+    std::fs::write(root.path().join(".git/config"), "[core]").unwrap();
+    root
+}
+
+#[test]
+fn a_run_works_on_a_copy_and_only_checked_changes_come_back() {
+    let (bin, program, _unused) = setup("write");
+    let work = project_for_sync();
+    let out = DockerBackend::new(config(&program)).unwrap().run(&request(work.path())).unwrap();
+    assert_eq!(String::from_utf8_lossy(&out.stdout), "done\n");
+    // The container saw a copy without the secret or .git.
+    let staging = std::fs::read_to_string(bin.path().join("staging_path")).unwrap().trim().to_string();
+    assert!(!staging.starts_with(work.path().canonicalize().unwrap().to_str().unwrap()), "the copy is outside the project: {staging}");
+    let listing = std::fs::read_to_string(bin.path().join("staging_listing")).unwrap();
+    assert!(listing.contains("a.txt") && !listing.contains(".env") && !listing.contains(".git"), "{listing}");
+    // On this machine: edits, new file and deletion came back; planted files did not.
+    let read = |name: &str| std::fs::read_to_string(work.path().join(name)).unwrap();
+    assert_eq!((read("a.txt").trim(), read("out.txt").trim()), ("changed", "made"));
+    assert!(!work.path().join("b.txt").exists());
+    assert_eq!(read(".env"), "TOKEN=real");
+    assert_eq!(read(".git/config"), "[core]");
+    let notes = out.notes.join(" | ");
+    assert!(notes.contains("copied back: 2 written, 1 deleted") && notes.contains(".git (protected folder)") && notes.contains(".env (secret-looking name)"), "{notes}");
+    assert!(!Path::new(&staging).exists(), "the copy is removed after the run");
+}
+
+#[test]
+fn a_run_that_times_out_copies_nothing_back_and_still_removes_its_copy() {
+    let (bin, program, _unused) = setup("writehang");
+    let work = project_for_sync();
+    let mut c = config(&program);
+    c.limits.wall = Duration::from_secs(2);
+    let out = DockerBackend::new(c).unwrap().run(&request(work.path())).unwrap();
+    assert!(out.timed_out);
+    assert_eq!(std::fs::read_to_string(work.path().join("a.txt")).unwrap(), "before");
+    assert!(out.notes.iter().any(|n| n.contains("not copied back")), "{:?}", out.notes);
+    let staging = std::fs::read_to_string(bin.path().join("staging_path")).unwrap();
+    assert!(!Path::new(staging.trim()).exists());
+}
+
+#[test]
+fn a_docker_error_removes_the_copy_and_changes_nothing() {
+    let (bin, program, _unused) = setup("exit125");
+    let work = project_for_sync();
+    assert!(DockerBackend::new(config(&program)).unwrap().run(&request(work.path())).is_err());
+    assert_eq!(std::fs::read_to_string(work.path().join("a.txt")).unwrap(), "before");
+    let _ = bin;
 }

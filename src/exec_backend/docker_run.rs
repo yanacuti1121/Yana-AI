@@ -3,6 +3,9 @@
 //! variables; what the container gets is decided in `docker.rs`.
 
 use super::docker::{DockerConfig, RunContext};
+use super::docker_mounts::check_root;
+use super::staging::Staging;
+use super::staging_sync::sync_back;
 use super::{ExecOutput, ExecRequest};
 use crate::capability::CapabilityError;
 use std::ffi::OsString;
@@ -142,7 +145,9 @@ pub(super) fn run(config: &DockerConfig, request: &ExecRequest) -> Result<ExecOu
         deadline_unix: unix_now() + config.limits.wall.as_secs() + ORPHAN_GRACE_SECS,
         home: std::env::var_os("HOME").and_then(|home| PathBuf::from(home).canonicalize().ok()),
     };
-    let args = config.run_args(&root, &request.argv, &ctx)?;
+    check_root(&root, ctx.home.as_deref())?;
+    let staging = Staging::copy_in(&root, &std::env::temp_dir(), config.staging)?;
+    let args = config.run_args(&staging.dir, &request.argv, &ctx)?;
     let env = client_env(config, &root);
     let finished = run_client(&config.program, &args, &env, config.limits.wall, config.limits.output_bytes)?;
     if finished.timed_out {
@@ -167,7 +172,20 @@ pub(super) fn run(config: &DockerConfig, request: &ExecRequest) -> Result<ExecOu
             Some(_) => {}
         }
     }
-    Ok(ExecOutput { stdout: finished.stdout, stderr: finished.stderr, exit_code: finished.exit_code, timed_out: finished.timed_out, truncated: finished.truncated })
+    let mut notes = Vec::new();
+    if !staging.left_out.is_empty() {
+        notes.push(format!("left out of the copy: {}", staging.left_out.join(", ")));
+    }
+    if finished.timed_out {
+        notes.push("the command timed out: its changes were not copied back".to_string());
+    } else {
+        let report = sync_back(&staging, &root, config.staging)?;
+        notes.push(format!("copied back: {} written, {} deleted", report.written, report.deleted));
+        if !report.skipped.is_empty() {
+            notes.push(format!("not copied back: {}", report.skipped.join(", ")));
+        }
+    }
+    Ok(ExecOutput { stdout: finished.stdout, stderr: finished.stderr, exit_code: finished.exit_code, timed_out: finished.timed_out, truncated: finished.truncated, notes })
 }
 
 fn unix_now() -> u64 {

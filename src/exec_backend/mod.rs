@@ -14,10 +14,14 @@
 pub mod docker;
 mod docker_mounts;
 mod docker_run;
+mod staging;
+mod staging_sync;
 #[cfg(all(test, unix))]
 mod docker_fake_tests;
 #[cfg(test)]
 mod docker_tests;
+#[cfg(test)]
+mod staging_tests;
 
 use crate::capability::command::AGENT_CHILD_ENV;
 use crate::capability::CapabilityError;
@@ -49,6 +53,9 @@ pub struct ExecOutput {
     pub timed_out: bool,
     /// More output than the backend's cap was produced; the rest was dropped.
     pub truncated: bool,
+    /// What the backend did around the command that a person should know (what was left out
+    /// of the copy, what was or was not copied back). Names only, never file contents.
+    pub notes: Vec<String>,
 }
 
 pub trait ExecBackend: Send + Sync {
@@ -121,6 +128,7 @@ impl ExecBackend for LocalBackend {
             stderr: output.stderr,
             timed_out: false,
             truncated: false,
+            notes: Vec::new(),
         })
     }
 }
