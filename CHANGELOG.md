@@ -8,6 +8,54 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## yana-rt (crates.io) 1.5.1: provider failover, session store, capability tools, hardening — 2026-10-05
+
+Runtime axis only. The Python package (`yana-ai` 1.5.1) shipped separately
+on 2026-10-05 with its own fix; the product axis is unchanged. This release
+carries about 100 commits of Rust changes since `yana-rt` 1.5.0, so it adds
+features as well as fixes. Upgrade: `cargo install yana-rt --force`.
+
+Provider and model (WS1):
+- Typed provider errors with a recovery hint and retry-after.
+- Failover to fallback providers on classified errors, with a credential
+  pool that rotates keys inside failover. Key rotation no longer spins on
+  `Retry-After: 0`, and more key formats are masked.
+- The Anthropic provider marks the system prompt and newest message as
+  prompt-cache breakpoints; `ChatUsage` reports cache token counts.
+
+State (WS4):
+- SQLite session store with a versioned schema and full-text search,
+  profile names with per-profile state directories, chat history import,
+  per-session locks, crash recovery, and quarantine of a corrupt database.
+- Shadow-git checkpoints and rollback, with an optional pre-write
+  checkpoint and a hard time limit. More credential files are excluded
+  from snapshots.
+- `MemoryProvider` trait with `LocalMemory` over `l3.jsonl`.
+
+Capability tools (WS3):
+- MCP client over stdio (`mcp.call`), `web.search` behind a checked
+  outbound HTTPS layer, `file.patch`, a read-only LSP client
+  (`lsp_query`), and first-use confirmation for repo-supplied search and
+  MCP configs.
+- Approval prompts show where a web query and key go, show a run command
+  whole with secret-looking values masked, and fail closed when a resumed
+  call does not match its stored approval.
+- Agent writes cannot change `.yana-ai/web-search.json` or
+  `mcp-servers.json`.
+
+Security and fixes:
+- Closed an SSRF bypass in `browser_fetch`; redirects are followed hop by
+  hop and more internal address forms are blocked.
+- Closed an `eval` builtin bypass of the destructive-command guard.
+- `rustls` 0.23.45 (RUSTSEC-2026-0285).
+- Options-looking refs are refused before they reach `git` in
+  `git_measure::measure_since` and `graph diff`.
+- `scan --diff` fails on a bad base instead of scanning nothing; `fix`
+  rules AC002, AC003, CI007, and MCP001 write valid output.
+- The `yana-rt` binary guard no longer recurses through the pip shim.
+
+---
+
 ## yana-ai (PyPI) 1.5.1: fix `yana-rt` fork bomb on default pipx installs — 2026-09-29
 
 **Upgrade now if you installed `yana-ai` 1.4.2 or 1.5.0 from PyPI.**
