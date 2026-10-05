@@ -168,6 +168,25 @@ impl Staging {
         }
     }
 
+    /// The files that were copied in (relative paths, sorted).
+    pub(super) fn files(&self) -> Vec<String> {
+        self.baseline.keys().cloned().collect()
+    }
+
+    /// A new, empty private copy that shares what is known of this one (the fingerprints and
+    /// the protected items): where a remote machine's result is received before it is checked
+    /// and copied back.
+    pub(super) fn receiving(&self, base: &Path) -> Result<Staging, CapabilityError> {
+        let parent = base.join(format!("yana-exec-{}", uuid::Uuid::new_v4().simple()));
+        let io = |error: std::io::Error| CapabilityError::Io { detail: format!("cannot create the private copy: {error}") };
+        make_private_dir(&parent).map_err(io)?;
+        let dir = parent.join("work");
+        let made = make_private_dir(&dir);
+        let staging = Staging { parent, dir, baseline: self.baseline.clone(), left_out: Vec::new(), protected: self.protected.clone() };
+        made.map_err(io)?;
+        Ok(staging)
+    }
+
     fn note(&mut self, relative: &str, reason: &str) {
         const MAX_NOTES: usize = 20;
         if self.left_out.len() < MAX_NOTES {

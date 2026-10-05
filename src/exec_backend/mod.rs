@@ -14,12 +14,20 @@
 pub mod docker;
 mod docker_mounts;
 mod docker_run;
+mod proc;
+pub mod ssh;
+mod ssh_run;
+mod tar;
 mod staging;
 mod staging_sync;
 #[cfg(all(test, unix))]
 mod docker_fake_tests;
 #[cfg(test)]
 mod docker_tests;
+#[cfg(all(test, unix))]
+mod ssh_tests;
+#[cfg(test)]
+mod tar_tests;
 #[cfg(test)]
 mod staging_edge_tests;
 #[cfg(test)]

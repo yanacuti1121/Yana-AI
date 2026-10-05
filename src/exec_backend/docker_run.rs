@@ -4,117 +4,24 @@
 
 use super::docker::{DockerConfig, RunContext};
 use super::docker_mounts::check_root;
+use super::proc::run_client;
 use super::staging::Staging;
-use super::staging_sync::sync_back;
+use super::staging_sync::copy_back_notes;
 use super::{ExecOutput, ExecRequest};
 use crate::capability::CapabilityError;
 use std::ffi::OsString;
-use std::io::Read;
 use std::path::{Path, PathBuf};
-use std::process::{Child, Command, Stdio};
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 /// How long `docker kill`/`docker rm` may take when cleaning up after a timeout.
 const CLEANUP_WALL: Duration = Duration::from_secs(15);
 const CLEANUP_OUTPUT: usize = 4096;
-const POLL: Duration = Duration::from_millis(20);
 /// Seconds past a run's own time limit before its container counts as an orphan.
 const ORPHAN_GRACE_SECS: u64 = 60;
 /// `docker run` exit status for a failure of Docker itself, as opposed to the command.
 const DOCKER_FAILED: i32 = 125;
 /// Variables the `docker` client itself needs to find its daemon and configuration.
 const CLIENT_ENV: [&str; 8] = ["HOME", "DOCKER_HOST", "DOCKER_CONFIG", "DOCKER_CONTEXT", "DOCKER_CERT_PATH", "DOCKER_TLS_VERIFY", "XDG_RUNTIME_DIR", "TMPDIR"];
-
-struct Finished {
-    stdout: Vec<u8>,
-    stderr: Vec<u8>,
-    exit_code: Option<i32>,
-    timed_out: bool,
-    truncated: bool,
-}
-
-/// What a reader thread has kept of one pipe, shared so it can be read even if the thread
-/// is still blocked (a helper that escaped the process group can hold the pipe open).
-type Kept = std::sync::Arc<std::sync::Mutex<(Vec<u8>, bool)>>;
-
-/// How long to wait for the pipes to close after the client has exited.
-const PIPE_GRACE: Duration = Duration::from_secs(2);
-
-/// Keep at most `cap` bytes of a pipe and drain the rest, so a noisy child never blocks.
-fn read_capped<R: Read + Send + 'static>(mut pipe: R, cap: usize) -> (Kept, std::thread::JoinHandle<()>) {
-    let kept: Kept = Default::default();
-    let sink = std::sync::Arc::clone(&kept);
-    let handle = std::thread::spawn(move || {
-        let mut chunk = [0u8; 8192];
-        loop {
-            match pipe.read(&mut chunk) {
-                Ok(0) | Err(_) => break,
-                Ok(n) => {
-                    let Ok(mut guard) = sink.lock() else { break };
-                    let room = cap.saturating_sub(guard.0.len());
-                    guard.0.extend_from_slice(&chunk[..n.min(room)]);
-                    guard.1 |= n > room;
-                }
-            }
-        }
-    });
-    (kept, handle)
-}
-
-fn snapshot(kept: &Kept) -> (Vec<u8>, bool) {
-    kept.lock().map(|guard| guard.clone()).unwrap_or_default()
-}
-
-fn kill_group(child: &mut Child) {
-    #[cfg(unix)]
-    if let Ok(pid) = i32::try_from(child.id()) {
-        // SAFETY: a signal to the process group this module created for the child, sent
-        // while the child is still unreaped so its pid cannot belong to anyone else.
-        unsafe {
-            let _ = libc::kill(-pid, libc::SIGKILL);
-        }
-    }
-    let _ = child.kill();
-    let _ = child.wait();
-}
-
-/// Run `program args` with exactly `env`, to completion or `wall`, then end its process group.
-fn run_client(program: &Path, args: &[String], env: &[(OsString, OsString)], wall: Duration, cap: usize) -> Result<Finished, CapabilityError> {
-    let mut command = Command::new(program);
-    command.args(args).env_clear().envs(env.iter().cloned()).stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped());
-    #[cfg(unix)]
-    std::os::unix::process::CommandExt::process_group(&mut command, 0);
-    let mut child = command.spawn().map_err(|error| CapabilityError::SpawnFailed { detail: format!("the docker program could not be started ({:?})", error.kind()) })?;
-    let (Some(out_pipe), Some(err_pipe)) = (child.stdout.take(), child.stderr.take()) else {
-        kill_group(&mut child);
-        return Err(CapabilityError::SpawnFailed { detail: "no pipes to read the docker output".into() });
-    };
-    let (out, out_thread) = read_capped(out_pipe, cap);
-    let (err, err_thread) = read_capped(err_pipe, cap);
-    let deadline = Instant::now() + wall;
-    let (status, timed_out) = loop {
-        match child.try_wait() {
-            Ok(Some(status)) => break (Some(status), false),
-            Ok(None) if Instant::now() >= deadline => break (None, true),
-            Ok(None) => std::thread::sleep(POLL),
-            Err(error) => {
-                kill_group(&mut child);
-                return Err(CapabilityError::Io { detail: format!("waiting for the docker program failed: {error}") });
-            }
-        }
-    };
-    if timed_out {
-        kill_group(&mut child);
-    }
-    // After a normal exit the pipes close with the client. If a helper that left the group
-    // keeps one open, stop waiting after a short grace and use what was read.
-    let grace = Instant::now() + PIPE_GRACE;
-    while !(out_thread.is_finished() && err_thread.is_finished()) && Instant::now() < grace {
-        std::thread::sleep(POLL);
-    }
-    let ((stdout, cut_out), (stderr, cut_err)) = (snapshot(&out), snapshot(&err));
-    Ok(Finished { stdout, stderr, exit_code: status.and_then(|s| s.code()), timed_out, truncated: cut_out || cut_err })
-}
 
 /// The variables the docker client gets: its own few, a PATH without repository entries,
 /// and the values of the names to pass into the container (read here, never put in the
@@ -183,20 +90,7 @@ pub(super) fn run(config: &DockerConfig, request: &ExecRequest) -> Result<ExecOu
     } else if !container_gone(config, &env, &run_id) {
         notes.push("the container could not be confirmed to have stopped: its changes were not copied back".to_string());
     } else {
-        // A failure to copy back never hides what the command did: the result is returned
-        // with a note saying nothing came back.
-        match sync_back(&staging, &root, config.staging) {
-            Ok(report) => {
-                notes.push(format!("copied back: {} written, {} deleted", report.written.len(), report.deleted));
-                if !report.written.is_empty() {
-                    notes.push(format!("written on this machine: {}", report.written.iter().take(20).cloned().collect::<Vec<_>>().join(", ")));
-                }
-                if !report.skipped.is_empty() {
-                    notes.push(format!("not copied back: {}", report.skipped.join(", ")));
-                }
-            }
-            Err(error) => notes.push(format!("changes were not copied back: {error}")),
-        }
+        notes.extend(copy_back_notes(&staging, &root, config.staging));
     }
     Ok(ExecOutput { stdout: finished.stdout, stderr: finished.stderr, exit_code: finished.exit_code, timed_out: finished.timed_out, truncated: finished.truncated, notes })
 }

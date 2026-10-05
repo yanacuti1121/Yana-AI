@@ -235,3 +235,22 @@ pub(super) fn sync_back(staging: &Staging, root: &Path, limits: StagingLimits) -
     report.written.sort();
     Ok(report)
 }
+
+/// `sync_back`, as the lines a person is told: what came back and what did not. A failure to
+/// copy back never hides what the command did; it becomes a line.
+pub(super) fn copy_back_notes(received: &Staging, root: &Path, limits: StagingLimits) -> Vec<String> {
+    let mut notes = Vec::new();
+    match sync_back(received, root, limits) {
+        Ok(report) => {
+            notes.push(format!("copied back: {} written, {} deleted", report.written.len(), report.deleted));
+            if !report.written.is_empty() {
+                notes.push(format!("written on this machine: {}", report.written.iter().take(20).cloned().collect::<Vec<_>>().join(", ")));
+            }
+            if !report.skipped.is_empty() {
+                notes.push(format!("not copied back: {}", report.skipped.join(", ")));
+            }
+        }
+        Err(error) => notes.push(format!("changes were not copied back: {error}")),
+    }
+    notes
+}
