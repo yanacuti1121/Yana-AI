@@ -43,6 +43,12 @@ mod workspace;
 // default build.
 #[cfg(feature = "mcp")]
 mod mcp;
+// WS3 T1: client side of external servers. The MCP protocol parts are gated inside on `mcp`;
+// the child-process helpers are shared with the LSP client, so either feature builds them.
+#[cfg(any(feature = "mcp", feature = "lsp"))]
+mod mcp_client;
+// WS3 LSP client (docs/contracts/ws3-tools.md section 17); its async parts are gated inside.
+mod lsp_client;
 // Discord Phase (Host-Native OS Program) — gated separately from `cli`,
 // see Cargo.toml's `discord` feature comment. Not part of any default
 // build; `mod remote;` (session.rs, the id-mapping logic) stays available
@@ -131,6 +137,16 @@ enum Commands {
     Lease {
         #[command(subcommand)]
         action: LeaseAction,
+    },
+    /// Confirm repo-supplied configuration (`.yana-ai/web-search.json`,
+    /// `.yana-ai/mcp-servers.json`, `.yana-ai/lsp-servers.json`) before it is used, like `direnv allow`.
+    /// A repository you cloned can ship these files; nothing in them is used
+    /// until a person has reviewed this exact content.
+    ///
+    /// DOCTOR_DISPATCH_EXEMPT: run directly as `yana-rt trust allow <name>` by the person at the terminal, as the chat notice tells them to; it is deliberately not reachable through `bin/yana`, so a script or agent that only drives the wrapper cannot confirm configuration on someone's behalf.
+    Trust {
+        #[command(subcommand)]
+        action: TrustAction,
     },
     /// Authority decision receipts — evidence for why each capability
     /// invocation was allowed, denied, or required approval (Authority
@@ -724,6 +740,28 @@ enum CostAction {
 }
 
 #[derive(Subcommand)]
+enum TrustAction {
+    /// Whether each configuration is confirmed, changed, or missing.
+    Status,
+    /// Print a configuration exactly as it would be trusted, with its hash.
+    Show {
+        /// `web-search`, `mcp-servers` or `lsp-servers`
+        kind: String,
+    },
+    /// Confirm the current content. Needs a terminal and a typed `yes`;
+    /// revokes leases that depended on a configuration that changed.
+    Allow {
+        /// `web-search`, `mcp-servers` or `lsp-servers`
+        kind: String,
+    },
+    /// Forget a confirmation (and the leases that depended on it).
+    Revoke {
+        /// `web-search`, `mcp-servers` or `lsp-servers`
+        kind: String,
+    },
+}
+
+#[derive(Subcommand)]
 enum LeaseAction {
     /// Grant a lease — a subject (typically `agent:<name>`) may execute a
     /// capability, within an allow/deny command list, until it expires or
@@ -1162,6 +1200,18 @@ fn main() {
             }
             CostAction::Breakdown { by } => cost::cmd_cost_breakdown(by),
         },
+        Commands::Trust { action } => {
+            let result = match action {
+                TrustAction::Status => capability::config_trust::cmd_trust_status(),
+                TrustAction::Show { kind } => capability::config_trust::cmd_trust_show(&kind),
+                TrustAction::Allow { kind } => capability::config_trust::cmd_trust_allow(&kind),
+                TrustAction::Revoke { kind } => capability::config_trust::cmd_trust_revoke(&kind),
+            };
+            if let Err(error) = result {
+                eprintln!("[trust] {error:#}");
+                std::process::exit(2);
+            }
+        }
         Commands::Lease { action } => match action {
             LeaseAction::Grant {
                 subject,

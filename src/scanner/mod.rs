@@ -336,7 +336,7 @@ fn run_check(
     check: &serde_json::Value,
     scope: &str,
     rel: &str,
-    target: &str,
+    _target: &str,
 ) -> Vec<Finding> {
     // Check specific target
     if let Some(specific) = check.get("target").and_then(|v| v.as_str()) {

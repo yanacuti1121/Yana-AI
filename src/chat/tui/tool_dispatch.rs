@@ -14,13 +14,122 @@ use crate::runtime::{ApprovedTool, ToolExecutor, TurnContext};
 /// approval continuation (Authority Hardening item #5) so Desktop/packaged
 /// Web get the exact same capability dispatch Terminal already has,
 /// rather than a second, independently-written executor.
+const RESUME_REFUSED: &str = "blocked: the configuration of this external program could not be read, or is not the one that was approved (it, or the PATH of this process, may differ from the one that created the approval); ask again from the process that created the approval";
+
 pub(crate) struct ChatCapabilityExecutor {
     use_sandbox: bool,
+    /// For an approved `mcp_call`: exactly what the approver saw. When present
+    /// the call runs that configuration or nothing; when absent (a resumed
+    /// remote approval) the configuration is disclosed again right before the
+    /// call, after `resume_turn` has checked it against the stored reason.
+    approved_mcp: Option<crate::capability::mcp_disclosure::Disclosure>,
+    /// The same for an approved `lsp_query`.
+    approved_lsp: Option<crate::capability::lsp_disclosure::LspDisclosure>,
+    /// A resumed approval whose configuration could not be disclosed, or no longer matches what
+    /// was approved: every external-program call is refused.
+    resume_refused: bool,
 }
 
 impl ChatCapabilityExecutor {
     pub(crate) fn new(use_sandbox: bool) -> Self {
-        Self { use_sandbox }
+        Self { use_sandbox, approved_mcp: None, approved_lsp: None, resume_refused: false }
+    }
+
+    pub(crate) fn with_approved_mcp(mut self, approved: Option<crate::capability::mcp_disclosure::Disclosure>) -> Self {
+        self.approved_mcp = approved;
+        self
+    }
+
+    /// For a resumed approval: disclose the call's configuration NOW, before the turn is resumed,
+    /// require that it is exactly what the stored approval was for (`authority_reason` ends with
+    /// ` | <summary>`), and bind the executor to it. `resume_turn` then checks the stored
+    /// approval again and the gateway checks this disclosure against the configuration read at
+    /// run time, so a configuration changed at any point in between runs nothing. Anything that
+    /// cannot be disclosed or does not match the approval makes the executor REFUSE the call
+    /// (it never falls back to disclosing again later). Calls that start no external program
+    /// are left alone.
+    pub(crate) fn bound_to_current_configuration(mut self, call: &ToolCall, root: &std::path::Path, authority_reason: &str) -> Self {
+        if !matches!(call.name.as_str(), "mcp_call" | "lsp_query") {
+            return self;
+        }
+        let args: serde_json::Value = serde_json::from_str(&call.arguments_json).unwrap_or(serde_json::Value::Null);
+        let matches_approval = matches!(
+            crate::runtime::disclosure_summary(root, call),
+            Ok(Some(summary)) if authority_reason.ends_with(&format!(" | {summary}"))
+        );
+        if !matches_approval {
+            self.resume_refused = true;
+            return self;
+        }
+        match call.name.as_str() {
+            "mcp_call" => {
+                let command = args.get("command").and_then(|c| c.as_str()).unwrap_or("");
+                self.approved_mcp = crate::capability::mcp_disclosure::disclose(root, command).ok();
+                self.resume_refused = self.approved_mcp.is_none();
+            }
+            _ => {
+                self.approved_lsp = crate::capability::lsp_disclosure::disclose(root, &args).ok();
+                self.resume_refused = self.approved_lsp.is_none();
+            }
+        }
+        self
+    }
+
+    pub(crate) fn with_approved_lsp(mut self, approved: Option<crate::capability::lsp_disclosure::LspDisclosure>) -> Self {
+        self.approved_lsp = approved;
+        self
+    }
+
+    /// Run an approved `lsp_query`. Needs the `lsp` feature; a build without it says so.
+    fn approved_lsp_call(&self, call: &ToolCall, root: &std::path::Path) -> ToolResultRecord {
+        if self.resume_refused {
+            return tool_result(call, RESUME_REFUSED.to_string(), true, true);
+        }
+        let arguments: serde_json::Value = serde_json::from_str(&call.arguments_json).unwrap_or(serde_json::Value::Null);
+        let disclosure = match self.approved_lsp.clone().map(Ok).unwrap_or_else(|| crate::capability::lsp_disclosure::disclose(root, &arguments)) {
+            Ok(disclosure) => disclosure,
+            Err(error) => return tool_result(call, format!("language server query refused: {error}"), true, false),
+        };
+        #[cfg(feature = "lsp")]
+        {
+            return match crate::lsp_client::gateway::lsp_query(root, &arguments, &disclosure) {
+                Ok(answer) => tool_result(call, answer, false, false),
+                Err(error) => tool_result(call, format!("language server query failed: {error}"), true, false),
+            };
+        }
+        #[cfg(not(feature = "lsp"))]
+        {
+            let _ = (&arguments, &disclosure);
+            tool_result(call, "this build of yana-rt was made without language server support".to_string(), true, false)
+        }
+    }
+
+    /// Run an approved `mcp_call`. Needs the `mcp` feature; a build without it says so.
+    fn approved_mcp_call(&self, call: &ToolCall, root: &std::path::Path) -> ToolResultRecord {
+        if self.resume_refused {
+            return tool_result(call, RESUME_REFUSED.to_string(), true, true);
+        }
+        let args: serde_json::Value = serde_json::from_str(&call.arguments_json).unwrap_or(serde_json::Value::Null);
+        let Some(command) = args.get("command").and_then(|c| c.as_str()) else {
+            return tool_result(call, "missing required argument 'command'".to_string(), true, false);
+        };
+        let arguments = args.get("arguments").cloned().unwrap_or(serde_json::Value::Null);
+        let disclosure = match self.approved_mcp.clone().map(Ok).unwrap_or_else(|| crate::capability::mcp_disclosure::disclose(root, command)) {
+            Ok(disclosure) => disclosure,
+            Err(error) => return tool_result(call, format!("mcp call refused: {error}"), true, false),
+        };
+        #[cfg(feature = "mcp")]
+        {
+            return match crate::mcp_client::gateway::mcp_call(root, command, &arguments, &disclosure) {
+                Ok(answer) => tool_result(call, answer, false, false),
+                Err(error) => tool_result(call, format!("mcp call failed: {error}"), true, false),
+            };
+        }
+        #[cfg(not(feature = "mcp"))]
+        {
+            let _ = (&arguments, &disclosure);
+            tool_result(call, "this build of yana-rt was made without MCP client support".to_string(), true, false)
+        }
     }
 }
 
@@ -94,6 +203,15 @@ impl ToolExecutor for ChatCapabilityExecutor {
                 let session_id = approved.context().session.session_id.clone();
                 file_write_result(call, approved.context(), session_id, true)
             }
+            "mcp_call" => self.approved_mcp_call(call, &approved.context().session.repo_root),
+            "lsp_query" => self.approved_lsp_call(call, &approved.context().session.repo_root),
+            "web_search" => match parse_string_arg(&call.arguments_json, "query") {
+                Some(query) => match crate::capability::web_search::web_search(&approved.context().session.repo_root, &query) {
+                    Ok(answer) => tool_result(call, answer, false, false),
+                    Err(error) => tool_result(call, format!("search failed: {error}"), true, false),
+                },
+                None => tool_result(call, "missing required argument 'query'".to_string(), true, false),
+            },
             other => tool_result(
                 call,
                 format!("approved executor does not support '{other}'"),
@@ -189,6 +307,9 @@ impl App {
             "run_command" => self.prepare_command_approval(call),
             "write_file" => self.prepare_write_file_approval(call, false),
             "write_config" => self.prepare_write_file_approval(call, true),
+            "web_search" => self.prepare_web_search_approval(call),
+            "mcp_call" => self.prepare_mcp_approval(call),
+            "lsp_query" => self.prepare_lsp_approval(call),
             other => {
                 self.push_tool_result(
                     &call.id,
@@ -196,6 +317,81 @@ impl App {
                     true,
                     true,
                 );
+                self.continue_after_tool_result();
+            }
+        }
+    }
+
+    /// Starting an external program is the point of an `mcp_call`, so the prompt
+    /// shows the exact command line (quoted) and the variable names passed. A
+    /// configuration nobody confirmed, a malformed call text, or an unlisted
+    /// server never reaches `AwaitingApproval`: the model is told why instead.
+    fn prepare_mcp_approval(&mut self, call: ToolCall) {
+        let args: serde_json::Value = serde_json::from_str(&call.arguments_json).unwrap_or(serde_json::Value::Null);
+        let Some(command) = args.get("command").and_then(|c| c.as_str()).map(str::to_string) else {
+            self.push_tool_result(&call.id, "missing required argument 'command'".to_string(), true, false);
+            self.continue_after_tool_result();
+            return;
+        };
+        let arguments = args.get("arguments").cloned().unwrap_or(serde_json::Value::Null);
+        if !(arguments.is_null() || arguments.is_object()) {
+            self.push_tool_result(&call.id, "'arguments' must be a JSON object".to_string(), true, false);
+            self.continue_after_tool_result();
+            return;
+        }
+        match crate::capability::mcp_disclosure::disclose(&self.session_context().repo_root, &command) {
+            Ok(disclosure) => {
+                self.turn = TurnState::AwaitingApproval(PendingApproval::McpCall { call, command, arguments, disclosure });
+            }
+            Err(error) => {
+                self.push_tool_result(&call.id, format!("cannot call: {error}"), true, false);
+                self.continue_after_tool_result();
+            }
+        }
+    }
+
+    /// Starting a language server runs an external program, so the prompt shows the
+    /// resolved program, the variable names and the question. A list nobody confirmed,
+    /// an unlisted server, a file that cannot be used or a secrets file never reaches
+    /// `AwaitingApproval`: the model is told why instead.
+    fn prepare_lsp_approval(&mut self, call: ToolCall) {
+        let arguments: serde_json::Value = serde_json::from_str(&call.arguments_json).unwrap_or(serde_json::Value::Null);
+        match crate::capability::lsp_disclosure::disclose(&self.session_context().repo_root, &arguments) {
+            Ok(disclosure) => {
+                self.turn = TurnState::AwaitingApproval(PendingApproval::LspQuery { call, disclosure });
+            }
+            Err(error) => {
+                self.push_tool_result(&call.id, format!("cannot ask: {error}"), true, false);
+                self.continue_after_tool_result();
+            }
+        }
+    }
+
+    /// The query leaves this machine, so the prompt must say where it goes and
+    /// whether a key goes with it. A missing or invalid search configuration
+    /// never reaches `AwaitingApproval`: the model is told why instead.
+    fn prepare_web_search_approval(&mut self, call: ToolCall) {
+        let Some(raw_query) = parse_string_arg(&call.arguments_json, "query") else {
+            self.push_tool_result(&call.id, "missing required argument 'query'".to_string(), true, false);
+            self.continue_after_tool_result();
+            return;
+        };
+        // Validated before anything is shown: a query that could never run, or
+        // that could spoof the prompt's other lines, never reaches the approver.
+        let query = match crate::capability::web_search::validate_query(&raw_query) {
+            Ok(query) => query,
+            Err(error) => {
+                self.push_tool_result(&call.id, format!("cannot search: {error}"), true, false);
+                self.continue_after_tool_result();
+                return;
+            }
+        };
+        match crate::capability::web_search::disclose(&self.session_context().repo_root) {
+            Ok(disclosure) => {
+                self.turn = TurnState::AwaitingApproval(PendingApproval::WebSearch { call, query, disclosure });
+            }
+            Err(error) => {
+                self.push_tool_result(&call.id, format!("cannot search: {error}"), true, false);
                 self.continue_after_tool_result();
             }
         }
@@ -565,6 +761,122 @@ mod tests {
         );
         assert_eq!(result.output, "hello");
         assert!(!result.is_error);
+    }
+
+    fn search_call(args: &str) -> ToolCall {
+        ToolCall { id: "call-s".into(), name: "web_search".into(), arguments_json: args.into() }
+    }
+
+    fn app_in(root: &std::path::Path) -> App {
+        let mut app = app();
+        app.repo_root = root.to_path_buf();
+        // Past the round ceiling, so error paths stop at the guard instead of starting a turn.
+        app.tool_rounds.set_rounds(9);
+        app
+    }
+
+    fn write_search_config(root: &std::path::Path, json: &str) {
+        std::fs::create_dir_all(root.join(".yana-ai")).unwrap();
+        std::fs::write(root.join(".yana-ai/web-search.json"), json).unwrap();
+        // These tests are about the approval flow, so the configuration is confirmed.
+        crate::capability::config_trust::trust_in_test(root);
+    }
+
+    fn last_tool_result(app: &App) -> crate::model::tool::ToolResultRecord {
+        app.history.last().and_then(|m| m.tool_result.clone()).expect("a tool result was recorded")
+    }
+
+    #[test]
+    fn a_web_search_waits_for_approval_showing_the_host_and_the_key_variable() {
+        let root = tempfile::tempdir().unwrap();
+        write_search_config(root.path(), r#"{"endpoint":"https://s.example/q","api_key_env":"YANA_SEARCH_KEY"}"#);
+        let mut app = app_in(root.path());
+        app.prepare_pending_approval(search_call(r#"{"query":"rust release"}"#));
+        match &app.turn {
+            TurnState::AwaitingApproval(pending @ PendingApproval::WebSearch { query, disclosure, .. }) => {
+                assert_eq!(query, "rust release");
+                assert_eq!(disclosure.backend_host, "s.example");
+                assert_eq!(disclosure.key_variable.as_deref(), Some("YANA_SEARCH_KEY"));
+                assert!(pending.summary_line().contains("s.example"));
+                assert!(!pending.is_guard_denied());
+            }
+            _ => panic!("expected AwaitingApproval(WebSearch), status: {}", app.status),
+        }
+    }
+
+    #[test]
+    fn a_web_search_that_cannot_be_disclosed_never_reaches_the_approval_prompt() {
+        let root = tempfile::tempdir().unwrap();
+        let mut none = app_in(root.path());
+        none.prepare_pending_approval(search_call(r#"{"query":"x"}"#));
+        assert!(matches!(none.turn, TurnState::Idle));
+        let result = last_tool_result(&none);
+        assert!(result.is_error && result.output.contains("not configured"), "{result:?}");
+        write_search_config(root.path(), r#"{"endpoint":"https://s.example/","api_key_env":"GITHUB_TOKEN"}"#);
+        let mut wrong_key = app_in(root.path());
+        wrong_key.prepare_pending_approval(search_call(r#"{"query":"x"}"#));
+        assert!(matches!(wrong_key.turn, TurnState::Idle));
+        assert!(last_tool_result(&wrong_key).output.contains("YANA_SEARCH_"));
+        let mut no_query = app_in(root.path());
+        no_query.prepare_pending_approval(search_call("{}"));
+        assert!(matches!(no_query.turn, TurnState::Idle));
+        assert!(last_tool_result(&no_query).output.contains("missing required argument 'query'"));
+    }
+
+    #[test]
+    fn approving_a_search_after_the_backend_changed_is_refused_without_any_request() {
+        use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        let root = tempfile::tempdir().unwrap();
+        write_search_config(root.path(), r#"{"endpoint":"https://good.example/q"}"#);
+        let mut app = app_in(root.path());
+        app.prepare_pending_approval(search_call(r#"{"query":"x"}"#));
+        assert!(matches!(app.turn, TurnState::AwaitingApproval(_)));
+        write_search_config(root.path(), r#"{"endpoint":"https://evil.example/q"}"#);
+        app.handle_approval_key(KeyEvent::new(KeyCode::Char('y'), KeyModifiers::NONE));
+        assert!(matches!(app.turn, TurnState::Idle), "nothing is executing");
+        let result = last_tool_result(&app);
+        assert!(result.is_error && result.denied && result.output.contains("changed since approval"), "{result:?}");
+    }
+
+    #[test]
+    fn declining_a_search_records_a_denial_and_sends_nothing() {
+        use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        let root = tempfile::tempdir().unwrap();
+        write_search_config(root.path(), r#"{"endpoint":"https://good.example/q"}"#);
+        let mut app = app_in(root.path());
+        app.prepare_pending_approval(search_call(r#"{"query":"x"}"#));
+        app.handle_approval_key(KeyEvent::new(KeyCode::Char('n'), KeyModifiers::NONE));
+        assert!(matches!(app.turn, TurnState::Idle));
+        assert!(last_tool_result(&app).output.contains("declined"));
+    }
+
+    #[test]
+    fn the_approved_executor_runs_the_search_capability_and_reports_its_error_text() {
+        // No backend configured: the capability itself refuses before any request,
+        // which proves the approved path reaches it without touching the network.
+        let root = tempfile::tempdir().unwrap();
+        let executor = ChatCapabilityExecutor::new(false);
+        let result = execute_approved_tool(
+            &YanaAuthorityChain,
+            &executor,
+            &context(root.path()),
+            &search_call(r#"{"query":"x"}"#),
+            &CancellationToken::default(),
+            &mut |_| {},
+        )
+        .unwrap();
+        assert!(result.is_error && result.output.contains("search failed") && result.output.contains("not configured"), "{result:?}");
+        let missing = execute_approved_tool(&YanaAuthorityChain, &executor, &context(root.path()), &search_call("{}"), &CancellationToken::default(), &mut |_| {}).unwrap();
+        assert!(missing.output.contains("missing required argument 'query'"));
+    }
+
+    #[test]
+    fn a_search_is_never_executed_without_approval() {
+        let root = tempfile::tempdir().unwrap();
+        write_search_config(root.path(), r#"{"endpoint":"https://good.example/q"}"#);
+        let result = ChatCapabilityExecutor::new(false).execute(&context(root.path()), &search_call(r#"{"query":"x"}"#));
+        assert!(result.is_error, "the unapproved executor path must not run it: {result:?}");
+        assert!(result.output.contains("no implementation") && !result.output.contains("good.example"), "{result:?}");
     }
 
     #[test]

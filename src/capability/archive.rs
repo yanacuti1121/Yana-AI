@@ -37,7 +37,7 @@
 use serde::Serialize;
 use std::fs::{self, File};
 use std::io::Read;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use super::CapabilityError;
 
@@ -273,6 +273,7 @@ pub const __TEST_ONLY_MAX_COMPRESSION_RATIO: u64 = MAX_COMPRESSION_RATIO;
 mod tests {
     use super::*;
     use std::io::Write;
+    use std::path::PathBuf;
     use zip::write::{SimpleFileOptions, ZipWriter};
     use zip::CompressionMethod;
 
