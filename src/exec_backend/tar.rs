@@ -119,6 +119,9 @@ fn read_octal(field: &[u8]) -> Result<u64, CapabilityError> {
 
 fn field_text(field: &[u8]) -> Result<&str, CapabilityError> {
     let end = field.iter().position(|b| *b == 0).unwrap_or(field.len());
+    if field[end..].iter().any(|b| *b != 0) {
+        return Err(invalid("a tar entry name has bytes after its end"));
+    }
     std::str::from_utf8(&field[..end]).map_err(|_| invalid("a tar entry name is not UTF-8"))
 }
 
@@ -136,12 +139,29 @@ fn clean_name(raw: &str) -> Result<String, CapabilityError> {
     Ok(name.to_string())
 }
 
+fn check_depth(relative: &str, limits: StagingLimits) -> Result<(), CapabilityError> {
+    if relative.split('/').count() > limits.max_depth + 1 {
+        return Err(invalid("the archive nests deeper than the limit allows: nothing was copied back"));
+    }
+    Ok(())
+}
+
+/// Read and drop `size` bytes and the padding after them.
+fn discard(input: &mut impl Read, size: u64) -> Result<(), CapabilityError> {
+    let total = size + ((BLOCK as u64 - size % BLOCK as u64) % BLOCK as u64);
+    let copied = std::io::copy(&mut input.take(total), &mut std::io::sink()).map_err(|error| CapabilityError::Io { detail: format!("cannot read the archive: {error}") })?;
+    if copied != total {
+        return Err(invalid("the archive ended early: nothing was copied back"));
+    }
+    Ok(())
+}
+
 /// Read an archive from `input` into the empty directory `dest`, within `limits`.
 pub(super) fn read_archive(input: &mut impl Read, dest: &Path, limits: StagingLimits) -> Result<ArchiveReport, CapabilityError> {
     let io = |error: std::io::Error| CapabilityError::Io { detail: format!("cannot read the archive: {error}") };
     let truncated = || invalid("the archive ended early: nothing was copied back");
     let mut report = ArchiveReport::default();
-    let (mut entries, mut zero_blocks) = (0usize, 0usize);
+    let (mut entries, mut zero_blocks, mut dirs) = (0usize, 0usize, 0usize);
     loop {
         let mut header = [0u8; BLOCK];
         input.read_exact(&mut header).map_err(|error| if error.kind() == std::io::ErrorKind::UnexpectedEof { truncated() } else { io(error) })?;
@@ -160,6 +180,9 @@ pub(super) fn read_archive(input: &mut impl Read, dest: &Path, limits: StagingLi
         if u64::from(checksum(&header)) != read_octal(&header[148..156])? {
             return Err(invalid("the archive has a bad checksum"));
         }
+        if &header[257..262] != b"ustar" {
+            return Err(invalid("the archive is not in the plain ustar format"));
+        }
         let size = read_octal(&header[124..136])?;
         let name = {
             let prefix = field_text(&header[345..500])?;
@@ -170,17 +193,39 @@ pub(super) fn read_archive(input: &mut impl Read, dest: &Path, limits: StagingLi
         match kind {
             b'0' | 0 => {
                 let relative = clean_name(&name)?;
+                check_depth(&relative, limits)?;
+                if super::staging::excluded(&relative).is_some() {
+                    // Never written, never counted: a build on the other side may fill these.
+                    discard(input, size)?;
+                    report.skipped += 1;
+                    continue;
+                }
                 if report.files >= limits.max_files || report.bytes.saturating_add(size) > limits.max_bytes {
                     return Err(invalid("the archive holds more than the limit allows: nothing was copied back"));
+                }
+                dirs += relative.matches('/').count();
+                if dirs > limits.max_files {
+                    return Err(invalid("the archive makes more folders than the limit allows: nothing was copied back"));
                 }
                 write_entry(input, dest, &relative, size, read_octal(&header[100..108])?)?;
                 report.files += 1;
                 report.bytes += size;
+                let skip = (BLOCK - (size as usize % BLOCK)) % BLOCK;
+                let mut pad = vec![0u8; skip];
+                input.read_exact(&mut pad).map_err(|error| if error.kind() == std::io::ErrorKind::UnexpectedEof { truncated() } else { io(error) })?;
             }
             b'5' => {
                 // `tar -c .` lists the top directory itself as "./": nothing to make.
                 if !matches!(name.trim_end_matches('/'), "" | ".") {
-                    std::fs::create_dir_all(dest.join(clean_name(&name)?)).map_err(io)?;
+                    let relative = clean_name(&name)?;
+                    check_depth(&relative, limits)?;
+                    if super::staging::excluded(&relative).is_none() {
+                        dirs += 1 + relative.matches('/').count();
+                        if dirs > limits.max_files {
+                            return Err(invalid("the archive makes more folders than the limit allows: nothing was copied back"));
+                        }
+                        std::fs::create_dir_all(dest.join(relative)).map_err(io)?;
+                    }
                 }
             }
             b'1' | b'2' | b'3' | b'4' | b'6' | b'7' => {
@@ -188,11 +233,6 @@ pub(super) fn read_archive(input: &mut impl Read, dest: &Path, limits: StagingLi
                 report.skipped += 1;
             }
             _ => return Err(invalid("the archive has an entry of a kind that is not accepted (extended or GNU header)")),
-        }
-        if matches!(kind, b'0' | 0) {
-            let skip = (BLOCK - (size as usize % BLOCK)) % BLOCK;
-            let mut pad = vec![0u8; skip];
-            input.read_exact(&mut pad).map_err(|error| if error.kind() == std::io::ErrorKind::UnexpectedEof { truncated() } else { io(error) })?;
         }
     }
 }

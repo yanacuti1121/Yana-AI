@@ -162,3 +162,53 @@ fn the_same_path_twice_is_refused() {
     let twice = archive(&[entry("a.txt", b'0', b"1"), entry("a.txt", b'0', b"2")]);
     assert!(read(&twice, StagingLimits::default()).1.is_err());
 }
+
+#[test]
+fn what_a_build_fills_on_the_other_side_is_skipped_without_counting_or_writing() {
+    let big = vec![b'x'; 5000];
+    let bytes = archive(&[
+        entry("node_modules/pkg/index.js", b'0', &big),
+        entry("target/debug/app", b'0', &big),
+        entry(".git/config", b'0', b"evil"),
+        entry(".yana-ai/leases.json", b'0', b"evil"),
+        entry("deploy/server.pem", b'0', b"key"),
+        entry("ok.txt", b'0', b"fine"),
+    ]);
+    let tight = StagingLimits { max_files: 3, max_bytes: 100, max_depth: 16 };
+    let (dest, result) = read(&bytes, tight);
+    let report = result.unwrap();
+    assert_eq!((report.files, report.skipped), (1, 5));
+    assert_eq!(std::fs::read_dir(dest.path()).unwrap().count(), 1, "only ok.txt exists");
+}
+
+#[test]
+fn folders_cannot_be_multiplied_by_deep_names() {
+    let limits = StagingLimits { max_files: 100, max_bytes: 1 << 20, max_depth: 4 };
+    let deep = entry("a/b/c/d/e/f/g.txt", b'0', b"x");
+    assert!(read(&archive(&[deep]), limits).1.unwrap_err().to_string().contains("deeper"));
+    // Many directory entries, each with a deep path, cost against the same limit.
+    let mut entries = Vec::new();
+    for n in 0..60 {
+        entries.push(entry(&format!("d{n}/x/y"), b'5', b""));
+    }
+    assert!(read(&archive(&entries), limits).1.unwrap_err().to_string().contains("folders"));
+}
+
+#[test]
+fn a_name_with_bytes_after_its_end_and_a_header_without_the_ustar_mark_are_refused() {
+    let mut hidden = entry("a", b'0', b"x");
+    hidden[5] = b'z';
+    put_checksum_in(&mut hidden);
+    assert!(read(&archive(&[hidden]), StagingLimits::default()).1.is_err());
+    let mut plain = entry("a.txt", b'0', b"x");
+    plain[257..262].copy_from_slice(b"\0\0\0\0\0");
+    put_checksum_in(&mut plain);
+    assert!(read(&archive(&[plain]), StagingLimits::default()).1.is_err());
+}
+
+fn put_checksum_in(entry: &mut [u8]) {
+    let mut head = [0u8; BLOCK];
+    head.copy_from_slice(&entry[..BLOCK]);
+    put_checksum(&mut head);
+    entry[..BLOCK].copy_from_slice(&head);
+}

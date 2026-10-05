@@ -58,8 +58,21 @@ fn word_ok(text: &str, extra: &str) -> bool {
     !text.is_empty() && !text.starts_with('-') && text.chars().all(|c| c.is_ascii_alphanumeric() || extra.contains(c))
 }
 
+/// POSIX shell quoting that is safe for bash and zsh too: only characters that no shell treats
+/// specially are left bare, everything else (including `{ } ! ^ ~ =`) is inside single quotes,
+/// with each single quote written as `'\''`.
 pub(super) fn quote(text: &str) -> String {
-    shell_words::quote(text).into_owned()
+    let bare = !text.is_empty() && text.chars().all(|c| c.is_ascii_alphanumeric() || "_@%+:,./-".contains(c));
+    if bare {
+        text.to_string()
+    } else {
+        format!("'{}'", text.replace('\'', "'\\''"))
+    }
+}
+
+/// A path that can be given to ssh as an option value without being split or expanded.
+pub(super) fn path_ok(path: &Path) -> bool {
+    path.to_str().is_some_and(|text| text.chars().all(|c| c.is_ascii_graphic() && !"%\"'\\".contains(c)))
 }
 
 impl SshConfig {
@@ -76,8 +89,8 @@ impl SshConfig {
         if !word_ok(&self.user, "._-") || self.user.len() > 32 {
             return Err(invalid("the remote user name has characters that are not accepted"));
         }
-        if !self.key_path.is_absolute() {
-            return Err(invalid("the key file must be an absolute path"));
+        if !self.key_path.is_absolute() || !path_ok(&self.key_path) {
+            return Err(invalid("the key file must be an absolute path without spaces, quotes, backslashes or %"));
         }
         let mut parts = self.host_key.split(' ');
         let (kind, blob, rest) = (parts.next().unwrap_or(""), parts.next().unwrap_or(""), parts.next());
@@ -111,7 +124,8 @@ impl SshConfig {
 
     /// The line to pin in the known-hosts file: `host` or `[host]:port`, then the key.
     pub(super) fn known_hosts_line(&self) -> String {
-        let name = if self.port == 22 { self.host.clone() } else { format!("[{}]:{}", self.host, self.port) };
+        let host = self.host.to_ascii_lowercase();
+        let name = if self.port == 22 { host } else { format!("[{host}]:{}", self.port) };
         format!("{name} {}\n", self.host_key)
     }
 
@@ -158,8 +172,9 @@ impl SshConfig {
 
 /// The remote shell commands, built here and tested as text. The remote login shell must be
 /// POSIX-compatible (sh, bash, zsh): the quoting is single quotes.
-pub(super) fn upload_script(dir: &str) -> String {
-    format!("umask 077 && mkdir -p {d} && tar -xf - -C {d}", d = quote(dir))
+pub(super) fn upload_script(base: &str, dir: &str) -> String {
+    // `mkdir DIR` without -p: the run directory must be new, so nobody can have prepared it.
+    format!("umask 077 && mkdir -p {b} && mkdir {d} && tar -xf - -C {d}", b = quote(base), d = quote(dir))
 }
 
 pub(super) fn run_script(dir: &str, wall_secs: u64, argv: &[String]) -> String {
@@ -167,15 +182,17 @@ pub(super) fn run_script(dir: &str, wall_secs: u64, argv: &[String]) -> String {
     let mut words: Vec<String> = ["env", "YANA_AGENT_CHILD=1", "sh", "-c", WRAP].iter().map(|s| s.to_string()).collect();
     words.push(wall_secs.to_string());
     words.extend(argv.iter().cloned());
-    format!("cd {} && exec {}", quote(dir), shell_words::join(&words))
+    let line: Vec<String> = words.iter().map(|w| quote(w)).collect();
+    format!("cd {} && exec {}", quote(dir), line.join(" "))
 }
 
 pub(super) fn download_script(dir: &str) -> String {
-    format!("cd {} && tar --format=ustar -cf - .", quote(dir))
+    // `-C DIR` rather than `cd DIR && tar`: no program of that name inside the run directory is found first.
+    format!("tar --format=ustar -C {} -cf - .", quote(dir))
 }
 
 pub(super) fn cleanup_script(dir: &str) -> String {
-    format!("rm -rf {}", quote(dir))
+    format!("chmod -R u+rwX {d} 2>/dev/null; rm -rf {d}", d = quote(dir))
 }
 
 pub struct SshBackend {

@@ -1,6 +1,6 @@
 //! Running a client program (`docker`, `ssh`) with exactly the environment given, a deadline, a
-//! bounded read of its output, an optional writer for its input, and its whole process group
-//! ended afterwards (WS6). Shared by the Docker and SSH backends.
+//! bounded read of its output, an optional writer for its input, and its process group ended
+//! when it runs out of time (WS6). Shared by the Docker and SSH backends.
 
 use crate::capability::CapabilityError;
 use std::ffi::OsString;
@@ -52,7 +52,7 @@ fn read_capped<R: Read + Send + 'static>(mut pipe: R, cap: usize) -> (Kept, std:
 }
 
 fn snapshot(kept: &Kept) -> (Vec<u8>, bool) {
-    kept.lock().map(|guard| guard.clone()).unwrap_or_default()
+    kept.lock().map(|mut guard| std::mem::take(&mut *guard)).unwrap_or_default()
 }
 
 pub(super) fn kill_group(child: &mut Child) {
@@ -69,11 +69,12 @@ pub(super) fn kill_group(child: &mut Child) {
 }
 
 pub(super) fn run_client(program: &Path, args: &[String], env: &[(OsString, OsString)], wall: Duration, cap: usize) -> Result<Finished, CapabilityError> {
-    run_client_fed(program, args, env, wall, cap, None)
+    run_client_fed(program, args, env, wall, (cap, cap), None)
 }
 
 /// Run `program args` with exactly `env`, to completion or `wall`, then end its process group.
-pub(super) fn run_client_fed(program: &Path, args: &[String], env: &[(OsString, OsString)], wall: Duration, cap: usize, feeder: Option<Feeder>) -> Result<Finished, CapabilityError> {
+/// `caps` is how much to keep of (stdout, stderr).
+pub(super) fn run_client_fed(program: &Path, args: &[String], env: &[(OsString, OsString)], wall: Duration, caps: (usize, usize), feeder: Option<Feeder>) -> Result<Finished, CapabilityError> {
     let mut command = Command::new(program);
     let stdin = if feeder.is_some() { Stdio::piped() } else { Stdio::null() };
     command.args(args).env_clear().envs(env.iter().cloned()).stdin(stdin).stdout(Stdio::piped()).stderr(Stdio::piped());
@@ -84,8 +85,8 @@ pub(super) fn run_client_fed(program: &Path, args: &[String], env: &[(OsString, 
         kill_group(&mut child);
         return Err(CapabilityError::SpawnFailed { detail: "no pipes to read the client output".into() });
     };
-    let (out, out_thread) = read_capped(out_pipe, cap);
-    let (err, err_thread) = read_capped(err_pipe, cap);
+    let (out, out_thread) = read_capped(out_pipe, caps.0);
+    let (err, err_thread) = read_capped(err_pipe, caps.1);
     let feed_thread = feeder.and_then(|feed| {
         let mut pipe = child.stdin.take()?;
         Some(std::thread::spawn(move || feed(&mut pipe)))
@@ -111,7 +112,15 @@ pub(super) fn run_client_fed(program: &Path, args: &[String], env: &[(OsString, 
     while !(out_thread.is_finished() && err_thread.is_finished() && feed_thread.as_ref().is_none_or(|t| t.is_finished())) && Instant::now() < grace {
         std::thread::sleep(POLL);
     }
-    let feed_error = feed_thread.and_then(|thread| if thread.is_finished() { thread.join().ok().and_then(Result::err) } else { Some("the input was still being written when the client ended".to_string()) });
+    let feed_error = feed_thread.and_then(|thread| {
+        if !thread.is_finished() {
+            return Some("the input was still being written when the client ended".to_string());
+        }
+        match thread.join() {
+            Ok(result) => result.err(),
+            Err(_) => Some("the sender stopped unexpectedly".to_string()),
+        }
+    });
     let ((stdout, cut_out), (stderr, cut_err)) = (snapshot(&out), snapshot(&err));
     Ok(Finished { stdout, stderr, exit_code: status.and_then(|s| s.code()), timed_out, truncated: cut_out || cut_err, feed_error })
 }

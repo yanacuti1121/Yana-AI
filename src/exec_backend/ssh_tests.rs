@@ -150,9 +150,9 @@ fn a_configuration_that_could_reach_further_than_intended_is_refused() {
 #[test]
 fn the_remote_commands_quote_everything_the_model_chose() {
     let dir = "/home/me/yana/0123456789abcdef";
-    assert_eq!(upload_script(dir), "umask 077 && mkdir -p /home/me/yana/0123456789abcdef && tar -xf - -C /home/me/yana/0123456789abcdef");
-    assert_eq!(download_script(dir), "cd /home/me/yana/0123456789abcdef && tar --format=ustar -cf - .");
-    assert_eq!(cleanup_script(dir), "rm -rf /home/me/yana/0123456789abcdef");
+    assert_eq!(upload_script("/home/me/yana", dir), "umask 077 && mkdir -p /home/me/yana && mkdir /home/me/yana/0123456789abcdef && tar -xf - -C /home/me/yana/0123456789abcdef");
+    assert_eq!(download_script(dir), "tar --format=ustar -C /home/me/yana/0123456789abcdef -cf - .");
+    assert_eq!(cleanup_script(dir), "chmod -R u+rwX /home/me/yana/0123456789abcdef 2>/dev/null; rm -rf /home/me/yana/0123456789abcdef");
     let script = run_script(dir, 120, &argv(&["echo", "a b", "$(touch /tmp/x)", "it's", "; rm -rf ~"]));
     assert!(script.starts_with("cd /home/me/yana/0123456789abcdef && exec env 'YANA_AGENT_CHILD=1' sh -c "), "{script}");
     for quoted in ["'a b'", "'$(touch /tmp/x)'", "'; rm -rf ~'", "'it'\\''s'"] {
@@ -220,7 +220,7 @@ fn a_command_that_plants_protected_or_secret_files_or_links_changes_nothing_on_t
     assert_eq!(text(root.path(), ".git/config"), "[core]");
     assert_eq!(text(root.path(), "a.txt"), "before");
     let notes = out.notes.join(" | ");
-    assert!(notes.contains("not copied back") && notes.contains("protected folder") && notes.contains("secret-looking name"), "{notes}");
+    assert!(notes.contains("entries from the remote side were ignored"), "{notes}");
 }
 
 #[test]
@@ -267,4 +267,52 @@ fn a_work_directory_that_is_the_machine_is_refused_before_any_call() {
     let r = rig("ok");
     assert!(run(&r, Path::new("/"), &["true"]).is_err());
     assert!(calls(&r).is_empty());
+}
+
+#[test]
+fn bash_and_zsh_cannot_expand_what_the_model_wrote() {
+    // Brace expansion, history marks, globs and carets are all quoted, so a real bash (not
+    // only a plain sh) receives each word exactly as written.
+    let words = ["{a,--output=/x}", "x{1..3}", "!!", "^a^b", "*.rs", "~root", "a=b", "tab\there", "ünï", "", "$HOME", "`id`"];
+    let line: Vec<String> = words.iter().map(|w| super::ssh::quote(w)).collect();
+    let script = format!("printf '%s\\n' {}", line.join(" "));
+    let Ok(out) = std::process::Command::new("bash").arg("-c").arg(&script).output() else { return };
+    let got: Vec<String> = String::from_utf8_lossy(&out.stdout).lines().map(String::from).collect();
+    assert_eq!(got, words.iter().map(|w| w.to_string()).collect::<Vec<_>>(), "{script}");
+}
+
+#[test]
+fn a_hostile_key_or_known_hosts_path_is_not_given_to_ssh() {
+    let r = rig("ok");
+    for bad in ["/tmp/my key", "/tmp/k%h", "/tmp/k'x", "/tmp/k\\x", "/tmp/k\"x"] {
+        let c = SshConfig { key_path: bad.into(), ..config(&r) };
+        assert!(c.validate().is_err(), "{bad}");
+    }
+}
+
+#[test]
+fn the_host_is_pinned_in_lower_case_and_a_run_directory_that_already_exists_is_refused() {
+    let r = rig("ok");
+    let mut c = config(&r);
+    c.host = "Build.Example".into();
+    assert!(c.known_hosts_line().starts_with("build.example "));
+    // `mkdir DIR` (no -p) fails when the directory was prepared by someone else.
+    let dir = r.remote.join("0123456789abcdef");
+    std::fs::create_dir_all(&dir).unwrap();
+    let script = upload_script(&r.remote.display().to_string(), &dir.display().to_string());
+    let status = std::process::Command::new("sh").arg("-c").arg(&script).stdin(std::process::Stdio::null()).output().unwrap();
+    assert!(!status.status.success(), "an existing run directory must stop the upload");
+}
+
+#[test]
+fn a_remote_that_is_killed_by_a_signal_or_leaves_its_directory_is_not_taken_for_a_result() {
+    // ssh killed by a signal: no exit code, not a timeout. Nothing is copied back.
+    let r = rig("ok");
+    let root = project();
+    let mut c = config(&r);
+    c.limits.wall = Duration::from_secs(5);
+    let out = SshBackend::new(c).unwrap().run(&ExecRequest { root: root.path().to_path_buf(), argv: argv(&["sh", "-c", "echo changed > a.txt; kill -9 $PPID; sleep 5"]) });
+    if let Ok(done) = &out {
+        assert_eq!(text(root.path(), "a.txt"), "before", "{:?}", done.notes);
+    }
 }
