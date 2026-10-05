@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>에이전트 & 스킬 — Yana가 기능을 구성하는 방식</title>
+  <meta name="description" content="에이전트 호출은 동기식·읽기 전용이며 스킬은 필요할 때 실행됩니다. 에이전트 100개가 동시에 프로세스로 실행되는 것은 아닙니다.">
+  <link rel="icon" href="yana-mark.svg"><link rel="stylesheet" href="assets/ecosystem-pages.css?v=20260926a"><link rel="stylesheet" href="assets/sakura-site.css?v=20260926a">
+<link rel="stylesheet" href="assets/yana-white.css?v=20261003kopolish"></head>
+<body class="sakura-site"><div class="yana-opening yana-opening--inner" aria-label="Yana"><div class="opening-center"><div class="opening-mark"><img src="yana-mark.svg" alt="" width="58" height="58"></div><div class="opening-word" aria-hidden="true"><span>Y</span><span>a</span><span>n</span><span>a</span></div><p class="opening-caption">AI가 일합니다. 결정권은 당신에게 있습니다.</p></div><button class="opening-skip" type="button">인트로 건너뛰기 <span aria-hidden="true">↗</span></button></div>
+<nav class="site-nav"></nav>
+<main>
+  <section class="hero"><div class="hero-inner"><p class="eyebrow">에이전트 & 스킬</p><h1>에이전트 100개.<br>스킬 2,026개.</h1><p class="hero-copy">이 숫자가 프로세스 2,126개를 동시에 실행한다는 뜻은 아닙니다. 에이전트는 특정 작업에 동기적으로 배정하는 역할이며, 스킬은 사용 조건이 맞을 때 읽는 지식입니다. 상시 실행되는 백그라운드 프로세스를 뜻하지 않습니다.</p><div class="hero-actions"><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="#agents"><span class="lbl">에이전트 보기</span></a></div><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="#skills"><span class="lbl">스킬 보기</span></a></div></div></div></section>
+  <section class="section" id="agents"><div class="section-head"><p class="eyebrow">에이전트</p><h2>동기식 호출이며, 백그라운드의 에이전트 군집이 아닙니다.</h2><p>주 에이전트가 특정 작업을 위해 하위 에이전트를 호출하면 하위 에이전트가 텍스트 보고서를 반환합니다. 다음 단계는 주 에이전트가 결정합니다. 호출 사이에는 하위 에이전트 프로세스가 남지 않습니다.</p></div><div class="product-grid">
+    <article class="product-card"><div><h3>기본적으로 읽기 전용입니다</h3><p>하위 에이전트는 파일 쓰기와 편집, Git 커밋과 푸시, 훅 실행을 할 수 없습니다. 해당 권한은 주 에이전트에게만 있습니다.</p></div><div class="product-art"><code>하위 에이전트: read, grep, glob
+주 에이전트: write, commit, push</code></div></article>
+    <article class="product-card"><div><h3>변경 사항(diff)이 아닌 텍스트 보고서입니다</h3><p>하위 에이전트는 발견 사항, 증거와 권고를 글로 반환합니다. 주 에이전트가 직접 변경을 적용하며 하위 에이전트에서 변경 패치를 받지는 않습니다.</p></div><div class="product-art"><code>발견 사항
+증거와 근거
+권고 사항
+“파일은 변경하지 않았습니다.”</code></div></article>
+    <article class="product-card"><div><h3>제한된 위임 깊이</h3><p>최대 위임 깊이는 루트 에이전트 → 하위 에이전트 A → 하위 에이전트 B입니다. 끝없는 위임은 허용하지 않습니다.</p></div><div class="product-art"><code>위임 단계 0 → 1 → 2 → 3 (최대)</code></div></article>
+  </div></section>
+  <section class="section feature" id="skills"><div class="feature-copy"><p class="eyebrow">스킬</p><h2>필요할 때 읽는 지식.<br>자동 훅이 아닙니다.</h2><p>스킬은 목적, 사용 조건, 규칙과 검증 단계를 담은 지침 파일입니다. 스스로 실행되지 않고 사용자의 요청이 조건에 맞을 때 읽힙니다. 이 저장소의 스킬 2,026개는 프런트엔드, 보안, 로봇공학 등 수백 분야를 다룹니다.</p></div><div class="feature-visual"><div class="visual-window"><div class="visual-row"><strong>사용 조건 일치</strong><span>스킬 읽기</span></div><div class="visual-row"><strong>조건 불일치</strong><span>스킬 미적용</span></div><div class="visual-row"><strong>길이 제한</strong><span>스킬당 최대 220줄</span></div><div class="visual-row"><strong>범위 중복</strong><span>중복된 내용은 병합</span></div></div></div></section>
+  <section class="section" id="external"><div class="section-head"><p class="eyebrow">외부 스킬</p><h2>검증된 외부 코드를 선별해 가져옵니다.</h2><p>오픈 소스 스킬을 가져오기 전에 라이선스를 확인합니다. 원문은 수정하지 않으며 출처를 함께 제공되는 <code>ATTRIBUTION.md</code> 파일에 기록합니다.</p></div><div class="product-grid">
+    <article class="product-card"><div><h3>1. 라이선스 확인</h3><p>재배포를 허용하는 라이선스 (MIT, Apache 2.0 등)만 사용합니다. 라이선스가 불분명한 코드는 복사하지 않습니다.</p></div></article>
+    <article class="product-card"><div><h3>2. 원문 유지</h3><p>외부에서 가져온 스킬은 원문을 유지합니다. 업스트림과 달라지는 변경을 조용히 추가하지 않습니다.</p></div></article>
+    <article class="product-card"><div><h3>3. 트리거 중복 확인</h3><p>기존 스킬과 범위가 겹치면 서로의 사용 제외 범위를 명시합니다. 에이전트가 임의로 고르도록 두지 않습니다.</p></div></article>
+  </div></section>
+  <section class="quote-band"><p class="eyebrow">Yana 원칙</p><h2>기능에는 명확한 경계가 있습니다.<br>숫자를 늘리는 경쟁이 아닙니다.</h2><p>에이전트 100개와 스킬 2,026개는 사용할 수 있는 기능의 목록입니다. 실제 권한은 소개 문구의 숫자가 아니라 런타임에 있습니다.</p><div class="hero-actions"><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="runtime-ko.html"><span class="lbl">런타임 보기</span></a></div></div></section>
+</main>
+<footer class="site-footer"><div class="footer-inner"><div><a class="brand" href="ko.html"><img src="yana-mark.svg" alt=""><span>Yana</span></a><p>사람이 통제하는 AI 작업을 위한 개인 에이전트 운영체제.</p></div><div class="footer-links"><strong>제품</strong><a href="studio-ko.html">Studio 1.5</a><a href="runtime-ko.html">런타임</a><a href="wheelbot-ko.html">Wheelbot</a></div><div class="footer-links"><strong>출처</strong><a href="https://github.com/yanacuti1121/Yana-AI">GitHub</a><a href="https://gitlab.com/yana-ai-group/Yana-AI-project">GitLab 미러</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ROADMAP.md">로드맵</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/SECURITY.md">안전</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ACKNOWLEDGEMENTS.md">감사의 말</a></div><div class="footer-links"><strong>연락</strong><a href="mailto:phamlongh230@gmail.com">phamlongh230@gmail.com</a><a href="https://yana.vutam.link">yana.vutam.link</a><a href="https://github.com/yanacuti1121/Yana-AI">yanacuti1121/Yana-AI</a></div></div><div class="footer-ack"><strong>감사의 말</strong><p>Yana AI는 Apache 2.0, MIT 및 기타 허용 라이선스 하에 라이선스된 프로젝트를 포함하여 오픈소스 커뮤니티의 아이디어, 패턴 및 도구를 기반으로 구축되었습니다. 모든 제3자 소스는 각 라이선스에 따라 준수하여 사용됩니다. 이 프로젝트는 개인이나 조직의 지적 재산권을 복사, 오해하거나 침해할 의도가 없습니다. 특정 프로젝트가 디자인 결정에 직접적인 영향을 미친 경우, 관련 소스 파일 및 규칙 문서에 출처가 명시됩니다.</p></div><div class="footer-bottom">© 2026 Yana AI · Apache 2.0</div></footer><script src="assets/ecosystem-pages.js?v=20261001ko"></script><script src="assets/sakura-site.js?v=20261003kopolish"></script>
+<script src="assets/yana-motion.js?v=20260929b"></script></body></html>

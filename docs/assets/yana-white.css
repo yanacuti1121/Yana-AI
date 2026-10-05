@@ -164,6 +164,8 @@ body.sakura-site::before,body.sakura-site main::before,#sakura-canvas,.sakura-si
 .showcase-visual--ai{perspective:1100px}
 .showcase-visual--ai .flow{transform-style:preserve-3d;transform:translateY(calc(var(--motion-progress,0) * -20px)) rotateY(-8deg)}
 .showcase-visual--ai .flow::before{content:"YANA / AUTHORITY LAYER";position:absolute;left:5%;right:5%;top:-55px;padding:10px 14px;border:1px solid #e2e2e6;border-radius:10px;background:#fff;color:#86868b;font:.65rem var(--mono);letter-spacing:.11em;transform:translateZ(8px)}
+html[lang="vi"] .showcase-visual--ai .flow::before{content:"YANA / LỚP QUYỀN HẠN"}
+html[lang="ko"] .showcase-visual--ai .flow::before{content:"YANA / 권한 계층"}
 .showcase-visual--ai .flow-row{position:relative;min-height:70px;transform-style:preserve-3d;box-shadow:0 18px 28px rgba(20,20,24,.09),0 3px 0 #e3e3e7}
 .showcase-visual--ai .flow-row:nth-of-type(1){transform:translateZ(15px) translateX(calc(var(--motion-progress,0) * -22px)) rotateY(-5deg)}
 .showcase-visual--ai .flow-row:nth-of-type(3){transform:translateZ(70px) translateX(calc(var(--motion-progress,0) * 18px)) rotateY(3deg)}
@@ -315,6 +317,13 @@ body.opening-active .yana-intro-copy,body.opening-active .yana-hero-object{opaci
 .firmware-release-panel>a{justify-self:start;text-decoration:none}
 .firmware-release-panel>small{margin-top:10px;color:#6c7480}
 .firmware-release-panel>code{display:block;overflow-wrap:anywhere;color:#47505d;font-size:.72rem}
+.firmware-reference{scroll-margin-top:84px}
+.firmware-reference .firmware-release-copy a{color:#35658f;text-underline-offset:4px}
+.firmware-reference .firmware-release-panel{background:linear-gradient(145deg,#fff,#f1f6fc)}
+.firmware-reference .firmware-release-panel>p{margin:0;color:#5f6672;line-height:1.6}
+.wheelbot-source-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+.wheelbot-source-actions .button{text-align:center;text-decoration:none;line-height:1.25}
+@media(max-width:600px){.wheelbot-source-actions .button{width:100%}}
 @media(max-width:760px){.opening-top,.opening-bottom{font-size:.54rem}.opening-top span:last-child{display:none}.opening-bottom span:last-child{display:none}.opening-mark{width:60px;height:60px}.opening-word{font-size:clamp(5rem,22vw,8rem)}.opening-caption{max-width:18ch}.firmware-release{grid-template-columns:1fr}.wheelbot-system{min-height:320px}.wheelbot-firmware-card{transform:translateZ(55px) rotateY(-3deg)}.wheelbot-system-parts>div{min-height:76px;padding:10px}.wheelbot-system-parts small{font-size:.48rem}.wheelbot-system-parts strong{font-size:.68rem}}
 @media(prefers-reduced-motion:reduce){.yana-opening{display:none!important}.opening-active .yana-intro-copy,.opening-active .yana-hero-object{opacity:1!important}.wheelbot-system,.wheelbot-firmware-card,.wheelbot-system-parts>div{transform:none!important}}
 
@@ -728,3 +737,7 @@ body.opening-active{overflow:hidden}
 
 /* Pause looping animations in scenes scrolled out of view (class set by yana-motion.js). */
 .yana-offscreen,.yana-offscreen *,.yana-offscreen *::before,.yana-offscreen *::after{animation-play-state:paused!important}
+
+/* Keep Korean words together while allowing long identifiers to fit narrow screens. */
+html[lang="ko"] { word-break:keep-all; }
+html[lang="ko"] .sakura-site :is(h1,h2,h3,p,li,a,button,summary,figcaption) { overflow-wrap:break-word; }

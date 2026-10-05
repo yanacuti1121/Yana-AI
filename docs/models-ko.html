@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>모델 및 제공자 — 제공자에 종속되지 않는 설계</title>
+  <meta name="description" content="현재 런타임 카탈로그에 19개의 제공업체가 있으며, 로컬 및 클라우드 서비스를 포함합니다. 제공업체를 선택하면 Yana가 자동으로 해당 제공업체의 기본 모델을 사용합니다.">
+  <link rel="icon" href="yana-mark.svg"><link rel="stylesheet" href="assets/ecosystem-pages.css?v=20260926a"><link rel="stylesheet" href="assets/sakura-site.css?v=20260926a">
+<link rel="stylesheet" href="assets/yana-white.css?v=20261003kopolish"></head>
+<body class="sakura-site"><div class="yana-opening yana-opening--inner" aria-label="Yana"><div class="opening-center"><div class="opening-mark"><img src="yana-mark.svg" alt="" width="58" height="58"></div><div class="opening-word" aria-hidden="true"><span>Y</span><span>a</span><span>n</span><span>a</span></div><p class="opening-caption">AI가 일합니다. 결정권은 당신에게 있습니다.</p></div><button class="opening-skip" type="button">인트로 건너뛰기 <span aria-hidden="true">↗</span></button></div>
+<nav class="site-nav"></nav>
+<main>
+  <section class="hero"><div class="hero-inner"><p class="eyebrow">모델 & 제공자</p><h1>모델을 바꿔도<br>시스템은 그대로.</h1><p class="hero-copy">Yana는 하나의 모델에 고정되지 않습니다. 모델 제공자는 교체할 수 있으며, 권한, 맥락과 증거는 어떤 모델을 쓰든 모델 밖에서 유지됩니다.</p><div class="hero-actions"><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="download-ko.html"><span class="lbl">Yana 설치</span></a></div><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="runtime-ko.html"><span class="lbl">런타임 보기</span></a></div></div></div></section>
+  <section class="section" id="providers"><div class="section-head"><p class="eyebrow">카탈로그에 등록된 제공자 19개</p><h2>로컬 및 클라우드, 하나의 공유 계약.</h2><p>현재 런타임 카탈로그에는 제공자 19개가 등록되어 있습니다. 모든 제공자가 같은 인터페이스 (<code>ChatProvider</code>)를 구현하므로 모델이 바뀌어도 Yana의 통신 방식은 유지됩니다. 사용 가능 여부는 설정한 인증 정보와 서비스에 따라 달라집니다.</p></div><div class="control-grid" style="grid-template-columns:repeat(4,1fr);width:100%;max-width:none;margin:0">
+    <div class="control-col"><h3>Anthropic</h3><div class="control-tags"><span>클라우드</span></div></div>
+    <div class="control-col"><h3>OpenAI</h3><div class="control-tags"><span>클라우드</span></div></div>
+    <div class="control-col"><h3>Gemini</h3><div class="control-tags"><span>클라우드</span></div></div>
+    <div class="control-col"><h3>Groq</h3><div class="control-tags"><span>클라우드</span></div></div>
+    <div class="control-col"><h3>DeepSeek</h3><div class="control-tags"><span>클라우드</span></div></div>
+    <div class="control-col"><h3>OpenRouter</h3><div class="control-tags"><span>클라우드 · 게이트웨이</span></div></div>
+    <div class="control-col"><h3>Ollama</h3><div class="control-tags"><span>로컬</span></div></div>
+    <div class="control-col"><h3>xAI</h3><div class="control-tags"><span>클라우드</span></div></div>
+    <div class="control-col"><h3>Novita</h3><div class="control-tags"><span>클라우드</span></div></div>
+    <div class="control-col"><h3>NVIDIA</h3><div class="control-tags"><span>클라우드</span></div></div>
+    <div class="control-col"><h3>MiniMax</h3><div class="control-tags"><span>클라우드</span></div></div>
+    <div class="control-col"><h3>GLM</h3><div class="control-tags"><span>클라우드</span></div></div>
+    <div class="control-col"><h3>Hugging Face</h3><div class="control-tags"><span>클라우드</span></div></div>
+    <div class="control-col"><h3>9Router</h3><div class="control-tags"><span>로컬 게이트웨이</span></div></div>
+    <div class="control-col"><h3>Kimi</h3><div class="control-tags"><span>클라우드</span></div></div>
+    <div class="control-col"><h3>LM Studio</h3><div class="control-tags"><span>로컬</span></div></div>
+    <div class="control-col"><h3>llama.cpp</h3><div class="control-tags"><span>로컬</span></div></div>
+    <div class="control-col"><h3>TurboFieldfare</h3><div class="control-tags"><span>구성된 엔드포인트</span></div></div>
+    <div class="control-col"><h3>AirLLM</h3><div class="control-tags"><span>구성된 엔드포인트</span></div></div>
+  </div></section>
+  <section class="section feature" id="default-model"><div class="feature-copy"><p class="eyebrow">제공자별 기본 모델</p><h2>제공자를 선택하세요 —<br>Yana가 기본 모델을 선택합니다.</h2><p>각 제공자는 기본 모델을 선언합니다. Anthropic을 고르면 Yana가 해당 제공자의 기본 모델을 사용합니다. 카탈로그에서 정확한 모델 이름을 찾아 외울 필요가 없습니다.</p></div><div class="feature-visual"><div class="visual-window"><div class="visual-row"><strong>제공자를 선택하세요</strong><span>예: Anthropic</span></div><div class="visual-row"><strong>Yana의 자동 선택</strong><span>해당 제공자의 기본 모델</span></div><div class="visual-row"><strong>다른 모델을 원하시나요?</strong><span>Studio의 모델 관리자</span></div></div></div></section>
+  <section class="section" id="local"><div class="section-head"><p class="eyebrow">로컬 우선</p><h2>Ollama도 동등하게 지원합니다.</h2><p>로컬 제공자도 클라우드 제공자와 같은 권한 모델을 사용합니다. 로컬이라는 이유로 권한 검사를 우회하지 않으며 클라우드에만 별도의 규칙을 적용하지 않습니다.</p></div></section>
+  <section class="quote-band"><p class="eyebrow">Yana 원칙</p><h2>모델은 단지 하나의 교체 가능한 구성 요소일 뿐입니다.</h2><p>새로운 제공자 게이트웨이(OpenRouter)는 아직 모든 호출의 처리 경로가 아닙니다. 이 사이트는 해당 계층의 완성도를 과장하지 않습니다.</p><div class="hero-actions"><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="architecture-ko.html"><span class="lbl">전체 아키텍처 보기</span></a></div></div></section>
+</main>
+<footer class="site-footer"><div class="footer-inner"><div><a class="brand" href="ko.html"><img src="yana-mark.svg" alt=""><span>Yana</span></a><p>사람이 통제하는 AI 작업을 위한 개인 에이전트 운영체제.</p></div><div class="footer-links"><strong>제품</strong><a href="studio-ko.html">Studio 1.5</a><a href="runtime-ko.html">런타임</a><a href="wheelbot-ko.html">Wheelbot</a></div><div class="footer-links"><strong>출처</strong><a href="https://github.com/yanacuti1121/Yana-AI">GitHub</a><a href="https://gitlab.com/yana-ai-group/Yana-AI-project">GitLab 미러</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ROADMAP.md">로드맵</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/SECURITY.md">안전</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ACKNOWLEDGEMENTS.md">감사의 말</a></div><div class="footer-links"><strong>연락</strong><a href="mailto:phamlongh230@gmail.com">phamlongh230@gmail.com</a><a href="https://yana.vutam.link">yana.vutam.link</a><a href="https://github.com/yanacuti1121/Yana-AI">yanacuti1121/Yana-AI</a></div></div><div class="footer-ack"><strong>감사의 말</strong><p>Yana AI는 Apache 2.0, MIT 및 기타 허용 라이선스 하에 라이선스된 프로젝트를 포함하여 오픈소스 커뮤니티의 아이디어, 패턴 및 도구를 기반으로 구축되었습니다. 모든 제3자 소스는 각 라이선스에 따라 준수하여 사용됩니다. 이 프로젝트는 개인이나 조직의 지적 재산권을 복사, 오해하거나 침해할 의도가 없습니다. 특정 프로젝트가 디자인 결정에 직접적인 영향을 미친 경우, 관련 소스 파일 및 규칙 문서에 출처가 명시됩니다.</p></div><div class="footer-bottom">© 2026 Yana AI · Apache 2.0</div></footer><script src="assets/ecosystem-pages.js?v=20261001ko"></script><script src="assets/sakura-site.js?v=20261003kopolish"></script>
+<script src="assets/yana-motion.js?v=20260929b"></script></body></html>

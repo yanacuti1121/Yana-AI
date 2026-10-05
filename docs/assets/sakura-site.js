@@ -6,12 +6,21 @@
   /* localStorage throws when storage is blocked (private mode, site settings). An unguarded call
      aborted this whole script, leaving the footer, petals and demos unbuilt. Not persisting is fine. */
   const store={get:key=>{try{return localStorage.getItem(key)}catch(error){return null}},set:(key,value)=>{try{localStorage.setItem(key,value)}catch(error){/* storage blocked: preference just is not remembered */}}};
-  const englishPages=new Set(["yana-ai","studio","wheelbot","runtime","governance","agents-skills","models","connectors","missions","continuity","design","evidence","safety","architecture","ecosystem","download","updates","support","privacy","legal-notices","acknowledgements","install-macos","install-windows","install-linux","account","history"]);
+  const englishPages=new Set(["yana-ai","studio","wheelbot","runtime","governance","agents-skills","models","connectors","missions","continuity","design","evidence","safety","architecture","ecosystem","download","updates","support","privacy","legal-notices","acknowledgements","install-macos","install-windows","install-linux","account","history","commands","contact"]);
   const stem=page.replace(/\.html$/,"").replace(/-(en|ko)$/,"");
-  const koreanPages=new Set(["yana-ai","studio","wheelbot","updates"]);
+  const koreanPages=new Set(englishPages);
   const languageHref=vi?(page==="index.html"?"en.html":englishPages.has(stem)?`${stem}-en.html`:"en.html"):(stem==="en"||stem==="ko"?"index.html":`${stem}.html`);
   const route=name=>vi?`${name}.html`:(name==="index"?(ko?"ko.html":"en.html"):ko&&koreanPages.has(name)?`${name}-ko.html`:`${name}-en.html`);
   document.body.classList.add("sakura-site");
+
+  if(stem==="wheelbot"&&location.hash){
+    let section="";
+    try{section=decodeURIComponent(location.hash.slice(1))}catch{section=""}
+    const target=section&&document.getElementById(section);
+    if(target)window.addEventListener("load",()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      target.scrollIntoView({block:"start",behavior:"instant"});
+    })),{once:true});
+  }
 
   const documentPages=["legal-notices","privacy","acknowledgements"];
   const technicalPages=["architecture","governance","runtime","models","connectors","evidence","continuity","missions","agents-skills"];
@@ -41,7 +50,7 @@
     const koreanDetails={
       "yana-ai":"AI 조정과 권한",studio:"Yana를 위한 시각적 워크스페이스",wheelbot:"물리적 로봇 프로젝트",
       "yana-runtime":"통제되는 AI 에이전트 실행",safety:"규칙과 권한",audit:"로그와 추적 기록",
-      runtime:"Agent Runtime · TurnEngine",governance:"Policy Engine · 권한", "agents-skills":"조합할 수 있는 기능",
+      runtime:"에이전트 런타임 · TurnEngine",governance:"정책 엔진 · 권한", "agents-skills":"조합할 수 있는 기능",
       models:"클라우드와 로컬 AI 모델",connectors:"범위가 정해진 연결",infrastructure:"아키텍처와 시스템 계층",
       developers:"프로젝트, 파일, 터미널", "ai-agents":"허용된 범위에서 실행",teams:"명확한 결정과 권한",
       "infra-teams":"시스템 계층 연결", "quick-start":"Studio 설치부터 시작",documentation:"Yana AI 시스템 개요",
@@ -49,9 +58,17 @@
       updates:"생태계 출시 기록",download:"지원 플랫폼 설치 파일",support:"문의 채널",
       legal:"라이선스 정보",privacy:"데이터 처리 방식",thanks:"출처와 기여",github:"소스 코드와 프로젝트 상태"
     };
+    const koreanTitles={
+      "yana-runtime":"Yana 런타임",safety:"안전 엔진",audit:"감사 시스템",
+      runtime:"런타임",governance:"거버넌스","agents-skills":"에이전트와 스킬",models:"모델",connectors:"연동",infrastructure:"인프라",
+      developers:"개발자용","ai-agents":"AI 에이전트용",
+      teams:"팀용","infra-teams":"인프라팀용","quick-start":"빠른 시작",documentation:"문서",
+      architecture:"아키텍처",commands:"명령어 안내",examples:"예시",updates:"업데이트 / 변경 기록",
+      download:"Studio 다운로드",support:"지원 및 문의",legal:"법적 고지",privacy:"개인정보 보호",thanks:"감사의 말"
+    };
     const item=(id,path,viTitle,enTitle,viDetail,enDetail,icon,keywords="")=>({
-      id,href:/^https?:/.test(path)?path:route(path),title:vi?viTitle:enTitle,
-      detail:vi?viDetail:ko?`${koreanDetails[id]||enDetail}${koreanPages.has(path)?"":" · 영어"}`:enDetail,icon,keywords,external:/^https?:/.test(path)
+      id,href:/^https?:/.test(path)?path:route(path),title:vi?viTitle:ko?(koreanTitles[id]||enTitle):enTitle,
+      detail:vi?viDetail:ko?(koreanDetails[id]||enDetail):enDetail,icon,keywords,external:/^https?:/.test(path)
     });
     // One destination map feeds desktop groups, mobile subviews, and the command palette.
     const navigationConfig={
@@ -100,8 +117,8 @@
     };
     const searchButton='<button class="nav-search-trigger" type="button" aria-label="'+(vi?"Tìm kiếm Yana":ko?"Yana 검색":"Search Yana")+'" aria-keyshortcuts="Meta+K Control+K"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.7" cy="10.7" r="6.7"/><path d="m16 16 5 5"/></svg><span>'+copy.search+'</span><kbd>⌘K</kbd></button>';
     const viHref=ko?(koreanPages.has(stem)?`${stem}.html`:"index.html"):vi?page:languageHref,enHref=ko?(koreanPages.has(stem)?`${stem}-en.html`:"en.html"):vi?languageHref:page,koHref=ko?page:koreanPages.has(stem)?`${stem}-ko.html`:"ko.html";
-    const languageOptions='<a href="'+viHref+'" data-locale="vi"'+(vi?' aria-current="true"':'')+'>'+(vi?'✓ ':'')+'Tiếng Việt</a><a href="'+enHref+'" data-locale="en"'+(!vi&&!ko?' aria-current="true"':'')+'>'+(!vi&&!ko?'✓ ':'')+'English</a><a href="'+koHref+'" data-locale="ko"'+(ko?' aria-current="true"':'')+'>'+(ko?'✓ ':'')+'한국어'+(ko||koreanPages.has(stem)?'':' <small>홈페이지</small>')+'</a>';
-    const languageMenu='<details class="nav-language-menu"><summary aria-label="'+(vi?"Chọn ngôn ngữ":ko?"언어 선택":"Choose language")+'" aria-haspopup="true" aria-expanded="false">'+(vi?"VI":ko?"KO":"EN")+'</summary><div class="nav-language-panel"><small>LANGUAGE</small>'+languageOptions+'</div></details>';
+    const languageOptions='<a href="'+viHref+'" data-locale="vi"'+(vi?' aria-current="true"':'')+'>'+(vi?'✓ ':'')+'Tiếng Việt</a><a href="'+enHref+'" data-locale="en"'+(!vi&&!ko?' aria-current="true"':'')+'>'+(!vi&&!ko?'✓ ':'')+'English</a><a href="'+koHref+'" data-locale="ko"'+(ko?' aria-current="true"':'')+'>'+(ko?'✓ ':'')+'한국어</a>';
+    const languageMenu='<details class="nav-language-menu"><summary aria-label="'+(vi?"Chọn ngôn ngữ":ko?"언어 선택":"Choose language")+'" aria-haspopup="true" aria-expanded="false">'+(vi?"VI":ko?"KO":"EN")+'</summary><div class="nav-language-panel"><small>'+(ko?'언어':'LANGUAGE')+'</small>'+languageOptions+'</div></details>';
     nav.innerHTML='<a class="brand" href="'+homeHref+'"><img class="brand-mark" src="yana-mark.svg" alt=""><span>Yana</span></a>'
       +liquidKnobButton("menu-button","☰",vi?"Mở menu":ko?"메뉴 열기":"Open menu")
       +'<div class="nav-links">'
@@ -161,7 +178,17 @@
     language.querySelector("summary").addEventListener("click",event=>{event.preventDefault();groups.forEach(g=>g.open=false);language.open=!language.open;syncState()});
     language.addEventListener("pointerenter",()=>clearTimeout(closeTimer));
     language.addEventListener("pointerleave",()=>{if(desktopHover.matches)closeTimer=setTimeout(()=>{if(!language.matches(":hover"))close()},150)});
-    nav.querySelectorAll("[data-locale]").forEach(a=>a.addEventListener("click",()=>store.set("yana-locale",a.dataset.locale)));
+    const localeLinks=[...nav.querySelectorAll("[data-locale]")];
+    const localePaths=new Map(localeLinks.map(a=>[a,a.getAttribute("href")]));
+    const syncLocaleAnchors=()=>{
+      let section="";
+      try{section=decodeURIComponent(location.hash.slice(1))}catch{section=""}
+      const hash=section&&document.getElementById(section)?location.hash:"";
+      localeLinks.forEach(a=>a.setAttribute("href",localePaths.get(a)+hash));
+    };
+    syncLocaleAnchors();
+    window.addEventListener("hashchange",syncLocaleAnchors);
+    localeLinks.forEach(a=>a.addEventListener("click",()=>store.set("yana-locale",a.dataset.locale)));
     scrim.addEventListener("pointerdown",close);
     document.addEventListener("pointerdown",event=>{if(!nav.contains(event.target)&&!scrim.contains(event.target))close()});
     document.addEventListener("keydown",event=>{if(event.key==="Escape"&&document.body.classList.contains("yana-navigation-open")){close();menu.focus()}});
@@ -171,7 +198,7 @@
     const activeGroupByStem={"yana-ai":"products",studio:"products",wheelbot:"products",runtime:"platform",governance:"platform","agents-skills":"platform",models:"platform",connectors:"platform",safety:"products",evidence:"platform",architecture:"platform",download:"resources",updates:"resources",commands:"resources",missions:"resources",support:"resources",privacy:"resources","legal-notices":"resources",acknowledgements:"resources"};
     const hashGroup={"#prologue":"products","#capabilities":"platform","#architecture":"platform","#evidence":"platform","#use-cases":"solutions","#terminal-origin":"platform"};
     const setActive=()=>{
-      const group=(stem==="index"||stem==="en")?(hashGroup[location.hash]||""):(activeGroupByStem[stem]||"");
+      const group=(stem==="index"||stem==="en"||stem==="ko")?(hashGroup[location.hash]||""):(activeGroupByStem[stem]||"");
       groups.forEach(g=>{
         const active=g.dataset.navGroup===group;
         g.classList.toggle("is-active-page",active);
@@ -184,7 +211,7 @@
       });
     };
     setActive();window.addEventListener("hashchange",setActive);
-    if(stem==="index"||stem==="en"){
+    if(stem==="index"||stem==="en"||stem==="ko"){
       const watched=Object.keys(hashGroup).map(hash=>document.querySelector(hash)).filter(Boolean);
       if(watched.length){const observer=new IntersectionObserver(entries=>{
         const match=entries.filter(entry=>entry.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];
@@ -253,7 +280,7 @@
   }
 
   const footer=document.querySelector(".site-footer");
-  if(footer) footer.innerHTML=`<div class="footer-inner"><div><a class="brand" href="${route("index")}"><img class="brand-mark" src="yana-mark.svg" alt=""><span>Yana</span></a><p>${vi?"Trí tuệ có thể thay. Quyền hạn phải bền vững.":ko?"지능은 바뀔 수 있어도 권한은 흔들리지 않아야 합니다.":"Intelligence may change. Authority must endure."}</p></div><div class="footer-links"><strong>${copy.products}</strong><a href="${route("yana-ai")}">Yana AI</a><a href="${route("studio")}">Yana Studio</a><a href="${route("wheelbot")}">Yana Wheelbot</a></div><div class="footer-links"><strong>${vi?"Hệ thống":ko?"시스템":"System"}</strong><a href="${route("architecture")}">${vi?"Kiến trúc":ko?"아키텍처 · EN":"Architecture"}</a><a href="${route("runtime")}">Runtime${ko?" · EN":""}</a><a href="${route("governance")}">Governance${ko?" · EN":""}</a><a href="${route("connectors")}">Connectors${ko?" · EN":""}</a></div><div class="footer-links"><strong>${copy.resources}</strong><a href="${route("updates")}">${copy.updates}</a><a href="${route("support")}">${vi?"Hỗ trợ & Liên hệ":ko?"지원 및 문의 · EN":"Support & Contact"}</a><a href="https://github.com/yanacuti1121/Yana-AI/issues">GitHub Issues</a><a href="https://vutam.link/">vutam.link</a></div><div class="footer-links"><strong>${vi?"Pháp lý":ko?"법적 고지":"Legal"}</strong><a href="${route("legal-notices")}">${vi?"Thông báo pháp lý":ko?"법적 고지 · EN":"Legal Notices"}</a><a href="${route("acknowledgements")}">${vi?"Lời cảm ơn":ko?"감사의 말 · EN":"Acknowledgements"}</a><a href="${route("privacy")}">${vi?"Quyền riêng tư":ko?"개인정보 보호 · EN":"Privacy"}</a></div></div><div class="footer-bottom">© 2026 Yana · ${vi?"Các thành phần nguồn mở giữ nguyên giấy phép tương ứng.":ko?"오픈 소스 구성 요소에는 각 라이선스가 적용됩니다.":"Open-source components remain under their respective licenses."}</div>`;
+  if(footer) footer.innerHTML=`<div class="footer-inner"><div><a class="brand" href="${route("index")}"><img class="brand-mark" src="yana-mark.svg" alt=""><span>Yana</span></a><p>${vi?"Trí tuệ có thể thay. Quyền hạn phải bền vững.":ko?"지능은 바뀔 수 있어도 권한은 흔들리지 않아야 합니다.":"Intelligence may change. Authority must endure."}</p></div><div class="footer-links"><strong>${copy.products}</strong><a href="${route("yana-ai")}">Yana AI</a><a href="${route("studio")}">Yana Studio</a><a href="${route("wheelbot")}">Yana Wheelbot</a></div><div class="footer-links"><strong>${vi?"Hệ thống":ko?"시스템":"System"}</strong><a href="${route("architecture")}">${vi?"Kiến trúc":ko?"아키텍처":"Architecture"}</a><a href="${route("runtime")}">${ko?"런타임":"Runtime"}</a><a href="${route("governance")}">${ko?"거버넌스":"Governance"}</a><a href="${route("connectors")}">${ko?"연동":"Connectors"}</a></div><div class="footer-links"><strong>${copy.resources}</strong><a href="${route("updates")}">${copy.updates}</a><a href="${route("support")}">${vi?"Hỗ trợ & Liên hệ":ko?"지원 및 문의":"Support & Contact"}</a><a href="https://github.com/yanacuti1121/Yana-AI/issues">GitHub Issues</a><a href="https://vutam.link/">vutam.link</a></div><div class="footer-links"><strong>${vi?"Pháp lý":ko?"법적 고지":"Legal"}</strong><a href="${route("legal-notices")}">${vi?"Thông báo pháp lý":ko?"법적 고지":"Legal Notices"}</a><a href="${route("acknowledgements")}">${vi?"Lời cảm ơn":ko?"감사의 말":"Acknowledgements"}</a><a href="${route("privacy")}">${vi?"Quyền riêng tư":ko?"개인정보 보호":"Privacy"}</a></div></div><div class="footer-bottom">© 2026 Yana · ${vi?"Các thành phần nguồn mở giữ nguyên giấy phép tương ứng.":ko?"오픈 소스 구성 요소에는 각 라이선스가 적용됩니다.":"Open-source components remain under their respective licenses."}</div>`;
 
   if(footer){
     const contextualFooterLinks={"support.html":route("support"),"legal-notices.html":route("legal-notices"),"privacy.html":route("privacy"),"acknowledgements.html":route("acknowledgements")};
@@ -269,16 +296,16 @@
     targets.forEach(target=>observer.observe(target));
   }
 
-  document.querySelectorAll("[data-execution-demo]").forEach(demo=>{
+  document.querySelectorAll("[data-execution-demo]:not([data-guided-discovery])").forEach(demo=>{
     const receipt=demo.querySelector(".decision-receipt");
     const messages=vi?{
       allow:["ALLOW","Capability được cấp. Thực thi có giới hạn và ghi receipt bằng chứng."],
       ask:["ASK","Chờ phê duyệt của con người. Chưa có thay đổi nào được thực thi."],
       deny:["DENY","Yêu cầu bị chặn tại cổng quyền hạn. Không chạm vào hệ thống đích."]
     }:ko?{
-      allow:["ALLOW","기능이 허용되었습니다. 정해진 범위에서 실행하고 증거 기록을 남깁니다."],
-      ask:["ASK","사람의 승인을 기다리는 중입니다. 아직 변경된 내용은 없습니다."],
-      deny:["DENY","요청이 권한 게이트에서 차단되었습니다. 대상 시스템은 변경되지 않았습니다."]
+      allow:["허용","기능이 허용되었습니다. 정해진 범위에서 실행하고 증거 기록을 남깁니다."],
+      ask:["승인 요청","사람의 승인을 기다리는 중입니다. 아직 변경된 내용은 없습니다."],
+      deny:["거부","요청이 권한 게이트에서 차단되었습니다. 대상 시스템은 변경되지 않았습니다."]
     }:{
       allow:["ALLOW","Capability granted. Execution is bounded and an evidence receipt is written."],
       ask:["ASK","Waiting for human approval. No change has been executed."],
@@ -305,5 +332,5 @@
   document.querySelectorAll("[data-auth-tab]").forEach(btn=>btn.addEventListener("click",()=>{activateAuthTab(btn.dataset.authTab);history.replaceState(null,"",`#${btn.dataset.authTab}`)}));
   if(location.hash==="#login")activateAuthTab("login");
   const password=document.querySelector("#signup-password"),meter=document.querySelector(".password-meter span");if(password&&meter)password.addEventListener("input",()=>{let score=0;const v=password.value;if(v.length>=10)score++;if(/[A-Z]/.test(v)&&/[a-z]/.test(v))score++;if(/\d/.test(v))score++;if(/[^A-Za-z0-9]/.test(v))score++;meter.style.width=`${score*25}%`});
-  document.querySelectorAll("[data-auth-form]").forEach(form=>form.addEventListener("submit",e=>{e.preventDefault();const message=form.querySelector(".form-message");if(!form.reportValidity())return;message.textContent=vi?"Giao diện đã sẵn sàng. Đăng ký thật sẽ được bật sau khi dịch vụ xác thực phía máy chủ được triển khai.":"The interface is ready. Real registration will be enabled after the authentication service is deployed."}));
+  document.querySelectorAll("[data-auth-form]").forEach(form=>form.addEventListener("submit",e=>{e.preventDefault();const message=form.querySelector(".form-message");if(!form.reportValidity())return;message.textContent=vi?"Giao diện đã sẵn sàng. Đăng ký thật sẽ được bật sau khi dịch vụ xác thực phía máy chủ được triển khai.":ko?"화면은 준비되었지만 실제 가입과 로그인은 아직 사용할 수 없습니다. 서버 인증 서비스가 배포된 후 활성화됩니다.":"The interface is ready. Real registration will be enabled after the authentication service is deployed."}));
 })();

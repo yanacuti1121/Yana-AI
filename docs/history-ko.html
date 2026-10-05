@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>개발 기록 — 실제 문제를 있는 그대로 기록합니다</title>
+  <meta name="description" content="Yana는 개발 과정에 문제가 없었다고 주장하지 않습니다. 실패한 릴리스, 회귀, 패키징 오류, CI 실패의 원인과 수정 사항을 기록합니다.">
+  <link rel="icon" href="yana-mark.svg"><link rel="stylesheet" href="assets/ecosystem-pages.css?v=20260926a"><link rel="stylesheet" href="assets/sakura-site.css?v=20260926a">
+<link rel="stylesheet" href="assets/yana-white.css?v=20261003kopolish"></head>
+<body class="sakura-site"><div class="yana-opening yana-opening--inner" aria-label="Yana"><div class="opening-center"><div class="opening-mark"><img src="yana-mark.svg" alt="" width="58" height="58"></div><div class="opening-word" aria-hidden="true"><span>Y</span><span>a</span><span>n</span><span>a</span></div><p class="opening-caption">AI가 일합니다. 결정권은 당신에게 있습니다.</p></div><button class="opening-skip" type="button">인트로 건너뛰기 <span aria-hidden="true">↗</span></button></div>
+<nav class="site-nav"></nav>
+<main>
+
+  <section class="hero"><div class="hero-inner">
+    <p class="eyebrow">공개된 개발 과정</p>
+    <h1>Yana는<br>실제 문제를 해결하며 성장했습니다.</h1>
+    <p class="hero-copy">실패한 릴리스, 회귀 버그, 패키징 문제, CI 실패와 디자인 변경은 Git 기록에 흔적을 남깁니다. 이 페이지에서는 사건, 근본 원인, 수정 사항과 이후의 개선을 설명합니다.</p>
+    <p class="hero-copy" style="font-weight:650;color:var(--ink)">엔지니어링 신뢰는 실수를 한 적이 없어서가 아니라 투명성에서 나옵니다.</p>
+  </div></section>
+
+  <section class="section" id="timeline"><div class="section-head"><p class="eyebrow">개발 연표</p><h2>네 가지 실제 사건, 네 가지 시스템 개선.</h2></div>
+    <div class="history-timeline">
+      <div class="history-step"><small>2026년 7월 8일~11일</small><strong>CLI 래퍼 재귀</strong><span>yana-rt-wrapper.js는 PATH를 통해 자체를 호출했습니다.</span></div>
+      <div class="history-step"><small>2026년 9월 1일</small><strong>데스크톱 v1.4.4 → v1.4.6</strong><span>패키지된 서버에서 node_modules가 누락되었습니다.</span></div>
+      <div class="history-step"><small>2026년 9월 9일~11일</small><strong>macOS "앱이 손상되었습니다"</strong><span>임시 서명이 전체 번들과 일치하지 않았습니다.</span></div>
+      <div class="history-step"><small>2026년 9월 11일</small><strong>서킷 브레이커 / 코어 잠금 불일치</strong><span>수정과 잠금 파일이 동기화되지 않음 → 감독자 HALT</span></div>
+    </div>
+  </section>
+
+  <section class="section" id="incident-wrapper">
+    <div class="section-head"><p class="eyebrow">사건 1 — 2026년 7월 8일~11일</p><h2>CLI 래퍼가 PATH를 통해 무한히 재귀했습니다.</h2></div>
+    <div class="feature-visual" style="max-width:760px;margin-inline:auto">
+      <div class="visual-window">
+        <div class="visual-row"><strong>발생한 일</strong><span>CLI 래퍼 (<code>scripts/yana-rt-wrapper.js</code>)가 실행 파일 <code>yana-rt</code> 을 PATH에서 찾았는데 그 경로가 래퍼 자신을 가리켰습니다. 무한 재귀와 CPU 100% 사용이 발생했으며 강제 종료 전에 116°C가 보고되었습니다 (<code>55baba91</code>, 7월 8일; <code>727f6623</code>, <code>22e93c5f</code>, 7월 9일).</span></div>
+        <div class="visual-row"><strong>근본 원인</strong><span>대상 바이너리를 찾는 과정에 재귀 방지 장치가 없었습니다. 래퍼가 PATH를 무조건 신뢰했습니다.</span></div>
+        <div class="visual-row"><strong>수정</strong><span>실행 전에 환경 플래그로 재귀를 감지합니다. 래퍼가 자신을 다시 호출하지 못하게 합니다.</span></div>
+        <div class="visual-row"><strong>시스템 변경</strong><span>규칙 <code>71-entry-point-verify-law.md</code> 을 추가했습니다 (<code>6792487a</code>, 7월 10일). CLI 래퍼와 바이너리를 포함한 모든 진입점은 변경 비교만 읽는 대신 실제 exec() 실행으로 검증해야 합니다. 규칙의 빈틈은 다음 날 수정했습니다 (<code>a751af06</code>, 7월 11일). 안전 규칙에도 독립적인 검토가 필요합니다.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="incident-desktop">
+    <div class="section-head"><p class="eyebrow">사건 2 — 2026년 9월 1일</p><h2>Desktop v1.4.4는 실행되지 않는 상태로 출시되었습니다.</h2></div>
+    <div class="feature-visual" style="max-width:760px;margin-inline:auto">
+      <div class="visual-window">
+        <div class="visual-row"><strong>발생한 일</strong><span>v1.4.4 릴리스 (<code>e3a18505</code>)의 패키지된 서버에는 <code>node_modules</code>전체가 빠져 있어 내려받은 앱이 실행되지 않았습니다. CI는 통과했지만 실제 다운로드 파일을 터미널에서 실행하면서 문제를 발견했습니다.</span></div>
+        <div class="visual-row"><strong>근본 원인</strong><span>패키징 과정이 하위 서버의 의존성을 최종 배포 파일에 복사하지 않았습니다. CI는 빌드 성공만 확인하고 패키지된 앱의 실행은 확인하지 않았습니다.</span></div>
+        <div class="visual-row"><strong>수정</strong><span>v1.4.5 (<code>b6d65cae</code>)의 첫 수정은 충분하지 않았습니다. v1.4.6 (<code>afbdc50d</code>)에서 node_modules를 제대로 포함했습니다. 하루에 세 버전이 출시되었습니다.</span></div>
+        <div class="visual-row"><strong>시스템 변경</strong><span>실제 빌드를 실행하지 않으면 CI 통과만으로는 충분한 근거가 되지 않는다는 교훈이 규칙으로 남았습니다. 이 교훈은 2주 뒤 Studio 패키징 파이프라인에도 반영되었습니다.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="incident-macos">
+    <div class="section-head"><p class="eyebrow">사건 3 — 2026년 9월 9일~11일</p><h2>macOS는 "Yana Studio가 손상되었습니다"라고 보고했습니다.</h2></div>
+    <div class="feature-visual" style="max-width:760px;margin-inline:auto">
+      <div class="visual-window">
+        <div class="visual-row"><strong>발생한 일</strong><span>Yana Studio의 첫 패키징 파이프라인 (<code>9aadc491</code>, 9월 9일)은 electron-builder에서 <code>identity: null</code> 설정을 사용해 서명을 생략했습니다. 다운로드한 앱을 열자 macOS Gatekeeper가 손상된 앱으로 표시했습니다.</span></div>
+        <div class="visual-row"><strong>근본 원인</strong><span>Electron 기본 앱에는 이미 임시 서명이 있었습니다. extraResources를 추가한 뒤 서명이 전체 번들과 맞지 않게 되었습니다. <code>codesign --verify --deep --strict</code> 검사 결과에는 코드에 리소스가 없지만 서명은 리소스가 있어야 한다는 오류가 표시되었습니다.</span></div>
+        <div class="visual-row"><strong>수정</strong><span>이후 <code>afterSign</code> 훅 (<code>scripts/after-sign-mac.cjs</code>)에서 패키징 후 전체 번들에 서명합니다 (<code>dd427d54</code>, 9월 11일). 기본 앱의 서명에만 의존하지 않습니다.</span></div>
+        <div class="visual-row"><strong>시스템 변경</strong><span>다운로드 페이지에는 이제 한 줄 경고 대신 운영체제별 Gatekeeper 안내와 설치 단계를 제공합니다.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="incident-corelock">
+    <div class="section-head"><p class="eyebrow">사건 4 — 2026년 9월 11일</p><h2>올바른 수정도 감독자의 HALT를 발생시켰습니다.</h2></div>
+    <div class="feature-visual" style="max-width:760px;margin-inline:auto">
+      <div class="visual-window">
+        <div class="visual-row"><strong>발생한 일</strong><span>서킷 브레이커의 반개방 상태 초기화 버그 (<code>src/guard/token_budget.rs</code>)를 수정했지만 (<code>e39a9c4d</code>), <code>core-lock.json</code> 의 해시를 함께 갱신하지 않았습니다.</span></div>
+        <div class="visual-row"><strong>근본 원인</strong><span>다음 디렉터리의 파일은 SHA-256 해시로 고정됩니다: <code>core/rules/</code>, <code>core/hooks/</code>, <code>core/gates/</code> 및 <code>core/scripts/</code> . 파일을 바꾼 뒤 <code>update-core-lock.sh</code> 를 실행하지 않으면 해시가 일치하지 않습니다. 감독자는 설계된 대로 작동했습니다.</span></div>
+        <div class="visual-row"><strong>수정</strong><span>다음 명령으로 명세를 다시 생성했습니다: <code>update-core-lock.sh</code> . 원래 수정과 함께 커밋했습니다 (<code>605d9aff</code>, #339).</span></div>
+        <div class="visual-row"><strong>시스템 변경</strong><span>이것은 의도된 동작입니다. 올바른 변경이어도 필요한 동기화가 빠지면 그대로 진행하지 않고 자동으로 차단합니다. 오류 시 허용하지 않고 차단하는 설계입니다.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="quote-band"><p class="eyebrow">Yana 원칙</p><h2>개발 기록도<br>제품의 일부입니다.</h2><p>위의 각 사건은 단순한 사과가 아니라 새로운 규칙, 훅 또는 CI 단계를 남겼습니다.</p><div class="hero-actions"><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="ko.html"><span class="lbl">홈으로 돌아가기</span></a></div><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="safety-ko.html"><span class="lbl">안전장치 보기</span></a></div></div></section>
+
+</main>
+<footer class="site-footer"><div class="footer-inner"><div><a class="brand" href="ko.html"><img src="yana-mark.svg" alt=""><span>Yana</span></a><p>사람이 통제하는 AI 작업을 위한 개인 에이전트 운영체제.</p></div><div class="footer-links"><strong>제품</strong><a href="studio-ko.html">Studio 1.5</a><a href="runtime-ko.html">런타임</a><a href="wheelbot-ko.html">Wheelbot</a></div><div class="footer-links"><strong>출처</strong><a href="https://github.com/yanacuti1121/Yana-AI">GitHub</a><a href="https://gitlab.com/yana-ai-group/Yana-AI-project">GitLab 미러</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ROADMAP.md">로드맵</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/SECURITY.md">안전</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ACKNOWLEDGEMENTS.md">감사의 말</a></div><div class="footer-links"><strong>연락</strong><a href="mailto:phamlongh230@gmail.com">phamlongh230@gmail.com</a><a href="https://yana.vutam.link">yana.vutam.link</a><a href="https://github.com/yanacuti1121/Yana-AI">yanacuti1121/Yana-AI</a></div></div><div class="footer-ack"><strong>감사의 말</strong><p>Yana AI는 Apache 2.0, MIT 및 기타 허용 라이선스 하에 라이선스된 프로젝트를 포함하여 오픈소스 커뮤니티의 아이디어, 패턴 및 도구를 기반으로 구축되었습니다. 모든 제3자 소스는 각 라이선스에 따라 준수하여 사용됩니다. 이 프로젝트는 개인이나 조직의 지적 재산권을 복사, 오해하거나 침해할 의도가 없습니다. 특정 프로젝트가 디자인 결정에 직접적인 영향을 미친 경우, 관련 소스 파일 및 규칙 문서에 출처가 명시됩니다.</p></div><div class="footer-bottom">© 2026 Yana AI · Apache 2.0</div></footer>
+<script src="assets/ecosystem-pages.js?v=20261001ko"></script><script src="assets/sakura-site.js?v=20261003kopolish"></script>
+<script src="assets/yana-motion.js?v=20260929b"></script></body></html>
