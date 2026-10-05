@@ -12,7 +12,10 @@
 #![allow(dead_code)]
 
 pub mod docker;
+mod docker_mounts;
 mod docker_run;
+#[cfg(all(test, unix))]
+mod docker_fake_tests;
 #[cfg(test)]
 mod docker_tests;
 

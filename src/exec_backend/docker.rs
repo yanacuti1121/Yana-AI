@@ -5,22 +5,16 @@
 //! tested string by string: the working directory at `/work`, a tmpfs `/tmp`, and nothing
 //! else of this machine. No home, no trust store, no Docker socket, no network by default.
 
+use super::docker_mounts::{check_root, mount_args, mountable, NOT_SEARCHED, READ_ONLY_PATHS, WORK};
 use super::{BackendDisclosure, ExecBackend, ExecOutput, ExecRequest};
 use crate::capability::CapabilityError;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-/// Paths inside the working directory that stay read-only in the container: what the model
-/// must not rewrite (its own configuration) and what runs on this machine later (git hooks).
-const READ_ONLY_PATHS: [&str; 3] = [".yana-ai", ".git/hooks", ".git/config"];
-/// Most entries of the working directory looked at when hiding secret-named files.
-const MAX_ROOT_ENTRIES: usize = 2000;
-/// Where the working directory appears inside the container.
-const WORK: &str = "/work";
 /// Variable names that are never passed into the container: they would change how programs
 /// are found or loaded, or hand over this machine's locations.
 const DENIED_ENV_PREFIXES: [&str; 5] = ["YANA_", "DOCKER_", "LD_", "DYLD_", "SSH_"];
-const DENIED_ENV_NAMES: [&str; 3] = ["HOME", "PATH", "USER"];
+const DENIED_ENV_NAMES: [&str; 5] = ["HOME", "PATH", "USER", "TMPDIR", "XDG_RUNTIME_DIR"];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Network {
@@ -36,6 +30,7 @@ pub struct Limits {
     pub cpus: f32,
     pub memory_mb: u32,
     pub pids: u32,
+    /// Kept from each of stdout and stderr separately (so up to twice this in all).
     pub output_bytes: usize,
 }
 
@@ -76,17 +71,8 @@ fn valid_env_name(name: &str) -> bool {
     let mut chars = name.chars();
     chars.next().is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
         && chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
-        && !DENIED_ENV_NAMES.contains(&name)
-        && !DENIED_ENV_PREFIXES.iter().any(|p| name.starts_with(p))
-}
-
-/// A path that can be put in a `--mount` value without being read as another option.
-fn mountable(path: &Path) -> Result<&str, CapabilityError> {
-    let text = path.to_str().ok_or_else(|| invalid("a path that is not valid UTF-8 cannot be mounted"))?;
-    if text.contains([',', '\n', '\r', '\0', '"']) || !path.is_absolute() {
-        return Err(invalid("the working directory path has a character a container mount cannot carry (a comma, quote or line break)"));
-    }
-    Ok(text)
+        && !DENIED_ENV_NAMES.iter().any(|d| d.eq_ignore_ascii_case(name))
+        && !DENIED_ENV_PREFIXES.iter().any(|p| name.to_ascii_uppercase().starts_with(p))
 }
 
 impl DockerConfig {
@@ -107,7 +93,7 @@ impl DockerConfig {
             return Err(invalid(format!("the variable name {bad:?} cannot be passed into a container")));
         }
         let l = &self.limits;
-        let ok = (1..=600).contains(&l.wall.as_secs())
+        let ok = (Duration::from_secs(1)..=Duration::from_secs(600)).contains(&l.wall)
             && (0.1..=8.0).contains(&l.cpus)
             && (64..=8192).contains(&l.memory_mb)
             && (16..=1024).contains(&l.pids)
@@ -135,17 +121,19 @@ impl DockerConfig {
     }
 
     /// The argument list of `docker run` for `argv` in the working directory `root` (already
-    /// canonical). Pure apart from looking at which protected paths exist under `root`.
-    pub(crate) fn run_args(&self, root: &Path, argv: &[String], run_id: &str, owner_pid: u32) -> Result<Vec<String>, CapabilityError> {
+    /// canonical). Pure apart from looking at what is under `root`.
+    pub(crate) fn run_args(&self, root: &Path, argv: &[String], ctx: &RunContext) -> Result<Vec<String>, CapabilityError> {
         self.validate()?;
         if argv.is_empty() {
             return Err(CapabilityError::EmptyCommand);
         }
+        check_root(root, ctx.home.as_deref())?;
         let mut args: Vec<String> = Vec::new();
         let mut push = |parts: &[&str]| args.extend(parts.iter().map(|p| p.to_string()));
-        let name = format!("yana-{run_id}");
-        push(&["run", "--rm", "--init", "--name", &name]);
-        push(&["--label", &format!("yana.run={run_id}"), "--label", &format!("yana.owner={owner_pid}")]);
+        let id = &ctx.run_id;
+        push(&["run", "--rm", "--init", "--pull", "never", "--name", &format!("yana-{id}")]);
+        push(&["--label", &format!("yana.run={id}"), "--label", &format!("yana.owner={}", ctx.owner_pid)]);
+        push(&["--label", &format!("yana.deadline={}", ctx.deadline_unix)]);
         push(&["--user", &self.user_arg(), "--read-only", "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m"]);
         push(&["--cap-drop", "ALL", "--security-opt", "no-new-privileges"]);
         let l = &self.limits;
@@ -156,48 +144,24 @@ impl DockerConfig {
         for name in &self.env_names {
             push(&["-e", name]);
         }
-        let root_text = mountable(root)?;
-        push(&["--mount", &format!("type=bind,source={root_text},target={WORK}")]);
-        for protected in READ_ONLY_PATHS {
-            let source = root.join(protected);
-            match std::fs::symlink_metadata(&source) {
-                Ok(meta) if meta.file_type().is_symlink() => {
-                    return Err(invalid(format!("{protected} is a symbolic link: it cannot be kept read-only, so the command is not run in a container")));
-                }
-                Ok(_) => push(&["--mount", &format!("type=bind,source={},target={WORK}/{protected},readonly", mountable(&source)?)]),
-                Err(_) => {}
-            }
-        }
-        for (entry, is_dir) in hidden_entries(root) {
-            let target = format!("{WORK}/{entry}");
-            if is_dir {
-                push(&["--tmpfs", &format!("{target}:ro,size=4k")]);
-            } else {
-                push(&["--mount", &format!("type=bind,source=/dev/null,target={target},readonly")]);
-            }
-        }
-        push(&[&self.image]);
+        push(&["--mount", &format!("type=bind,source={},target={WORK}", mountable(root)?)]);
+        args.extend(mount_args(root)?);
+        args.push(self.image.clone());
         args.extend(argv.iter().cloned());
         Ok(args)
     }
 }
 
-/// Top-level entries of the working directory whose names say they hold secrets
-/// (`.env`, `*.pem`, `.ssh`...): hidden inside the container, a regular file by an empty
-/// file over it and a directory by an empty tmpfs. Deeper ones are not looked for here, and
-/// a symbolic link is left alone (its target is resolved inside the container).
-fn hidden_entries(root: &Path) -> Vec<(String, bool)> {
-    let Ok(entries) = std::fs::read_dir(root) else { return Vec::new() };
-    entries
-        .take(MAX_ROOT_ENTRIES)
-        .flatten()
-        .filter_map(|entry| {
-            let name = entry.file_name().into_string().ok()?;
-            let kind = entry.file_type().ok()?;
-            let fine_name = !name.contains([',', '=', '"', '\n', '\r']);
-            (fine_name && !kind.is_symlink() && crate::lsp_client::operation::sensitive_path(&name)).then_some((name, kind.is_dir()))
-        })
-        .collect()
+/// What differs from one run to the next.
+pub(crate) struct RunContext {
+    /// Sixteen lowercase hex characters naming the container (`yana-<id>`).
+    pub run_id: String,
+    pub owner_pid: u32,
+    /// Unix time after which no live client could still be running this container; a
+    /// container past it is an orphan whoever started it.
+    pub deadline_unix: u64,
+    /// The home directory, which a working directory may not be or contain.
+    pub home: Option<PathBuf>,
 }
 
 pub struct DockerBackend {
@@ -217,8 +181,10 @@ impl ExecBackend for DockerBackend {
         let mut notes = vec![
             format!("image {}", c.image),
             format!("sees only the working directory (at {WORK}) and an empty /tmp; not your home directory, keys, trust records or Docker socket"),
-            format!("read-only inside: {}", READ_ONLY_PATHS.join(", ")),
-            format!("network: {}", if c.network == Network::None { "none" } else { "OPEN (container bridge network)" }),
+            format!("read-only inside: {} (a .git that does not exist yet is not protected)", READ_ONLY_PATHS.join(", ")),
+            format!("hidden: files and folders named like secrets (.env, *.pem, .ssh...), except inside {}", NOT_SEARCHED.join(", ")),
+            "the working directory is writable: what a command writes there stays on this machine and can run later (build scripts, Makefile, package.json)".to_string(),
+            format!("network: {}", if c.network == Network::None { "none" } else { "OPEN (container bridge network: reaches your local network and cloud metadata addresses)" }),
             format!("limits: {} s, {} CPU, {} MB, {} processes", c.limits.wall.as_secs(), c.limits.cpus, c.limits.memory_mb, c.limits.pids),
         ];
         if !c.env_names.is_empty() {
