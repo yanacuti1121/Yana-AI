@@ -77,8 +77,8 @@ function mountDiscovery(root) {
       heading.focus({ preventScroll: true });
       if (!motion.matches && !document.hidden && window.gsap) {
         animation = window.gsap.fromTo(panels[state.step].querySelectorAll('[data-discovery-animate]'),
-          { x: -18, y: 12, rotationY: -7, opacity: .55 },
-          { x: 0, y: 0, rotationY: 0, opacity: 1, duration: .55, stagger: .06, ease: 'power2.out', clearProps: 'transform,opacity' }
+          { x: -16, y: 10, rotationY: -5, opacity: 0, scale: .98 },
+          { x: 0, y: 0, rotationY: 0, opacity: 1, scale: 1, duration: .6, stagger: .07, ease: 'power3.out', clearProps: 'transform,opacity' }
         );
       }
       // Panel reflow changes the coordinates of the existing page scroll scenes.
