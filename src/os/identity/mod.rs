@@ -39,8 +39,13 @@ pub(crate) mod actor;
 pub(crate) mod lease;
 pub(crate) mod lease_store;
 
-pub use actor::{Actor, ActorId, ActorKind};
-pub use lease::{grant as grant_lease, is_active as lease_is_active, ActorLease, LeaseScope};
+pub use actor::{Actor, ActorId};
+// Only the tests build actors of a given kind and grant leases through this path.
+#[cfg(test)]
+pub use actor::ActorKind;
+#[cfg(test)]
+pub use lease::grant as grant_lease;
+pub use lease::{ActorLease, LeaseScope};
 pub use lease_store::{
     active_for_actor as active_leases_for_actor, issue as issue_lease, list as list_leases,
     revoke as revoke_lease,

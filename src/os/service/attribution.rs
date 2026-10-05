@@ -32,7 +32,7 @@ use std::process::{Child, Command};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 const RECEIPTS_RELATIVE_PATH: &str = ".yana-ai/os/service-spawn-receipts.jsonl";
-const REDACTED_PLACEHOLDER: &str = "[REDACTED]";
+pub(crate) const REDACTED_PLACEHOLDER: &str = "[REDACTED]";
 const SENSITIVE_PREFIXES: &[&str] = &[
     "--token=",
     "--key=",
@@ -183,7 +183,7 @@ fn record_spawn(
         timestamp_unix_secs,
         pid,
         owner,
-        argv_redacted: redact_argv(argv),
+        argv_redacted: redact_argv_checked(argv).0,
     };
     let path = root.join(RECEIPTS_RELATIVE_PATH);
     if let Some(parent) = path.parent() {
@@ -212,23 +212,35 @@ fn record_spawn(
 /// sensitive flag name is left visible (it carries no secret on its own),
 /// but the argv element immediately following it is always redacted,
 /// regardless of what it looks like.
-fn redact_argv(argv: &[String]) -> Vec<String> {
+#[cfg(test)]
+pub(crate) fn redact_argv(argv: &[String]) -> Vec<String> {
+    redact_argv_checked(argv).0
+}
+
+/// `redact_argv`, plus whether every hidden token was hidden because of a flag or prefix
+/// that names a secret. `false` means some token was hidden only because it LOOKS like a
+/// secret (the shape heuristic), which a reader cannot tell from an innocent long name.
+pub(crate) fn redact_argv_checked(argv: &[String]) -> (Vec<String>, bool) {
     let mut redacted = Vec::with_capacity(argv.len());
     let mut redact_next = false;
+    let mut all_by_name = true;
     for token in argv {
         let lower = token.to_ascii_lowercase();
         let is_sensitive_assignment = SENSITIVE_PREFIXES
             .iter()
             .any(|prefix| lower.starts_with(prefix));
         let is_sensitive_flag_name = SENSITIVE_FLAG_NAMES.iter().any(|name| lower == *name);
-        if redact_next || is_sensitive_assignment || looks_like_secret_literal(token) {
+        if redact_next || is_sensitive_assignment {
+            redacted.push(REDACTED_PLACEHOLDER.to_string());
+        } else if looks_like_secret_literal(token) {
+            all_by_name = false;
             redacted.push(REDACTED_PLACEHOLDER.to_string());
         } else {
             redacted.push(token.clone());
         }
         redact_next = is_sensitive_flag_name;
     }
-    redacted
+    (redacted, all_by_name)
 }
 
 /// Deliberately conservative: a long, no-whitespace, mixed alphanumeric

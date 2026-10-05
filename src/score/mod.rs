@@ -99,7 +99,7 @@ fn cmd_score(target: &str, explain: bool, as_json: bool, scanner_dir: &str) -> R
             println!("  \x1b[2mNo deductions — clean repo\x1b[0m");
         } else {
             let mut running = 100i32;
-            for (sev, d, id, file, desc) in &deductions {
+            for (sev, d, id, _file, desc) in &deductions {
                 running -= d;
                 let sc = risk_color(sev);
                 println!("  {}\x1b[1m-{}\x1b[0m{:<8}  {}{:<10}\x1b[0m {}  \x1b[2m{}\x1b[0m  \x1b[2m→ {}\x1b[0m",

@@ -544,9 +544,10 @@ jobs:
       - name: All integration test files
         run: cargo test --features cli --tests -- --test-threads=4
 
-      - name: Feature tests (mcp, discord, pty-bridge)
+      - name: Feature tests (mcp, lsp, discord, pty-bridge)
         run: |
           cargo test --features mcp --bin yana-rt
+          cargo test --features lsp --bin yana-rt
           cargo test --features discord --bin yana-rt
           cargo test --features pty-bridge --bin yana-rt
 

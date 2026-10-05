@@ -13,28 +13,46 @@ pub mod browser_fetch;
 mod checkpoint_hook;
 pub mod cli;
 pub mod command;
+pub mod config_trust;
 pub mod config_write;
+pub mod egress;
 pub mod error;
 pub mod evidence;
 pub mod file_mutation;
+pub mod file_patch;
 pub mod git;
 pub mod lease;
+pub mod lsp_config;
+pub mod lsp_disclosure;
+pub mod mcp_config;
+pub mod mcp_disclosure;
+pub mod patch;
+pub mod program_path;
+#[cfg(test)]
+mod patch_tests;
+#[cfg(test)]
+mod protected_config_tests;
 pub mod registry;
 mod registry_data;
+mod registry_data_ws3;
 pub mod repo;
 pub mod system;
+pub mod untrusted;
+pub mod web_search;
 
-pub use archive::{extract_zip, inspect_zip, ExtractionResult, ZipEntryInfo, ZipInspection};
+pub use archive::{extract_zip, inspect_zip};
 pub use archive_create::create_zip;
 pub use command::{execute_command, validate_command, CommandOutcome, ValidatedCommand};
 pub use config_write::{apply_config_write, propose_config_write};
 pub use error::CapabilityError;
-pub use evidence::ToolEvidence;
-pub use file_mutation::{apply_file_write, propose_file_write, FileMutationDiff, FileMutationKind, FileMutationOutcome};
+pub use file_mutation::{apply_file_write, propose_file_write, FileMutationDiff, FileMutationKind};
+// Only the checkpoint hook tests name this type through `capability`; keep the path without a dead-code warning.
+#[cfg(test)]
+pub use file_mutation::FileMutationOutcome;
 pub use git::{git_commit, git_diff, git_diff_path, git_stage, git_status, git_unstage};
-pub use registry::{AccessMode, ApprovalRequirement, CapabilityDescriptor, Manifest, RiskTier};
+pub use registry::{ApprovalRequirement, Manifest};
 pub use repo::{
-    read_file, read_file_observation, repo_tree, resolve_existing, search_code, FileReadObservation,
+    read_file, read_file_observation, repo_tree, resolve_existing, search_code,
 };
 pub use system::{host_summary, list_processes, process_details};
 
