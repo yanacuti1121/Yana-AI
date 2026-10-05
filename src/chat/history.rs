@@ -83,7 +83,27 @@ pub struct HistoryLine {
     // No `images` field: nothing writes one today (see `load()` below).
 }
 
+#[cfg(test)]
+thread_local! {
+    /// A test's own history directory, so it never writes into the real working directory
+    /// (and never races with another test that does).
+    static TEST_HISTORY_ROOT: std::cell::RefCell<Option<PathBuf>> = const { std::cell::RefCell::new(None) };
+}
+
+/// Gives the calling test thread a private, empty history root (a temporary directory
+/// that is kept until the process ends).
+#[cfg(test)]
+pub(crate) fn isolate_history_in_test() {
+    TEST_HISTORY_ROOT.with(|cell| {
+        cell.borrow_mut().get_or_insert_with(|| tempfile::tempdir().expect("temporary history root").keep());
+    });
+}
+
 fn history_dir() -> PathBuf {
+    #[cfg(test)]
+    if let Some(root) = TEST_HISTORY_ROOT.with(|cell| cell.borrow().clone()) {
+        return history_dir_at(&root);
+    }
     let base = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
     history_dir_at(&base)
 }

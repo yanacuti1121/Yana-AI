@@ -34,6 +34,7 @@ impl ChatProvider for FakeProvider {
 }
 
 fn app() -> App {
+    crate::chat::history::isolate_history_in_test();
     let mut app = App::new(
         Arc::new(FakeProvider),
         "local-test".to_string(),

@@ -21,6 +21,7 @@ pub mod platform;
 pub(crate) mod resource;
 mod roadmap;
 mod service;
+pub(crate) use service::attribution::redact_argv_checked;
 mod state;
 mod status;
 mod supervisor;

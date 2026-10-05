@@ -49,7 +49,7 @@ default = ["cli"]
 cli = [
   "clap", "uuid", "chrono", "shell-words", "glob", "walkdir",
   "anyhow", "unicode-normalization", "liteparse", "ureq", "serde_yml", "sha2",
-  "ratatui", "crossterm", "url",
+  "ratatui", "crossterm", "url", "unicode-width",
   "tree-sitter", "tree-sitter-rust", "tree-sitter-typescript",
   "tree-sitter-javascript", "tree-sitter-python", "tree-sitter-go",
   "flock-v1",
@@ -70,6 +70,9 @@ wasm = ["wasm-bindgen", "js-sys"]
 # required feature set (rt-multi-thread/macros/io-std, likely) once this
 # graduates past prototype.
 mcp = ["rmcp", "tokio"]
+# The read-only language-server client (docs/contracts/ws3-tools.md section 17). It
+# needs the async runtime but not the MCP protocol crate, so it does not depend on `mcp`.
+lsp = ["tokio"]
 # `pty_bridge` binary only — isolated from `cli` the same way `mcp` is,
 # so the default `yana-rt` build never pulls in portable-pty.
 pty-bridge = ["portable-pty"]
@@ -116,6 +119,9 @@ rusqlite   = { version = "=0.40.2", default-features = false, features = ["bundl
 # opting into crossterm's `event-stream` feature (would pull in async/
 # futures plumbing this crate has nowhere else).
 ratatui    = { version = "0.30",                     optional = true }
+# Display width of a character, for the fixed-grid approval prompts. Pinned to
+# the exact version ratatui already resolves to, so the build gains no package.
+unicode-width = { version = "=0.2.2", default-features = false, optional = true }
 crossterm  = { version = "0.29",                     optional = true }
 # src/graph/build.rs import extraction — replaces per-language regex
 # (2026-07-23, Wave 0 finding #2 follow-up: the regex approach was the
@@ -132,7 +138,7 @@ tree-sitter-go         = { version = "0.25.0",  optional = true }
 # stable 2.2.0 line, not crates.io's max_version 3.0.0-beta.1, per Phase 8
 # Design Review's own finding: a beta dependency on a security-critical
 # guard path is a real risk, not a style preference.
-rmcp  = { version = "=2.2.0", features = ["server", "transport-io"], optional = true }
+rmcp  = { version = "=2.2.0", features = ["server", "transport-io", "client"], optional = true }
 tokio = { version = "1", features = ["full"], optional = true }
 
 # Discord remote adapter only (see `discord` feature above). Sync WebSocket
