@@ -204,18 +204,22 @@ fn config_like(lower_name: &str) -> bool {
 /// to a server. Applied to the path as written AND to where it resolves, so a link with an
 /// innocent name pointing at one of them is caught.
 pub fn sensitive_path(relative: &str) -> bool {
-    const NAMES: [&str; 18] = [
+    const NAMES: [&str; 25] = [
         ".envrc", ".netrc", ".pgpass", ".htpasswd", ".pypirc", ".npmrc", ".yarnrc", ".yarnrc.yml", "id_rsa", "id_dsa", "id_ecdsa", "id_ed25519", "leases.json",
-        "pending-approvals.json", ".git", ".env", "credentials.json", "secrets.json",
+        "pending-approvals.json", ".git", ".env", "credentials.json", "secrets.json", "kubeconfig", ".dockercfg", "wp-config.php", ".git-credentials", ".vault-token",
+        "access_tokens.db", "application_default_credentials.json",
     ];
     const DIRECTORIES: [&str; 5] = [".aws", ".kube", ".ssh", ".gnupg", ".docker"];
-    const SUFFIXES: [&str; 11] = [".pem", ".key", ".p12", ".pfx", ".crt", ".p8", ".jks", ".keystore", ".tfstate", ".tfvars", ".env"];
+    const SUFFIXES: [&str; 16] = [".pem", ".key", ".p12", ".pfx", ".crt", ".p8", ".jks", ".keystore", ".tfstate", ".tfvars", ".env", ".keytab", ".ovpn", ".kdbx", ".tfstate.backup", ".kubeconfig"];
     relative.split(['/', '\\']).any(|part| {
         let lower = part.trim_end_matches(['.', ' ']).to_ascii_lowercase();
         NAMES.contains(&lower.as_str())
             || DIRECTORIES.contains(&lower.as_str())
             || lower.starts_with(".env.")
             || lower.starts_with(".env_")
+            || (lower.starts_with("id_") && !lower.ends_with(".pub"))
+            || (lower.starts_with("service-account") && lower.ends_with(".json"))
+            || (lower.starts_with("service_account") && lower.ends_with(".json"))
             || SUFFIXES.iter().any(|suffix| lower.ends_with(suffix))
             || (config_like(&lower) && ["secret", "credential", "token"].iter().any(|word| lower.contains(word)))
     })

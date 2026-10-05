@@ -1,0 +1,256 @@
+//! Copying a command's changes from the private copy back to the real working directory
+//! (WS6 E1b). Nothing the container produced is trusted: only plain files come back, never
+//! over `.git`, `.yana-ai` or a secret-looking name (judged by what the item is on this
+//! machine, not only by its spelling), never through or over a symbolic link, never where the
+//! real file changed in the meantime, and never past the size limits. Limits are checked
+//! before anything is written. The container must already be gone when this runs.
+
+use super::staging::{excluded, hash_file, id_of, open_plain, Digest32, Staging, StagingLimits};
+use crate::capability::CapabilityError;
+use std::collections::BTreeSet;
+use std::io::{Read, Write};
+use std::path::{Path, PathBuf};
+use unicode_normalization::UnicodeNormalization;
+
+/// Bytes read for hashing, in all, as a multiple of the size limit (so a few huge or sparse
+/// files cannot keep the check busy for ever).
+const HASH_BUDGET_FACTOR: u64 = 4;
+
+#[derive(Debug, Default, PartialEq, Eq)]
+pub(super) struct SyncReport {
+    pub written: Vec<String>,
+    pub deleted: usize,
+    /// What was not copied back, and why (names only, never contents).
+    pub skipped: Vec<String>,
+}
+
+enum Change {
+    Write { relative: String, source: PathBuf },
+    Delete { relative: String },
+}
+
+fn invalid(detail: impl Into<String>) -> CapabilityError {
+    CapabilityError::InvalidInput { detail: detail.into() }
+}
+
+fn skip(report: &mut SyncReport, relative: &str, reason: &str) {
+    const MAX_NOTES: usize = 20;
+    if report.skipped.len() < MAX_NOTES {
+        report.skipped.push(format!("{relative} ({reason})"));
+    }
+}
+
+/// The same name however it is cased or composed, as a case-insensitive disk would see it.
+fn folded(relative: &str) -> String {
+    relative.nfc().collect::<String>().to_lowercase()
+}
+
+/// What `relative` is in the copy: missing (also when a parent is missing), a plain file, or
+/// something else (a link, a folder, a file where a folder was, a special file).
+enum Staged {
+    Missing,
+    Plain,
+    Other,
+}
+
+fn staged_state(dir: &Path, relative: &str) -> Staged {
+    let mut path = dir.to_path_buf();
+    let parts: Vec<&str> = relative.split('/').collect();
+    for (index, part) in parts.iter().enumerate() {
+        path.push(part);
+        match std::fs::symlink_metadata(&path) {
+            Err(_) => return Staged::Missing,
+            Ok(meta) if index + 1 == parts.len() => return if meta.is_file() { Staged::Plain } else { Staged::Other },
+            Ok(meta) if !meta.is_dir() => return Staged::Other,
+            Ok(_) => {}
+        }
+    }
+    Staged::Missing
+}
+
+/// Decide what changed in the copy, within the limits. Writes nothing.
+fn plan(staging: &Staging, limits: StagingLimits, report: &mut SyncReport) -> Result<Vec<Change>, CapabilityError> {
+    let mut changes = Vec::new();
+    let mut seen: BTreeSet<String> = BTreeSet::new();
+    let (mut examined, mut changed_bytes, mut hashed_bytes) = (0usize, 0u64, 0u64);
+    let mut stack = vec![(String::new(), 0usize)];
+    while let Some((relative_dir, depth)) = stack.pop() {
+        let dir = if relative_dir.is_empty() { staging.dir.clone() } else { staging.dir.join(&relative_dir) };
+        let Ok(entries) = std::fs::read_dir(&dir) else { continue };
+        for entry in entries.flatten() {
+            examined += 1;
+            if examined > limits.max_files.saturating_mul(2) {
+                return Err(invalid("the command left far more files than the limit allows: nothing was copied back"));
+            }
+            let Ok(meta) = entry.metadata() else { continue };
+            let kind = meta.file_type();
+            let Ok(name) = entry.file_name().into_string() else {
+                skip(report, "(a name that is not valid UTF-8)", "not copied back");
+                continue;
+            };
+            let relative = if relative_dir.is_empty() { name } else { format!("{relative_dir}/{name}") };
+            if relative.contains(|c: char| c.is_control()) {
+                skip(report, "(a name with a control character)", "not copied back");
+            } else if let Some(reason) = excluded(&relative) {
+                skip(report, &relative, reason);
+            } else if kind.is_symlink() {
+                skip(report, &relative, "symbolic link");
+            } else if kind.is_dir() {
+                if depth + 1 > limits.max_depth {
+                    return Err(invalid("the command nested directories deeper than the limit: nothing was copied back"));
+                }
+                stack.push((relative, depth + 1));
+            } else if kind.is_file() {
+                seen.insert(folded(&relative));
+                // Size first: a huge or sparse file is refused before it is read.
+                hashed_bytes += meta.len();
+                if meta.len() > limits.max_bytes || hashed_bytes > limits.max_bytes.saturating_mul(HASH_BUDGET_FACTOR) {
+                    return Err(invalid("the command left more data than the limit allows: nothing was copied back"));
+                }
+                let Ok(digest) = hash_file(&entry.path()) else {
+                    skip(report, &relative, "cannot be read");
+                    continue;
+                };
+                if staging.baseline.get(&relative) != Some(&digest) {
+                    changed_bytes += meta.len();
+                    if changed_bytes > limits.max_bytes || changes.len() >= limits.max_files {
+                        return Err(invalid("the command changed more than the limit allows: nothing was copied back"));
+                    }
+                    changes.push(Change::Write { relative, source: entry.path() });
+                }
+            } else {
+                skip(report, &relative, "not a plain file");
+            }
+        }
+    }
+    for relative in staging.baseline.keys() {
+        match staged_state(&staging.dir, relative) {
+            Staged::Plain => {}
+            Staged::Other => skip(report, relative, "replaced by something that is not a plain file, so it was not deleted"),
+            Staged::Missing if seen.contains(&folded(relative)) => skip(report, relative, "renamed only by letter case, so it was not deleted"),
+            Staged::Missing => changes.push(Change::Delete { relative: relative.clone() }),
+        }
+    }
+    Ok(changes)
+}
+
+/// The real path for `relative`, with every folder above it checked: a real folder (made
+/// when missing), and not one of the items that were left out of the copy for their names.
+fn host_path(root: &Path, relative: &str, create: bool, staging: &Staging) -> Result<PathBuf, String> {
+    let mut path = root.to_path_buf();
+    let parts: Vec<&str> = relative.split('/').collect();
+    for part in &parts[..parts.len() - 1] {
+        path.push(part);
+        match std::fs::symlink_metadata(&path) {
+            Ok(meta) if meta.is_dir() && staging.protected.contains(&id_of(&meta)) => return Err("a folder on this machine is one that was left out of the copy".into()),
+            Ok(meta) if meta.is_dir() => {}
+            Ok(_) => return Err("a folder on this machine is a link or a file".into()),
+            Err(_) if create => {
+                std::fs::create_dir(&path).map_err(|error| format!("cannot create a folder ({:?})", error.kind()))?;
+            }
+            Err(_) => return Err("the folder is gone".into()),
+        }
+    }
+    path.push(parts[parts.len() - 1]);
+    if std::fs::symlink_metadata(&path).is_ok_and(|meta| staging.protected.contains(&id_of(&meta))) {
+        return Err("it is one of the items that were left out of the copy".into());
+    }
+    Ok(path)
+}
+
+fn apply_write(root: &Path, staging: &Staging, relative: &str, source: &Path) -> Result<(), String> {
+    let target = host_path(root, relative, true, staging)?;
+    let expected: Option<&Digest32> = staging.baseline.get(relative);
+    match std::fs::symlink_metadata(&target) {
+        Ok(meta) if !meta.is_file() => return Err("a link or folder is there on this machine".into()),
+        Ok(_) => {
+            let now = hash_file(&target).map_err(|_| "cannot read the file on this machine".to_string())?;
+            if expected != Some(&now) {
+                return Err("a different file is there on this machine (changed meanwhile, or the same name by letter case)".into());
+            }
+        }
+        Err(_) if expected.is_some() => return Err("deleted on this machine meanwhile".into()),
+        Err(_) => {}
+    }
+    let temp = target.with_file_name(format!(".yana-sync-{}", uuid::Uuid::new_v4().simple()));
+    let result = (|| -> std::io::Result<()> {
+        let mut input = open_plain(source)?;
+        if !input.metadata()?.is_file() {
+            return Err(std::io::Error::other("not a plain file"));
+        }
+        let mut output = std::fs::OpenOptions::new().write(true).create_new(true).open(&temp)?;
+        let mut chunk = [0u8; 65536];
+        loop {
+            let n = input.read(&mut chunk)?;
+            if n == 0 {
+                break;
+            }
+            output.write_all(&chunk[..n])?;
+        }
+        output.flush()?;
+        #[cfg(unix)]
+        {
+            let mode = super::staging::plain_mode(std::os::unix::fs::PermissionsExt::mode(&input.metadata()?.permissions()));
+            std::fs::set_permissions(&temp, std::os::unix::fs::PermissionsExt::from_mode(mode))?;
+        }
+        std::fs::rename(&temp, &target)
+    })();
+    if result.is_err() {
+        let _ = std::fs::remove_file(&temp);
+    }
+    result.map_err(|error| format!("cannot write ({:?})", error.kind()))
+}
+
+fn apply_delete(root: &Path, staging: &Staging, relative: &str) -> Result<(), String> {
+    let target = host_path(root, relative, false, staging)?;
+    match std::fs::symlink_metadata(&target) {
+        Ok(meta) if meta.is_file() => {
+            let now = hash_file(&target).map_err(|_| "cannot read the file on this machine".to_string())?;
+            if staging.baseline.get(relative) != Some(&now) {
+                return Err("changed on this machine, so it was not deleted".into());
+            }
+            std::fs::remove_file(&target).map_err(|error| format!("cannot delete ({:?})", error.kind()))
+        }
+        Ok(_) => Err("not a plain file on this machine, so it was not deleted".into()),
+        Err(_) => Ok(()),
+    }
+}
+
+/// Copy what the command changed in `staging` back into `root`.
+pub(super) fn sync_back(staging: &Staging, root: &Path, limits: StagingLimits) -> Result<SyncReport, CapabilityError> {
+    let mut report = SyncReport::default();
+    let changes = plan(staging, limits, &mut report)?;
+    for change in changes {
+        match change {
+            Change::Write { relative, source } => match apply_write(root, staging, &relative, &source) {
+                Ok(()) => report.written.push(relative),
+                Err(reason) => skip(&mut report, &relative, &reason),
+            },
+            Change::Delete { relative } => match apply_delete(root, staging, &relative) {
+                Ok(()) => report.deleted += 1,
+                Err(reason) => skip(&mut report, &relative, &reason),
+            },
+        }
+    }
+    report.written.sort();
+    Ok(report)
+}
+
+/// `sync_back`, as the lines a person is told: what came back and what did not. A failure to
+/// copy back never hides what the command did; it becomes a line.
+pub(super) fn copy_back_notes(received: &Staging, root: &Path, limits: StagingLimits) -> Vec<String> {
+    let mut notes = Vec::new();
+    match sync_back(received, root, limits) {
+        Ok(report) => {
+            notes.push(format!("copied back: {} written, {} deleted", report.written.len(), report.deleted));
+            if !report.written.is_empty() {
+                notes.push(format!("written on this machine: {}", report.written.iter().take(20).cloned().collect::<Vec<_>>().join(", ")));
+            }
+            if !report.skipped.is_empty() {
+                notes.push(format!("not copied back: {}", report.skipped.join(", ")));
+            }
+        }
+        Err(error) => notes.push(format!("changes were not copied back: {error}")),
+    }
+    notes
+}
