@@ -145,8 +145,9 @@ pub(super) fn run(config: &DockerConfig, request: &ExecRequest) -> Result<ExecOu
         deadline_unix: unix_now() + config.limits.wall.as_secs() + ORPHAN_GRACE_SECS,
         home: std::env::var_os("HOME").and_then(|home| PathBuf::from(home).canonicalize().ok()),
     };
-    check_root(&root, ctx.home.as_deref())?;
-    let staging = Staging::copy_in(&root, &std::env::temp_dir(), config.staging)?;
+    let copies = std::env::temp_dir().canonicalize().unwrap_or_else(|_| std::env::temp_dir());
+    check_root(&root, ctx.home.as_deref(), &copies)?;
+    let staging = Staging::copy_in(&root, &copies, config.staging)?;
     let args = config.run_args(&staging.dir, &request.argv, &ctx)?;
     let env = client_env(config, &root);
     let finished = run_client(&config.program, &args, &env, config.limits.wall, config.limits.output_bytes)?;
@@ -178,14 +179,43 @@ pub(super) fn run(config: &DockerConfig, request: &ExecRequest) -> Result<ExecOu
     }
     if finished.timed_out {
         notes.push("the command timed out: its changes were not copied back".to_string());
+    } else if !container_gone(config, &env, &run_id) {
+        notes.push("the container could not be confirmed to have stopped: its changes were not copied back".to_string());
     } else {
-        let report = sync_back(&staging, &root, config.staging)?;
-        notes.push(format!("copied back: {} written, {} deleted", report.written, report.deleted));
-        if !report.skipped.is_empty() {
-            notes.push(format!("not copied back: {}", report.skipped.join(", ")));
+        // A failure to copy back never hides what the command did: the result is returned
+        // with a note saying nothing came back.
+        match sync_back(&staging, &root, config.staging) {
+            Ok(report) => {
+                notes.push(format!("copied back: {} written, {} deleted", report.written.len(), report.deleted));
+                if !report.written.is_empty() {
+                    notes.push(format!("written on this machine: {}", report.written.iter().take(20).cloned().collect::<Vec<_>>().join(", ")));
+                }
+                if !report.skipped.is_empty() {
+                    notes.push(format!("not copied back: {}", report.skipped.join(", ")));
+                }
+            }
+            Err(error) => notes.push(format!("changes were not copied back: {error}")),
         }
     }
     Ok(ExecOutput { stdout: finished.stdout, stderr: finished.stderr, exit_code: finished.exit_code, timed_out: finished.timed_out, truncated: finished.truncated, notes })
+}
+
+/// Whether the container is certainly gone. The client exits when the container does, but it
+/// can also exit while the container keeps running (the connection to the daemon was lost), so
+/// this asks the daemon. A container that still exists is stopped and removed, and nothing is
+/// copied back from it; so is any answer other than "no such object".
+fn container_gone(config: &DockerConfig, env: &[(OsString, OsString)], run_id: &str) -> bool {
+    let name = format!("yana-{run_id}");
+    let Ok(answer) = run_client(&config.program, &["inspect".to_string(), name.clone()], env, CLEANUP_WALL, CLEANUP_OUTPUT) else { return false };
+    if answer.exit_code != Some(0) && String::from_utf8_lossy(&answer.stderr).contains("No such") {
+        return true;
+    }
+    if answer.exit_code == Some(0) {
+        for verb in [vec!["kill".to_string(), name.clone()], vec!["rm".to_string(), "-f".to_string(), name.clone()]] {
+            let _ = run_client(&config.program, &verb, env, CLEANUP_WALL, CLEANUP_OUTPUT);
+        }
+    }
+    false
 }
 
 fn unix_now() -> u64 {

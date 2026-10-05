@@ -21,15 +21,26 @@ pub(super) fn mountable(path: &Path) -> Result<&str, CapabilityError> {
     Ok(text)
 }
 
+/// Parts of the disk that hold other things than projects.
+const NOT_PROJECTS: [&str; 6] = ["/etc", "/private/etc", "/var/db", "/private/var/db", "/System", "/Library"];
+
 /// The working directory must be a project, not the machine: refuse `/`, the home directory,
-/// any directory that contains the home directory, and any run where the home directory
+/// any directory that contains the home directory, folders of the system or of the user's
+/// settings (`~/Library`), folders whose own path says they hold secrets (`~/.ssh`,
+/// `~/.aws`), the folder the private copies live in, and any run where the home directory
 /// cannot be determined (the check would have nothing to compare with).
-pub(super) fn check_root(root: &Path, home: Option<&Path>) -> Result<(), CapabilityError> {
+pub(super) fn check_root(root: &Path, home: Option<&Path>, copies: &Path) -> Result<(), CapabilityError> {
     let Some(home) = home else {
         return Err(invalid("the home directory could not be determined, so it cannot be checked that the working directory is not it: the command is not run in a container"));
     };
     if root.parent().is_none() || home.starts_with(root) {
         return Err(invalid("the working directory is the home directory, one that contains it, or the root of the disk: it is not copied for a container"));
+    }
+    let below_home = root.strip_prefix(home).unwrap_or(root);
+    let kept_for_settings = root.starts_with(home.join("Library")) || NOT_PROJECTS.iter().any(|p| root.starts_with(p));
+    let secret_path = below_home.to_str().is_some_and(crate::lsp_client::operation::sensitive_path);
+    if kept_for_settings || secret_path || copies.starts_with(root) {
+        return Err(invalid("the working directory is a system or settings folder, one named like a secret, or one that holds the private copies: it is not copied for a container"));
     }
     Ok(())
 }

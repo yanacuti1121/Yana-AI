@@ -1,16 +1,16 @@
-//! A private copy of the working directory for one command (WS6 E1b, contract section 14).
+//! A private copy of the working directory for one command (WS6 E1b, contract section 15).
 //!
 //! The container never sees the real working directory. Before a run the tree is copied
 //! into a directory only Yana can reach, leaving out what a command must not see or reach:
-//! `.git` and `.yana-ai`, files and folders with secret-looking names, symbolic links, and
-//! anything that is not a plain file. The container works on that copy. Afterwards
+//! `.git` and `.yana-ai`, files and folders with secret-looking names, symbolic links, hard
+//! links and anything that is not a plain file. The container works on that copy. Afterwards
 //! `staging_sync` copies changes back, checked, and the copy is removed. With nothing real
 //! mounted there is nothing for a command to rename, no secret inside the container, and no
 //! window between checking a path and using it.
 
 use crate::capability::CapabilityError;
 use sha2::{Digest, Sha256};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
@@ -35,19 +35,50 @@ impl Default for StagingLimits {
 }
 
 pub(super) type Digest32 = [u8; 32];
+/// Device and inode: what a file or folder is, whatever it is called.
+pub(super) type FileId = (u64, u64);
 
-/// The copy: where it is, and the fingerprint of every file as it was copied in.
+/// The copy: where it is, and what was known about the original when it was made.
 pub(super) struct Staging {
+    parent: PathBuf,
+    /// The copy itself (what the container sees as `/work`), inside a private parent.
     pub dir: PathBuf,
+    /// Fingerprint of every file as it was copied in.
     pub baseline: BTreeMap<String, Digest32>,
     /// Short notes on what was left out of the copy (never the contents).
     pub left_out: Vec<String>,
+    /// Identity of every item left out for its name (`.git`, a secret folder, a vendored
+    /// folder...). A name on this machine that turns out to be one of them, however it is
+    /// spelled (a case-insensitive disk folds some letters), is never written to.
+    pub protected: HashSet<FileId>,
 }
 
 impl Drop for Staging {
     fn drop(&mut self) {
-        let _ = std::fs::remove_dir_all(&self.dir);
+        force_remove(&self.parent);
     }
+}
+
+/// Remove a tree even when a command made folders in it unreadable. Does not follow links.
+pub(super) fn force_remove(path: &Path) {
+    #[cfg(unix)]
+    {
+        fn open_up(dir: &Path, depth: usize) {
+            use std::os::unix::fs::PermissionsExt;
+            if depth > 64 {
+                return;
+            }
+            let _ = std::fs::set_permissions(dir, std::fs::Permissions::from_mode(0o700));
+            let Ok(entries) = std::fs::read_dir(dir) else { return };
+            for entry in entries.flatten() {
+                if entry.file_type().is_ok_and(|t| t.is_dir()) {
+                    open_up(&entry.path(), depth + 1);
+                }
+            }
+        }
+        open_up(path, 0);
+    }
+    let _ = std::fs::remove_dir_all(path);
 }
 
 fn invalid(detail: impl Into<String>) -> CapabilityError {
@@ -86,14 +117,26 @@ pub(super) fn open_plain(path: &Path) -> std::io::Result<std::fs::File> {
     let mut options = std::fs::OpenOptions::new();
     options.read(true);
     #[cfg(unix)]
-    std::os::unix::fs::OpenOptionsExt::custom_flags(&mut options, libc::O_NOFOLLOW);
+    std::os::unix::fs::OpenOptionsExt::custom_flags(&mut options, libc::O_NOFOLLOW | libc::O_NONBLOCK);
     options.open(path)
 }
 
-/// A mode a copied file may keep: its permission bits, never setuid, setgid or sticky.
+/// The identity of an item without following a link.
+#[cfg(unix)]
+pub(super) fn id_of(meta: &std::fs::Metadata) -> FileId {
+    (std::os::unix::fs::MetadataExt::dev(meta), std::os::unix::fs::MetadataExt::ino(meta))
+}
+
+#[cfg(unix)]
+fn link_count(meta: &std::fs::Metadata) -> u64 {
+    std::os::unix::fs::MetadataExt::nlink(meta)
+}
+
+/// A mode a copied file may keep: owner and group bits as they are, nothing for others to
+/// write, and never setuid, setgid or sticky.
 #[cfg(unix)]
 pub(super) fn plain_mode(mode: u32) -> u32 {
-    mode & 0o777
+    mode & 0o755
 }
 
 fn make_private_dir(path: &Path) -> std::io::Result<()> {
@@ -106,11 +149,23 @@ fn make_private_dir(path: &Path) -> std::io::Result<()> {
 impl Staging {
     /// Copy `root` into a new private directory under `base`.
     pub(super) fn copy_in(root: &Path, base: &Path, limits: StagingLimits) -> Result<Staging, CapabilityError> {
-        let dir = base.join(format!("yana-exec-{}", uuid::Uuid::new_v4().simple()));
-        make_private_dir(&dir).map_err(|error| CapabilityError::Io { detail: format!("cannot create the private copy: {error}") })?;
-        let mut staging = Staging { dir, baseline: BTreeMap::new(), left_out: Vec::new() };
-        staging.fill(root, limits)?;
-        Ok(staging)
+        #[cfg(not(unix))]
+        {
+            let _ = (root, base, limits);
+            Err(invalid("running in a container is only supported on Unix systems"))
+        }
+        #[cfg(unix)]
+        {
+            let parent = base.join(format!("yana-exec-{}", uuid::Uuid::new_v4().simple()));
+            let io = |error: std::io::Error| CapabilityError::Io { detail: format!("cannot create the private copy: {error}") };
+            make_private_dir(&parent).map_err(io)?;
+            let dir = parent.join("work");
+            let made = make_private_dir(&dir);
+            let mut staging = Staging { parent, dir, baseline: BTreeMap::new(), left_out: Vec::new(), protected: HashSet::new() };
+            made.map_err(io)?;
+            staging.fill(root, limits)?;
+            Ok(staging)
+        }
     }
 
     fn note(&mut self, relative: &str, reason: &str) {
@@ -120,6 +175,7 @@ impl Staging {
         }
     }
 
+    #[cfg(unix)]
     fn fill(&mut self, root: &Path, limits: StagingLimits) -> Result<(), CapabilityError> {
         let (mut files, mut bytes) = (0usize, 0u64);
         let mut stack = vec![(String::new(), 0usize)];
@@ -128,7 +184,8 @@ impl Staging {
             let entries = std::fs::read_dir(&source_dir).map_err(|error| CapabilityError::Io { detail: format!("cannot read {}: {error}", source_dir.display()) })?;
             for entry in entries {
                 let Ok(entry) = entry else { continue };
-                let Ok(kind) = entry.file_type() else { continue };
+                let Ok(meta) = entry.metadata() else { continue };
+                let kind = meta.file_type();
                 let Ok(name) = entry.file_name().into_string() else {
                     self.note("(a name that is not valid UTF-8)", "left out");
                     continue;
@@ -137,6 +194,7 @@ impl Staging {
                 if relative.contains(|c: char| c.is_control()) {
                     self.note("(a name with a control character)", "left out");
                 } else if let Some(reason) = excluded(&relative) {
+                    self.protected.insert(id_of(&meta));
                     self.note(&relative, reason);
                 } else if kind.is_symlink() {
                     self.note(&relative, "symbolic link");
@@ -146,6 +204,9 @@ impl Staging {
                     }
                     std::fs::create_dir(self.dir.join(&relative)).map_err(|error| CapabilityError::Io { detail: format!("cannot create {relative} in the copy: {error}") })?;
                     stack.push((relative, depth + 1));
+                } else if kind.is_file() && link_count(&meta) > 1 {
+                    // It may be a second name for a secret kept under a name that looks harmless.
+                    self.note(&relative, "hard link");
                 } else if kind.is_file() {
                     files += 1;
                     if files > limits.max_files {
@@ -162,10 +223,19 @@ impl Staging {
         Ok(())
     }
 
+    #[cfg(not(unix))]
+    fn fill(&mut self, _root: &Path, _limits: StagingLimits) -> Result<(), CapabilityError> {
+        Err(invalid("running in a container is only supported on Unix systems"))
+    }
+
     /// Copy one file, hashing as it goes; refuses to pass `room` bytes.
+    #[cfg(unix)]
     fn copy_file(&self, source: &Path, relative: &str, room: u64) -> Result<(Digest32, u64), CapabilityError> {
         let io = |error: std::io::Error| CapabilityError::Io { detail: format!("cannot copy {relative}: {error}") };
         let mut input = open_plain(source).map_err(io)?;
+        if !input.metadata().map_err(io)?.is_file() {
+            return Err(invalid(format!("{relative} stopped being a plain file while it was copied")));
+        }
         let mut output = std::fs::OpenOptions::new().write(true).create_new(true).open(self.dir.join(relative)).map_err(io)?;
         let (mut hasher, mut total, mut chunk) = (Sha256::new(), 0u64, [0u8; 65536]);
         loop {
@@ -180,7 +250,6 @@ impl Staging {
             hasher.update(&chunk[..n]);
             output.write_all(&chunk[..n]).map_err(io)?;
         }
-        #[cfg(unix)]
         if let Ok(meta) = input.metadata() {
             let mode = plain_mode(std::os::unix::fs::PermissionsExt::mode(&meta.permissions()));
             let _ = std::fs::set_permissions(self.dir.join(relative), std::os::unix::fs::PermissionsExt::from_mode(mode));

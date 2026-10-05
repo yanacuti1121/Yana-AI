@@ -6,13 +6,13 @@ use super::staging::{excluded, Staging, StagingLimits};
 use super::staging_sync::sync_back;
 use std::path::{Path, PathBuf};
 
-struct Project {
+pub(super) struct Project {
     _outer: tempfile::TempDir,
-    root: PathBuf,
-    base: PathBuf,
+    pub(super) root: PathBuf,
+    pub(super) base: PathBuf,
 }
 
-fn project() -> Project {
+pub(super) fn project() -> Project {
     let outer = tempfile::tempdir().unwrap();
     let base = outer.path().canonicalize().unwrap();
     let root = base.join("project");
@@ -22,17 +22,17 @@ fn project() -> Project {
     Project { _outer: outer, root, base: scratch }
 }
 
-fn put(root: &Path, relative: &str, text: &str) {
+pub(super) fn put(root: &Path, relative: &str, text: &str) {
     let path = root.join(relative);
     std::fs::create_dir_all(path.parent().unwrap()).unwrap();
     std::fs::write(path, text).unwrap();
 }
 
-fn text(root: &Path, relative: &str) -> String {
+pub(super) fn text(root: &Path, relative: &str) -> String {
     std::fs::read_to_string(root.join(relative)).unwrap()
 }
 
-fn stage(p: &Project) -> Staging {
+pub(super) fn stage(p: &Project) -> Staging {
     Staging::copy_in(&p.root, &p.base, StagingLimits::default()).unwrap()
 }
 
@@ -122,7 +122,7 @@ fn changes_come_back_new_changed_and_deleted_files_and_nothing_else() {
     put(&staging.dir, "new/dir/made.txt", "made");
     std::fs::remove_file(staging.dir.join("gone.txt")).unwrap();
     let report = sync_back(&staging, &p.root, StagingLimits::default()).unwrap();
-    assert_eq!((report.written, report.deleted), (2, 1), "{report:?}");
+    assert_eq!((report.written.len(), report.deleted), (2, 1), "{report:?}");
     assert_eq!(text(&p.root, "edit.txt"), "after");
     assert_eq!(text(&p.root, "new/dir/made.txt"), "made");
     assert!(!p.root.join("gone.txt").exists());
@@ -146,7 +146,7 @@ fn a_command_cannot_plant_protected_or_secret_files_or_links_on_this_machine() {
     std::os::unix::fs::symlink("/etc/passwd", staging.dir.join("passwd-link")).unwrap();
     std::os::unix::fs::symlink("/tmp", staging.dir.join("tmp-link")).unwrap();
     let report = sync_back(&staging, &p.root, StagingLimits::default()).unwrap();
-    assert_eq!((report.written, report.deleted), (0, 0), "{report:?}");
+    assert_eq!((report.written.len(), report.deleted), (0, 0), "{report:?}");
     for planted in [".git", ".yana-ai", ".env", "deploy", "node_modules", "passwd-link", "tmp-link"] {
         assert!(!p.root.join(planted).exists(), "{planted} must not appear on this machine");
     }
@@ -187,7 +187,7 @@ fn nothing_is_written_through_or_over_a_link_on_this_machine() {
     std::fs::remove_dir_all(p.root.join("docs")).unwrap();
     std::os::unix::fs::symlink(outside.path(), p.root.join("docs")).unwrap();
     let report = sync_back(&staging, &p.root, StagingLimits::default()).unwrap();
-    assert_eq!(report.written, 0, "{report:?}");
+    assert!(report.written.is_empty(), "{report:?}");
     assert_eq!(std::fs::read_dir(outside.path()).unwrap().count(), 0, "nothing was written through the link");
 }
 
@@ -205,7 +205,7 @@ fn a_file_that_changed_on_this_machine_meanwhile_is_not_overwritten_or_deleted()
     put(&p.root, "drop.txt", "typed by the person");
     put(&p.root, "fresh.txt", "typed by the person");
     let report = sync_back(&staging, &p.root, StagingLimits::default()).unwrap();
-    assert_eq!((report.written, report.deleted), (0, 0), "{report:?}");
+    assert_eq!((report.written.len(), report.deleted), (0, 0), "{report:?}");
     for file in ["edit.txt", "drop.txt", "fresh.txt"] {
         assert_eq!(text(&p.root, file), "typed by the person", "{file}");
     }
@@ -256,10 +256,15 @@ fn a_working_directory_that_is_the_home_a_parent_of_it_the_disk_or_unknowable_is
     let home = outer.path().canonicalize().unwrap().join("home/me");
     let project = home.join("project");
     std::fs::create_dir_all(&project).unwrap();
-    assert!(check_root(&project, Some(&home)).is_ok(), "a project under the home directory is the normal case");
+    let copies = outer.path().canonicalize().unwrap().join("scratch");
+    assert!(check_root(&project, Some(&home), &copies).is_ok(), "a project under the home directory is the normal case");
     for root in [home.clone(), home.parent().unwrap().to_path_buf(), PathBuf::from("/")] {
-        let error = check_root(&root, Some(&home)).unwrap_err();
+        let error = check_root(&root, Some(&home), &copies).unwrap_err();
         assert!(error.to_string().contains("home directory"), "{}: {error}", root.display());
     }
-    assert!(check_root(&project, None).is_err(), "no home directory known: refuse, do not skip the check");
+    assert!(check_root(&project, None, &copies).is_err(), "no home directory known: refuse, do not skip the check");
+    for odd in [home.join(".ssh"), home.join(".aws/projects"), home.join("Library/Application Support/x"), PathBuf::from("/etc/foo"), copies.clone()] {
+        assert!(check_root(&odd, Some(&home), &copies).is_err(), "{}", odd.display());
+    }
+    assert!(check_root(&copies.join("inner"), Some(&home), &copies).is_ok(), "a folder inside the copies area is not the area itself");
 }

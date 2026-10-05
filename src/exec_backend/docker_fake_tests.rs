@@ -17,6 +17,7 @@ mode=$(cat "$here/mode" 2>/dev/null)
 case "$1" in
   ps) cat "$here/ps" 2>/dev/null; exit 0;;
   kill|rm) exit 0;;
+  inspect) if [ "$mode" = alive ]; then echo "{}"; exit 0; fi; echo "Error: No such object: $2" >&2; exit 1;;
 esac
 case "$mode" in
   hang) sleep 30;;
@@ -67,7 +68,8 @@ fn a_normal_run_returns_the_output_and_starts_exactly_one_container() {
     assert_eq!(String::from_utf8_lossy(&out.stderr), "warn\n");
     assert_eq!((out.exit_code, out.timed_out, out.truncated), (Some(0), false, false));
     let seen = calls(bin.path());
-    assert_eq!(seen.len(), 1, "{seen:?}");
+    assert_eq!(seen.len(), 2, "{seen:?}");
+    assert!(seen[1].starts_with("inspect yana-"), "the daemon is asked whether the container is gone: {seen:?}");
     assert!(seen[0].starts_with("run --rm --init --pull never --name yana-") && seen[0].contains(DIGEST) && seen[0].ends_with("echo hi"), "{}", seen[0]);
 }
 
@@ -202,7 +204,7 @@ fn a_run_works_on_a_copy_and_only_checked_changes_come_back() {
     assert_eq!(read(".env"), "TOKEN=real");
     assert_eq!(read(".git/config"), "[core]");
     let notes = out.notes.join(" | ");
-    assert!(notes.contains("copied back: 2 written, 1 deleted") && notes.contains(".git (protected folder)") && notes.contains(".env (secret-looking name)"), "{notes}");
+    assert!(notes.contains("copied back: 2 written, 1 deleted") && notes.contains("written on this machine: a.txt, out.txt") && notes.contains(".git (protected folder)") && notes.contains(".env (secret-looking name)"), "{notes}");
     assert!(!Path::new(&staging).exists(), "the copy is removed after the run");
 }
 
@@ -227,4 +229,15 @@ fn a_docker_error_removes_the_copy_and_changes_nothing() {
     assert!(DockerBackend::new(config(&program)).unwrap().run(&request(work.path())).is_err());
     assert_eq!(std::fs::read_to_string(work.path().join("a.txt")).unwrap(), "before");
     let _ = bin;
+}
+
+#[test]
+fn nothing_is_copied_back_while_the_container_still_exists() {
+    let (bin, program, _unused) = setup("alive");
+    let work = project_for_sync();
+    let out = DockerBackend::new(config(&program)).unwrap().run(&request(work.path())).unwrap();
+    assert!(out.notes.iter().any(|n| n.contains("could not be confirmed to have stopped")), "{:?}", out.notes);
+    assert_eq!(std::fs::read_to_string(work.path().join("a.txt")).unwrap(), "before");
+    let seen = calls(bin.path());
+    assert!(seen.iter().any(|c| c.starts_with("kill yana-")) && seen.iter().any(|c| c.starts_with("rm -f yana-")), "{seen:?}");
 }

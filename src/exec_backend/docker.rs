@@ -142,6 +142,8 @@ impl DockerConfig {
         let l = &self.limits;
         let memory = format!("{}m", l.memory_mb);
         push(&["--pids-limit", &l.pids.to_string(), "--memory", &memory, "--memory-swap", &memory, "--cpus", &format!("{:.2}", l.cpus)]);
+        let fsize = format!("fsize={0}:{0}", self.staging.max_bytes);
+        push(&["--ulimit", &fsize]);
         push(&["--network", if self.network == Network::None { "none" } else { "bridge" }]);
         push(&["-w", WORK, "-e", "HOME=/tmp", "-e", "YANA_AGENT_CHILD=1"]);
         for name in &self.env_names {

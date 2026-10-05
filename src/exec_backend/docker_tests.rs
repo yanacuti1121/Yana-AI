@@ -45,7 +45,7 @@ fn the_argument_list_is_exactly_this() {
     let expected: Vec<String> = [
         "run", "--rm", "--init", "--pull", "never", "--name", "yana-0123456789abcdef", "--label", "yana.run=0123456789abcdef", "--label", "yana.owner=4242",
         "--label", "yana.deadline=1000000", "--user", "1000:1000", "--read-only", "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m", "--cap-drop", "ALL",
-        "--security-opt", "no-new-privileges", "--pids-limit", "128", "--memory", "512m", "--memory-swap", "512m", "--cpus", "1.00", "--network", "none",
+        "--security-opt", "no-new-privileges", "--pids-limit", "128", "--memory", "512m", "--memory-swap", "512m", "--cpus", "1.00", "--ulimit", "fsize=268435456:268435456", "--network", "none",
         "-w", "/work", "-e", "HOME=/tmp", "-e", "YANA_AGENT_CHILD=1",
     ]
     .iter()

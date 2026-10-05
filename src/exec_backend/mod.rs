@@ -21,6 +21,8 @@ mod docker_fake_tests;
 #[cfg(test)]
 mod docker_tests;
 #[cfg(test)]
+mod staging_edge_tests;
+#[cfg(test)]
 mod staging_tests;
 
 use crate::capability::command::AGENT_CHILD_ENV;
