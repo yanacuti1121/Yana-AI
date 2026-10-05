@@ -175,6 +175,11 @@ impl LeaseStore {
         }
     }
 
+    /// Capabilities that a lease must never cover. `lsp.query` has no command text, so a
+    /// lease on it would match EVERY question to EVERY listed language server with no
+    /// prompt; each call needs a person's approval instead (contract section 17).
+    const NEVER_LEASED: [&'static str; 1] = ["lsp.query"];
+
     #[allow(clippy::too_many_arguments)]
     pub fn grant(
         &self,
@@ -195,6 +200,9 @@ impl LeaseStore {
         }
         if capability.trim().is_empty() {
             bail!("lease capability must not be empty");
+        }
+        if Self::NEVER_LEASED.contains(&capability.trim()) {
+            bail!("'{}' cannot be leased: every call needs a person's approval", capability.trim());
         }
         self.with_locked(|| {
             let mut leases = read_leases(&self.root)?;
@@ -290,6 +298,10 @@ impl LeaseStore {
         repo_root: &Path,
         command_text: Option<&str>,
     ) -> Result<Option<String>> {
+        // Also refused here, so a lease written into the file by hand never matches.
+        if Self::NEVER_LEASED.contains(&capability) {
+            return Ok(None);
+        }
         self.with_locked(|| {
             let mut leases = read_leases(&self.root)?;
             let now = Utc::now();
@@ -509,6 +521,23 @@ mod tests {
         assert_eq!(listed.len(), 1);
         assert_eq!(listed[0].id, granted.id);
         assert_eq!(listed[0].remaining, Some(10));
+        fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn lsp_query_can_never_be_leased_not_even_by_a_lease_written_into_the_file() {
+        let root = temp_root();
+        let store = LeaseStore::for_root(&root);
+        let error = store.grant("agent:x".into(), "lsp.query".into(), Vec::new(), Vec::new(), "human".into(), 20, None, None).unwrap_err().to_string();
+        assert!(error.contains("cannot be leased"), "{error}");
+        grant_test_lease(&store, None);
+        let matched = store.try_consume_matching("agent:test-fixer", "command.execute", &root, Some("cargo test")).unwrap();
+        assert!(matched.is_some(), "control: this lease does match its own capability and command");
+        let mut leases = read_leases(&root).unwrap();
+        leases[0].capability = "lsp.query".into();
+        write_leases(&root, &leases).unwrap();
+        let consumed = store.try_consume_matching("agent:test-fixer", "lsp.query", &root, Some("cargo test")).unwrap();
+        assert!(consumed.is_none(), "an edited-in lease for lsp.query is never consumed");
         fs::remove_dir_all(&root).ok();
     }
 

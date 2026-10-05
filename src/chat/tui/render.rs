@@ -4,6 +4,9 @@
 //! read `App`'s private fields directly instead of needing a getter for
 //! every one of them.
 
+mod command_prompt;
+mod lsp_prompt;
+mod mcp_prompt;
 mod render_tools;
 #[cfg(test)]
 mod tests;
@@ -12,7 +15,7 @@ use super::super::banner;
 use super::super::provider::{ProviderHealth, Role};
 use super::super::settings::ThemeName;
 use super::sidebar;
-use super::{App, TurnState};
+use super::{App, PendingApproval, TurnState};
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span, Text};
@@ -71,15 +74,32 @@ fn palette(theme: ThemeName) -> Palette {
 pub fn draw_ui(frame: &mut Frame, app: &mut App) {
     let colors = palette(app.settings.theme);
     let header_inner_w = frame.area().width;
-    let header_lines = banner::header_lines(
+    let mut header_lines = banner::header_lines(
         &app.banner_info,
         app.provider.name(),
         &app.model,
         &app.session_id,
         header_inner_w,
     );
+    // Wrapped, never clipped: the command to run is at the end of the line.
+    for notice in &app.tool_notices {
+        for row in command_prompt::rows_of(notice, usize::from(header_inner_w)) {
+            header_lines.push(Line::styled(row, Style::default().fg(colors.warning)));
+        }
+    }
     let header_height = header_lines.len() as u16 + 1;
-    let input_height = if matches!(app.turn, TurnState::AwaitingApproval(_)) {
+    let input_height = if matches!(app.turn, TurnState::AwaitingApproval(PendingApproval::WebSearch { .. })) {
+        // Title, destination, key, query: all four must be visible (see
+        // `render_tools::web_search_prompt_lines`).
+        render_tools::WEB_SEARCH_PROMPT_HEIGHT
+    } else if matches!(app.turn, TurnState::AwaitingApproval(PendingApproval::McpCall { .. })) {
+        mcp_prompt::HEIGHT
+    } else if matches!(app.turn, TurnState::AwaitingApproval(PendingApproval::LspQuery { .. })) {
+        lsp_prompt::HEIGHT
+    } else if let TurnState::AwaitingApproval(PendingApproval::Command { command, guard_verdict: None, .. }) = &app.turn {
+        // Grows to hold the whole command; one too long for the largest box gets the standard box and a refusal notice.
+        command_prompt::needed_height(command, frame.area().width).unwrap_or(command_prompt::MIN_HEIGHT)
+    } else if matches!(app.turn, TurnState::AwaitingApproval(_)) {
         5
     } else {
         (app.input.line_count() + 2).clamp(3, 8)
@@ -119,8 +139,10 @@ pub fn draw_ui(frame: &mut Frame, app: &mut App) {
     } else {
         draw_history(frame, app, history_area);
     }
+    app.shown_whole_call = None;
     if let TurnState::AwaitingApproval(pending) = &app.turn {
-        render_tools::draw_approval_prompt(frame, pending, input_area);
+        let whole = render_tools::draw_approval_prompt(frame, pending, input_area);
+        app.shown_whole_call = whole.then(|| pending.prompt_key());
         draw_status_bar(frame, app, status_area, colors);
         return;
     }

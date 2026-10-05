@@ -3,6 +3,8 @@
 //! line-count budget; this is the network-call lifecycle for one chat
 //! turn, still logically part of `App`.
 
+#[cfg(test)]
+use anyhow::Result;
 use super::super::provider::{ChatMessage, ChatProvider, ChatUsage, Role};
 use super::super::tool_types::ToolSpec;
 use super::tool_dispatch::ChatCapabilityExecutor;
@@ -12,7 +14,6 @@ use crate::runtime::{
     YanaAuthorityChain,
 };
 use crate::session_context::SessionContext;
-use anyhow::Result;
 use std::sync::{mpsc, Arc};
 use std::thread;
 use std::time::Instant;
@@ -38,6 +39,7 @@ impl App {
         let system = self.system.clone();
         let messages = self.history.clone();
         let session = self.session_context();
+        self.tool_notices = super::super::tools::hidden_tool_notices(&self.repo_root);
         let use_sandbox = self.use_sandbox;
         let tool_rounds = self.tool_rounds.rounds() as usize;
         let (tx, rx) = mpsc::channel::<StreamEvent>();

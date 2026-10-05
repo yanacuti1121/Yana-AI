@@ -15,6 +15,38 @@ pub struct ValidatedCommand {
     pub guard_verdict: Option<&'static str>,
 }
 
+/// Most zero-width characters (combining marks) shown on one base character. More would
+/// stack up and can spill over neighbouring rows in some terminals.
+const MAX_COMBINING_MARKS: usize = 2;
+
+/// `text` as a person is shown it in an approval: control and invisible format characters
+/// become `?`, and a zero-width character is kept only right after a visible one and at
+/// most `MAX_COMBINING_MARKS` times (so decomposed Vietnamese letters stay readable, while
+/// a stack of marks, or marks with nothing to attach to, cannot hide or blur anything).
+pub(crate) fn visible_line(text: &str) -> String {
+    use unicode_width::UnicodeWidthChar;
+    let mut out = String::with_capacity(text.len());
+    let mut marks = 0usize;
+    for c in text.chars() {
+        let bad = c.is_control() || crate::capability::untrusted::is_invisible_format_char(c);
+        if bad {
+            out.push('?');
+            marks = 0;
+        } else if c.width() == Some(0) {
+            if out.is_empty() || marks >= MAX_COMBINING_MARKS || out.ends_with('?') {
+                out.push('?');
+            } else {
+                out.push(c);
+                marks += 1;
+            }
+        } else {
+            out.push(c);
+            marks = 0;
+        }
+    }
+    out
+}
+
 /// The canonical command tokenizer — the one place `shell_words::split` is
 /// called for a command about to be validated or matched against a lease
 /// scope. `validate_command` uses it for real execution;
@@ -56,6 +88,12 @@ pub struct CommandOutcome {
 /// Reusing `execute_command` for that purpose would reproduce the exact
 /// class of bug `compact` exists to prevent: a count computed from output
 /// that was already silently cut.
+/// Set in the environment of every command the agent runs. `yana-rt trust allow`
+/// refuses to run with it set: confirming a configuration is for a person. This is
+/// defence in depth, not a barrier (a command can remove the variable); the barrier
+/// is that a command needs a person's approval to run at all.
+pub const AGENT_CHILD_ENV: &str = "YANA_AGENT_CHILD";
+
 pub fn spawn_command(
     root: &Path,
     argv: &[String],
@@ -85,6 +123,7 @@ pub fn spawn_command(
     };
     command
         .current_dir(root)
+        .env(AGENT_CHILD_ENV, "1")
         .output()
         .map_err(|error| CapabilityError::SpawnFailed {
             detail: error.to_string(),
