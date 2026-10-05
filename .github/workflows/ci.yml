@@ -525,7 +525,10 @@ jobs:
       - name: Warning ratchet
         run: |
           touch src/main.rs
-          n=$(cargo build --features cli --bin yana-rt 2>&1 | sed -n 's/.*generated \([0-9][0-9]*\) warning.*/\1/p' | head -1)
+          # A fresh build prints a separate "(manifest)" warning line first, then the
+          # bin's own; match only the `(bin "yana-rt")` line (not the test or alias bins).
+          n=$(cargo build --features cli --bin yana-rt 2>&1 | sed -n 's/.*(bin "yana-rt") generated \([0-9][0-9]*\) warning.*/\1/p' | head -1)
+          test -n "$n" || { echo "could not read the bin warning count"; exit 1; }
           base=$(cat ci/warning-baseline.txt)
           echo "warnings: $n (baseline $base)"
           test "${n:-0}" -le "$base"
