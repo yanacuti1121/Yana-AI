@@ -308,3 +308,49 @@ test("verifyLinux accepts a complete package and fails one without dist", () => 
   fs.writeFileSync(path.join(bad, "resources", "runtime", "manifest.json"), "{}");
   assert.ok(verifyLinux(bad, "x64").errors.some((e) => /dist\/index\.html/.test(e)));
 });
+
+// Regression: the CI legs called electron-builder directly, never ran
+// scripts/write-secrets.cjs, and shipped Windows and Linux apps without the
+// Google client secret. Google sign-in then failed while every check stayed
+// green. When a build is meant to carry the secret, a package without it
+// must fail.
+const GOOGLE_SECRET_FILE = 'module.exports = { googleClientSecret: "test-value" };';
+
+test("verifyWindows requires the Google secret file only when asked", () => {
+  const dir = tmp();
+  makeWindowsPackage(dir, "x64");
+  assert.deepEqual(verifyWindows(dir, "x64").errors, []);
+  const missing = verifyWindows(dir, "x64", { requireSecrets: true }).errors;
+  assert.ok(missing.some((e) => /secrets\.local\.cjs/.test(e)));
+  fs.writeFileSync(
+    path.join(dir, "resources", "secrets.local.cjs"),
+    GOOGLE_SECRET_FILE,
+  );
+  assert.deepEqual(verifyWindows(dir, "x64", { requireSecrets: true }).errors, []);
+});
+
+test("verifyLinux requires the Google secret file only when asked", () => {
+  const dir = tmp();
+  fs.mkdirSync(path.join(dir, "resources", "runtime"), { recursive: true });
+  writeAsar(path.join(dir, "resources", "app.asar"), goodTree(), {
+    "dist/index.html": GOOD_INDEX_HTML,
+  });
+  fs.writeFileSync(path.join(dir, "resources", "runtime", "yana-rt"), elfBuffer(62));
+  fs.writeFileSync(path.join(dir, "resources", "runtime", "manifest.json"), "{}");
+  assert.deepEqual(verifyLinux(dir, "x64").errors, []);
+  const missing = verifyLinux(dir, "x64", { requireSecrets: true }).errors;
+  assert.ok(missing.some((e) => /secrets\.local\.cjs/.test(e)));
+  fs.writeFileSync(path.join(dir, "resources", "secrets.local.cjs"), GOOGLE_SECRET_FILE);
+  assert.deepEqual(verifyLinux(dir, "x64", { requireSecrets: true }).errors, []);
+});
+
+test("a secrets file without the Google key is rejected, not accepted as present", () => {
+  const dir = tmp();
+  makeWindowsPackage(dir, "x64");
+  fs.writeFileSync(path.join(dir, "resources", "secrets.local.cjs"), "module.exports = {};");
+  assert.ok(
+    verifyWindows(dir, "x64", { requireSecrets: true }).errors.some((e) =>
+      /googleClientSecret/.test(e),
+    ),
+  );
+});
