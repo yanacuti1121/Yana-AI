@@ -212,6 +212,19 @@ jobs:
       # CHANGELOG.md, "fix(nsis): reliably install the main executable and
       # native binaries on x64 and arm64") and the identical bug reported at
       # https://github.com/BenItBuhner/Zenium/pull/63.
+
+      # electron-builder is called directly below, so `npm run dist:*` (and
+      # its write:secrets step) never ran in CI: the Windows and Linux apps
+      # shipped without the Google client secret and Google sign-in failed.
+      # Only this step receives the secret. It writes the gitignored
+      # host/integrations/secrets.local.cjs that extraResources packs, and
+      # "Verify packaged app" below fails the build if the file is missing.
+      - name: Write build-time secrets
+        working-directory: tools/yana-studio
+        env:
+          YANA_GOOGLE_CLIENT_SECRET: ${{ secrets.YANA_GOOGLE_CLIENT_SECRET }}
+        run: node scripts/write-secrets.cjs
+
       - name: Build app
         working-directory: tools/yana-studio
         env:
@@ -223,7 +236,7 @@ jobs:
       # the frontend (index.html plus every asset it loads) inside app.asar.
       - name: Verify packaged app
         working-directory: tools/yana-studio
-        run: node scripts/verify-package.cjs --platform ${{ matrix.platform }} --arch ${{ matrix.arch }}
+        run: node scripts/verify-package.cjs --platform ${{ matrix.platform }} --arch ${{ matrix.arch }} --require-secrets
 
       - name: Upload artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1 (node24)

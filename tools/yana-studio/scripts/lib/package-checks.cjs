@@ -200,10 +200,28 @@ function checkFile(file, label, errors, notes) {
   else notes.push(`${label}: present`);
 }
 
-function verifyWindows(unpackedDir, arch) {
+// The Google sign-in client secret ships as Resources/secrets.local.cjs
+// (extraResources, written by scripts/write-secrets.cjs). Only the file's
+// presence and its googleClientSecret key are checked; the value is never read
+// into a message.
+function checkSecrets(resources, errors, notes) {
+  const file = path.join(resources, "secrets.local.cjs");
+  if (!fs.existsSync(file)) {
+    errors.push(
+      `Google sign-in secret is missing: ${file} (scripts/write-secrets.cjs did not run, or YANA_GOOGLE_CLIENT_SECRET was empty)`,
+    );
+    return;
+  }
+  if (!/googleClientSecret/.test(fs.readFileSync(file, "utf8")))
+    errors.push(`${file} has no googleClientSecret key`);
+  else notes.push("Google sign-in secret: present");
+}
+
+function verifyWindows(unpackedDir, arch, options = {}) {
   const errors = [];
   const notes = [];
   const resources = path.join(unpackedDir, "resources");
+  if (options.requireSecrets) checkSecrets(resources, errors, notes);
   checkExecutable(
     path.join(unpackedDir, "Yana Studio.exe"),
     arch,
@@ -231,10 +249,11 @@ function verifyWindows(unpackedDir, arch) {
   return { errors, notes };
 }
 
-function verifyLinux(unpackedDir, arch) {
+function verifyLinux(unpackedDir, arch, options = {}) {
   const errors = [];
   const notes = [];
   const resources = path.join(unpackedDir, "resources");
+  if (options.requireSecrets) checkSecrets(resources, errors, notes);
   checkAsar(path.join(resources, "app.asar"), errors, notes);
   checkExecutable(
     path.join(resources, "runtime", "yana-rt"),
