@@ -12,7 +12,7 @@
     "test:robot": "node _test_robot.js && node _test_opus_codec.js"
   },
   "dependencies": {
-    "@qdrant/js-client-rest": "1.18.0",
+    "@qdrant/js-client-rest": "1.19.0",
     "@xterm/addon-fit": "0.12.0-beta.301",
     "@xterm/addon-search": "0.16.0",
     "@xterm/addon-unicode11": "0.9.0",
@@ -20,12 +20,12 @@
     "@xterm/addon-webgl": "0.20.0-beta.300",
     "@xterm/xterm": "6.1.0-beta.304",
     "dompurify": "^3.4.16",
-    "highlight.js": "11.9.0",
+    "highlight.js": "11.12.0",
     "marked": "12.0.2",
     "opusscript": "^0.1.1",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "ws": "^8.21.3"
+    "ws": "^8.22.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "4.3.4",
