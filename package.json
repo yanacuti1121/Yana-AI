@@ -81,6 +81,6 @@
     "wrangler": "^4.147.0"
   },
   "dependencies": {
-    "acorn": "^8.14.0"
+    "acorn": "^8.18.0"
   }
 }
