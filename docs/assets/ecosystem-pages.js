@@ -13,9 +13,9 @@
   };
 
   const fallback = {
-    en: { loading: "Loading verified release data…", unavailable: "Live release data is temporarily unavailable.", noCurrentRelease: "No public Yana Studio 1.5 installer is available yet.", github: "Open GitHub Releases", recommended: "Recommended", download: "Download", published: "Published", assets: "files", noAssets: "No installer files published.", verify: "Verify downloads with" },
-    vi: { loading: "Đang tải dữ liệu phát hành đã xác minh…", unavailable: "Dữ liệu phát hành trực tiếp đang tạm thời không khả dụng.", noCurrentRelease: "Chưa có bộ cài Yana Studio 1.5 được phát hành công khai.", github: "Mở GitHub Releases", recommended: "Đề xuất", download: "Tải xuống", published: "Phát hành", assets: "tệp", noAssets: "Chưa có tệp cài đặt được công bố.", verify: "Xác minh tệp tải xuống bằng" },
-    ko: { loading: "검증된 릴리스 데이터를 불러오는 중…", unavailable: "실시간 릴리스 데이터를 일시적으로 사용할 수 없습니다.", noCurrentRelease: "공개된 Yana Studio 1.5 설치 파일이 아직 없습니다.", github: "GitHub Releases 열기", recommended: "추천", download: "다운로드", published: "게시", assets: "파일", noAssets: "게시된 설치 파일이 없습니다.", verify: "다운로드 검증:" },
+    en: { loading: "Loading verified release data…", unavailable: "Live release data is temporarily unavailable.", noCurrentRelease: "No public Yana Studio installer is available yet.", github: "Open GitHub Releases", recommended: "Recommended", download: "Download", published: "Published", assets: "files", noAssets: "No installer files published.", verify: "Verify downloads with" },
+    vi: { loading: "Đang tải dữ liệu phát hành đã xác minh…", unavailable: "Dữ liệu phát hành trực tiếp đang tạm thời không khả dụng.", noCurrentRelease: "Chưa có bộ cài Yana Studio được phát hành công khai.", github: "Mở GitHub Releases", recommended: "Đề xuất", download: "Tải xuống", published: "Phát hành", assets: "tệp", noAssets: "Chưa có tệp cài đặt được công bố.", verify: "Xác minh tệp tải xuống bằng" },
+    ko: { loading: "검증된 릴리스 데이터를 불러오는 중…", unavailable: "실시간 릴리스 데이터를 일시적으로 사용할 수 없습니다.", noCurrentRelease: "공개된 Yana Studio 설치 파일이 아직 없습니다.", github: "GitHub Releases 열기", recommended: "추천", download: "다운로드", published: "게시", assets: "파일", noAssets: "게시된 설치 파일이 없습니다.", verify: "다운로드 검증:" },
     zh: { loading: "正在加载已验证的发布数据…", unavailable: "实时发布数据暂时不可用。", github: "打开 GitHub Releases", recommended: "推荐", download: "下载", published: "发布于", assets: "个文件", noAssets: "尚未发布安装文件。", verify: "使用以下文件验证下载：" }
   };
 
