@@ -129,20 +129,20 @@
     "codemirror": "^6.0.2",
     "dompurify": "^3.4.16",
     "lucide-react": "^0.577.0",
-    "marked": "^18.0.12",
+    "marked": "^18.0.14",
     "node-pty": "^1.1.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
     "@electron/rebuild": "^4.0.1",
     "@playwright/test": "^1.58.0",
-    "@types/react": "^19.2.0",
-    "@types/react-dom": "^19.2.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^4.3.4",
     "electron": "43.5.0",
     "electron-builder": "26.15.3",
-    "prettier": "^3.6.0",
+    "prettier": "^3.9.9",
     "typescript": "^5.9.0",
     "vite": "^6.4.3"
   }
