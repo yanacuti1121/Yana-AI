@@ -6,6 +6,7 @@
 //
 //   node scripts/verify-package.cjs --platform win --arch x64
 //   node scripts/verify-package.cjs --platform linux --arch x64 --dir release/linux-unpacked
+//   node scripts/verify-package.cjs --platform win --arch x64 --require-secrets
 //
 // Exit 0 when the package passes, 1 when it does not, 2 on a usage error.
 const path = require("node:path");
@@ -35,9 +36,13 @@ if (!DEFAULT_DIRS[key]) {
 }
 
 const dir = path.resolve(option("dir") ?? DEFAULT_DIRS[key]);
+// --require-secrets: fail when the package lacks the Google sign-in secret.
+// Release builds pass it; a local dev build without the secret does not.
+const requireSecrets = process.argv.includes("--require-secrets");
 const { errors, notes } = (platform === "win" ? verifyWindows : verifyLinux)(
   dir,
   arch,
+  { requireSecrets },
 );
 
 console.log(`Package check: ${platform}-${arch} in ${dir}`);
