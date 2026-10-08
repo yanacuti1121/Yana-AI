@@ -3,20 +3,29 @@
 **Một app mới. Không phải bản đổi giao diện của Yana Desktop cũ.**
 
 Thiết kế gốc của **Vũ Văn Tâm**, từ `Yana Desktop - Main Workspace.dc.html`.
-Đây là bản phát triển 0.1.0: xây nền làm việc thật trước, không lấp giao diện
-bằng số liệu hoặc nút bấm giả.
+Nguyên tắc: xây nền làm việc thật trước, không lấp giao diện bằng số liệu
+hoặc nút bấm giả.
 
-## Chạy trên máy này
+## Tải về
+
+Bản dựng sẵn nằm ở [GitHub Releases](https://github.com/yanacuti1121/Yana-AI/releases),
+thẻ `studio-v*`. Xem danh sách file của từng release để biết hệ điều hành nào
+có bản dựng sẵn: `studio-v1.6.1` có Windows (x64, arm64) và Linux (`.deb`,
+`.AppImage`), chưa có macOS. Trên macOS hãy chạy từ mã nguồn như bên dưới.
+
+## Chạy từ mã nguồn
+
+Từ thư mục gốc của repo:
 
 ```sh
-cd /Users/vutam/Desktop/Yana-AI/tools/yana-studio
+cd tools/yana-studio
 npm start
 ```
 
 Mở thẳng một project, không thay đổi file của project khi khởi động:
 
 ```sh
-npm start -- --project /Users/vutam/Desktop/Yana-AI
+npm start -- --project /duong/dan/toi/project
 ```
 
 Tên cửa sổ/menu là **Yana Studio**, có nhãn **NEW**. Không mở `tools/yana-desktop`,

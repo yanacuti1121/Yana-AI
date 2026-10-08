@@ -1,5 +1,12 @@
 # Yana AI — Architecture
 
+> **Trạng thái: LỊCH SỬ (superseded).** Sơ đồ dưới đây được viết trước
+> ADR-014 (2026-08-25) và mô tả Router, Safety Gate, Context như các khối
+> riêng. Kiến trúc hiện tại là một runtime Rust duy nhất dưới Giám Thị và
+> Yana control plane. Đọc `docs/adr/ADR-014-unified-runtime-authority-hierarchy.md`
+> và `docs/YANA-DEEP-ARCHITECTURE.md` mục 0. File này chỉ giữ làm lịch sử,
+> đừng dùng nó để mô tả Yana hiện tại.
+
 **Author:** Vũ Văn Tâm  
 **Rule:** Đây là sơ đồ hệ thống, không phải tài liệu kỹ thuật đầy đủ.
 

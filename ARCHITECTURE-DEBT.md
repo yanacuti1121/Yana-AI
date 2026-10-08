@@ -47,7 +47,7 @@ report trackable.
 | AD-21 | Many generated files exist — easy for an agent to edit the generated copy by mistake instead of the source | Open | `core/scripts/check_counts.py`/`drift-check.sh` catch count drift after the fact; no pre-edit guard yet stops an agent from hand-editing a generated file directly. |
 | AD-22 | No Architecture Debt Register | **Done** | This file, 2026-08-13. |
 | AD-23 | No shared Definition of Done (compile, test, live-verify, docs, source-of-truth all current) | Open | |
-| AD-24 | No Golden E2E test (Open → Chat → Tool → Execute → Answer, the full path a real user takes) | Open | |
+| AD-24 | No Golden E2E test (Open → Chat → Tool → Execute → Answer, the full path a real user takes) | **Done** (mock provider) | `src/chat/tui/golden_e2e_tests.rs`: mock local provider emits a tool call, chat dispatches to `capability::read_file_observation`, the result goes back to the provider, final answer, session persisted and restored. Verified 2026-10-05: `cargo test --locked --bin yana-rt golden_e2e -- --test-threads=1` passes (1 passed, 0 failed). Not covered: a real local model (Gemma/Qwen), and tools other than `read_file`. |
 | AD-25 | Local model has no tool-selection strategy — will misfire once there are ~50 capabilities to choose from | Open | Depends on AD-11/AD-16 existing first (nothing to select from yet in a structured way). |
 | AD-26 | Context budget — a 26B local model can't hold 100 capabilities' worth of tool descriptions | Open | |
 | AD-27 | Approval model is simple (single yes/no) — needs Approve-Once / Approve-Session / Approve-Scope tiers | Open | |

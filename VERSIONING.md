@@ -14,6 +14,21 @@ changed.
 | **Runtime crate version** | `Cargo.toml` | [crates.io/crates/yana-rt](https://crates.io/crates/yana-rt) | `yana-rt`, the Rust runtime, changes — independent of the product version, since the crate can gain/fix functionality without every framework release needing a new crate publish |
 | **Python package version** | `pyproject.toml`, `src/yana_ai/__init__.py` (kept in sync) | [pypi.org/project/yana-ai](https://pypi.org/project/yana-ai/) | The Python CLI/package changes |
 
+## App versions (GitHub Releases, not registries)
+
+The apps under `tools/` carry their own versions and ship through GitHub
+Releases, not PyPI or crates.io. They are separate from the three axes above.
+
+| App | Version source | Release tag | Built by |
+|---|---|---|---|
+| **Yana Studio** | `tools/yana-studio/package.json` | `studio-v*` | `.github/workflows/yana-studio-desktop.yml` |
+| **Yana Desktop** | `tools/yana-desktop/package.json` | `v*` | `.github/workflows/desktop.yml` |
+| **Yana Web** | `tools/yana-web/package.json` | none | no workflow of its own; runs inside Desktop and in its Docker image |
+
+To see what shipped last, run `gh release list` or
+`gh run list --workflow <workflow file>`. This table deliberately holds no
+dates or version numbers, since they go stale on the next release.
+
 ## Why product has no registry
 
 Through 2026-07, the product axis published to npm (`npmjs.com/package/
