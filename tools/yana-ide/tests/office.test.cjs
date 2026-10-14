@@ -47,11 +47,11 @@ const check = (name, ok, extra = '') => { (ok ? pass++ : fail++); console.log(ok
 
 // Detection: nothing present
 const none = office.toolStatus(ext, () => false);
-check('three tools are listed', none.length === 3, String(none.length));
+check('four tools are listed', none.length === 4, String(none.length));
 check('missing tools say "Not available yet"', none.every(tool => !tool.available && tool.note === 'Not available yet'));
 // Detection: only the npm-style ones present
 const some = office.toolStatus(ext, target => target.includes('node_modules'));
-check('installed tools are reported as installed', some.filter(tool => tool.available).map(tool => tool.id).sort().join() === 'marp,pptx');
+check('installed tools are reported as installed', some.filter(tool => tool.available).map(tool => tool.id).sort().join() === 'documents,marp,pptx');
 check('typst stays unavailable when its binary is absent', some.find(tool => tool.id === 'typst').available === false);
 // Detection never claims a tool from an empty probe
 check('empty probe never marks anything available', office.toolStatus(ext, () => undefined).every(tool => tool.available === false));
@@ -66,7 +66,7 @@ check('a second open reuses the panel', panelCount === 1, String(panelCount));
 receive({ type: 'noise' });
 check('unknown message gets no reply', posted.length === 0);
 receive({ type: 'ready' });
-check('ready is answered with the tool list', posted.length === 1 && posted[0].type === 'status' && posted[0].tools.length === 3);
+check('ready is answered with the tool list', posted.length === 1 && posted[0].type === 'status' && posted[0].tools.length === 4);
 
 // Preview and export messages (async handlers: wait a tick for each reply)
 const lastReply = async (message) => { posted.length = 0; await receive(message); await new Promise(resolve => setTimeout(resolve, 20)); return posted[posted.length - 1]; };

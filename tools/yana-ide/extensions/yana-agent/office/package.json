@@ -5,6 +5,8 @@
   "description": "Pinned office tool dependencies for the Yana IDE Office screen",
   "dependencies": {
     "@marp-team/marp-cli": "4.5.1",
+    "jszip": "3.10.2",
+    "officeparser": "8.1.1",
     "pptxgenjs": "4.0.1"
   }
 }
