@@ -208,6 +208,7 @@
 	const footerTokens = el('span', 'muted mono ellipsis tokens-label', '0 in · 0 out');
 	footerTokens.title = 'Tokens reported by the provider for this conversation';
 	const micBtn = button('mic-btn', '🎙️', () => window.YanaVoice?.toggleRecording(), 'Voice input (Whisper / Cloud)');
+	micBtn.style.display = 'none'; // hiện lại khi capabilities.voice.input là true (voice.js)
 	const sendBtn = button('send-btn primary', '↑', submit, 'Send (Enter)');
 	sendBtn.title = 'Send (Enter), Shift+Enter for new line';
 	toolsRight.append(footerTokens, micBtn, sendBtn);

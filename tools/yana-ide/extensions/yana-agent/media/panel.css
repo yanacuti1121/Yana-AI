@@ -478,4 +478,12 @@ body { font: 13px/1.45 var(--y-sans); }
 .reply-action-btn { background: transparent; border: 1px solid var(--y-border); font-size: 11px; padding: 2px 7px; border-radius: 4px; color: var(--y-muted); cursor: pointer; }
 .reply-action-btn:hover { color: var(--y-text); border-color: var(--y-border-strong); }
 
-
+/* Audit Chain Log: dòng nhật ký thật (media/audit-view.js). Chỉ nối thêm cuối file. */
+.audit-empty { padding: 12px; font-size: 12px; }
+.audit-entry { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 6px 10px; border: 1px solid var(--y-border-strong, var(--vscode-panel-border)); border-radius: 6px; font-size: 12px; }
+.audit-entry-time { color: var(--vscode-descriptionForeground); font-size: 11px; }
+.audit-entry-tool { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.audit-entry-decision { font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 4px; border: 1px solid currentColor; }
+.audit-entry-decision.allow { color: var(--vscode-testing-iconPassed, #3fb950); }
+.audit-entry-decision.deny, .audit-entry-decision.block { color: var(--vscode-errorForeground, #f85149); }
+.audit-entry-decision.warn { color: var(--vscode-editorWarning-foreground, #d29922); }

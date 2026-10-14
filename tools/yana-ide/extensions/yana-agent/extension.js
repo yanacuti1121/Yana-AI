@@ -7,9 +7,11 @@ const crypto = require('node:crypto');
 const { resolveBinary, runtimeVersion, startTurn, supportsTurnControls } = require('./runtime');
 const models = require('./features/models');
 const { memorySystem } = require('./features/project');
+const { instructionsOf, composeSystem } = require('./features/assistant-system');
 const usage = require('./features/usage');
 const conversations = require('./features/conversations');
 const approvalStore = require('./features/approval-store');
+const auditLog = require('./features/audit-log');
 const changes = require('./features/changes');
 const MAX_HISTORY_MESSAGES = 40; // 20 lượt hỏi đáp gần nhất gửi kèm làm ngữ cảnh
 // Chỉ dùng khi yana-rt quá cũ để chặn ghi thật: lúc đó Plan chỉ là lời nhờ model.
@@ -75,10 +77,17 @@ class YanaPanel {
 		this.post({ type: 'conversation', title: current?.title || 'New conversation', messages: current?.messages || [] });
 	}
 
+	// System prompt của hội thoại mới: Project Memory + hướng dẫn của trợ lý đang chọn.
+	systemFor(root) {
+		const items = this.context.globalState.get('yana.assistants.v1', this.defaultAssistants());
+		const selectedId = this.context.globalState.get('yana.assistants.selected', items[0]?.id || '');
+		return composeSystem(memorySystem(root), instructionsOf(items, selectedId));
+	}
+
 	async newConversation() {
 		if (this.active) return;
 		const folder = vscode.workspace.workspaceFolders?.[0];
-		await conversations.create(memorySystem(folder?.uri.fsPath));
+		await conversations.create(this.systemFor(folder?.uri.fsPath));
 		this.showConversation(true);
 	}
 
@@ -146,6 +155,10 @@ class YanaPanel {
 				this.post({ type: 'voice.state', phase: 'idle', cloud: false, error: 'Voice runtime not configured (see Settings)' });
 				return;
 			}
+			case 'audit.load': this.post(auditLog.loadForView()); return;
+			case 'office.export': return message.kind === 'audit' ? auditLog.exportLog() : undefined;
+			// Công cụ chẩn đoán chạy trong terminal riêng, chỉ các tên cố định này.
+			case 'runTool': return /^(doctor|scan|hunt|score|map|ci|cost)$/.test(String(message.tool)) ? vscode.commands.executeCommand(`yana.tool.${message.tool}`) : undefined;
 			case 'buildScreen': {
 				const taskText = `Implement the UI design from screen "${message.name || 'Canvas Screen'}" as clean, modular code for this project.\n\nHTML Preview:\n\`\`\`html\n${message.html}\n\`\`\``;
 				return this.send(taskText, []);
@@ -493,7 +506,7 @@ class YanaPanel {
 			this.post({ type: 'event', event: { type: 'error', message: ready.error } });
 			return;
 		}
-		const conversation = await conversations.ensureActive(() => memorySystem(ready.cwd));
+		const conversation = await conversations.ensureActive(() => this.systemFor(ready.cwd));
 		this.shownId = conversation.id;
 		this.post({ type: 'intent', text: task, at: new Date().toISOString(), images, files });
 
