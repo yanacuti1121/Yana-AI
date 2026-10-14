@@ -33,6 +33,10 @@ pub struct ServerConfig {
     pub env: Vec<String>,
     #[serde(default)]
     pub timeout_secs: Option<u64>,
+    /// Keep this server's process running between calls of one yana-rt run, instead of starting a new one for every call.
+    /// Needed by servers whose tools refer to state an earlier call created (for example a desktop snapshot).
+    #[serde(default)]
+    pub keep_alive: bool,
 }
 
 #[derive(Deserialize)]

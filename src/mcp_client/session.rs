@@ -139,6 +139,11 @@ impl Session {
         Ok(output_of(&reply))
     }
 
+    /// True once the connection has ended (the server exited or its pipe broke), so the session can no longer be used.
+    pub fn is_closed(&self) -> bool {
+        self.service.is_closed() || self.service.is_transport_closed()
+    }
+
     /// Stop the connection and make sure the child process is gone.
     pub async fn close(mut self) {
         let _ = tokio::time::timeout(Duration::from_secs(2), self.service.close()).await;

@@ -1089,7 +1089,7 @@ fn main() {
                 if let Err(error) = chat::dispatch_headless_resume(provider) {
                     println!(
                         "{}",
-                        serde_json::json!({ "type": "error", "message": error.to_string() })
+                        serde_json::json!({ "type": "error", "message": chat::headless_error_text(&error) })
                     );
                     std::process::exit(2);
                 }
@@ -1104,7 +1104,7 @@ fn main() {
                 if let Err(error) = chat::dispatch_headless(provider, model) {
                     println!(
                         "{}",
-                        serde_json::json!({ "type": "error", "message": error.to_string() })
+                        serde_json::json!({ "type": "error", "message": chat::headless_error_text(&error) })
                     );
                     std::process::exit(2);
                 }

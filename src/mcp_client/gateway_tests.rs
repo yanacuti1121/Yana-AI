@@ -280,3 +280,104 @@ fn text_the_lease_matcher_splits_differently_is_refused_by_the_gateway() {
     assert!(parse_command(sneaky).is_err(), "so the denied tool cannot be reached");
     assert!(disclose(root.path(), sneaky).is_err());
 }
+
+/// The `$$` in the call text is expanded by the fake server's shell, so each answer names the process that gave it.
+fn pid_of(out: &str) -> String {
+    let text = content_of(out);
+    let tail = text.split("pid-").nth(1).unwrap_or_else(|| panic!("no pid in {text}"));
+    tail.chars().take_while(char::is_ascii_digit).collect()
+}
+
+#[test]
+fn a_server_that_is_not_kept_alive_starts_fresh_for_every_call() {
+    let (_k, root) = workspace(&server_script("pid-$$"));
+    configure(&root, vec![sh_server(&root, "fresh", json!({}))]);
+    let first = pid_of(&call(&root, "fresh echo", &Value::Null).unwrap());
+    let second = pid_of(&call(&root, "fresh echo", &Value::Null).unwrap());
+    assert_ne!(first, second);
+}
+
+#[test]
+fn a_kept_alive_server_answers_every_call_from_the_same_process() {
+    let (_k, root) = workspace(&server_script("pid-$$"));
+    configure(&root, vec![sh_server(&root, "kept", json!({"keep_alive": true}))]);
+    let first = pid_of(&call(&root, "kept echo", &Value::Null).unwrap());
+    let second = pid_of(&call(&root, "kept echo", &Value::Null).unwrap());
+    let listing = call(&root, "kept", &Value::Null).unwrap();
+    shutdown_persistent_in(&root);
+    assert_eq!(first, second, "the second call must reach the process the first one started");
+    assert!(content_of(&listing).contains("echo: says hi"));
+}
+
+#[test]
+fn shutting_down_stops_a_kept_alive_server_and_the_next_call_starts_a_new_one() {
+    let (_k, root) = workspace(&server_script("pid-$$"));
+    configure(&root, vec![sh_server(&root, "kept", json!({"keep_alive": true}))]);
+    let first = pid_of(&call(&root, "kept echo", &Value::Null).unwrap());
+    shutdown_persistent_in(&root);
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while Instant::now() < deadline && !is_dead(&first) {
+        std::thread::sleep(Duration::from_millis(50));
+    }
+    assert!(is_dead(&first), "the kept server (pid {first}) must be gone after shutdown");
+    let second = pid_of(&call(&root, "kept echo", &Value::Null).unwrap());
+    shutdown_persistent_in(&root);
+    assert_ne!(first, second);
+}
+
+#[test]
+fn a_kept_alive_server_that_died_is_replaced_on_the_next_call() {
+    let (_k, root) = workspace(&server_script("pid-$$"));
+    configure(&root, vec![sh_server(&root, "kept", json!({"keep_alive": true}))]);
+    let first = pid_of(&call(&root, "kept echo", &Value::Null).unwrap());
+    std::process::Command::new("kill").args(["-9", &first]).status().unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while Instant::now() < deadline && !is_dead(&first) {
+        std::thread::sleep(Duration::from_millis(50));
+    }
+    let second = pid_of(&call(&root, "kept echo", &Value::Null).unwrap());
+    shutdown_persistent_in(&root);
+    assert_ne!(first, second, "a dead server must be replaced, not reused");
+}
+
+/// Manual check against the real Cua Driver (`CUA_DRIVER_BIN=/path/to/cua-driver cargo test ... -- --ignored --nocapture`).
+/// It opens Calculator and presses 6 x 7 =, which only works if the snapshot survives between calls.
+#[test]
+#[ignore = "needs a real cua-driver binary and macOS Accessibility and Screen Recording permission"]
+fn the_real_cua_driver_keeps_its_snapshot_between_calls() {
+    let binary = std::env::var("CUA_DRIVER_BIN").expect("set CUA_DRIVER_BIN to the cua-driver path");
+    let (_k, root) = workspace("");
+    let env_names: Vec<String> = std::env::var("CUA_ENV_NAMES").unwrap_or_default().split(',').filter(|n| !n.is_empty()).map(String::from).collect();
+    let server = json!({"name": "cua", "command": binary, "args": ["mcp"], "env": env_names, "keep_alive": true, "timeout_secs": 60});
+    configure(&root, vec![server]);
+    let show = |label: &str, out: &str| println!("--- {label}\n{}", content_of(out).chars().take(1500).collect::<String>());
+    show("tools", &call(&root, "cua", &Value::Null).unwrap());
+    let launched = call(&root, "cua launch_app", &json!({"bundle_id": "com.apple.calculator"})).unwrap();
+    show("launch_app", &launched);
+    let launched_text = content_of(&launched);
+    let (pid, window_id) = (number_after(&launched_text, "(pid "), number_after(&launched_text, "[window_id: "));
+    let state = call(&root, "cua get_window_state", &json!({"pid": pid, "window_id": window_id})).unwrap();
+    show("get_window_state", &state);
+    let state_text = content_of(&state);
+    let snapshot = state_text.split("snapshot_id=").nth(1).and_then(|rest| rest.split_whitespace().next()).expect("snapshot_id in the answer").to_string();
+    for button in ["AllClear", "Six", "Multiply", "Seven", "Equals"] {
+        let token = format!("{snapshot}:{}", row_of(&state_text, button));
+        let pressed = call(&root, "cua click", &json!({"pid": pid, "window_id": window_id, "element_token": token})).unwrap();
+        println!("click {button} ({token}) -> {}", content_of(&pressed).lines().nth(1).unwrap_or(""));
+    }
+    let after = content_of(&call(&root, "cua get_window_state", &json!({"pid": pid, "window_id": window_id})).unwrap());
+    shutdown_persistent_in(&root);
+    assert!(after.contains("= \"42\""), "Calculator should show 42 after 6 x 7:\n{after}");
+}
+
+/// The row number `[N]` of the button whose `[id=...]` is `id`.
+fn row_of(tree: &str, id: &str) -> u64 {
+    let line = tree.lines().find(|l| l.contains(&format!("[id={id} "))).unwrap_or_else(|| panic!("no button {id}"));
+    number_after(line, "- [")
+}
+
+/// The integer written right after `marker` in `text`.
+fn number_after(text: &str, marker: &str) -> u64 {
+    let tail = text.split(marker).nth(1).unwrap_or_else(|| panic!("no {marker} in {text}"));
+    tail.trim_start().chars().take_while(char::is_ascii_digit).collect::<String>().parse().unwrap()
+}

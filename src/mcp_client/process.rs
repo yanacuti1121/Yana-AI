@@ -62,7 +62,7 @@ mod tests {
         std::fs::create_dir_all(&inside).unwrap();
         let usr = base.join("usr-bin");
         std::fs::create_dir_all(&usr).unwrap();
-        let config = ServerConfig { name: "a".into(), command: "/bin/sh".into(), args: Vec::new(), env: Vec::new(), timeout_secs: None };
+        let config = ServerConfig { name: "a".into(), command: "/bin/sh".into(), args: Vec::new(), env: Vec::new(), timeout_secs: None, keep_alive: false };
         let dirty = std::env::join_paths([Path::new("."), Path::new("node_modules/.bin"), Path::new(""), &inside, &usr]).unwrap();
         let command = command_with_path(&config, &root, Some(dirty));
         let given: Vec<PathBuf> = command

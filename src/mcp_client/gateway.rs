@@ -20,7 +20,10 @@ use super::spawn::spawn_session;
 use crate::capability::untrusted::guard;
 use crate::capability::CapabilityError;
 use serde_json::{json, Value};
-use std::path::Path;
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
+use tokio::sync::Mutex as AsyncMutex;
 
 enum Outcome {
     Tools(Vec<ToolInfo>),
@@ -55,6 +58,102 @@ fn run_blocking(config: ServerConfig, root: &Path, tool: Option<&str>, arguments
     })
 }
 
+type Key = (PathBuf, String);
+
+/// A kept-alive connection and the configuration it was started with. A changed configuration never reuses it.
+type Kept = (ServerConfig, Session);
+
+static KEPT_RUNTIME: OnceLock<Result<tokio::runtime::Runtime, String>> = OnceLock::new();
+static KEPT: OnceLock<AsyncMutex<HashMap<Key, Kept>>> = OnceLock::new();
+
+/// One background runtime keeps the connections of kept-alive servers running between calls. It has a worker of its
+/// own so a server's reader keeps being polled while no call is in progress.
+fn kept_runtime() -> Result<&'static tokio::runtime::Runtime, CapabilityError> {
+    KEPT_RUNTIME
+        .get_or_init(|| {
+            tokio::runtime::Builder::new_multi_thread().worker_threads(1).thread_name("mcp-kept").enable_all().build().map_err(|e| e.to_string())
+        })
+        .as_ref()
+        .map_err(|detail| CapabilityError::Io { detail: format!("could not start the MCP runtime: {detail}") })
+}
+
+fn kept_sessions() -> &'static AsyncMutex<HashMap<Key, Kept>> {
+    KEPT.get_or_init(|| AsyncMutex::new(HashMap::new()))
+}
+
+async fn use_session(session: &Session, tool: Option<&str>, arguments: &Value) -> Result<Outcome, CapabilityError> {
+    match tool {
+        None => session.list_tools().await.map(Outcome::Tools),
+        Some(name) => session.call_tool(name, arguments).await.map(Outcome::Result),
+    }
+}
+
+/// Calls go through one at a time. A session that ended, or whose configuration changed, is replaced; one whose call
+/// failed or timed out is closed, so the next call starts clean instead of talking to a server in an unknown state.
+async fn run_kept(config: ServerConfig, root: &Path, tool: Option<&str>, arguments: &Value) -> Result<Outcome, CapabilityError> {
+    let key: Key = (root.to_path_buf(), config.name.clone());
+    let mut sessions = kept_sessions().lock().await;
+    if sessions.get(&key).is_some_and(|(started_with, session)| *started_with != config || session.is_closed()) {
+        if let Some((_, stale)) = sessions.remove(&key) {
+            stale.close().await;
+        }
+    }
+    if !sessions.contains_key(&key) {
+        let session = spawn_session(&config, root).await?;
+        sessions.insert(key.clone(), (config, session));
+    }
+    let outcome = match sessions.get(&key) {
+        Some((_, session)) => use_session(session, tool, arguments).await,
+        None => Err(CapabilityError::Io { detail: "the kept MCP session disappeared".into() }),
+    };
+    if outcome.is_err() {
+        if let Some((_, broken)) = sessions.remove(&key) {
+            broken.close().await;
+        }
+    }
+    outcome
+}
+
+fn run_kept_blocking(config: ServerConfig, root: &Path, tool: Option<&str>, arguments: &Value) -> Result<Outcome, CapabilityError> {
+    let runtime = kept_runtime()?;
+    // From a thread of its own, like `run_blocking`: `block_on` must not be called from inside another runtime.
+    std::thread::scope(|scope| {
+        scope
+            .spawn(|| runtime.block_on(run_kept(config, root, tool, arguments)))
+            .join()
+            .unwrap_or_else(|_| Err(CapabilityError::Io { detail: "the MCP call stopped unexpectedly".into() }))
+    })
+}
+
+fn shutdown_where(selected: impl Fn(&Key) -> bool + Sync) {
+    let (Some(sessions), Ok(runtime)) = (KEPT.get(), kept_runtime()) else { return };
+    std::thread::scope(|scope| {
+        let _ = scope
+            .spawn(|| {
+                runtime.block_on(async {
+                    let mut sessions = sessions.lock().await;
+                    let keys: Vec<Key> = sessions.keys().filter(|key| selected(key)).cloned().collect();
+                    for key in keys {
+                        if let Some((_, session)) = sessions.remove(&key) {
+                            session.close().await;
+                        }
+                    }
+                })
+            })
+            .join();
+    });
+}
+
+/// Stops every kept-alive server started for `root`. A no-op for a repository with none.
+pub fn shutdown_persistent_in(root: &Path) {
+    shutdown_where(|key| key.0 == root);
+}
+
+/// Stops every kept-alive server. Call once when a yana-rt run ends.
+pub fn shutdown_persistent() {
+    shutdown_where(|_| true);
+}
+
 fn render_tools(tools: &[ToolInfo]) -> String {
     if tools.is_empty() {
         return "(no tools)".to_string();
@@ -78,7 +177,12 @@ pub fn mcp_call(root: &Path, command: &str, arguments: &Value, approved: &Disclo
         Some(t) => format!("mcp:{server}/{t}"),
         None => format!("mcp:{server}"),
     };
-    let (text, truncated, failed) = match run_blocking(config, root, tool.as_deref(), arguments)? {
+    let outcome = if config.keep_alive {
+        run_kept_blocking(config, root, tool.as_deref(), arguments)?
+    } else {
+        run_blocking(config, root, tool.as_deref(), arguments)?
+    };
+    let (text, truncated, failed) = match outcome {
         Outcome::Tools(tools) => (render_tools(&tools), false, false),
         Outcome::Result(out) => (out.text, out.truncated, out.is_error),
     };

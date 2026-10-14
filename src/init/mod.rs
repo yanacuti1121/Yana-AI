@@ -111,6 +111,8 @@ const GITIGNORE_APPEND: &str = r#"
 releases/logs/
 "#;
 
+const LOCKING_MARKER: &str = "flock-v1\n";
+
 // ── Runner ────────────────────────────────────────────────────────────────────
 
 struct FileSpec {
@@ -124,6 +126,9 @@ fn file_specs() -> Vec<FileSpec> {
         FileSpec { path: ".claude/settings.json",       content: SETTINGS_JSON,    exec: false },
         FileSpec { path: ".claude/hooks/pre-tool-use.sh", content: PRE_TOOL_USE_SH, exec: true  },
         FileSpec { path: ".yana-ai/config.toml",          content: YANA_CONFIG,    exec: false },
+        // Without this marker the runtime refuses to store a pending approval (flock-v1 gate), so no command or file
+        // change could ever be approved in the project. An existing marker is never overwritten.
+        FileSpec { path: yana_rt::flock_v1::PROTOCOL_FILE, content: LOCKING_MARKER, exec: false },
     ]
 }
 
@@ -194,5 +199,38 @@ fn run(dir: &str, _yes: bool, dry: bool) {
         println!("    2. npx yana-ai-install           # activate");
         println!("    3. yana-rt scan .             # first scan");
         println!("    4. yana-rt doctor run .       # health check");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn marker(root: &std::path::Path) -> std::path::PathBuf {
+        root.join(yana_rt::flock_v1::PROTOCOL_FILE)
+    }
+
+    #[test]
+    fn init_creates_the_locking_marker_so_approvals_can_be_stored() {
+        let dir = tempfile::tempdir().unwrap();
+        run(dir.path().to_str().unwrap(), true, false);
+        assert_eq!(fs::read_to_string(marker(dir.path())).unwrap().trim(), yana_rt::flock_v1::PROTOCOL_VERSION);
+        yana_rt::flock_v1::protocol_is_active(dir.path()).expect("a freshly initialised project must pass the protocol check");
+    }
+
+    #[test]
+    fn a_dry_run_writes_nothing() {
+        let dir = tempfile::tempdir().unwrap();
+        run(dir.path().to_str().unwrap(), true, true);
+        assert!(!marker(dir.path()).exists());
+    }
+
+    #[test]
+    fn an_existing_marker_is_left_as_it_was() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::create_dir_all(marker(dir.path()).parent().unwrap()).unwrap();
+        fs::write(marker(dir.path()), "maintenance-in-progress\n").unwrap();
+        run(dir.path().to_str().unwrap(), true, false);
+        assert_eq!(fs::read_to_string(marker(dir.path())).unwrap(), "maintenance-in-progress\n");
     }
 }

@@ -250,19 +250,36 @@ pub fn dispatch(
         resumed,
         use_sandbox,
     );
-    if let Err(e) = tui::run(&mut guard, app) {
+    let outcome = tui::run(&mut guard, app);
+    stop_kept_mcp_servers();
+    if let Err(e) = outcome {
         drop(guard); // restore the terminal before printing, not after
         eprintln!("[chat] fatal: {e:#}");
         std::process::exit(1);
     }
 }
 
+/// The text of a failed headless run for the IDE: the whole chain of causes, not just the outermost context.
+pub(crate) fn headless_error_text(error: &anyhow::Error) -> String {
+    format!("{error:#}")
+}
+
+/// Stops MCP servers kept running for this run (`keep_alive`), so none outlives the process that started it.
+fn stop_kept_mcp_servers() {
+    #[cfg(feature = "mcp")]
+    crate::mcp_client::gateway::shutdown_persistent();
+}
+
 pub(crate) fn dispatch_headless(provider: String, model: Option<String>) -> anyhow::Result<()> {
-    headless::dispatch(provider, model)
+    let result = headless::dispatch(provider, model);
+    stop_kept_mcp_servers();
+    result
 }
 
 pub(crate) fn dispatch_headless_resume(provider: String) -> anyhow::Result<()> {
-    headless::dispatch_resume(provider)
+    let result = headless::dispatch_resume(provider);
+    stop_kept_mcp_servers();
+    result
 }
 
 #[cfg(test)]
@@ -336,5 +353,25 @@ mod wiring_tests {
         };
         settings::save(temp.path(), &saved).unwrap();
         assert_eq!(configured_fallbacks(temp.path()), vec!["openai", "ollama"]);
+    }
+}
+
+#[cfg(test)]
+mod headless_error_tests {
+    use super::headless_error_text;
+    use anyhow::Context;
+
+    #[test]
+    fn the_cause_is_kept_so_the_message_says_what_to_fix() {
+        let cause: anyhow::Result<()> = Err(anyhow::anyhow!("flock-v1 protocol marker missing: /p/.claude/state/locking-protocol-version"));
+        let error = cause.context("cannot persist pending approval").unwrap_err();
+        let text = headless_error_text(&error);
+        assert!(text.starts_with("cannot persist pending approval"), "{text}");
+        assert!(text.contains("flock-v1 protocol marker missing"), "{text}");
+    }
+
+    #[test]
+    fn a_plain_error_is_unchanged() {
+        assert_eq!(headless_error_text(&anyhow::anyhow!("boom")), "boom");
     }
 }
