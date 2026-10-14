@@ -1,0 +1,129 @@
+{
+	"$schema": "vscode://schemas/color-theme",
+	"name": "Yana High Contrast",
+	"type": "hc",
+	"colors": {
+		"focusBorder": "#7aa0ff",
+		"contrastActiveBorder": "#7aa0ff",
+		"contrastBorder": "#6690ff",
+		"activityBar.activeBorder": "#7aa0ff",
+		"tab.activeBorderTop": "#7aa0ff",
+		"button.background": "#7aa0ff",
+		"textLink.foreground": "#7aa0ff"
+	},
+	"tokenColors": [
+		{
+			"scope": [
+				"comment",
+				"punctuation.definition.comment"
+			],
+			"settings": {
+				"foreground": "#64748b",
+				"fontStyle": "italic"
+			}
+		},
+		{
+			"scope": [
+				"keyword",
+				"storage.type",
+				"storage.modifier",
+				"keyword.control"
+			],
+			"settings": {
+				"foreground": "#ff8a65"
+			}
+		},
+		{
+			"scope": [
+				"string",
+				"string.quoted"
+			],
+			"settings": {
+				"foreground": "#4edea3"
+			}
+		},
+		{
+			"scope": [
+				"constant.numeric",
+				"constant.language"
+			],
+			"settings": {
+				"foreground": "#f59e0b"
+			}
+		},
+		{
+			"scope": [
+				"entity.name.type",
+				"entity.name.class",
+				"support.type",
+				"support.class"
+			],
+			"settings": {
+				"foreground": "#fcd34d"
+			}
+		},
+		{
+			"scope": [
+				"entity.name.function",
+				"support.function",
+				"meta.function-call"
+			],
+			"settings": {
+				"foreground": "#46eee0"
+			}
+		},
+		{
+			"scope": [
+				"variable",
+				"meta.definition.variable"
+			],
+			"settings": {
+				"foreground": "#e2e2e8"
+			}
+		},
+		{
+			"scope": [
+				"variable.other.property",
+				"meta.object-literal.key"
+			],
+			"settings": {
+				"foreground": "#b4c5ff"
+			}
+		},
+		{
+			"scope": [
+				"variable.language.this",
+				"variable.language.self"
+			],
+			"settings": {
+				"foreground": "#ff8a65"
+			}
+		},
+		{
+			"scope": [
+				"punctuation",
+				"meta.brace"
+			],
+			"settings": {
+				"foreground": "#94a3b8"
+			}
+		},
+		{
+			"scope": [
+				"markup.heading"
+			],
+			"settings": {
+				"foreground": "#4f80ff",
+				"fontStyle": "bold"
+			}
+		},
+		{
+			"scope": [
+				"invalid"
+			],
+			"settings": {
+				"foreground": "#ef4444"
+			}
+		}
+	]
+}

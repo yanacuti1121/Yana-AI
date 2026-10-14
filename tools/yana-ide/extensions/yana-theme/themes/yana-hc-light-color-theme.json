@@ -1,0 +1,129 @@
+{
+	"$schema": "vscode://schemas/color-theme",
+	"name": "Yana High Contrast Light",
+	"type": "hcLight",
+	"colors": {
+		"focusBorder": "#1f47b0",
+		"contrastActiveBorder": "#1f47b0",
+		"contrastBorder": "#1f47b0",
+		"activityBar.activeBorder": "#1f47b0",
+		"tab.activeBorderTop": "#1f47b0",
+		"button.background": "#1f47b0",
+		"textLink.foreground": "#1f47b0"
+	},
+	"tokenColors": [
+		{
+			"scope": [
+				"comment",
+				"punctuation.definition.comment"
+			],
+			"settings": {
+				"foreground": "#667085",
+				"fontStyle": "italic"
+			}
+		},
+		{
+			"scope": [
+				"keyword",
+				"storage.type",
+				"storage.modifier",
+				"keyword.control"
+			],
+			"settings": {
+				"foreground": "#c2410c"
+			}
+		},
+		{
+			"scope": [
+				"string",
+				"string.quoted"
+			],
+			"settings": {
+				"foreground": "#0f7a52"
+			}
+		},
+		{
+			"scope": [
+				"constant.numeric",
+				"constant.language"
+			],
+			"settings": {
+				"foreground": "#a35f00"
+			}
+		},
+		{
+			"scope": [
+				"entity.name.type",
+				"entity.name.class",
+				"support.type",
+				"support.class"
+			],
+			"settings": {
+				"foreground": "#8a5a00"
+			}
+		},
+		{
+			"scope": [
+				"entity.name.function",
+				"support.function",
+				"meta.function-call"
+			],
+			"settings": {
+				"foreground": "#00756d"
+			}
+		},
+		{
+			"scope": [
+				"variable",
+				"meta.definition.variable"
+			],
+			"settings": {
+				"foreground": "#1b1f27"
+			}
+		},
+		{
+			"scope": [
+				"variable.other.property",
+				"meta.object-literal.key"
+			],
+			"settings": {
+				"foreground": "#2f4fa8"
+			}
+		},
+		{
+			"scope": [
+				"variable.language.this",
+				"variable.language.self"
+			],
+			"settings": {
+				"foreground": "#c2410c"
+			}
+		},
+		{
+			"scope": [
+				"punctuation",
+				"meta.brace"
+			],
+			"settings": {
+				"foreground": "#4b5565"
+			}
+		},
+		{
+			"scope": [
+				"markup.heading"
+			],
+			"settings": {
+				"foreground": "#2f5fd8",
+				"fontStyle": "bold"
+			}
+		},
+		{
+			"scope": [
+				"invalid"
+			],
+			"settings": {
+				"foreground": "#c62828"
+			}
+		}
+	]
+}

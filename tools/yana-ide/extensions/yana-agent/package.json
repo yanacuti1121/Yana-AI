@@ -1,0 +1,216 @@
+{
+	"name": "yana-agent",
+	"displayName": "Yana Agent",
+	"description": "Yana runtime panel: chat, agent trace and human approval backed by yana-rt.",
+	"version": "0.1.0",
+	"publisher": "yana",
+	"license": "MIT",
+	"engines": {
+		"vscode": "^1.100.0"
+	},
+	"main": "./extension.js",
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": "limited",
+			"description": "The panel is visible, but no task is sent to yana-rt until the folder is trusted."
+		}
+	},
+	"activationEvents": [
+		"onStartupFinished"
+	],
+	"contributes": {
+		"configurationDefaults": {
+			"workbench.secondarySideBar.defaultVisibility": "visible"
+		},
+		"customEditors": [
+			{
+				"viewType": "yana.canvas",
+				"displayName": "Yana Design Canvas",
+				"selector": [{ "filenamePattern": "*.yana-canvas.json" }],
+				"priority": "default"
+			}
+		],
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "yana-explorer",
+					"title": "Yana",
+					"icon": "media/yana.svg"
+				}
+			],
+			"secondarySidebar": [
+				{
+					"id": "yana",
+					"title": "Yana AI",
+					"icon": "media/yana.svg"
+				}
+			]
+		},
+		"views": {
+			"yana": [
+				{
+					"type": "webview",
+					"id": "yana.panel",
+					"name": "Yana AI"
+				}
+			],
+			"yana-explorer": [
+				{ "id": "yana.home", "name": "Start", "icon": "media/yana.svg" },
+				{ "id": "yana.conversations", "name": "Conversations", "icon": "media/yana.svg" },
+				{ "id": "yana.models", "name": "Models & Runtime", "icon": "media/yana.svg" },
+				{ "id": "yana.project", "name": "Project", "icon": "media/yana.svg", "visibility": "collapsed" },
+				{ "id": "yana.tasks", "name": "Tasks", "icon": "media/yana.svg", "visibility": "collapsed" },
+				{ "id": "yana.governance", "name": "Governance", "icon": "media/yana.svg", "visibility": "collapsed" },
+				{ "id": "yana.tools", "name": "Tools", "icon": "media/yana.svg", "visibility": "collapsed" },
+				{ "id": "yana.system", "name": "System", "icon": "media/yana.svg", "visibility": "collapsed" }
+			]
+		},
+		"commands": [
+			{ "command": "yana.welcome.open", "title": "Open Yana Home", "category": "Yana", "icon": "$(home)" },
+			{ "command": "yana.guide.open", "title": "Open Guide", "category": "Yana", "icon": "$(book)" },
+			{ "command": "yana.idePreferences.open", "title": "Yana IDE Settings", "category": "Yana", "icon": "$(settings-gear)" },
+			{ "command": "yana.controlCenter.open", "title": "Yana Control Center", "category": "Yana", "icon": "$(dashboard)" },
+			{ "command": "yana.office.open", "title": "Open Office Tools", "category": "Yana", "icon": "$(file-pdf)" },
+			{ "command": "yana.settings.open", "title": "Yana Settings", "category": "Yana", "icon": "$(settings-gear)" },
+			{ "command": "yana.canvas.new", "title": "New Design Canvas", "category": "Yana", "icon": "$(paintcan)" },
+			{ "command": "yana.canvas.open", "title": "Open Design Canvas…", "category": "Yana", "icon": "$(folder-opened)" },
+			{ "command": "yana.tasks.open", "title": "Open Tasks Board", "category": "Yana", "icon": "$(tasklist)" },
+			{ "command": "yana.permissions.open", "title": "Open Permissions", "category": "Yana", "icon": "$(shield)" },
+			{ "command": "yana.studio.canvas", "title": "Studio Canvas (Component Editor)", "category": "Yana", "icon": "$(layout)" },
+			{ "command": "yana.chat.prefill", "title": "Prefill Chat", "category": "Yana" },
+			{ "command": "yana.chat.new", "title": "New Conversation", "category": "Yana", "icon": "$(add)" },
+			{ "command": "yana.chat.history", "title": "Open Conversation…", "category": "Yana", "icon": "$(history)" },
+			{ "command": "yana.chat.open", "title": "Open Conversation", "category": "Yana" },
+			{ "command": "yana.chat.rename", "title": "Rename Conversation", "category": "Yana", "icon": "$(edit)" },
+			{ "command": "yana.chat.delete", "title": "Delete Conversation", "category": "Yana", "icon": "$(trash)" },
+			{ "command": "yana.modelsRuntime.open", "title": "Models & Runtime", "category": "Yana", "icon": "$(server-process)" },
+			{ "command": "yana.models.refresh", "title": "Refresh Models", "category": "Yana", "icon": "$(refresh)" },
+			{ "command": "yana.models.choose", "title": "Choose Model", "category": "Yana", "icon": "$(list-selection)" },
+			{ "command": "yana.models.select", "title": "Use This Model", "category": "Yana" },
+			{ "command": "yana.models.removeKey", "title": "Remove API Key", "category": "Yana", "icon": "$(trash)" },
+			{ "command": "yana.memory.open", "title": "Open Project Memory", "category": "Yana", "icon": "$(book)" },
+			{ "command": "yana.runCommands.add", "title": "Pin Command", "category": "Yana", "icon": "$(add)" },
+			{ "command": "yana.runCommands.run", "title": "Run Pinned Command", "category": "Yana", "icon": "$(play)" },
+			{ "command": "yana.runCommands.remove", "title": "Unpin Command", "category": "Yana", "icon": "$(close)" },
+			{ "command": "yana.runCommands.pick", "title": "Run Pinned Command…", "category": "Yana" },
+			{ "command": "yana.system.refresh", "title": "Refresh System", "category": "Yana", "icon": "$(refresh)" },
+			{ "command": "yana.commandReference", "title": "Command Reference (COMMANDS.md)", "category": "Yana", "icon": "$(list-unordered)" },
+			{ "command": "yana.governance.revokeLease", "title": "Revoke Lease", "category": "Yana", "icon": "$(circle-slash)" },
+			{ "command": "yana.setApiKey", "title": "Set Provider API Key", "category": "Yana", "icon": "$(key)" },
+			{ "command": "yana.pickModel", "title": "Choose Provider and Model", "category": "Yana" },
+			{ "command": "yana.focus", "title": "Open Agent Panel", "category": "Yana" },
+			{ "command": "yana.tasks.refresh", "title": "Refresh Tasks", "category": "Yana", "icon": "$(refresh)" },
+			{ "command": "yana.tasks.create", "title": "New Task", "category": "Yana", "icon": "$(add)" },
+			{ "command": "yana.tasks.done", "title": "Mark Done with Evidence", "category": "Yana", "icon": "$(check)" },
+			{ "command": "yana.tasks.drop", "title": "Drop Task", "category": "Yana", "icon": "$(trash)" },
+			{ "command": "yana.governance.refresh", "title": "Refresh Governance", "category": "Yana", "icon": "$(refresh)" },
+			{ "command": "yana.tools.pick", "title": "Run Tool…", "category": "Yana", "icon": "$(play)" },
+			{ "command": "yana.tool.doctor", "title": "Doctor", "category": "Yana" },
+			{ "command": "yana.tool.scan", "title": "Scan Agent Setup", "category": "Yana" },
+			{ "command": "yana.tool.hunt", "title": "Hunt Vulnerabilities", "category": "Yana" },
+			{ "command": "yana.tool.score", "title": "Audit Score", "category": "Yana" },
+			{ "command": "yana.tool.map", "title": "Blast Radius Map", "category": "Yana" },
+			{ "command": "yana.tool.ci", "title": "CI Health", "category": "Yana" },
+			{ "command": "yana.tool.cost", "title": "Cost", "category": "Yana" }
+		],
+		"menus": {
+			"view/title": [
+				{ "command": "yana.settings.open", "when": "view == yana.home", "group": "navigation@0" },
+				{ "command": "yana.chat.new", "when": "view == yana.conversations", "group": "navigation@1" },
+				{ "command": "yana.chat.history", "when": "view == yana.conversations", "group": "navigation@2" },
+				{ "command": "yana.guide.open", "when": "view == yana.panel", "group": "navigation@1" },
+				{ "command": "yana.chat.new", "when": "view == yana.panel", "group": "navigation@2" },
+				{ "command": "yana.settings.open", "when": "view == yana.panel", "group": "navigation@3" },
+				{ "command": "yana.chat.history", "when": "view == yana.panel", "group": "navigation@4" },
+				{ "command": "yana.settings.open", "when": "view == yana.models", "group": "navigation@0" },
+				{ "command": "yana.setApiKey", "when": "view == yana.models", "group": "navigation@1" },
+				{ "command": "yana.models.refresh", "when": "view == yana.models", "group": "navigation@2" },
+				{ "command": "yana.canvas.new", "when": "view == yana.project", "group": "navigation@0" },
+				{ "command": "yana.memory.open", "when": "view == yana.project", "group": "navigation@1" },
+				{ "command": "yana.runCommands.add", "when": "view == yana.project", "group": "navigation@2" },
+				{ "command": "yana.commandReference", "when": "view == yana.system", "group": "navigation@1" },
+				{ "command": "yana.system.refresh", "when": "view == yana.system", "group": "navigation@2" },
+				{ "command": "yana.tasks.open", "when": "view == yana.tasks", "group": "navigation@0" },
+				{ "command": "yana.tasks.create", "when": "view == yana.tasks", "group": "navigation@1" },
+				{ "command": "yana.tasks.refresh", "when": "view == yana.tasks", "group": "navigation@2" },
+				{ "command": "yana.permissions.open", "when": "view == yana.governance", "group": "navigation@0" },
+				{ "command": "yana.governance.refresh", "when": "view == yana.governance", "group": "navigation@1" },
+				{ "command": "yana.tools.pick", "when": "view == yana.tools", "group": "navigation" }
+			],
+			"view/item/context": [
+				{ "command": "yana.chat.rename", "when": "view == yana.conversations && viewItem == yana.conversation", "group": "inline@1" },
+				{ "command": "yana.chat.delete", "when": "view == yana.conversations && viewItem == yana.conversation", "group": "inline@2" },
+				{ "command": "yana.setApiKey", "when": "view == yana.models && viewItem =~ /^yana\\.provider\\.(no)?keyed$/", "group": "inline@1" },
+				{ "command": "yana.models.removeKey", "when": "view == yana.models && viewItem == yana.provider.keyed", "group": "inline@2" },
+				{ "command": "yana.runCommands.remove", "when": "view == yana.project && viewItem == yana.runCommand", "group": "inline@1" },
+				{ "command": "yana.governance.revokeLease", "when": "view == yana.governance && viewItem == yana.lease", "group": "inline@1" },
+				{ "command": "yana.tasks.done", "when": "view == yana.tasks && viewItem == yana.task.open", "group": "inline@1" },
+				{ "command": "yana.tasks.drop", "when": "view == yana.tasks && viewItem =~ /^yana\\.task\\./", "group": "inline@2" }
+			],
+			"commandPalette": [
+				{ "command": "yana.tasks.done", "when": "false" },
+				{ "command": "yana.tasks.drop", "when": "false" },
+				{ "command": "yana.models.select", "when": "false" },
+				{ "command": "yana.chat.open", "when": "false" },
+				{ "command": "yana.chat.prefill", "when": "false" },
+				{ "command": "yana.models.removeKey", "when": "false" },
+				{ "command": "yana.runCommands.run", "when": "false" },
+				{ "command": "yana.runCommands.remove", "when": "false" },
+				{ "command": "yana.governance.revokeLease", "when": "false" }
+			]
+		},
+		"keybindings": [
+			{ "command": "yana.focus", "key": "ctrl+l", "mac": "cmd+l" }
+		],
+		"configuration": {
+			"title": "Yana",
+			"properties": {
+				"yana.welcome.showOnStartup": {
+					"type": "boolean",
+					"default": true,
+					"description": "Open the Yana Home page at startup when no file is open."
+				},
+				"yana.guide.autoOpen": {
+					"type": "boolean",
+					"default": true,
+					"description": "Open the user guide once at the first start."
+				},
+				"yana.chat.maxTokens": {
+					"type": ["integer", "null"],
+					"default": null,
+					"minimum": 1,
+					"maximum": 32000,
+					"description": "Longest reply the model may write, in tokens. Empty: the provider's default (Claude: 4096). Needs a yana-rt that supports it."
+				},
+				"yana.chat.temperature": {
+					"type": ["number", "null"],
+					"default": null,
+					"minimum": 0,
+					"maximum": 2,
+					"description": "Sampling temperature, 0 to 2 (Claude caps it at 1). Empty: the provider's default. Needs a yana-rt that supports it."
+				},
+				"yana.runtimePath": {
+					"type": "string",
+					"default": "",
+					"description": "Absolute path to the yana-rt binary. Empty: search ~/.local/bin, /opt/homebrew/bin, /usr/local/bin."
+				},
+				"yana.provider": {
+					"type": "string",
+					"default": "ollama",
+					"enum": ["anthropic", "openai", "gemini", "groq", "deepseek", "openrouter", "xai", "novita", "nvidia", "minimax", "glm", "huggingface", "9router", "kimi", "ollama", "lmstudio", "llamacpp", "turbofieldfare", "airllm", "custom"],
+					"description": "Provider passed to yana-rt chat --provider. Matches the yana-rt catalog; custom means the OpenAI-compatible endpoint in yana.baseUrl."
+				},
+				"yana.baseUrl": {
+					"type": "string",
+					"default": "",
+					"description": "Base URL for the custom provider (HTTPS, or HTTP on 127.0.0.1/localhost)."
+				},
+				"yana.model": {
+					"type": "string",
+					"default": "",
+					"description": "Model passed to yana-rt chat --model. Empty: provider default."
+				}
+			}
+		}
+	}
+}

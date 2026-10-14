@@ -1,0 +1,113 @@
+{
+  "_dark-theme.css": {
+    "file": "dark-theme.css",
+    "src": "_dark-theme.css"
+  },
+  "_ide-theme.css": {
+    "file": "ide-theme.css",
+    "src": "_ide-theme.css"
+  },
+  "_shared-circle-check.js": {
+    "file": "shared-circle-check.js",
+    "name": "circle-check",
+    "imports": [
+      "_shared-ide-theme.js"
+    ]
+  },
+  "_shared-dark-theme.js": {
+    "file": "shared-dark-theme.js",
+    "name": "dark-theme",
+    "imports": [
+      "_shared-ide-theme.js"
+    ],
+    "css": [
+      "dark-theme.css"
+    ]
+  },
+  "_shared-i18n.js": {
+    "file": "shared-i18n.js",
+    "name": "i18n"
+  },
+  "_shared-ide-theme.js": {
+    "file": "shared-ide-theme.js",
+    "name": "ide-theme",
+    "css": [
+      "ide-theme.css"
+    ]
+  },
+  "_shared-lock.js": {
+    "file": "shared-lock.js",
+    "name": "lock",
+    "imports": [
+      "_shared-ide-theme.js"
+    ]
+  },
+  "_shared-shield.js": {
+    "file": "shared-shield.js",
+    "name": "shield",
+    "imports": [
+      "_shared-ide-theme.js"
+    ]
+  },
+  "_shared-trash-2.js": {
+    "file": "shared-trash-2.js",
+    "name": "trash-2",
+    "imports": [
+      "_shared-ide-theme.js"
+    ]
+  },
+  "canvas-entry.tsx": {
+    "file": "canvas.js",
+    "name": "canvas",
+    "src": "canvas-entry.tsx",
+    "isEntry": true,
+    "imports": [
+      "_shared-ide-theme.js",
+      "_shared-lock.js",
+      "_shared-trash-2.js",
+      "_shared-i18n.js"
+    ],
+    "css": [
+      "canvas.css"
+    ]
+  },
+  "permissions-entry.tsx": {
+    "file": "permissions.js",
+    "name": "permissions",
+    "src": "permissions-entry.tsx",
+    "isEntry": true,
+    "imports": [
+      "_shared-ide-theme.js",
+      "_shared-dark-theme.js",
+      "_shared-shield.js",
+      "_shared-i18n.js"
+    ]
+  },
+  "settings-entry.tsx": {
+    "file": "settings.js",
+    "name": "settings",
+    "src": "settings-entry.tsx",
+    "isEntry": true,
+    "imports": [
+      "_shared-ide-theme.js",
+      "_shared-dark-theme.js",
+      "_shared-shield.js",
+      "_shared-i18n.js",
+      "_shared-trash-2.js",
+      "_shared-circle-check.js",
+      "_shared-lock.js"
+    ]
+  },
+  "tasks-entry.tsx": {
+    "file": "tasks.js",
+    "name": "tasks",
+    "src": "tasks-entry.tsx",
+    "isEntry": true,
+    "imports": [
+      "_shared-ide-theme.js",
+      "_shared-dark-theme.js",
+      "_shared-circle-check.js",
+      "_shared-trash-2.js"
+    ]
+  }
+}

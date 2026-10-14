@@ -1,0 +1,42 @@
+{
+	"name": "yana-theme",
+	"displayName": "Yana Studio Theme",
+	"description": "Color theme from the Yana Studio Autonomous Runtime Cockpit design.",
+	"version": "0.1.0",
+	"publisher": "yana",
+	"license": "MIT",
+	"engines": {
+		"vscode": "^1.100.0"
+	},
+	"categories": [
+		"Themes"
+	],
+	"contributes": {
+		"themes": [
+			{
+				"id": "Yana Dark",
+				"label": "Yana Dark",
+				"uiTheme": "vs-dark",
+				"path": "./themes/yana-dark-color-theme.json"
+			},
+			{
+				"id": "Yana Light",
+				"label": "Yana Light",
+				"uiTheme": "vs",
+				"path": "./themes/yana-light-color-theme.json"
+			},
+			{
+				"id": "Yana High Contrast",
+				"label": "Yana High Contrast",
+				"uiTheme": "hc-black",
+				"path": "./themes/yana-hc-dark-color-theme.json"
+			},
+			{
+				"id": "Yana High Contrast Light",
+				"label": "Yana High Contrast Light",
+				"uiTheme": "hc-light",
+				"path": "./themes/yana-hc-light-color-theme.json"
+			}
+		]
+	}
+}
