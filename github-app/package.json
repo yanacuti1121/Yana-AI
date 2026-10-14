@@ -8,14 +8,14 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@octokit/auth-app": "^8.2.0",
+    "@octokit/auth-app": "^8.3.1",
     "@octokit/rest": "^21.1.1",
     "@octokit/webhooks": "^13.0.0",
-    "hono": "^4.13.7"
+    "hono": "^4.13.13"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260929.1",
     "typescript": "^5.0.0",
-    "wrangler": "^4.147.0"
+    "wrangler": "^4.148.0"
   }
 }
