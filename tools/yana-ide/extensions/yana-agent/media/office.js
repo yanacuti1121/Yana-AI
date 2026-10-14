@@ -307,7 +307,7 @@
 			['Export ODT', () => send('export', { format: 'odt' })],
 			['Export Excel (tables)', () => send('export', { format: 'xlsx' })],
 			['Save Markdown', () => send('export', { format: 'md' })],
-		];
+		].concat(isAvailable('typst') ? [['Export PDF report (Typst)', () => send('export', { format: 'typst' })]] : []);
 		for (const [text, handler] of docButtons) {
 			const button = el('button', 'btn', text);
 			button.type = 'button';

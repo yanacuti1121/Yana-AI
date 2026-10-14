@@ -9,7 +9,7 @@ Cập nhật 2026-10-14. File này do phiên B giữ. Phiên A không sửa.
 | Khung | Tab "Yana Office", lệnh `Yana: Open Office Tools`, dò công cụ | Xong, test `tests/office.test.cjs` đạt |
 | H1 | Slide từ Markdown bằng Marp | Xong phần mã: xem trước, xuất PDF và PPTX ảnh. Test `office-slides.test.cjs` (có 1 lần xuất PDF thật). Chưa xem trong cửa sổ thật |
 | H3 | File `.pptx` sửa được bằng PptxGenJS | Xong phần mã: dùng chung ô Markdown, `---` ngăn slide, `#` tiêu đề, `-` gạch đầu dòng. Test `office-pptx.test.cjs` (mở file thật). Chưa xem trong cửa sổ thật |
-| H2 | PDF bằng Typst | Chưa cài. Đề xuất `brew install typst` (0.15.1, Apache-2.0). Chờ anh Tâm |
+| H2 | PDF báo cáo bằng Typst | Xong phần mã (2026-10-14): `brew install typst` 0.15.1 (bản bottle chính thức, Apache-2.0, anh Tâm đã duyệt), nút "Export PDF report (Typst)" chỉ hiện khi tìm thấy typst. Chữ của người dùng luôn đi vào Typst dưới dạng chuỗi đã escape (không chèn được mã Typst), ảnh chỉ nhận data URI hợp lệ, không dùng gói `@preview` nên không có mạng. Test `office-typst.test.cjs` 20 mục (typst thật, tiếng Việt có dấu, văn bản độc hại in ra như chữ) |
 | H4 | Word và Excel | Xong phần mã (2026-10-14): ghi Word `.docx` và `.odt`, ghi Excel `.xlsx` từ bảng Markdown (mỗi bảng một sheet), đọc cả ba. Chưa xem trong cửa sổ thật |
 | H5 | AI dựng cả bộ slide | Để sau |
 | File đợt 1 | Mở `.md` `.txt` `.csv`, chèn ảnh PNG/JPG/GIF/WebP, xuất HTML và Markdown, bảng và ảnh trong PPTX sửa được | Xong phần mã. Test `office-files.test.cjs` 42 mục. Giao diện đã thử trong bản giả lập trình duyệt, chưa xem trong cửa sổ thật |

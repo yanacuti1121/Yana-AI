@@ -11,6 +11,7 @@ const pptx = require('./office-pptx');
 const files = require('./office-files');
 const documents = require('./office-documents');
 const xlsx = require('./office-xlsx');
+const typst = require('./office-typst');
 
 const MAX_EMBEDDED_MARKDOWN_BYTES = 40 * 1024 * 1024; // the user's text (256 KB) plus up to 25 MB of images as base64
 
@@ -59,6 +60,7 @@ const SAVE_FILTERS = {
 	docx: { Word: ['docx'] },
 	odt: { 'OpenDocument Text': ['odt'] },
 	xlsx: { Excel: ['xlsx'] },
+	typst: { PDF: ['pdf'] },
 };
 
 function reply(message) {
@@ -108,6 +110,11 @@ async function exportFile(context, message) {
 		const built = await xlsx.buildXlsx({ extensionPath: context.extensionPath, markdown: message.markdown });
 		fs.writeFileSync(target.fsPath, built.bytes);
 		return { type: 'exported', path: target.fsPath, note: `${built.sheets.length} sheet(s)` };
+	}
+	if (message.format === 'typst') {
+		const embedded = files.resolveImages(message.markdown, images);
+		await typst.buildTypstPdf({ markdown: embedded.markdown, outputFile: target.fsPath });
+		return { type: 'exported', path: target.fsPath, note: describeNotes(embedded.notes) };
 	}
 	if (message.format === 'docx' || message.format === 'odt') {
 		const embedded = files.resolveImages(message.markdown, images);

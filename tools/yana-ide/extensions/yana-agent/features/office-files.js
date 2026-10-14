@@ -227,5 +227,5 @@ function resolveImages(markdown, registry) {
 module.exports = {
 	readTextFile, readImage, csvToMarkdown, parseCsv, ImageRegistry, resolveImages,
 	MAX_TEXT_BYTES, MAX_IMAGE_BYTES, MAX_TOTAL_IMAGE_BYTES, MAX_CSV_ROWS, MAX_CSV_COLUMNS, MAX_IMAGE_SIDE_PX, IMAGE_EXTENSIONS, TEXT_EXTENSIONS,
-	CONTROL_CHARS,
+	CONTROL_CHARS, inlineImage,
 };
