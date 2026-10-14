@@ -63,6 +63,9 @@ const SAVE_FILTERS = {
 	typst: { PDF: ['pdf'] },
 };
 
+// The text on the save button; the raw format id ("typst", "pptx-edit") means nothing to the user.
+const SAVE_LABELS = { pdf: 'PDF', pptx: 'PPTX', 'pptx-edit': 'PPTX', html: 'HTML', md: 'Markdown', docx: 'Word', odt: 'ODT', xlsx: 'Excel', typst: 'PDF report' };
+
 function reply(message) {
 	panel?.webview.postMessage(message);
 }
@@ -99,7 +102,7 @@ async function exportFile(context, message) {
 	if (!Object.hasOwn(SAVE_FILTERS, message.format)) throw new Error('Unsupported export format.');
 	const filters = SAVE_FILTERS[message.format];
 	slides.checkMarkdown(message.markdown);
-	const target = await vscode.window.showSaveDialog({ filters, saveLabel: `Export ${message.format.toUpperCase()}` });
+	const target = await vscode.window.showSaveDialog({ filters, saveLabel: `Export ${SAVE_LABELS[message.format]}` });
 	if (!target) return { type: 'exported', cancelled: true };
 	reply({ type: 'busy' });
 	if (message.format === 'md') {

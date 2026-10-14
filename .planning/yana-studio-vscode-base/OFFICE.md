@@ -30,6 +30,14 @@ Cập nhật 2026-10-14. File này do phiên B giữ. Phiên A không sửa.
 
 Chưa xác định (người xem không chứng minh được rò rỉ): ảnh web kiểu tham chiếu `![a][r]` hoặc `url()` trong `style:` của front matter khi xuất PDF bằng Chrome. Preview không mở mạng (iframe `sandbox`, CSP `default-src 'none'`).
 
+### Kiểm trong cửa sổ Yana Studio thật (2026-10-14 22:00, có ảnh chụp màn hình)
+
+- Lệnh `Yana: Open Office Tools` mở tab Yana Office; giao diện hiển thị đầy đủ: mẫu, chủ đề, Open file…, Insert image…, Preview (dựng "My First Deck"), 4 nút xuất slide, 5 nút xuất tài liệu gồm "Export PDF report (Typst)", và các thẻ công cụ báo Installed cho Typst, PptxGenJS, officeparser.
+- Xuất Typst thật: bấm nút, hộp thoại lưu của macOS hiện ra (bước duyệt), lưu xong báo "Saved to …". Tệp là PDF 1.7 hợp lệ (12,7 KB), đọc ngược ra đúng nội dung.
+- Một lần chép ra thất bại vì tên tệp thử có dấu `:` (do cách thao tác); Typst vẫn biên dịch xong và giao diện hiện lỗi rõ ràng, không treo.
+- Phát hiện nhỏ và đã sửa: nút lưu ghi "Export TYPST"; nay ghi "Export PDF report".
+- Chưa kiểm trong cửa sổ thật: các nút Open file…, Insert image…, và 7 định dạng xuất còn lại (đã có test tự động và bản giả lập trình duyệt). Các trang cũ (Tasks, Permissions, Canvas) chưa kiểm.
+
 ### Cách file được xử lý
 
 - Mở file: chỉ qua hộp thoại mở của IDE. Ảnh trong Markdown chỉ được nhúng nếu chính người dùng chọn nó bằng nút "Insert image" trong phiên này; đường dẫn gõ tay không bao giờ được đọc. Ảnh từ web bị gỡ khi xem trước và xuất (không để bộ dựng tự tải).
