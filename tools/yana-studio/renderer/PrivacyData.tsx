@@ -20,8 +20,10 @@ export function PrivacyData({
   locale,
   onState,
   onError,
+  showBackup = true,
 }: {
   locale: Locale;
+  showBackup?: boolean;
   onState: (state: State) => void;
   onError: (value: string) => void;
 }) {
@@ -69,7 +71,8 @@ export function PrivacyData({
             <p className="muted">{t("localDataOnLocalMachine")}</p>
           </div>
           <button disabled={busy} onClick={() => void refresh()}>
-            <RefreshCw size={15} /> {busy ? t("readingLabel") : t("refreshLabel")}
+            <RefreshCw size={15} />{" "}
+            {busy ? t("readingLabel") : t("refreshLabel")}
           </button>
         </header>
         <div className="data-total">
@@ -99,77 +102,81 @@ export function PrivacyData({
           </div>
         </dl>
       </section>
-      <section className="card settings-card portable-backup">
-        <div>
-          <h3>{t("backupToDiskTitle")}</h3>
-          <p>{t("backupToDiskNote")}</p>
-          <div className="button-row">
-            <button
-              disabled={busy}
-              onClick={() =>
-                void (async () => {
-                  setBusy(true);
-                  setMessage("");
-                  try {
-                    const file = await window.studio.exportPortableData();
-                    if (file) setMessage(t("backupSavedNotice"));
-                  } catch (error) {
-                    onError(String(error));
-                  } finally {
-                    setBusy(false);
+      {showBackup && (
+        <>
+          <section className="card settings-card portable-backup">
+            <div>
+              <h3>{t("backupToDiskTitle")}</h3>
+              <p>{t("backupToDiskNote")}</p>
+              <div className="button-row">
+                <button
+                  disabled={busy}
+                  onClick={() =>
+                    void (async () => {
+                      setBusy(true);
+                      setMessage("");
+                      try {
+                        const file = await window.studio.exportPortableData();
+                        if (file) setMessage(t("backupSavedNotice"));
+                      } catch (error) {
+                        onError(String(error));
+                      } finally {
+                        setBusy(false);
+                      }
+                    })()
                   }
-                })()
-              }
-            >
-              <Download size={15} /> {t("exportBackup")}
-            </button>
-            <button disabled={busy} onClick={() => void restore()}>
-              <FileUp size={15} /> {t("chooseRestoreFile")}
-            </button>
-          </div>
-        </div>
-      </section>
-      <label
-        className="backup-dropzone"
-        onDragOver={(event) => event.preventDefault()}
-        onDrop={(event) => {
-          event.preventDefault();
-          const file = event.dataTransfer.files[0];
-          if (file) void restore(file);
-        }}
-      >
-        <FileUp size={24} />
-        <strong>{t("dropBackupHere")}</strong>
-        <span>{t("orClickToChoose")}</span>
-        <input
-          type="file"
-          accept="application/json,.json"
-          disabled={busy}
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            if (file) void restore(file);
-            event.target.value = "";
-          }}
-        />
-      </label>
-      {message && <p className="backup-message">{message}</p>}
-      <section className="card settings-card data-boundary uninstall-warning">
-        <TriangleAlert size={20} />
-        <div>
-          <h3>{t("beforeUninstallTitle")}</h3>
-          <p>{t("beforeUninstallNote")}</p>
-        </div>
-      </section>
-      <section className="card settings-card data-boundary">
-        <ShieldCheck size={20} />
-        <div>
-          <h3>{t("dataBoundaryTitle")}</h3>
-          <p>
-            {t("dataBoundaryNotePrefix")} <code>yana-rt</code>
-            {t("dataBoundaryNoteSuffix")}
-          </p>
-        </div>
-      </section>
+                >
+                  <Download size={15} /> {t("exportBackup")}
+                </button>
+                <button disabled={busy} onClick={() => void restore()}>
+                  <FileUp size={15} /> {t("chooseRestoreFile")}
+                </button>
+              </div>
+            </div>
+          </section>
+          <label
+            className="backup-dropzone"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => {
+              event.preventDefault();
+              const file = event.dataTransfer.files[0];
+              if (file) void restore(file);
+            }}
+          >
+            <FileUp size={24} />
+            <strong>{t("dropBackupHere")}</strong>
+            <span>{t("orClickToChoose")}</span>
+            <input
+              type="file"
+              accept="application/json,.json"
+              disabled={busy}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) void restore(file);
+                event.target.value = "";
+              }}
+            />
+          </label>
+          {message && <p className="backup-message">{message}</p>}
+          <section className="card settings-card data-boundary uninstall-warning">
+            <TriangleAlert size={20} />
+            <div>
+              <h3>{t("beforeUninstallTitle")}</h3>
+              <p>{t("beforeUninstallNote")}</p>
+            </div>
+          </section>
+          <section className="card settings-card data-boundary">
+            <ShieldCheck size={20} />
+            <div>
+              <h3>{t("dataBoundaryTitle")}</h3>
+              <p>
+                {t("dataBoundaryNotePrefix")} <code>yana-rt</code>
+                {t("dataBoundaryNoteSuffix")}
+              </p>
+            </div>
+          </section>
+        </>
+      )}
     </div>
   );
 }
