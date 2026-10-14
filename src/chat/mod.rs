@@ -44,6 +44,8 @@ pub(crate) mod gemini;
 // `pub(crate)`, not private: `crate::os::agent` (Program K) reads
 // `list_recent_sessions`/`SessionSummary` as the real data source for
 // `yana-rt os agent-list`.
+mod approval_preview;
+mod gen_options;
 mod headless;
 pub(crate) mod history;
 mod input;

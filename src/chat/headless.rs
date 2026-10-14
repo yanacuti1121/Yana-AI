@@ -26,8 +26,9 @@ use crate::session_context::SessionContext;
 use anyhow::{Context, Result};
 use serde::Deserialize;
 use serde_json::json;
+use std::collections::HashMap;
 use std::io::{self, Read, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -72,6 +73,25 @@ struct HeadlessTurnInput {
     /// trust.
     #[serde(default)]
     history: Vec<HeadlessHistoryInput>,
+    /// Working mode: "act" (default) or "plan". Plan withholds every tool that could change anything
+    /// and makes the executor refuse one anyway, so the model can only look and describe a plan.
+    #[serde(default)]
+    mode: Option<String>,
+    /// Reply length limit in tokens (1 to 32000). Omitted: each provider's own default.
+    #[serde(default)]
+    max_tokens: Option<i64>,
+    /// Sampling temperature (0 to 2; Anthropic caps it at 1). Omitted: the provider's default.
+    #[serde(default)]
+    temperature: Option<f64>,
+}
+
+/// `true` for Plan mode. Anything but the two known names is an error, never a silent fall back to Act.
+fn parse_mode(mode: Option<&str>) -> Result<bool> {
+    match mode {
+        None | Some("act") => Ok(false),
+        Some("plan") => Ok(true),
+        Some(other) => anyhow::bail!("mode must be 'act' or 'plan', got '{}'", other.chars().take(20).collect::<String>()),
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -155,7 +175,12 @@ pub(super) fn dispatch(provider_name: String, model: Option<String>) -> Result<(
         true,
     );
     let context = TurnContext::new(session.clone(), TurnOrigin::Desktop, true);
+    let plan_mode = parse_mode(input.mode.as_deref())?;
+    super::gen_options::set_active(
+        super::gen_options::GenerationOptions::parse(input.max_tokens, input.temperature).map_err(anyhow::Error::msg)?,
+    );
     let tools = crate::chat::tools::catalog(&session);
+    let tools = if plan_mode { crate::chat::tools::plan_mode_catalog(tools) } else { tools };
     let system = input.system.filter(|value| !value.is_empty());
     let api_key = input.api_key.filter(|value| !value.is_empty());
     let mut messages = history_messages;
@@ -170,16 +195,17 @@ pub(super) fn dispatch(provider_name: String, model: Option<String>) -> Result<(
 
     let executor = Arc::new(crate::chat::tui::tool_dispatch::ChatCapabilityExecutor::new(
         session.sandboxed,
-    ));
+    ).in_plan_mode(plan_mode));
     let engine = TurnEngine::new(provider, Arc::new(YanaAuthorityChain), executor);
     let cancellation = CancellationToken::default();
     let mut output = io::BufWriter::new(io::stdout().lock());
     let mut approval_reason: Option<String> = None;
+    let mut event_context = EventContext::new(&session.repo_root);
     let outcome = engine.run(request, &cancellation, &mut |event| {
         if let RuntimeEvent::HumanApprovalRequired { authority, reason, .. } = &event {
             approval_reason = Some(format!("{}: {reason}", authority.label()));
         }
-        if let Err(error) = write_event(&mut output, event) {
+        if let Err(error) = write_event_with(&mut output, event, &mut event_context) {
             eprintln!("[chat/headless] stdout protocol write failed: {error}");
         }
     })?;
@@ -271,6 +297,8 @@ pub(super) fn dispatch_resume(provider_name: String) -> Result<()> {
     let cancellation = CancellationToken::default();
     let mut output = io::BufWriter::new(io::stdout().lock());
     let mut approval_reason: Option<String> = None;
+    let mut event_context = EventContext::new(&resolved.context.session.repo_root)
+        .with_known_call(&resolved.pending_call.id, &resolved.pending_call.name);
     let outcome = resume_turn(
         &resolved,
         provider,
@@ -282,7 +310,7 @@ pub(super) fn dispatch_resume(provider_name: String) -> Result<()> {
             if let RuntimeEvent::HumanApprovalRequired { authority, reason, .. } = &event {
                 approval_reason = Some(format!("{}: {reason}", authority.label()));
             }
-            if let Err(error) = write_event(&mut output, event) {
+            if let Err(error) = write_event_with(&mut output, event, &mut event_context) {
                 eprintln!("[chat/headless] stdout protocol write failed: {error}");
             }
         },
@@ -501,11 +529,19 @@ fn summarize_tool_call(call: &crate::model::tool::ToolCall) -> String {
     struct Args {
         command: Option<String>,
         path: Option<String>,
+        query: Option<String>,
     }
     let args: Args = serde_json::from_str(&call.arguments_json).unwrap_or_default();
     let raw = match call.name.as_str() {
         "run_command" => args.command.map(|c| format!("Running: {c}")),
         "read_file" => args.path.map(|p| format!("Reading: {p}")),
+        "write_file" => args.path.map(|p| format!("Writing: {p}")),
+        "write_config" => args.path.map(|p| format!("Writing config: {p}")),
+        "patch_file" => args.path.map(|p| format!("Editing: {p}")),
+        "repo_tree" => Some(format!("Listing: {}", args.path.unwrap_or_else(|| ".".to_string()))),
+        "search_code" => args.query.map(|q| format!("Searching: {q}")),
+        "git_status" => Some("Checking git status".to_string()),
+        "git_diff" => Some("Reading git diff".to_string()),
         _ => None,
     }
     .unwrap_or_else(|| call.name.clone());
@@ -524,7 +560,7 @@ const SECRET_LIKE_MARKERS: &[&str] = &[
     "SECRET", "TOKEN", "PASSWORD", "API_KEY", "APIKEY", "PRIVATE_KEY", "BEARER",
 ];
 
-fn redact_secret_like(text: &str) -> String {
+pub(super) fn redact_secret_like(text: &str) -> String {
     let upper = text.to_uppercase();
     if SECRET_LIKE_MARKERS.iter().any(|marker| upper.contains(marker)) {
         "[redacted — may reference a secret]".to_string()
@@ -560,7 +596,36 @@ fn truncate_summary(text: &str) -> String {
 /// `MessageCompleted` (would duplicate the full assistant reply through a
 /// second channel — the existing `text_delta` stream is already the one
 /// place that text travels).
+/// What `write_event_with` needs beyond the event itself: the repository the
+/// approval preview is computed against, and the tool name of each call seen
+/// so far (a `tool_completed` event only carries a call id).
+struct EventContext {
+    root: PathBuf,
+    tool_names: HashMap<String, String>,
+}
+
+impl EventContext {
+    fn new(root: &Path) -> Self {
+        Self { root: root.to_path_buf(), tool_names: HashMap::new() }
+    }
+
+    /// A resumed turn never re-announces the call that was approved, so its id is registered up front.
+    fn with_known_call(mut self, call_id: &str, tool: &str) -> Self {
+        self.tool_names.insert(call_id.to_string(), tool.to_string());
+        self
+    }
+}
+
+/// Tools whose completed result is short, structured and safe to show: the file-write result line
+/// (`wrote <path> (<n> bytes, sha256 ...), backup at ...`). Other tools' output stays model-only.
+const RESULT_SUMMARY_TOOLS: [&str; 3] = ["write_file", "write_config", "patch_file"];
+
+#[cfg(test)]
 fn write_event(output: &mut impl Write, event: RuntimeEvent) -> Result<()> {
+    write_event_with(output, event, &mut EventContext::new(Path::new(".")))
+}
+
+fn write_event_with(output: &mut impl Write, event: RuntimeEvent, context: &mut EventContext) -> Result<()> {
     let payload = match event {
         RuntimeEvent::TextDelta(text) => Some(json!({ "type": "text_delta", "text": text })),
         RuntimeEvent::Metrics(usage) => Some(json!({
@@ -579,13 +644,16 @@ fn write_event(output: &mut impl Write, event: RuntimeEvent) -> Result<()> {
             Some(json!({ "type": "cancelled", "partial": partial }))
         }
         RuntimeEvent::Error { message } => Some(json!({ "type": "error", "message": message })),
-        RuntimeEvent::ToolRequested(call) => Some(json!({
+        RuntimeEvent::ToolRequested(call) => {
+            context.tool_names.insert(call.id.clone(), call.name.clone());
+            Some(json!({
             "type": "runtime_event",
             "kind": "tool_requested",
             "call_id": call.id,
             "tool": call.name,
             "summary": summarize_tool_call(&call),
-        })),
+        }))
+        }
         RuntimeEvent::ToolApproved { call_id } => Some(json!({
             "type": "runtime_event",
             "kind": "tool_approved",
@@ -597,7 +665,9 @@ fn write_event(output: &mut impl Write, event: RuntimeEvent) -> Result<()> {
             "call_id": call_id,
             "reason": reason,
         })),
-        RuntimeEvent::HumanApprovalRequired { call, authority, reason } => Some(json!({
+        RuntimeEvent::HumanApprovalRequired { call, authority, reason } => {
+            context.tool_names.insert(call.id.clone(), call.name.clone());
+            let mut payload = json!({
             "type": "runtime_event",
             "kind": "human_approval_required",
             "call_id": call.id,
@@ -605,19 +675,35 @@ fn write_event(output: &mut impl Write, event: RuntimeEvent) -> Result<()> {
             "summary": summarize_tool_call(&call),
             "authority": authority.label(),
             "reason": reason,
-        })),
+        });
+            // What the human is about to approve: for a file write, the file and the changed lines.
+            if let Some(preview) = super::approval_preview::for_call(&context.root, &call.name, &call.arguments_json) {
+                payload["preview"] = preview;
+            }
+            Some(payload)
+        }
         RuntimeEvent::ToolStarted { call_id } => Some(json!({
             "type": "runtime_event",
             "kind": "tool_started",
             "call_id": call_id,
         })),
-        RuntimeEvent::ToolCompleted(result) => Some(json!({
+        RuntimeEvent::ToolCompleted(result) => {
+            let tool = context.tool_names.get(&result.call_id).cloned();
+            let mut payload = json!({
             "type": "runtime_event",
             "kind": "tool_completed",
             "call_id": result.call_id,
             "ok": !result.is_error,
             "denied": result.denied,
-        })),
+        });
+            if let Some(tool) = tool {
+                if RESULT_SUMMARY_TOOLS.contains(&tool.as_str()) {
+                    payload["summary"] = json!(truncate_summary(&redact_secret_like(&result.output)));
+                }
+                payload["tool"] = json!(tool);
+            }
+            Some(payload)
+        }
         RuntimeEvent::TurnCompleted { tool_rounds } => Some(json!({
             "type": "runtime_event",
             "kind": "turn_completed",
@@ -908,6 +994,129 @@ mod tests {
         assert_eq!(lines[2]["authority"], "yana_control_plane");
         assert_eq!(lines[3]["kind"], "turn_completed");
         assert_eq!(lines[3]["tool_rounds"], 3);
+    }
+
+    #[test]
+    fn write_file_approval_carries_path_and_preview_and_completion_carries_result() {
+        use crate::model::tool::{ToolCall, ToolResultRecord};
+        use crate::runtime::AuthorityLayer;
+
+        let repo = tempfile::tempdir().unwrap();
+        std::fs::write(repo.path().join("a.txt"), "one\ntwo\nthree\n").unwrap();
+        let call = ToolCall {
+            id: "call-w".to_string(),
+            name: "write_file".to_string(),
+            arguments_json: r#"{"path":"a.txt","content":"one\n2\nthree\n","kind":"overwrite"}"#.to_string(),
+        };
+        let mut context = EventContext::new(repo.path());
+        let mut output = Vec::new();
+        write_event_with(
+            &mut output,
+            RuntimeEvent::HumanApprovalRequired {
+                call,
+                authority: AuthorityLayer::YanaControlPlane,
+                reason: "capability 'file.write' requires explicit human approval".to_string(),
+            },
+            &mut context,
+        )
+        .unwrap();
+        write_event_with(
+            &mut output,
+            RuntimeEvent::ToolCompleted(ToolResultRecord {
+                call_id: "call-w".to_string(),
+                output: "wrote a.txt (12 bytes, sha256 abc), backup at .yana-ai/backups/a.txt".to_string(),
+                is_error: false,
+                denied: false,
+            }),
+            &mut context,
+        )
+        .unwrap();
+        // A command's output stays model-only: no summary field is projected for it.
+        write_event_with(
+            &mut output,
+            RuntimeEvent::ToolRequested(ToolCall {
+                id: "call-c".to_string(),
+                name: "run_command".to_string(),
+                arguments_json: r#"{"command":"ls"}"#.to_string(),
+            }),
+            &mut context,
+        )
+        .unwrap();
+        write_event_with(
+            &mut output,
+            RuntimeEvent::ToolCompleted(ToolResultRecord {
+                call_id: "call-c".to_string(),
+                output: "secret directory listing".to_string(),
+                is_error: false,
+                denied: false,
+            }),
+            &mut context,
+        )
+        .unwrap();
+
+        let lines: Vec<serde_json::Value> = String::from_utf8(output)
+            .unwrap()
+            .lines()
+            .map(|line| serde_json::from_str(line).unwrap())
+            .collect();
+        assert_eq!(lines[0]["summary"], "Writing: a.txt");
+        assert_eq!(lines[0]["preview"]["path"], "a.txt");
+        assert_eq!(lines[0]["preview"]["kind"], "overwrite");
+        assert_eq!(lines[0]["preview"]["additions"], 1);
+        assert_eq!(lines[0]["preview"]["deletions"], 1);
+        assert_eq!(std::fs::read_to_string(repo.path().join("a.txt")).unwrap(), "one\ntwo\nthree\n", "previewing must not write");
+        assert_eq!(lines[1]["tool"], "write_file");
+        assert!(lines[1]["summary"].as_str().unwrap().starts_with("wrote a.txt"));
+        assert_eq!(lines[3]["tool"], "run_command");
+        assert!(lines[3].get("summary").is_none(), "command output must not be projected: {}", lines[3]);
+    }
+
+    #[test]
+    fn mode_accepts_act_and_plan_and_refuses_anything_else() {
+        assert_eq!(parse_mode(None).unwrap(), false);
+        assert_eq!(parse_mode(Some("act")).unwrap(), false);
+        assert_eq!(parse_mode(Some("plan")).unwrap(), true);
+        for bad in ["", "Plan", "PLAN", "careful", "act ", "yolo"] {
+            assert!(parse_mode(Some(bad)).is_err(), "{bad:?} must be refused");
+        }
+    }
+
+    #[test]
+    fn read_only_tool_calls_get_a_readable_activity_line() {
+        let line = |name: &str, args: &str| {
+            summarize_tool_call(&crate::model::tool::ToolCall { id: "c".into(), name: name.into(), arguments_json: args.into() })
+        };
+        assert_eq!(line("repo_tree", "{}"), "Listing: .");
+        assert_eq!(line("repo_tree", r#"{"path":"src"}"#), "Listing: src");
+        assert_eq!(line("search_code", r#"{"query":"fn main"}"#), "Searching: fn main");
+        assert_eq!(line("git_status", "{}"), "Checking git status");
+        assert_eq!(line("git_diff", r#"{"staged":true}"#), "Reading git diff");
+        // A search for something that looks like a secret is hidden whole, like every other summary.
+        assert!(!line("search_code", r#"{"query":"API_KEY=abc"}"#).contains("abc"));
+    }
+
+    #[test]
+    fn approval_for_other_tools_has_no_preview() {
+        use crate::model::tool::ToolCall;
+        use crate::runtime::AuthorityLayer;
+
+        let mut output = Vec::new();
+        write_event(
+            &mut output,
+            RuntimeEvent::HumanApprovalRequired {
+                call: ToolCall {
+                    id: "call-9".to_string(),
+                    name: "run_command".to_string(),
+                    arguments_json: r#"{"command":"ls"}"#.to_string(),
+                },
+                authority: AuthorityLayer::YanaControlPlane,
+                reason: "requires approval".to_string(),
+            },
+        )
+        .unwrap();
+        let line: serde_json::Value = serde_json::from_str(String::from_utf8(output).unwrap().lines().next().unwrap()).unwrap();
+        assert!(line.get("preview").is_none());
+        assert_eq!(line["summary"], "Running: ls");
     }
 
     #[test]

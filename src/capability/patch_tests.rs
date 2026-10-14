@@ -1,6 +1,6 @@
 //! The edit engine and `file.patch`, with real temporary files.
 
-use super::file_patch::{apply_file_patch, propose_file_patch};
+use super::file_patch::{apply_file_patch, parse_patch_call, propose_file_patch};
 use super::patch::*;
 use super::CapabilityError;
 
@@ -181,4 +181,41 @@ fn the_patch_tool_is_never_allowed_without_a_human_or_a_lease() {
         matches!(decision_for(TurnOrigin::Mcp, true), AuthorityDecision::HumanApprovalRequired { .. }),
         "even a human turn must approve each call"
     );
+}
+
+#[test]
+fn parse_patch_call_reads_path_edits_and_defaults_replace_all_to_false() {
+    let (path, edits) = parse_patch_call(r#"{"path":"a.rs","edits":[{"old":"x","new":"y"},{"old":"p","new":"q","replace_all":true}]}"#).unwrap();
+    assert_eq!(path, "a.rs");
+    assert_eq!(edits.len(), 2);
+    assert!(!edits[0].replace_all);
+    assert!(edits[1].replace_all);
+}
+
+#[test]
+fn parse_patch_call_refuses_missing_fields_unknown_fields_and_bad_json() {
+    assert!(parse_patch_call(r#"{"path":"a.rs"}"#).is_err());
+    assert!(parse_patch_call(r#"{"edits":[]}"#).is_err());
+    assert!(
+        parse_patch_call(r#"{"path":"a.rs","edits":[{"old":"x","new":"y","replace_al":true}]}"#).is_err(),
+        "a misspelt flag must not become a silent single replace"
+    );
+    assert!(parse_patch_call(r#"{"path":"a.rs","edits":[],"extra":1}"#).is_err());
+    assert!(parse_patch_call("nope").is_err());
+}
+
+#[test]
+fn parse_patch_call_accepts_edits_sent_as_a_json_string_only_when_it_is_a_valid_array() {
+    let stringified = serde_json::json!({ "path": "a.rs", "edits": "[{\"old\":\"x\",\"new\":\"y\"}]" }).to_string();
+    let (path, edits) = parse_patch_call(&stringified).unwrap();
+    assert_eq!(path, "a.rs");
+    assert_eq!(edits[0].old, "x");
+    assert!(!edits[0].replace_all);
+    // The same strict checks still apply to the unwrapped content.
+    let unknown = serde_json::json!({ "path": "a.rs", "edits": "[{\"old\":\"x\",\"new\":\"y\",\"replace_al\":true}]" }).to_string();
+    assert!(parse_patch_call(&unknown).is_err());
+    let broken = serde_json::json!({ "path": "a.rs", "edits": "[{\"old\": 'x', \"new\": \"y\"}]" }).to_string();
+    let error = parse_patch_call(&broken).unwrap_err().to_string();
+    assert!(error.contains("not a valid array"), "{error}");
+    assert!(parse_patch_call(r#"{"path":"a.rs","edits":42}"#).is_err());
 }

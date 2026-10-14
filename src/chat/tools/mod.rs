@@ -6,9 +6,11 @@
 //! `catalog()` is manifest-driven (AD-25/AD-26): schemas come from
 //! `capability::manifest()` instead of a literal `vec![...]`, and only the
 //! capabilities chat actually offers (`repo.read`, `command.execute`) are
-//! mapped to a `ToolSpec` — the other 8 registered capabilities (MCP-only
-//! today: repo.tree, repo.search, git.*, host.summary, process.*) are
-//! deliberately not exposed here, so chat's context budget doesn't grow
+//! mapped to a `ToolSpec`. Beyond the original two, chat offers the four
+//! read-only inspection capabilities (repo.tree, repo.search, git.status,
+//! git.diff) so the model can find its way without asking the user to paste
+//! files; the remaining registered capabilities (host.summary, process.*)
+//! are deliberately not exposed here, so chat's context budget doesn't grow
 //! just because the registry does. `ToolSpec.description` stays the
 //! original hand-tuned prompt text, not the registry's more
 //! governance-oriented `description` — those serve different audiences
@@ -24,6 +26,53 @@ use crate::session_context::SessionContext;
 
 mod notices;
 pub use notices::hidden_tool_notices;
+
+/// Plan mode: the model may look but never change anything. Exactly the tools that need no approval and
+/// write nothing; everything else (commands, file writes, web, MCP, LSP) is withheld.
+const PLAN_MODE_TOOLS: &[&str] = &["read_file", "repo_tree", "search_code", "git_status", "git_diff"];
+
+/// Whether `name` may be used while the session is in Plan mode.
+pub fn is_plan_mode_tool(name: &str) -> bool {
+    PLAN_MODE_TOOLS.contains(&name)
+}
+
+/// The catalog the model sees in Plan mode: `tools` reduced to the read-only inspection tools.
+pub fn plan_mode_catalog(tools: Vec<ToolSpec>) -> Vec<ToolSpec> {
+    tools.into_iter().filter(|tool| is_plan_mode_tool(tool.name)).collect()
+}
+
+/// Read-only repository tools offered to the model, in the order they appear in the catalog:
+/// (capability name, tool name, prompt text). The prompt text is hand-tuned like the others.
+const READ_ONLY_TOOLS: &[(&str, &str, &str)] = &[
+    (
+        "repo.tree",
+        "repo_tree",
+        "List the files and folders under a path in the repository \
+         (default: the repository root). depth is how many levels to \
+         show, at most 5. Generated directories are skipped. Use this to \
+         find your way before reading files.",
+    ),
+    (
+        "repo.search",
+        "search_code",
+        "Search the repository's text files for a literal, \
+         case-insensitive string. query is required; path narrows the \
+         search to a folder or file. Returns matching lines with their \
+         file and line number.",
+    ),
+    (
+        "git.status",
+        "git_status",
+        "Show the current Git branch and which files are changed, staged \
+         or untracked. Read-only.",
+    ),
+    (
+        "git.diff",
+        "git_diff",
+        "Show the unstaged Git diff, or the staged one when staged is \
+         true. Read-only; long diffs are cut off.",
+    ),
+];
 
 /// The MVP's tool catalog: exactly `read_file` and `run_command` when both
 /// backing capabilities are available for `ctx` — identical output to the
@@ -76,6 +125,30 @@ pub fn catalog(ctx: &SessionContext) -> Vec<ToolSpec> {
                 real diff. core-lock.json can never be targeted this way.",
             parameters_schema: descriptor.input_schema.clone(),
         });
+    }
+    if let Some(descriptor) = available.iter().find(|d| d.name == "file.patch") {
+        tools.push(ToolSpec {
+            name: "patch_file",
+            description: "Propose editing one existing file with \
+                search-and-replace edits instead of resending the whole \
+                file. Each edit has 'old' (text to find, must match exactly \
+                once unless replace_all is true) and 'new'. Requires \
+                explicit human approval, which shows a real diff before \
+                anything is written; a backup is kept. If an edit does not \
+                match, nothing is written and you are told which edit failed.",
+            parameters_schema: descriptor.input_schema.clone(),
+        });
+    }
+    // Read-only inspection tools. No approval: none of them can change anything, every path is
+    // sandboxed to the repository root, and each result is size-bounded by its capability.
+    for (capability, tool, description) in READ_ONLY_TOOLS {
+        if let Some(descriptor) = available.iter().find(|d| d.name == *capability) {
+            tools.push(ToolSpec {
+                name: tool,
+                description,
+                parameters_schema: descriptor.input_schema.clone(),
+            });
+        }
     }
     // Offered only once the user has set up a search backend, so a repository
     // without `.yana-ai/web-search.json` gets exactly the tool list it always had.
@@ -145,6 +218,11 @@ mod tests {
     use super::*;
     use std::path::PathBuf;
 
+    const BASE_TOOLS: [&str; 9] = [
+        "read_file", "run_command", "write_file", "write_config", "patch_file",
+        "repo_tree", "search_code", "git_status", "git_diff",
+    ];
+
     fn ctx() -> SessionContext {
         SessionContext::new("s", PathBuf::from("/nonexistent-yana-catalog-test-root"), "ollama", "m", false)
     }
@@ -159,13 +237,13 @@ mod tests {
         let root = outer.path().join("ws");
         std::fs::create_dir_all(root.join(".yana-ai")).unwrap();
         let names = |c: &SessionContext| catalog(c).iter().map(|t| t.name).collect::<Vec<_>>();
-        let base = ["read_file", "run_command", "write_file", "write_config"];
+        let base = BASE_TOOLS;
         assert_eq!(names(&ctx_at(&root)), base, "no server list: unchanged");
         std::fs::write(root.join(".yana-ai/mcp-servers.json"), r#"{"servers":[{"name":"a","command":"x"}]}"#).unwrap();
         assert_eq!(names(&ctx_at(&root)), base, "a list nobody confirmed (a cloned repository's) is not offered");
         crate::capability::config_trust::trust_in_test(&root);
         if cfg!(feature = "mcp") {
-            assert_eq!(names(&ctx_at(&root)), ["read_file", "run_command", "write_file", "write_config", "mcp_call"]);
+            assert_eq!(names(&ctx_at(&root)), [BASE_TOOLS.as_slice(), &["mcp_call"]].concat());
             let spec = catalog(&ctx_at(&root)).into_iter().find(|t| t.name == "mcp_call").unwrap();
             assert_eq!(spec.parameters_schema["required"], serde_json::json!(["command"]));
             assert!(spec.description.contains("exact command line") && spec.description.contains("untrusted"));
@@ -182,13 +260,13 @@ mod tests {
         let root = outer.path().join("ws");
         std::fs::create_dir_all(root.join(".yana-ai")).unwrap();
         let names = |c: &SessionContext| catalog(c).iter().map(|t| t.name).collect::<Vec<_>>();
-        let base = ["read_file", "run_command", "write_file", "write_config"];
+        let base = BASE_TOOLS;
         assert_eq!(names(&ctx_at(&root)), base, "no list: unchanged");
         std::fs::write(root.join(".yana-ai/lsp-servers.json"), r#"{"servers":[{"name":"a","command":"/bin/sh"}]}"#).unwrap();
         assert_eq!(names(&ctx_at(&root)), base, "a list nobody confirmed is not offered");
         crate::capability::config_trust::trust_in_test(&root);
         if cfg!(feature = "lsp") {
-            assert_eq!(names(&ctx_at(&root)), ["read_file", "run_command", "write_file", "write_config", "lsp_query"]);
+            assert_eq!(names(&ctx_at(&root)), [BASE_TOOLS.as_slice(), &["lsp_query"]].concat());
             let spec = catalog(&ctx_at(&root)).into_iter().find(|t| t.name == "lsp_query").unwrap();
             assert_eq!(spec.parameters_schema["required"], serde_json::json!(["server", "operation", "path"]));
             assert!(spec.description.contains("exact program") && spec.description.contains("untrusted"));
@@ -205,29 +283,54 @@ mod tests {
         let root = outer.path().join("ws");
         std::fs::create_dir_all(root.join(".yana-ai")).unwrap();
         let names = |c: &SessionContext| catalog(c).iter().map(|t| t.name).collect::<Vec<_>>();
-        assert_eq!(names(&ctx_at(&root)), ["read_file", "run_command", "write_file", "write_config"], "no config: the list is unchanged");
+        assert_eq!(names(&ctx_at(&root)), BASE_TOOLS, "no config: the list is unchanged");
         std::fs::write(root.join(".yana-ai/web-search.json"), r#"{"endpoint":"https://s.example/"}"#).unwrap();
         assert_eq!(
             names(&ctx_at(&root)),
-            ["read_file", "run_command", "write_file", "write_config"],
+            BASE_TOOLS,
             "a configuration nobody confirmed (a cloned repository's) is not offered either"
         );
         crate::capability::config_trust::trust_in_test(&root);
         let with = names(&ctx_at(&root));
-        assert_eq!(with, ["read_file", "run_command", "write_file", "write_config", "web_search"]);
+        assert_eq!(with, [BASE_TOOLS.as_slice(), &["web_search"]].concat());
         let spec = catalog(&ctx_at(&root)).into_iter().find(|t| t.name == "web_search").unwrap();
         assert_eq!(spec.parameters_schema["required"], serde_json::json!(["query"]));
         assert!(spec.description.contains("approval") && spec.description.contains("untrusted"));
     }
 
     #[test]
-    fn catalog_has_exactly_four_tools() {
+    fn plan_mode_keeps_only_tools_that_cannot_change_anything() {
+        let names: Vec<_> = plan_mode_catalog(catalog(&ctx())).iter().map(|t| t.name).collect();
+        assert_eq!(names, ["read_file", "repo_tree", "search_code", "git_status", "git_diff"]);
+        for forbidden in ["run_command", "write_file", "write_config", "patch_file", "web_search", "mcp_call", "lsp_query"] {
+            assert!(!is_plan_mode_tool(forbidden), "{forbidden} must not be allowed in plan mode");
+        }
+    }
+
+    #[test]
+    fn catalog_offers_the_five_core_tools_then_four_read_only_ones() {
         let tools = catalog(&ctx());
-        assert_eq!(tools.len(), 4);
-        assert_eq!(tools[0].name, "read_file");
-        assert_eq!(tools[1].name, "run_command");
-        assert_eq!(tools[2].name, "write_file");
-        assert_eq!(tools[3].name, "write_config");
+        let names: Vec<_> = tools.iter().map(|t| t.name).collect();
+        assert_eq!(names, BASE_TOOLS);
+    }
+
+    #[test]
+    fn read_only_tools_take_only_what_their_capability_declares() {
+        let tools = catalog(&ctx());
+        let spec = |name: &str| tools.iter().find(|t| t.name == name).unwrap();
+        assert_eq!(spec("search_code").parameters_schema["required"], serde_json::json!(["query"]));
+        assert_eq!(spec("repo_tree").parameters_schema["required"], serde_json::json!([]));
+        assert!(spec("git_diff").parameters_schema["properties"].get("staged").is_some());
+        for name in ["repo_tree", "search_code", "git_status", "git_diff"] {
+            assert!(!spec(name).description.contains("approval"), "{name} must not claim to need approval");
+        }
+    }
+
+    #[test]
+    fn patch_file_is_described_as_needing_approval_and_takes_edits() {
+        let spec = catalog(&ctx()).into_iter().find(|t| t.name == "patch_file").unwrap();
+        assert!(spec.description.contains("approval"));
+        assert_eq!(spec.parameters_schema["required"], serde_json::json!(["path", "edits"]));
     }
 
     #[test]

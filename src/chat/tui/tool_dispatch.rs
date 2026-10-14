@@ -28,11 +28,18 @@ pub(crate) struct ChatCapabilityExecutor {
     /// A resumed approval whose configuration could not be disclosed, or no longer matches what
     /// was approved: every external-program call is refused.
     resume_refused: bool,
+    /// Plan mode: refuse every tool that is not read-only, even if the model asks for one that was never offered.
+    plan_mode: bool,
 }
 
 impl ChatCapabilityExecutor {
     pub(crate) fn new(use_sandbox: bool) -> Self {
-        Self { use_sandbox, approved_mcp: None, approved_lsp: None, resume_refused: false }
+        Self { use_sandbox, approved_mcp: None, approved_lsp: None, resume_refused: false, plan_mode: false }
+    }
+
+    pub(crate) fn in_plan_mode(mut self, plan_mode: bool) -> Self {
+        self.plan_mode = plan_mode;
+        self
     }
 
     pub(crate) fn with_approved_mcp(mut self, approved: Option<crate::capability::mcp_disclosure::Disclosure>) -> Self {
@@ -148,6 +155,13 @@ impl ToolExecutor for ChatCapabilityExecutor {
                     false,
                 ),
             },
+            "repo_tree" | "search_code" | "git_status" | "git_diff" => {
+                let result = read_only_result(&context.session.repo_root, &call.name, &call.arguments_json);
+                match result {
+                    Ok(output) => tool_result(call, output, false, false),
+                    Err(error) => tool_result(call, error, true, false),
+                }
+            }
             other => tool_result(
                 call,
                 format!("terminal executor has no implementation for '{other}'"),
@@ -159,6 +173,14 @@ impl ToolExecutor for ChatCapabilityExecutor {
 
     fn execute_approved(&self, approved: ApprovedTool<'_>) -> ToolResultRecord {
         let call = approved.call();
+        if self.plan_mode && !tools::is_plan_mode_tool(&call.name) {
+            return tool_result(
+                call,
+                "Plan mode is on: this tool is turned off. Put the change in your plan instead of making it.".to_string(),
+                true,
+                true,
+            );
+        }
         match call.name.as_str() {
             "run_command" => {
                 let Some(command) = parse_string_arg(&call.arguments_json, "command") else {
@@ -202,6 +224,10 @@ impl ToolExecutor for ChatCapabilityExecutor {
             "write_config" => {
                 let session_id = approved.context().session.session_id.clone();
                 file_write_result(call, approved.context(), session_id, true)
+            }
+            "patch_file" => {
+                let session_id = approved.context().session.session_id.clone();
+                file_patch_result(call, approved.context(), session_id)
             }
             "mcp_call" => self.approved_mcp_call(call, &approved.context().session.repo_root),
             "lsp_query" => self.approved_lsp_call(call, &approved.context().session.repo_root),
@@ -301,12 +327,39 @@ fn file_write_result(
     }
 }
 
+/// Executes an already-approved `patch_file` call: the edits are re-matched against the file as it is
+/// now, then written through the same governed path as `write_file` (backup, atomic write, hash check).
+/// A match failure is reported to the model so it can retry; it is not a denial.
+fn file_patch_result(call: &ToolCall, context: &TurnContext, session_id: String) -> ToolResultRecord {
+    let (path, edits) = match crate::capability::file_patch::parse_patch_call(&call.arguments_json) {
+        Ok(parsed) => parsed,
+        Err(error) => return tool_result(call, format!("cannot patch: {error}"), true, false),
+    };
+    match crate::capability::file_patch::apply_file_patch(&context.session.repo_root, &path, &edits, Some(session_id)) {
+        Ok((outcome, reports)) => tool_result(
+            call,
+            format!(
+                "patched {} ({} edits applied, {} bytes, sha256 {}){}",
+                path,
+                reports.len(),
+                outcome.evidence.byte_count.unwrap_or(0),
+                outcome.evidence.sha256.as_deref().unwrap_or("unknown"),
+                outcome.backup_path.map(|p| format!(", backup at {p}")).unwrap_or_default(),
+            ),
+            false,
+            false,
+        ),
+        Err(error) => tool_result(call, format!("patch failed, nothing was written: {error}"), true, false),
+    }
+}
+
 impl App {
     pub(super) fn prepare_pending_approval(&mut self, call: ToolCall) {
         match call.name.as_str() {
             "run_command" => self.prepare_command_approval(call),
             "write_file" => self.prepare_write_file_approval(call, false),
             "write_config" => self.prepare_write_file_approval(call, true),
+            "patch_file" => self.prepare_patch_file_approval(call),
             "web_search" => self.prepare_web_search_approval(call),
             "mcp_call" => self.prepare_mcp_approval(call),
             "lsp_query" => self.prepare_lsp_approval(call),
@@ -424,6 +477,34 @@ impl App {
                     true,
                     false,
                 );
+                self.continue_after_tool_result();
+            }
+        }
+    }
+
+    /// `patch_file`: the same approval prompt as an overwrite, built from the patched content, so the human
+    /// sees the real diff. A patch that does not match goes back to the model as an error; nothing is
+    /// proposed. When approved the call itself runs (`file_patch_result`), re-matching on the current file.
+    fn prepare_patch_file_approval(&mut self, call: ToolCall) {
+        let root = self.session_context().repo_root;
+        let proposal = crate::capability::file_patch::parse_patch_call(&call.arguments_json).and_then(|(path, edits)| {
+            let (content, _) = crate::capability::file_patch::patched(&root, &path, &edits)?;
+            let (diff, _) = crate::capability::file_patch::propose_file_patch(&root, &path, &edits)?;
+            Ok((path, content, diff))
+        });
+        match proposal {
+            Ok((path, content, diff)) => {
+                self.turn = TurnState::AwaitingApproval(PendingApproval::FileWrite {
+                    call,
+                    path,
+                    kind: crate::capability::FileMutationKind::Overwrite,
+                    content,
+                    is_config: false,
+                    diff,
+                });
+            }
+            Err(error) => {
+                self.push_tool_result(&call.id, format!("cannot propose patch: {error}"), true, false);
                 self.continue_after_tool_result();
             }
         }
@@ -558,6 +639,57 @@ impl App {
 /// Pulls a single string field out of a tool call's raw `arguments_json`.
 /// Malformed/missing → `None`, handled by each dispatch site as a normal
 /// tool-result error, not a panic or a silently-empty argument.
+/// Largest `depth` the model may ask `repo_tree` for; the capability clamps again, this only rejects nonsense early.
+const MAX_TREE_DEPTH_ARG: u64 = 64;
+/// Default tree depth when the model gives none (one level shows the top of the repository without flooding context).
+const DEFAULT_TREE_DEPTH: usize = 2;
+
+/// Runs one of the four read-only inspection tools. Everything is sandboxed to `root` by the capability layer, so the
+/// only job here is turning the model's JSON arguments into typed ones and rejecting malformed input with a message
+/// the model can act on (never panicking, never defaulting silently past a wrong type).
+fn read_only_result(root: &std::path::Path, tool: &str, arguments_json: &str) -> Result<String, String> {
+    let args: serde_json::Value = if arguments_json.trim().is_empty() {
+        serde_json::json!({})
+    } else {
+        serde_json::from_str(arguments_json).map_err(|_| "arguments must be a JSON object".to_string())?
+    };
+    let object = args.as_object().ok_or_else(|| "arguments must be a JSON object".to_string())?;
+    let text = |key: &str| -> Result<Option<String>, String> {
+        match object.get(key) {
+            None | Some(serde_json::Value::Null) => Ok(None),
+            Some(serde_json::Value::String(value)) => Ok(Some(value.clone())),
+            Some(_) => Err(format!("'{key}' must be a string")),
+        }
+    };
+    let result = match tool {
+        "repo_tree" => {
+            let depth = match object.get("depth") {
+                None | Some(serde_json::Value::Null) => DEFAULT_TREE_DEPTH,
+                Some(value) => match value.as_u64() {
+                    Some(n) if n <= MAX_TREE_DEPTH_ARG => n as usize,
+                    _ => return Err("'depth' must be a whole number from 0 to 5".to_string()),
+                },
+            };
+            crate::capability::repo::repo_tree(root, text("path")?.as_deref().unwrap_or("."), depth)
+        }
+        "search_code" => {
+            let query = text("query")?.ok_or_else(|| "missing required argument 'query'".to_string())?;
+            crate::capability::repo::search_code(root, text("path")?.as_deref().unwrap_or("."), &query)
+        }
+        "git_status" => crate::capability::git::git_status(root),
+        "git_diff" => {
+            let staged = match object.get("staged") {
+                None | Some(serde_json::Value::Null) => false,
+                Some(serde_json::Value::Bool(value)) => *value,
+                Some(_) => return Err("'staged' must be true or false".to_string()),
+            };
+            crate::capability::git::git_diff(root, staged)
+        }
+        other => return Err(format!("not a read-only tool: {other}")),
+    };
+    result.map_err(|error| error.to_string())
+}
+
 fn parse_string_arg(arguments_json: &str, key: &str) -> Option<String> {
     let v: serde_json::Value = serde_json::from_str(arguments_json).ok()?;
     v.get(key)?.as_str().map(|s| s.to_string())
@@ -1052,5 +1184,203 @@ mod tests {
             "{}",
             "core-lock.json must be untouched"
         );
+    }
+
+    fn patch_call(path: &str, old: &str, new: &str) -> ToolCall {
+        ToolCall {
+            id: "call-p".into(),
+            name: "patch_file".into(),
+            arguments_json: serde_json::json!({ "path": path, "edits": [{ "old": old, "new": new }] }).to_string(),
+        }
+    }
+
+    /// The refused-without-approval test the file.patch contract asks for: a `patch_file` call that goes
+    /// through the plain (non-approved) executor path is denied and the file is untouched.
+    #[test]
+    fn an_unapproved_patch_file_call_is_denied_and_changes_nothing() {
+        let root = tempfile::tempdir().unwrap();
+        std::fs::write(root.path().join("a.txt"), "one\ntwo\n").unwrap();
+        let executor = ChatCapabilityExecutor::new(false);
+        let result = executor.execute(&context(root.path()), &patch_call("a.txt", "two", "2"));
+        assert!(result.denied);
+        assert_eq!(std::fs::read_to_string(root.path().join("a.txt")).unwrap(), "one\ntwo\n");
+    }
+
+    #[test]
+    fn plan_mode_refuses_an_approved_write_and_changes_nothing() {
+        let root = tempfile::tempdir().unwrap();
+        std::fs::write(root.path().join("a.txt"), "one\ntwo\n").unwrap();
+        let executor = ChatCapabilityExecutor::new(false).in_plan_mode(true);
+        let result = execute_approved_tool(
+            &YanaAuthorityChain,
+            &executor,
+            &context(root.path()),
+            &patch_call("a.txt", "two", "2"),
+            &CancellationToken::default(),
+            &mut |_| {},
+        )
+        .unwrap();
+        assert!(result.denied && result.is_error, "{}", result.output);
+        assert!(result.output.contains("Plan mode"), "{}", result.output);
+        assert_eq!(std::fs::read_to_string(root.path().join("a.txt")).unwrap(), "one\ntwo\n");
+        assert!(
+            !root.path().join(".yana-ai/file-mutation-backups").exists(),
+            "a refused call must not create a backup (the authority receipt under .yana-ai is expected)"
+        );
+    }
+
+    #[test]
+    fn canonical_approved_path_patches_a_file_once_and_keeps_a_backup() {
+        let root = tempfile::tempdir().unwrap();
+        std::fs::write(root.path().join("a.txt"), "one\ntwo\nthree\n").unwrap();
+        let executor = ChatCapabilityExecutor::new(false);
+        let result = execute_approved_tool(
+            &YanaAuthorityChain,
+            &executor,
+            &context(root.path()),
+            &patch_call("a.txt", "two", "2"),
+            &CancellationToken::default(),
+            &mut |_| {},
+        )
+        .unwrap();
+        assert!(!result.denied && !result.is_error, "{}", result.output);
+        assert!(result.output.starts_with("patched a.txt"), "{}", result.output);
+        assert!(result.output.contains("backup at"), "{}", result.output);
+        assert_eq!(std::fs::read_to_string(root.path().join("a.txt")).unwrap(), "one\n2\nthree\n");
+    }
+
+    #[test]
+    fn an_approved_patch_that_does_not_match_writes_nothing_and_tells_the_model() {
+        let root = tempfile::tempdir().unwrap();
+        std::fs::write(root.path().join("a.txt"), "one\ntwo\n").unwrap();
+        let executor = ChatCapabilityExecutor::new(false);
+        let result = execute_approved_tool(
+            &YanaAuthorityChain,
+            &executor,
+            &context(root.path()),
+            &patch_call("a.txt", "missing text", "x"),
+            &CancellationToken::default(),
+            &mut |_| {},
+        )
+        .unwrap();
+        assert!(result.is_error);
+        assert!(!result.denied, "a failed match is a retryable error, not a denial");
+        assert!(result.output.contains("nothing was written"), "{}", result.output);
+        assert_eq!(std::fs::read_to_string(root.path().join("a.txt")).unwrap(), "one\ntwo\n");
+    }
+
+    #[test]
+    fn an_approved_patch_cannot_leave_the_repository_or_touch_a_missing_file() {
+        let root = tempfile::tempdir().unwrap();
+        let outside = tempfile::tempdir().unwrap();
+        std::fs::write(outside.path().join("secret.txt"), "keep\n").unwrap();
+        let executor = ChatCapabilityExecutor::new(false);
+        for path in [format!("../{}/secret.txt", outside.path().file_name().unwrap().to_string_lossy()), "nope.txt".to_string()] {
+            let result = execute_approved_tool(
+                &YanaAuthorityChain,
+                &executor,
+                &context(root.path()),
+                &patch_call(&path, "keep", "gone"),
+                &CancellationToken::default(),
+                &mut |_| {},
+            )
+            .unwrap();
+            assert!(result.is_error, "{path}: {}", result.output);
+        }
+        assert_eq!(std::fs::read_to_string(outside.path().join("secret.txt")).unwrap(), "keep\n");
+    }
+
+    #[test]
+    fn a_malformed_patch_call_is_reported_not_applied() {
+        let root = tempfile::tempdir().unwrap();
+        std::fs::write(root.path().join("a.txt"), "one\n").unwrap();
+        let executor = ChatCapabilityExecutor::new(false);
+        for arguments in [r#"{"path":"a.txt"}"#, r#"{"path":"a.txt","edits":[{"old":"one","new":"1","replace_al":true}]}"#, "not json"] {
+            let call = ToolCall { id: "call-m".into(), name: "patch_file".into(), arguments_json: arguments.into() };
+            let result = execute_approved_tool(
+                &YanaAuthorityChain,
+                &executor,
+                &context(root.path()),
+                &call,
+                &CancellationToken::default(),
+                &mut |_| {},
+            )
+            .unwrap();
+            assert!(result.is_error, "{arguments}: {}", result.output);
+        }
+        assert_eq!(std::fs::read_to_string(root.path().join("a.txt")).unwrap(), "one\n");
+    }
+
+    // ---- read-only inspection tools (repo_tree, search_code, git_status, git_diff)
+
+    fn read_only_repo() -> tempfile::TempDir {
+        let root = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(root.path().join("src")).unwrap();
+        std::fs::write(root.path().join("src/lib.rs"), "fn hello() {}\n// NeedleToken here\n").unwrap();
+        std::fs::write(root.path().join("README.md"), "readme\n").unwrap();
+        root
+    }
+
+    #[test]
+    fn repo_tree_lists_files_with_no_arguments_at_all() {
+        let root = read_only_repo();
+        for arguments in ["", "{}"] {
+            let out = read_only_result(root.path(), "repo_tree", arguments).unwrap();
+            assert!(out.contains("README.md") && out.contains("src"), "{arguments}: {out}");
+        }
+        assert!(read_only_result(root.path(), "repo_tree", "not json").is_err());
+    }
+
+    #[test]
+    fn repo_tree_honours_path_and_depth_and_refuses_bad_values() {
+        let root = read_only_repo();
+        let out = read_only_result(root.path(), "repo_tree", r#"{"path":"src","depth":1}"#).unwrap();
+        assert!(out.contains("lib.rs") && !out.contains("README.md"), "{out}");
+        for bad in [r#"{"depth":-1}"#, r#"{"depth":"2"}"#, r#"{"depth":1000}"#, r#"{"path":5}"#, "[1]", "\"x\""] {
+            assert!(read_only_result(root.path(), "repo_tree", bad).is_err(), "{bad} must be refused");
+        }
+    }
+
+    #[test]
+    fn search_code_finds_text_ignoring_case_and_needs_a_query() {
+        let root = read_only_repo();
+        let out = read_only_result(root.path(), "search_code", r#"{"query":"needletoken"}"#).unwrap();
+        assert!(out.contains("lib.rs") && out.contains("NeedleToken"), "{out}");
+        let narrowed = read_only_result(root.path(), "search_code", r#"{"query":"readme","path":"src"}"#).unwrap();
+        assert!(!narrowed.contains("README.md"), "{narrowed}");
+        for bad in ["{}", r#"{"query":""}"#, r#"{"query":"   "}"#, r#"{"query":7}"#] {
+            assert!(read_only_result(root.path(), "search_code", bad).is_err(), "{bad} must be refused");
+        }
+    }
+
+    #[test]
+    fn read_only_tools_cannot_leave_the_repository() {
+        let outer = tempfile::tempdir().unwrap();
+        let root = outer.path().join("repo");
+        std::fs::create_dir_all(&root).unwrap();
+        std::fs::write(outer.path().join("secret.txt"), "outside-marker\n").unwrap();
+        for (tool, arguments) in [
+            ("repo_tree", r#"{"path":".."}"#),
+            ("repo_tree", r#"{"path":"/etc"}"#),
+            ("search_code", r#"{"query":"outside-marker","path":"../"}"#),
+            ("search_code", r#"{"query":"root","path":"/etc"}"#),
+        ] {
+            let result = read_only_result(&root, tool, arguments);
+            assert!(result.is_err(), "{tool} {arguments} must be refused: {result:?}");
+        }
+    }
+
+    #[test]
+    fn git_diff_rejects_a_non_boolean_flag_and_git_tools_do_not_panic_outside_a_repository() {
+        let root = read_only_repo();
+        assert!(read_only_result(root.path(), "git_diff", r#"{"staged":"yes"}"#).is_err());
+        let _ = read_only_result(root.path(), "git_status", "{}");
+        let _ = read_only_result(root.path(), "git_diff", r#"{"staged":true}"#);
+    }
+
+    #[test]
+    fn an_unknown_tool_name_is_not_run_as_read_only() {
+        let root = read_only_repo();
+        assert!(read_only_result(root.path(), "write_file", "{}").is_err());
     }
 }
