@@ -68,6 +68,7 @@
 		"commands": [
 			{ "command": "yana.welcome.open", "title": "Open Yana Home", "category": "Yana", "icon": "$(home)" },
 			{ "command": "yana.guide.open", "title": "Open Guide", "category": "Yana", "icon": "$(book)" },
+			{ "command": "yana.credits.open", "title": "Third-Party Components", "category": "Yana", "icon": "$(heart)" },
 			{ "command": "yana.idePreferences.open", "title": "Yana IDE Settings", "category": "Yana", "icon": "$(settings-gear)" },
 			{ "command": "yana.controlCenter.open", "title": "Yana Control Center", "category": "Yana", "icon": "$(dashboard)" },
 			{ "command": "yana.office.open", "title": "Open Office Tools", "category": "Yana", "icon": "$(file-pdf)" },

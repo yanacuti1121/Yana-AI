@@ -25,6 +25,7 @@ const FEATURES = [
 	require('./system'),
 	require('./canvas'),
 	require('./office'),
+	require('./credits'),
 ];
 
 const FIRST_RUN_KEY = 'yana.firstRunRevealed';
