@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 # Yana AI — Giám thị (independent watcher)
+# COMPLEXITY-EXCEPTION: ~470 lines, over the 300-line limit (under 2x). The whole watcher must be one file: installed
+# projects and ~/.yana/pack receive a verbatim copy of this single script (install_project.py copies it, the trusted-home
+# mode runs it from beside its verifiers), so splitting it into sourced helpers would add files that can go missing or be
+# replaced in the very tree the watcher guards. Reviewed 2026-10-14.
 # Status: active
 # Description: Runs OUTSIDE any AI session, scheduled by launchd on macOS,
 #   a systemd user timer on Linux, or Task Scheduler on Windows. The canonical

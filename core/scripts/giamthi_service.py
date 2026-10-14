@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Manage the OS-level Yana Giám thị supervisor for one project."""
+"""Manage the OS-level Yana Giám thị supervisor for one project.
+
+COMPLEXITY-EXCEPTION: ~515 lines, over the 300-line limit (under 2x), and install() is over 50 lines because it has one
+branch per platform (launchd, systemd, Task Scheduler). This file is copied as a single script by install_project.py and
+loaded by path in tests, so a split needs a packaging change; deferred, not forgotten. Reviewed 2026-10-14.
+"""
 
 from __future__ import annotations
 
