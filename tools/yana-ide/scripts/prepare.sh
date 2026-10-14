@@ -76,4 +76,10 @@ for ext in "$IDE_DIR"/extensions/*/; do
 	echo "[yana-ide] copied extension $name"
 done
 
+# Files that exist only in Yana Studio (not in upstream, so no patch can restore them): copied as they are, never with --delete.
+if [[ -d "$IDE_DIR/overlay" ]]; then
+	rsync -a "$IDE_DIR/overlay/" "$VSCODE_DIR/"
+	echo "[yana-ide] copied overlay files"
+fi
+
 echo "[yana-ide] prepare done for $expected_commit"

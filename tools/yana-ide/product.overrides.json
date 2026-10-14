@@ -29,5 +29,53 @@
 	},
 	"linkProtectionTrustedDomains": [
 		"https://open-vsx.org"
+	],
+	"bundledTools": [
+		{
+			"name": "cua-driver",
+			"version": "0.35.2",
+			"repo": "https://github.com/trycua/cua",
+			"tag": "cua-driver-rs-v0.35.2",
+			"license": "MIT",
+			"author": "Cua AI, Inc.",
+			"description": "Lets the assistant see and operate apps on this computer, only after you turn it on.",
+			"licenseFile": {
+				"url": "https://api.github.com/repos/trycua/cua/contents/LICENSE.md?ref=cua-driver-rs-v0.35.2",
+				"headers": { "Accept": "application/vnd.github.raw" },
+				"sha256": "c0779290c1d4783169aa3dbfb55feb505e563ef8a004bbf55298ceffcfbda8d9"
+			},
+			"noticesFile": {
+				"url": "https://api.github.com/repos/trycua/cua/contents/libs/cua-driver/rust/THIRD_PARTY_NOTICES.md?ref=cua-driver-rs-v0.35.2",
+				"headers": { "Accept": "application/vnd.github.raw" },
+				"sha256": "82470c85cb48dd084fccbf192d4a9f0b9d0afe614ab9b63e0fceac0eb315f412"
+			},
+			"targets": {
+				"darwin-universal": {
+					"asset": "cua-driver-rs-0.35.2-darwin-universal-binary.tar.gz",
+					"sha256": "ec8d9a073ee8c5e81113de682ba17b040eaacd58e84139f851540092c6b8d3b6",
+					"binary": "cua-driver"
+				},
+				"linux-x64": {
+					"asset": "cua-driver-rs-0.35.2-linux-x86_64-binary.tar.gz",
+					"sha256": "3a47b35ae8e083af8975c62f873a142f4a47c248c630a0eebfdf90de14d6fccf",
+					"binary": "cua-driver"
+				},
+				"linux-arm64": {
+					"asset": "cua-driver-rs-0.35.2-linux-arm64-binary.tar.gz",
+					"sha256": "484d5c5cffa9c32d09244d4dfee078a1c4e8a175e1173f9129ec3bd113e45deb",
+					"binary": "cua-driver"
+				},
+				"win32-x64": {
+					"asset": "cua-driver-rs-0.35.2-windows-x86_64-binary.zip",
+					"sha256": "0eb49cb651986d2888294484be84c25a33e1cd31396e57c457f501358decdd4e",
+					"binary": "cua-driver.exe"
+				},
+				"win32-arm64": {
+					"asset": "cua-driver-rs-0.35.2-windows-arm64-binary.zip",
+					"sha256": "8a4e07c5debd614c53e9689e718074fe0f4e7247a2b4d8527406f59f49cd8025",
+					"binary": "cua-driver.exe"
+				}
+			}
+		}
 	]
 }

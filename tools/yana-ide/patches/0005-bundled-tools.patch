@@ -1,0 +1,42 @@
+diff --git a/build/gulpfile.vscode.ts b/build/gulpfile.vscode.ts
+index 34cc2f2f..3e9752cf 100644
+--- a/build/gulpfile.vscode.ts
++++ b/build/gulpfile.vscode.ts
+@@ -165,7 +165,10 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
+ 		const sourceFilterPattern = stripSourceMapsInPackagingTasks
+ 			? ['**', '!**/*.{js,css}.map']
+ 			: ['**'];
+-		const sources = es.merge(src, extensions)
++		// Third-party tools (e.g. cua-driver) fetched by build/lib/bundledTools.ts for this build host's target
++		const bundledTools = gulp.src('.build/bundledTools/**', { base: '.build', dot: true, allowEmpty: true });
++
++		const sources = es.merge(src, extensions, bundledTools)
+ 			.pipe(filter(sourceFilterPattern, { dot: true }));
+ 
+ 		let version = packageJson.version;
+diff --git a/build/lib/preLaunch.ts b/build/lib/preLaunch.ts
+index 85006f80..cc66a803 100644
+--- a/build/lib/preLaunch.ts
++++ b/build/lib/preLaunch.ts
+@@ -71,6 +71,9 @@ async function main() {
+ 	// Can't require this until after dependencies are installed
+ 	const { getBuiltInExtensions } = await import('./builtInExtensions.ts');
+ 	await getBuiltInExtensions();
++
++	const { syncBundledTools } = await import('./bundledTools.ts');
++	await syncBundledTools(process.platform, process.env['VSCODE_ARCH'] ?? process.arch);
+ }
+ 
+ if (import.meta.main) {
+diff --git a/package.json b/package.json
+index 96d93217..d9d67a2f 100644
+--- a/package.json
++++ b/package.json
+@@ -65,6 +65,7 @@
+     "smoketest": "node build/lib/preLaunch.ts && cd test/smoke && npm run compile && node test/index.js",
+     "smoketest-no-compile": "cd test/smoke && node test/index.js",
+     "download-builtin-extensions": "node build/lib/builtInExtensions.ts",
++    "download-bundled-tools": "node build/lib/bundledTools.ts",
+     "download-builtin-extensions-cg": "node build/lib/builtInExtensionsCG.ts",
+     "monaco-compile-check": "tsc --project src/tsconfig.monaco.json --noEmit",
+     "tsec-compile-check": "node --max-old-space-size=8192 node_modules/tsec/bin/tsec -p src/tsconfig.tsec.json",
