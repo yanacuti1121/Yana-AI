@@ -209,6 +209,9 @@ class RuntimeSources(Base):
         args = (self.tmp / "cargo-args.txt").read_text()
         for expected in ("install yana-rt", "--locked", "--version 1.2.3", "--root"):
             self.assertIn(expected, args)
+        # Without the mcp feature the runtime has no mcp_call and no kept-alive MCP servers, so the bundled
+        # Cua Driver (and any other MCP tool) could not be used.
+        self.assertIn("--features mcp", args)
 
     def test_no_prebuilt_and_no_cargo_fails_with_guidance(self):
         (self.source / "bin" / f"yana-rt-{sys.platform}-{arch_tag()}").unlink()

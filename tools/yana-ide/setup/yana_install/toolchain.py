@@ -17,6 +17,7 @@ RUSTUP_TRIPLES = {
 }
 MAX_DOWNLOAD_BYTES = 64 * 1024 * 1024  # rustup-init khoảng 20 MB; trần này chỉ để chặn tải vô tận
 DOWNLOAD_TIMEOUT_S = 120
+RUNTIME_FEATURES = "mcp"  # cargo features of yana-rt that the IDE relies on (the default `cli` stays on)
 RUST_DIR = "rust"  # CARGO_HOME và RUSTUP_HOME của Yana nằm trong đây, tách khỏi Rust của người dùng
 
 
@@ -33,7 +34,9 @@ def _cargo_build(ctx):
     cargo, overlay = find_cargo(ctx)
     if not cargo:
         return None, "no prebuilt yana-rt in the package and no Rust toolchain: the toolchain stage installs one automatically, run setup again"
-    argv = [cargo, "install", "yana-rt", "--locked", "--root", ctx.home / "cargo"]
+    # `mcp` is not a default feature of the crate. Without it the runtime cannot call MCP tools, which the IDE needs for
+    # the desktop-control tool it bundles.
+    argv = [cargo, "install", "yana-rt", "--locked", "--features", RUNTIME_FEATURES, "--root", ctx.home / "cargo"]
     if ctx.runtime_version:
         argv += ["--version", ctx.runtime_version]
     code, out, err = run_cmd(argv, ctx, env={**ctx.env, **overlay})
