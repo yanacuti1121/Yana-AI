@@ -1,0 +1,1278 @@
+<!DOCTYPE html><html class="dark" lang="en" style="width: 1280px; height: 1648px; overflow: hidden; position: relative;"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Yana Studio — VS Code Workbench (Yana-AI)</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-tertiary-fixed": "#002113",
+            "on-primary-fixed": "#00174b",
+            "primary-container": "#608bff",
+            "on-secondary-fixed-variant": "#00504a",
+            "on-primary": "#002a77",
+            "on-secondary": "#003733",
+            "surface-variant": "#333539",
+            "primary": "#b4c5ff",
+            "on-secondary-container": "#00554f",
+            "inverse-primary": "#1454d3",
+            "outline": "#8d90a0",
+            "inverse-on-surface": "#2f3035",
+            "on-tertiary-fixed-variant": "#005236",
+            "surface-container-lowest": "#0c0e12",
+            "surface-dim": "#111317",
+            "secondary": "#46eee0",
+            "tertiary": "#4edea3",
+            "surface-container-high": "#282a2e",
+            "on-tertiary-container": "#00311f",
+            "surface-bright": "#37393e",
+            "surface-container-highest": "#333539",
+            "on-primary-container": "#002469",
+            "tertiary-fixed-dim": "#4edea3",
+            "on-error-container": "#ffdad6",
+            "surface-container-low": "#1a1c20",
+            "error-container": "#93000a",
+            "primary-fixed": "#dbe1ff",
+            "tertiary-fixed": "#6ffbbe",
+            "on-error": "#690005",
+            "error": "#ffb4ab",
+            "inverse-surface": "#e2e2e8",
+            "secondary-fixed": "#56faeb",
+            "on-primary-fixed-variant": "#003ea7",
+            "on-secondary-fixed": "#00201d",
+            "primary-fixed-dim": "#b4c5ff",
+            "on-background": "#e2e2e8",
+            "on-surface": "#e2e2e8",
+            "surface-container": "#1e2024",
+            "surface-tint": "#b4c5ff",
+            "surface": "#111317",
+            "outline-variant": "#434654",
+            "secondary-fixed-dim": "#28ddcf",
+            "on-tertiary": "#003824",
+            "tertiary-container": "#00a572",
+            "on-surface-variant": "#c3c6d7",
+            "background": "#111317",
+            "secondary-container": "#00d2c4"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-sm": "0.25rem",
+            "margin": "0px",
+            "gutter": "0px",
+            "space-xs": "0.125rem",
+            "space-md": "0.5rem",
+            "space-lg": "0.75rem",
+            "space-xl": "1rem"
+          },
+          "fontFamily": {
+            "label-md": ["JetBrains Mono"],
+            "code-md": ["JetBrains Mono"],
+            "headline-lg": ["Geist"],
+            "headline-sm": ["Geist"],
+            "body-lg": ["Geist"],
+            "code-lg": ["JetBrains Mono"],
+            "body-md": ["Geist"],
+            "headline-md": ["Geist"],
+            "body-sm": ["Geist"],
+            "code-sm": ["JetBrains Mono"],
+            "label-sm": ["JetBrains Mono"]
+          },
+          "fontSize": {
+            "label-sm": ["10px", { "lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "500" }],
+            "label-md": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "code-sm": ["11px", { "lineHeight": "15px", "fontWeight": "400" }],
+            "code-md": ["12px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "code-lg": ["13px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "body-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "body-lg": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "headline-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "-0.005em", "fontWeight": "600" }],
+            "headline-md": ["15px", { "lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.015em", "fontWeight": "600" }]
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-size: 16px;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+      user-select: none;
+    }
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #111317;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #282a2e;
+      border-radius: 2px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #434654;
+    }
+    .line-number {
+      user-select: none;
+    }
+    .minimap-canvas {
+      background: repeating-linear-gradient(
+        180deg,
+        #434654 0px,
+        #434654 2px,
+        transparent 2px,
+        transparent 5px
+      );
+      opacity: 0.35;
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface w-screen h-screen overflow-hidden flex flex-col font-body-sm text-body-sm select-none antialiased">
+<!-- 1. FULL NATIVE VS CODE APPLICATION TITLE BAR & COMMAND PALETTE -->
+<header class="flex justify-between items-center w-full px-2.5 border-b border-outline-variant bg-[#111317] h-[34px] select-none shrink-0 z-30 text-[12px]">
+<!-- Left: macOS Traffic Lights + Native App Menus -->
+<div class="flex items-center space-x-2 shrink-0">
+<!-- macOS traffic lights -->
+<div class="flex items-center space-x-1.5 mr-2">
+<span class="w-3 h-3 rounded-full bg-[#ff5f56] inline-block opacity-90 hover:opacity-100 cursor-pointer"></span>
+<span class="w-3 h-3 rounded-full bg-[#ffbd2e] inline-block opacity-90 hover:opacity-100 cursor-pointer"></span>
+<span class="w-3 h-3 rounded-full bg-[#27c93f] inline-block opacity-90 hover:opacity-100 cursor-pointer"></span>
+</div>
+<!-- VS Code Native Application Menus -->
+<nav class="flex items-center space-x-0.5 text-on-surface-variant font-sans text-[12px]">
+<button class="px-2 py-0.5 rounded hover:bg-surface-container hover:text-on-surface transition-colors">File</button>
+<button class="px-2 py-0.5 rounded hover:bg-surface-container hover:text-on-surface transition-colors">Edit</button>
+<button class="px-2 py-0.5 rounded hover:bg-surface-container hover:text-on-surface transition-colors">Selection</button>
+<button class="px-2 py-0.5 rounded hover:bg-surface-container hover:text-on-surface transition-colors">View</button>
+<button class="px-2 py-0.5 rounded hover:bg-surface-container hover:text-on-surface transition-colors">Go</button>
+<button class="px-2 py-0.5 rounded hover:bg-surface-container hover:text-on-surface transition-colors">Run</button>
+<button class="px-2 py-0.5 rounded hover:bg-surface-container hover:text-on-surface transition-colors">Terminal</button>
+<button class="px-2 py-0.5 rounded hover:bg-surface-container hover:text-on-surface transition-colors">Help</button>
+</nav>
+</div>
+<!-- Center: Native VS Code Navigation (< >) + Command Palette / Search Input -->
+<div class="flex items-center space-x-1.5 max-w-xl w-full justify-center px-2">
+<!-- Back / Forward Buttons -->
+<div class="flex items-center space-x-0.5 text-on-surface-variant">
+<button class="p-0.5 hover:text-on-surface hover:bg-surface-container rounded" title="Go Back (Alt+LeftArrow)">
+<span class="material-symbols-outlined text-[15px]">arrow_back</span>
+</button>
+<button class="p-0.5 hover:text-on-surface hover:bg-surface-container rounded" title="Go Forward (Alt+RightArrow)">
+<span class="material-symbols-outlined text-[15px]">arrow_forward</span>
+</button>
+</div>
+<!-- Global Command Palette Pill -->
+<div class="flex items-center justify-between w-full max-w-[420px] h-[22px] bg-surface-container-low border border-outline-variant/80 rounded px-2 text-on-surface-variant hover:border-outline cursor-pointer shadow-inner group">
+<div class="flex items-center space-x-1.5 truncate"><span class="material-symbols-outlined text-[13px] text-outline">search</span><span class="text-[11px] font-sans truncate text-on-surface-variant group-hover:text-on-surface"><span class="text-outline">yanacuti1121/</span>Yana-AI</span></div>
+<div class="flex items-center space-x-1 text-[10px] font-code-sm text-outline">
+<span class="px-1 py-0.2 bg-surface-container-high rounded border border-outline-variant/60">⌘P</span>
+</div>
+</div>
+</div>
+<!-- Right: Yana Surface Switcher Tabs + Workbench Layout Toggles -->
+<div class="flex items-center space-x-2 shrink-0">
+<!-- Yana Studio Surface Tabs -->
+<nav class="hidden xl:flex items-center space-x-0.5 text-[11px] font-label-sm border-r border-outline-variant pr-2">
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">Studio Home</button>
+<button class="px-2 py-0.5 rounded bg-surface-container-high text-primary font-semibold border-b-2 border-primary">Workspace</button>
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">Design Canvas</button>
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">Tasks</button>
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">Models &amp; Runtime</button>
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">Settings</button>
+</nav>
+<!-- Layout Controls (VS Code Layout Toggles) -->
+<div class="flex items-center space-x-1 text-on-surface-variant">
+<button class="p-1 hover:text-on-surface hover:bg-surface-container rounded" title="Toggle Primary Side Bar (Cmd+B)">
+<span class="material-symbols-outlined text-[15px] text-primary">dock_to_left</span>
+</button>
+<button class="p-1 hover:text-on-surface hover:bg-surface-container rounded" title="Toggle Panel (Cmd+J)">
+<span class="material-symbols-outlined text-[15px]">dock_to_bottom</span>
+</button>
+<button class="p-1 hover:text-on-surface hover:bg-surface-container rounded" title="Toggle Secondary Side Bar / Yana AI (Cmd+Alt+B)">
+<span class="material-symbols-outlined text-[15px] text-secondary">dock_to_right</span>
+</button>
+</div>
+<!-- Deploy Pill -->
+<button class="flex items-center space-x-1 px-2 py-0.5 rounded text-[11px] font-label-sm bg-primary text-on-primary font-medium hover:brightness-110 transition-colors ml-1">
+<span class="material-symbols-outlined text-[13px]">rocket_launch</span>
+<span class="">Deploy</span>
+</button>
+</div>
+</header>
+<!-- WORKSPACE BODY (Edge-to-Edge Grid / Flex) -->
+<div class="flex flex-1 w-full overflow-hidden">
+<!-- 2. NATIVE VS CODE + YANA ACTIVITY BAR (Extreme Left, 48px rail matching reference) -->
+<aside class="flex flex-col justify-between items-center w-12 h-full py-1 border-r border-outline-variant bg-[#111317] shrink-0 z-20">
+<!-- Top VS Code + Yana Activity Icons -->
+<div class="flex flex-col items-center w-full space-y-0.5">
+<!-- 1. Explorer (Active State) -->
+<button class="w-full h-10 flex items-center justify-center text-on-surface border-l-2 border-primary bg-surface-container-high transition-colors" title="Explorer (Cmd+Shift+E)">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">folder</span>
+</button>
+<!-- 2. Search -->
+<button class="w-full h-10 flex items-center justify-center text-on-surface-variant border-l-2 border-transparent hover:bg-surface-container hover:text-on-surface transition-colors" title="Search (Cmd+Shift+F)">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</button>
+<!-- 3. Source Control with Badge (13) matching reference -->
+<button class="relative w-full h-10 flex items-center justify-center text-on-surface-variant border-l-2 border-transparent hover:bg-surface-container hover:text-on-surface transition-colors" title="Source Control (Ctrl+Shift+G)">
+<span class="material-symbols-outlined text-[20px]">account_tree</span>
+<span class="absolute top-2 right-2 px-1 text-[8px] font-bold rounded-full bg-primary text-on-primary leading-none shadow-sm">13</span>
+</button>
+<!-- 4. Run and Debug -->
+<button class="w-full h-10 flex items-center justify-center text-on-surface-variant border-l-2 border-transparent hover:bg-surface-container hover:text-on-surface transition-colors" title="Run and Debug (Cmd+Shift+D)">
+<span class="material-symbols-outlined text-[20px]">bug_report</span>
+</button>
+<!-- 5. Extensions -->
+<button class="w-full h-10 flex items-center justify-center text-on-surface-variant border-l-2 border-transparent hover:bg-surface-container hover:text-on-surface transition-colors" title="Extensions (Cmd+Shift+X)">
+<span class="material-symbols-outlined text-[20px]">extension</span>
+</button>
+<!-- 6. Testing / Flask icon -->
+<button class="w-full h-10 flex items-center justify-center text-on-surface-variant border-l-2 border-transparent hover:bg-surface-container hover:text-on-surface transition-colors" title="Testing">
+<span class="material-symbols-outlined text-[20px]">science</span>
+</button>
+<!-- DIVIDER: YANA AUGMENTATIONS -->
+<div class="w-6 h-px bg-outline-variant/60 my-1"></div>
+<!-- 7. Yana Agents (Distinctive robot icon with active pulse) -->
+<button class="relative w-full h-10 flex items-center justify-center text-secondary border-l-2 border-transparent hover:bg-surface-container hover:text-secondary-fixed transition-colors group" title="Yana Agents Cockpit">
+<span class="material-symbols-outlined text-[20px]">smart_toy</span>
+<span class="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-secondary animate-ping"></span>
+</button>
+<!-- 8. Runtime Governance (Shield with status dot) -->
+<button class="relative w-full h-10 flex items-center justify-center text-tertiary border-l-2 border-transparent hover:bg-surface-container hover:text-tertiary-fixed transition-colors" title="Runtime Governance">
+<span class="material-symbols-outlined text-[20px]">verified_user</span>
+<span class="absolute bottom-2 right-2 w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+</button>
+<!-- 9. Design Canvas -->
+<button class="w-full h-10 flex items-center justify-center text-on-surface-variant border-l-2 border-transparent hover:bg-surface-container hover:text-on-surface transition-colors" title="Design Canvas">
+<span class="material-symbols-outlined text-[20px]">dashboard_customize</span>
+</button>
+</div>
+<!-- Bottom Native Icons: Telemetry, User Profile, Settings Gear with badge -->
+<div class="flex flex-col items-center w-full space-y-1 pb-1">
+<!-- Telemetry Chart -->
+<button class="w-full h-9 flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Telemetry &amp; Metrics">
+<span class="material-symbols-outlined text-[18px]">show_chart</span>
+</button>
+<!-- Account Profile with avatar indicator -->
+<button class="relative w-full h-9 flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Accounts (vutam@yana.io)">
+<div class="w-5 h-5 rounded-full bg-surface-container-high border border-outline flex items-center justify-center text-[10px] font-bold text-primary">
+          VT
+        </div>
+</button>
+<!-- Settings Gear with update badge (1) matching reference -->
+<button class="relative w-full h-9 flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Manage (Settings, Shortcuts)">
+<span class="material-symbols-outlined text-[19px]">settings</span>
+<span class="absolute top-1.5 right-2 px-1 text-[8px] font-bold rounded-full bg-primary text-on-primary leading-none">1</span>
+</button>
+</div>
+</aside>
+<!-- 3. PRIMARY SIDEBAR (EXPLORER): FULL REPLICA MATCHING REFERENCE SCREENSHOTS -->
+<aside class="w-64 h-full bg-[#14171f] border-r border-outline-variant flex flex-col shrink-0 overflow-hidden">
+<!-- Explorer Section Title Header with Native Action Buttons -->
+<div class="flex items-center justify-between px-3 h-8 text-[11px] font-label-sm border-b border-outline-variant bg-[#111317] shrink-0 select-none">
+<span class="font-bold tracking-wider text-on-surface uppercase">Explorer: Yana-AI</span>
+<div class="flex items-center space-x-1 text-on-surface-variant">
+<button class="p-0.5 hover:text-on-surface hover:bg-surface-container rounded" title="New File">
+<span class="material-symbols-outlined text-[14px]">note_add</span>
+</button>
+<button class="p-0.5 hover:text-on-surface hover:bg-surface-container rounded" title="New Folder">
+<span class="material-symbols-outlined text-[14px]">create_new_folder</span>
+</button>
+<button class="p-0.5 hover:text-on-surface hover:bg-surface-container rounded" title="Refresh Explorer">
+<span class="material-symbols-outlined text-[14px]">refresh</span>
+</button>
+<button class="p-0.5 hover:text-on-surface hover:bg-surface-container rounded" title="Collapse Folders in Explorer">
+<span class="material-symbols-outlined text-[14px]">unfold_less</span>
+</button>
+</div>
+</div>
+<!-- Secondary View Switcher Tabs (Files, Worktree, Inspector) + Filter Bar -->
+<div class="flex items-center border-b border-outline-variant bg-[#111317] h-7 text-[11px] font-label-sm select-none shrink-0">
+<button class="flex-1 h-full px-2 font-bold text-primary border-b-2 border-primary bg-surface-container-low flex items-center justify-center space-x-1">
+<span class="material-symbols-outlined text-[12px]">folder_open</span>
+<span class="">Files</span>
+</button>
+<button class="flex-1 h-full px-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container flex items-center justify-center space-x-1">
+<span class="material-symbols-outlined text-[12px]">fork_right</span>
+<span class="">Worktree</span>
+</button>
+<button class="flex-1 h-full px-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container flex items-center justify-center space-x-1">
+<span class="material-symbols-outlined text-[12px]">analytics</span>
+<span class="">Inspector</span>
+</button>
+</div>
+<!-- Workspace & Fuzzy Filter Input -->
+<div class="px-2 py-1.5 border-b border-outline-variant bg-[#14171f] flex flex-col space-y-1">
+<div class="flex items-center justify-between text-label-sm font-label-sm text-outline"><span class="text-[10px] font-semibold text-on-surface-variant truncate" title="https://github.com/yanacuti1121/Yana-AI">yanacuti1121/Yana-AI</span><span class="text-[9px] px-1 py-0.2 rounded bg-surface-container text-tertiary border border-outline-variant shrink-0">250 files</span></div>
+<div class="relative flex items-center bg-surface-container rounded border border-outline-variant focus-within:border-primary">
+<span class="material-symbols-outlined text-outline text-[12px] ml-1.5">filter_list</span>
+<input class="w-full bg-transparent px-1.5 py-0.5 text-label-sm font-label-sm text-on-surface placeholder:text-outline focus:outline-none text-[11px]" placeholder="Filter files (fuzzy)..." type="text">
+</div>
+</div>
+<!-- Scrollable Tree Structure (Open Editors + Real Folder Structure from Screenshots) -->
+<div class="flex-1 overflow-y-auto font-code-sm text-code-sm py-1 select-none divide-y divide-outline-variant/30 text-[11px]">
+<!-- OPEN EDITORS Accordion Section -->
+<div class="pb-1.5">
+<div class="flex items-center justify-between px-2 py-0.5 text-label-sm font-label-sm text-outline font-bold cursor-pointer hover:text-on-surface">
+<div class="flex items-center space-x-1">
+<span class="material-symbols-outlined text-[13px]">expand_more</span>
+<span class="">OPEN EDITORS</span>
+</div>
+<span class="text-[9px] text-outline">4 open</span>
+</div>
+<div class="space-y-0.5 mt-0.5">
+<div class="flex items-center justify-between px-3 py-0.5 bg-surface-container-high text-on-surface border-l-2 border-primary cursor-pointer text-[11px]">
+<div class="flex items-center space-x-1.5 truncate">
+<span class="text-primary font-bold text-[10px]">TS</span>
+<span class="truncate">runtime_orchestrator.ts</span>
+</div>
+<span class="text-secondary font-bold text-[9px]">[M]</span>
+</div>
+<div class="flex items-center justify-between px-3 py-0.5 text-on-surface-variant hover:bg-surface-container hover:text-on-surface cursor-pointer text-[11px]">
+<div class="flex items-center space-x-1.5 truncate">
+<span class="text-[#f77d54] font-bold text-[10px]">RS</span>
+<span class="truncate">agent_sandbox.rs</span>
+</div>
+</div>
+<div class="flex items-center justify-between px-3 py-0.5 text-on-surface-variant hover:bg-surface-container hover:text-on-surface cursor-pointer text-[11px]">
+<div class="flex items-center space-x-1.5 truncate">
+<span class="text-[#fac863] font-bold text-[10px]">{}</span>
+<span class="truncate">governance_policy.json</span>
+</div>
+</div>
+<div class="flex items-center justify-between px-3 py-0.5 text-on-surface-variant hover:bg-surface-container hover:text-on-surface cursor-pointer text-[11px]">
+<div class="flex items-center space-x-1.5 truncate">
+<span class="text-secondary font-bold text-[10px]">JS</span>
+<span class="truncate">mixture-of-agents.cjs</span>
+</div>
+</div>
+</div>
+</div>
+<!-- WORKSPACE TREE ROOT (Full reproduction from user's real project screenshot) -->
+<div class="pt-1 space-y-0 text-[11px]">
+<div class="flex items-center justify-between px-2 py-0.5 text-label-sm font-label-sm text-outline font-bold cursor-pointer hover:text-on-surface">
+<div class="flex items-center space-x-1">
+<span class="material-symbols-outlined text-[13px]">expand_more</span>
+<span class="text-on-surface">Yana-AI</span>
+</div>
+</div>
+<!-- Project Folders from Screenshot 2 -->
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">.agent</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">.agents</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">.claude</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">.claude-plugin</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">.codex</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">.cursor</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">.gemini</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">.github</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">.out-of-scope</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">.planning</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">.pytest_cache</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">.venv</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">.vscode</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">.wrangler</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">.yana</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">.yana-ai</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">adapters</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">bin</span>
+</div>
+<!-- SRC & RUNTIME Hierarchy (Expanded as in Screenshot 3) -->
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">expand_more</span>
+<span class="text-secondary font-bold mr-1">SRC &amp; RUNTIME</span>
+</div>
+<div class="flex items-center pl-7 pr-2 py-0.5 hover:bg-surface-container text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">expand_more</span>
+<span class="material-symbols-outlined text-[13px] text-primary mr-1">folder_open</span>
+<span class="">runtime</span>
+</div>
+<div class="flex items-center pl-10 pr-2 py-0.5 hover:bg-surface-container text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">expand_more</span>
+<span class="material-symbols-outlined text-[13px] text-primary mr-1">folder_open</span>
+<span class="">engine</span>
+</div>
+<div class="flex items-center pl-14 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[12px] text-outline mr-1.5">code</span>
+<span class="">supervisor.ts</span>
+</div>
+<div class="flex items-center justify-between pl-14 pr-2 py-0.5 bg-surface-container-high text-primary border-l-2 border-primary font-medium cursor-pointer">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-[12px] text-primary mr-1.5">code</span>
+<span class="">runtime_orchestrator.ts</span>
+</div>
+<span class="w-1.5 h-1.5 rounded-full bg-primary mr-1"></span>
+</div>
+<div class="flex items-center pl-14 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[12px] text-secondary mr-1.5">difference</span>
+<span class="">mixture-of-agents.cjs</span>
+</div>
+<!-- Remaining project folders from screenshot -->
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">core</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">demo</span>
+</div>
+<div class="flex items-center justify-between pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="text-tertiary">docs</span>
+</div>
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary mr-1"></span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">examples</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">gates</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">github-app</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">guards</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">ledger</span>
+</div>
+<!-- Highlighted Active 'memory' folder from Screenshot 2 -->
+<div class="flex items-center pl-4 pr-2 py-0.5 bg-[#004b75]/50 text-primary border-l-2 border-primary font-medium cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-primary mr-1">chevron_right</span>
+<span class="text-on-surface font-semibold">memory</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">ops</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">pkg</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">policy</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">prompts</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">releases</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">reports</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">router</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">scanner</span>
+</div>
+<div class="flex items-center pl-4 pr-2 py-0.5 hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-outline-variant mr-1">chevron_right</span>
+<span class="">scripts</span>
+</div>
+</div>
+</div>
+<!-- Collapsible Outline / Workspace Inspector Accordion at Bottom -->
+<div class="border-t border-outline-variant bg-[#111317] p-2 space-y-1.5 text-label-sm font-label-sm select-none shrink-0">
+<div class="flex items-center justify-between text-outline text-[10px]">
+<span class="font-bold text-on-surface-variant flex items-center space-x-1">
+<span class="material-symbols-outlined text-[12px] text-secondary">memory</span>
+<span class="">WORKSPACE INSPECTOR</span>
+</span>
+<span class="text-tertiary font-mono text-[9px]">42 MB</span>
+</div>
+<!-- Language Composition Bar -->
+<div class="w-full h-1.5 rounded-full bg-surface-container flex overflow-hidden">
+<div class="bg-[#f77d54] h-full" style="width: 48%" title="Rust: 48%"></div>
+<div class="bg-primary h-full" style="width: 38%" title="TypeScript: 38%"></div>
+<div class="bg-[#fac863] h-full" style="width: 14%" title="CJS/JSON: 14%"></div>
+</div>
+<div class="flex items-center justify-between text-[9px] text-outline">
+<span class="flex items-center space-x-1"><span class="w-1.5 h-1.5 rounded-full bg-[#f77d54]"></span><span class="">Rust 48%</span></span>
+<span class="flex items-center space-x-1"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span><span class="">TS 38%</span></span>
+<span class="flex items-center space-x-1"><span class="w-1.5 h-1.5 rounded-full bg-[#fac863]"></span><span class="">CJS 14%</span></span>
+</div>
+<div class="flex items-center justify-between pt-0.5 border-t border-outline-variant/40 text-[9px]">
+<span class="text-on-surface-variant">Context Index:</span>
+<span class="text-tertiary font-mono">1,420 vectors</span>
+</div>
+</div>
+</aside>
+<!-- 4. CENTER & BOTTOM: CENTRAL CODE EDITOR + INTEGRATED TERMINAL -->
+<main class="flex-1 flex flex-col h-full min-w-0 overflow-hidden bg-surface-container-lowest">
+<!-- CENTRAL CODE EDITOR REGION -->
+<section class="flex-1 flex flex-col min-h-0 bg-surface-container-lowest border-r border-outline-variant overflow-hidden">
+<!-- Editor Tab Bar (VS Code Tabs) -->
+<div class="flex items-center justify-between bg-[#111317] border-b border-outline-variant h-9 select-none">
+<div class="flex items-center h-full overflow-x-auto no-scrollbar">
+<!-- Active Tab: TS with modified dot -->
+<div class="flex items-center space-x-1.5 px-3 h-full bg-[#12151c] border-r border-outline-variant border-t-2 border-t-primary text-on-surface font-medium cursor-pointer text-code-sm font-code-sm">
+<span class="text-primary font-bold text-[11px]">TS</span>
+<span class="">runtime_orchestrator.ts</span>
+<span class="text-secondary font-bold text-[10px] ml-1">• [M]</span>
+<button class="ml-2 hover:bg-surface-container-high rounded p-0.5 text-on-surface-variant hover:text-on-surface">
+<span class="material-symbols-outlined text-[12px]">close</span>
+</button>
+</div>
+<!-- Inactive Tab 1: RS -->
+<div class="flex items-center space-x-1.5 px-3 h-full bg-[#111317] border-r border-outline-variant text-on-surface-variant hover:bg-surface-container-low cursor-pointer text-code-sm font-code-sm">
+<span class="text-[#f77d54] font-bold text-[11px]">RS</span>
+<span class="">agent_sandbox.rs</span>
+<button class="ml-2 opacity-0 hover:opacity-100 hover:bg-surface-container-high rounded p-0.5">
+<span class="material-symbols-outlined text-[12px]">close</span>
+</button>
+</div>
+<!-- Inactive Tab 2: JSON -->
+<div class="flex items-center space-x-1.5 px-3 h-full bg-[#111317] border-r border-outline-variant text-on-surface-variant hover:bg-surface-container-low cursor-pointer text-code-sm font-code-sm">
+<span class="text-[#fac863] font-bold text-[11px]">{}</span>
+<span class="">governance_policy.json</span>
+<button class="ml-2 opacity-0 hover:opacity-100 hover:bg-surface-container-high rounded p-0.5">
+<span class="material-symbols-outlined text-[12px]">close</span>
+</button>
+</div>
+<!-- Inactive Tab 3: CJS MoA -->
+<div class="flex items-center space-x-1.5 px-3 h-full bg-[#111317] border-r border-outline-variant text-on-surface-variant hover:bg-surface-container-low cursor-pointer text-code-sm font-code-sm">
+<span class="text-secondary font-bold text-[11px]">JS</span>
+<span class="">mixture-of-agents.cjs</span>
+<button class="ml-2 opacity-0 hover:opacity-100 hover:bg-surface-container-high rounded p-0.5">
+<span class="material-symbols-outlined text-[12px]">close</span>
+</button>
+</div>
+</div>
+<!-- Editor Controls (Split, More) -->
+<div class="flex items-center px-2 space-x-1 text-on-surface-variant">
+<button class="p-1 hover:bg-surface-container rounded hover:text-on-surface" title="Split Editor Right (Cmd+\)">
+<span class="material-symbols-outlined text-[15px]">splitscreen_right</span>
+</button>
+<button class="p-1 hover:bg-surface-container rounded hover:text-on-surface" title="More Actions...">
+<span class="material-symbols-outlined text-[15px]">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Breadcrumbs Bar + Yana CodeLens / Paging Meter -->
+<div class="flex items-center px-3 h-6 bg-[#12151c] border-b border-outline-variant text-label-sm font-label-sm text-on-surface-variant select-none space-x-1">
+<div class="flex items-center space-x-1 truncate text-[11px]">
+<span class="">src</span>
+<span class="text-outline-variant">&gt;</span>
+<span class="">runtime</span>
+<span class="text-outline-variant">&gt;</span>
+<span class="">engine</span>
+<span class="text-outline-variant">&gt;</span>
+<span class="text-on-surface font-medium">runtime_orchestrator.ts</span>
+<span class="text-outline-variant">&gt;</span>
+<span class="text-primary">RuntimeOrchestrator</span>
+<span class="text-outline-variant">&gt;</span>
+<span class="text-secondary">executeWithGovernance</span>
+</div>
+<div class="ml-auto flex items-center space-x-2 shrink-0 font-code-sm text-[10px]">
+<span class="px-1.5 py-0.2 rounded bg-surface-container text-tertiary border border-outline-variant">
+            CodeMirror 6 • Chunk 1/1 (18KB &lt; 256KB Paging, Max 8MB)
+          </span>
+</div>
+</div>
+<!-- Editor Canvas & Minimap Area -->
+<div class="flex-1 flex overflow-hidden relative font-code-md text-code-md">
+<!-- Code Text Lines Container -->
+<div class="flex-1 flex overflow-y-auto overflow-x-auto bg-[#12151c] leading-5 py-2">
+<!-- Line Numbers & Code Folding Gutter -->
+<div class="w-12 shrink-0 select-none text-right pr-2 text-outline-variant font-code-sm space-y-0.5">
+<div class="">1</div>
+<div class="">2</div>
+<div class="">3</div>
+<div class="">4</div>
+<div class="">5</div>
+<div class="">6</div>
+<div class="">7</div>
+<div class="">8</div>
+<div class="">9</div>
+<div class="">10</div>
+<div class="">11</div>
+<div class="">12</div>
+<div class="text-secondary font-bold">13</div>
+<div class="text-secondary font-bold">14</div>
+<div class="text-secondary font-bold">15</div>
+<div class="">16</div>
+<div class="">17</div>
+<div class="">18</div>
+<div class="">19</div>
+<div class="text-tertiary font-bold">20</div>
+<div class="text-tertiary font-bold">21</div>
+<div class="text-tertiary font-bold">22</div>
+<div class="">23</div>
+<div class="">24</div>
+<div class="">25</div>
+<div class="">26</div>
+<div class="">27</div>
+<div class="">28</div>
+<div class="">29</div>
+<div class="">30</div>
+<div class="">31</div>
+<div class="">32</div>
+</div>
+<!-- Git Diff Gutter Bar (Blue Modified / Green Added) -->
+<div class="w-1.5 shrink-0 flex flex-col select-none py-0.5 mr-2">
+<div class="h-[240px]"></div>
+<!-- modified gutter (lines 13-15) -->
+<div class="h-[54px] w-1 bg-secondary rounded-sm"></div>
+<div class="h-[72px]"></div>
+<!-- added gutter (lines 20-22) -->
+<div class="h-[54px] w-1 bg-tertiary rounded-sm"></div>
+</div>
+<!-- TypeScript Code Body + CodeLens Header -->
+<div class="flex-1 min-w-0 pr-6 space-y-0.5 text-on-surface whitespace-pre font-code-md text-[12px]">
+<!-- Inline Yana CodeLens capability indicator -->
+<div class="text-[10px] text-outline font-label-sm pb-1 flex items-center space-x-2"><span class="text-primary flex items-center space-x-1 cursor-pointer hover:underline"><span class="material-symbols-outlined text-[12px]">smart_toy</span><span class="">Yana Agent: 3 proposals</span></span><span class="">|</span><span class="text-tertiary flex items-center space-x-1"><span class="material-symbols-outlined text-[12px]">verified</span><span class="">Audit: Passing</span></span><span class="">|</span><a href="https://github.com/yanacuti1121/Yana-AI" target="_blank" class="text-outline hover:text-primary flex items-center space-x-1 transition-colors"><span class="material-symbols-outlined text-[12px]">link</span><span class="">github.com/yanacuti1121/Yana-AI</span></a><span class="">|</span><span class="text-secondary cursor-pointer hover:underline">Run with Governance (L3)</span></div>
+<div class=""><span class="text-[#f77d54]">import</span> { <span class="text-primary">GovernanceEngine</span>, <span class="text-primary">PermissionBoundary</span> } <span class="text-[#f77d54]">from</span> <span class="text-tertiary">"../permissions"</span>;</div>
+<div class=""><span class="text-[#f77d54]">import</span> { <span class="text-primary">AgentTask</span>, <span class="text-primary">ExecutionContext</span>, <span class="text-primary">TaskResult</span> } <span class="text-[#f77d54]">from</span> <span class="text-tertiary">"../agents/types"</span>;</div>
+<div class=""><span class="text-[#f77d54]">import</span> { <span class="text-primary">AuditLogger</span> } <span class="text-[#f77d54]">from</span> <span class="text-tertiary">"../permissions/audit_logger"</span>;</div>
+<div></div>
+<div><span class="text-outline">/**</span></div>
+<div><span class="text-outline"> * Yana Runtime Orchestrator: Deterministic execution boundary with human-in-the-loop governance.</span></div>
+<div><span class="text-outline"> */</span></div>
+<div class=""><span class="text-[#f77d54]">export class</span> <span class="text-[#fac863]">RuntimeOrchestrator</span> {</div>
+<div class=""> <span class="text-[#f77d54]">private readonly</span> <span class="text-primary">policyEnforcer</span>: <span class="text-[#fac863]">GovernanceEngine</span>;</div>
+<div class=""> <span class="text-[#f77d54]">private readonly</span> <span class="text-primary">logger</span>: <span class="text-[#fac863]">AuditLogger</span>;</div>
+<div></div>
+<div class=""> <span class="text-[#f77d54]">constructor</span>(<span class="text-on-surface-variant">boundary</span>: <span class="text-[#fac863]">PermissionBoundary</span>) {</div>
+<div class="bg-secondary/10 -mx-2 px-2 border-l-2 border-secondary"> <span class="text-[#f77d54]">this</span>.<span class="text-primary">policyEnforcer</span> = <span class="text-[#f77d54]">new</span> <span class="text-[#fac863]">GovernanceEngine</span>(boundary, { <span class="text-secondary">strictMode</span>: <span class="text-secondary">true</span> });</div>
+<div class="bg-secondary/10 -mx-2 px-2 border-l-2 border-secondary"> <span class="text-[#f77d54]">this</span>.<span class="text-primary">logger</span> = <span class="text-[#f77d54]">new</span> <span class="text-[#fac863]">AuditLogger</span>(<span class="text-tertiary">"runtime.core.orchestrator"</span>);</div>
+<div class="bg-secondary/10 -mx-2 px-2 border-l-2 border-secondary">  }</div>
+<div></div>
+<div class="bg-surface-container-high/50 -mx-2 px-2"> <span class="text-[#f77d54]">public async</span> <span class="text-[#608bff] font-semibold">executeWithGovernance</span>(<span class="text-on-surface-variant">task</span>: <span class="text-[#fac863]">AgentTask</span>, <span class="text-on-surface-variant">context</span>: <span class="text-[#fac863]">ExecutionContext</span>): <span class="text-[#fac863]">Promise</span>&lt;<span class="text-[#fac863]">TaskResult</span>&gt; {</div>
+<div class=""> <span class="text-[#f77d54]">const</span> <span class="text-on-surface-variant">evaluation</span> = <span class="text-[#f77d54]">await this</span>.<span class="text-primary">policyEnforcer</span>.<span class="text-[#608bff]">evaluate</span>(task.action);</div>
+<div></div>
+<div class="bg-tertiary/10 -mx-2 px-2 border-l-2 border-tertiary"> <span class="text-[#f77d54]">if</span> (evaluation.requiresHumanApproval) {</div>
+<div class="bg-tertiary/10 -mx-2 px-2 border-l-2 border-tertiary"> <span class="text-[#f77d54]">await this</span>.<span class="text-primary">logger</span>.<span class="text-[#608bff]">warn</span>(<span class="text-tertiary">`Interception: Task ${task.id} triggered gate.`</span>);</div>
+<div class="bg-tertiary/10 -mx-2 px-2 border-l-2 border-tertiary"> <span class="text-[#f77d54]">return this</span>.<span class="text-[#608bff]">suspendForApproval</span>(task, evaluation.requestedCapability);</div>
+<div class="">    }</div>
+<div></div>
+<div class=""> <span class="text-[#f77d54]">if</span> (!evaluation.allowed) {</div>
+<div class=""> <span class="text-[#f77d54]">throw new</span> <span class="text-[#fac863]">SecurityException</span>(<span class="text-tertiary">`Operation denied by policy: ${evaluation.reason}`</span>);</div>
+<div class="">    }</div>
+<div></div>
+<div class=""> <span class="text-[#f77d54]">const</span> <span class="text-on-surface-variant">worker</span> = <span class="text-[#f77d54]">await context</span>.<span class="text-[#608bff]">acquireWorker</span>();</div>
+<div class=""> <span class="text-[#f77d54]">return await</span> worker.<span class="text-[#608bff]">dispatch</span>(task);</div>
+<div class="">  }</div>
+<div class="">}</div>
+</div>
+</div>
+<!-- Minimap on Right Edge -->
+<div class="w-16 h-full bg-[#0c0e12] border-l border-outline-variant p-1 hidden md:block select-none overflow-hidden shrink-0">
+<div class="minimap-canvas w-full h-80 rounded-sm"></div>
+<div class="w-full h-16 bg-surface-bright/20 border border-outline-variant/60 rounded-sm -mt-44 pointer-events-none"></div>
+</div>
+</div>
+</section>
+<!-- 5. BOTTOM PANEL: NATIVE VS CODE TERMINAL & WORKBENCH -->
+<section class="h-52 border-t border-outline-variant bg-[#0c0e12] flex flex-col shrink-0 select-none">
+<!-- Standard VS Code Panel Tabs (PROBLEMS, OUTPUT, DEBUG CONSOLE, TERMINAL, PORTS) -->
+<div class="flex items-center justify-between px-3 h-8 bg-[#111317] border-b border-outline-variant shrink-0">
+<div class="flex items-center space-x-4 text-label-sm font-label-sm text-[11px]">
+<button class="flex items-center space-x-1 text-on-surface-variant hover:text-on-surface pb-0.5">
+<span class="">PROBLEMS</span>
+<span class="px-1 text-[9px] rounded-full bg-surface-container text-outline font-mono">0</span>
+</button>
+<button class="flex items-center space-x-1 text-on-surface-variant hover:text-on-surface pb-0.5">
+<span class="">OUTPUT (Yana Runtime)</span>
+</button>
+<button class="flex items-center space-x-1 text-on-surface-variant hover:text-on-surface pb-0.5">
+<span class="">DEBUG CONSOLE</span>
+</button>
+<!-- Active TERMINAL Tab -->
+<button class="flex items-center space-x-1.5 text-on-surface border-b-2 border-primary pb-0.5 font-bold">
+<span class="">TERMINAL</span>
+<span class="px-1 text-[9px] rounded bg-primary/20 text-primary border border-primary/40 font-mono">2 Active</span>
+</button>
+<button class="flex items-center space-x-1 text-on-surface-variant hover:text-on-surface pb-0.5">
+<span class="">PORTS</span>
+<span class="px-1 text-[9px] rounded bg-tertiary/20 text-tertiary font-mono">7120</span>
+</button>
+</div>
+<!-- Terminal Session Picker & Split Controls matching Screenshot 2 -->
+<div class="flex items-center space-x-2 text-label-sm font-label-sm">
+<!-- Terminal Session Tabs Dropdown / Pill as seen in Screenshot 2 -->
+<div class="flex items-center space-x-1 bg-surface-container px-2 py-0.5 rounded border border-outline-variant text-[11px] font-code-sm">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="text-on-surface font-medium">1: zsh — Yana-AI</span>
+<span class="material-symbols-outlined text-[13px] text-outline ml-1">expand_more</span>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center space-x-0.5 text-on-surface-variant border-l border-outline-variant pl-1.5">
+<button class="p-1 hover:bg-surface-container-high rounded text-on-surface" title="Split Terminal (Cmd+\)">
+<span class="material-symbols-outlined text-[14px]">splitscreen_right</span>
+</button>
+<button class="p-1 hover:bg-surface-container-high rounded text-on-surface-variant hover:text-on-surface" title="New Terminal (Ctrl+Shift+`)">
+<span class="material-symbols-outlined text-[14px]">add</span>
+</button>
+<button class="p-1 hover:bg-surface-container-high rounded text-on-surface-variant hover:text-on-surface" title="Kill Terminal Session">
+<span class="material-symbols-outlined text-[14px]">delete</span>
+</button>
+<button class="p-1 hover:bg-surface-container-high rounded text-on-surface-variant hover:text-on-surface" title="Maximize Panel Size">
+<span class="material-symbols-outlined text-[14px]">expand_less</span>
+</button>
+<button class="p-1 hover:bg-surface-container-high rounded text-on-surface-variant hover:text-on-surface" title="Close Panel">
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Realistic Terminal Split matching Screenshot 2 prompt + yana-rt daemon -->
+<div class="flex-1 flex overflow-hidden divide-x divide-outline-variant bg-[#0c0e12] font-code-sm text-code-sm">
+<!-- Terminal Pane 1: User prompt exactly matching Screenshot 2 -->
+<div class="flex-1 flex flex-col p-2.5 overflow-y-auto leading-relaxed select-text space-y-1 font-mono text-[12px]">
+<div class="flex items-center space-x-2 text-outline text-[11px] pb-1 border-b border-outline-variant/30 select-none"><span class="w-2 h-2 rounded-full bg-[#00bcd4]"></span><span class="text-on-surface-variant font-semibold">zsh</span><span class="">•</span><span class="text-outline">vutam@MacBook-cua-yana Yana-AI (github.com/yanacuti1121/Yana-AI)</span></div>
+<div class="text-on-surface">
+<span class="text-[#00bcd4]">●</span> <span class="font-bold">vutam@MacBook-cua-yana</span> <span class="text-on-surface-variant">Yana-AI %</span> <span class="text-on-surface">source /Users/vutam/Desktop/yana-rt/.venv/bin/activate</span>
+</div>
+<div class="text-on-surface">
+<span class="text-tertiary">○</span> <span class="text-outline">(.venv)</span> <span class="font-bold">vutam@MacBook-cua-yana</span> <span class="text-on-surface-variant">Yana-AI %</span> <span class="text-primary font-semibold">pnpm run dev:renderer</span>
+</div>
+<div class="text-outline text-[11px]">[VITE] VITE v5.4.1 ready in 142 ms</div>
+<div class="text-outline text-[11px]">➜ Local: <span class="text-primary underline">http://localhost:5173/</span></div>
+<div class="flex items-center space-x-1.5 text-on-surface">
+<span class="text-tertiary">➜</span>
+<span class="text-outline">(.venv)</span>
+<span class="font-bold">vutam@MacBook-cua-yana</span>
+<span class="text-on-surface-variant">Yana-AI %</span>
+<span class="inline-block w-2 h-3.5 bg-primary animate-pulse"></span>
+</div>
+</div>
+<!-- Terminal Pane 2: Rust IPC Host stdio daemon -->
+<div class="w-1/2 flex flex-col p-2.5 overflow-y-auto leading-relaxed select-text space-y-1 font-mono text-[12px] hidden md:flex">
+<div class="flex items-center justify-between pb-1 border-b border-outline-variant/30 text-[10px] text-outline select-none">
+<span class="text-tertiary font-bold flex items-center space-x-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="">yana-rt (PID 48219) rust stdio pipe</span>
+</span>
+<span class="text-outline font-mono">unix:///tmp/yana.sock</span>
+</div>
+<div class="text-outline text-[11px]"><span class="text-tertiary">[RUST-HOST]</span> Listening on stdio / IPC socket (unix:///tmp/yana.sock)</div>
+<div class="text-outline text-[11px]"><span class="text-primary">[GOVERNANCE]</span> Active Policy: default-developer-sandbox.json (42 rules, L3 Controlled)</div>
+<div class="text-outline text-[11px]"><span class="text-secondary">[SUPERVISOR]</span> Worker pool: 4 threads ready, memory mapped ring buffer online</div>
+<div class="text-tertiary text-[11px] font-medium">➜ [DAEMON-IPC] Rust Host Process Online &amp; responsive (0.8ms ping)</div>
+</div>
+</div>
+</section>
+</main>
+<!-- 6. SECONDARY SIDEBAR / RIGHT DOCK: YANA AI COCKPIT -->
+<aside class="w-96 h-full bg-[#12151c] border-l border-outline-variant flex flex-col shrink-0 overflow-hidden z-10">
+<!-- Cockpit Header -->
+<div class="px-3 py-2 border-b border-outline-variant bg-[#111317] flex flex-col space-y-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-secondary text-[16px]">smart_toy</span>
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface tracking-wide">YANA AI</span>
+<span class="text-label-sm font-label-sm px-1 py-0.2 rounded bg-surface-container text-primary border border-outline-variant text-[10px]">v2.4-alpha</span>
+</div>
+<div class="flex items-center space-x-1 text-on-surface-variant">
+<button class="p-1 hover:bg-surface-container rounded hover:text-on-surface" title="New Session">
+<span class="material-symbols-outlined text-[15px]">add</span>
+</button>
+<button class="p-1 hover:bg-surface-container rounded hover:text-on-surface" title="History">
+<span class="material-symbols-outlined text-[15px]">history</span>
+</button>
+<button class="p-1 hover:bg-surface-container rounded hover:text-on-surface" title="Close AI Panel">
+<span class="material-symbols-outlined text-[15px]">close</span>
+</button>
+</div>
+</div>
+<div class="flex items-center justify-between pt-0.5 text-[10px] font-label-sm"><a href="https://github.com/yanacuti1121/Yana-AI" target="_blank" class="flex items-center space-x-1.5 text-tertiary hover:underline truncate mr-2"><span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse shrink-0"></span><span class="font-bold tracking-tight truncate">github.com/yanacuti1121/Yana-AI</span></a><span class="px-1.5 py-0.2 rounded bg-secondary/10 text-secondary border border-secondary/30 font-semibold shrink-0">MoA Enabled</span></div>
+</div>
+<!-- Control Bar: Provider Model, Mode Switcher, Governance Badge -->
+<div class="px-3 py-1.5 bg-surface-container border-b border-outline-variant space-y-1.5">
+<!-- Model Dropdown Trigger (Active / Open State) -->
+<div class="relative">
+<div class="flex items-center justify-between text-label-sm font-label-sm bg-surface-container-high px-2.5 py-1 rounded border border-primary text-on-surface cursor-pointer w-full shadow-sm hover:border-primary transition-colors">
+<div class="flex items-center space-x-1.5 min-w-0">
+<span class="material-symbols-outlined text-secondary text-[14px]">bolt</span>
+<span class="truncate font-semibold text-primary">Claude 3.7 Sonnet (Anthropic)</span>
+<span class="px-1 py-0.2 rounded bg-primary/10 text-primary border border-primary/30 text-[9px] font-bold">ACTIVE</span>
+</div>
+<div class="flex items-center space-x-2 shrink-0 ml-2">
+<span class="text-outline text-[9px] font-code-sm">200k ctx • 42t/s</span>
+<span class="material-symbols-outlined text-primary text-[14px]">expand_less</span>
+</div>
+</div>
+<!-- RICH MODEL PICKER POPOVER / MODAL DROPDOWN -->
+<div class="absolute left-0 right-0 top-[34px] z-30 bg-[#0c0e12] border border-outline-variant rounded shadow-2xl flex flex-col max-h-[510px] overflow-hidden -mx-1.5 mt-0.5">
+<!-- Popover Header: Search & Sync Bar -->
+<div class="p-2 bg-surface-container-low border-b border-outline-variant space-y-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-1.5 text-label-sm font-label-sm text-on-surface">
+<span class="material-symbols-outlined text-secondary text-[14px]">hub</span>
+<span class="font-bold tracking-tight text-on-surface">Select AI Model</span>
+</div>
+<!-- Sync from API status button -->
+<button class="flex items-center space-x-1 px-1.5 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface border border-outline-variant text-[9px] font-code-sm transition-colors" title="Fetch latest models from Provider APIs">
+<span class="material-symbols-outlined text-[11px] text-tertiary">sync</span>
+<span class="">Synced 28 models</span>
+</button>
+</div>
+<!-- Search Field -->
+<div class="relative flex items-center bg-surface-container rounded border border-outline-variant focus-within:border-primary">
+<span class="material-symbols-outlined text-outline text-[13px] ml-2">search</span>
+<input class="w-full bg-transparent px-2 py-1 text-label-sm font-label-sm text-on-surface placeholder:text-outline focus:outline-none" placeholder="Search models, tags (Cmd+/)..." type="text" value="">
+<span class="text-[9px] text-outline px-1.5 py-0.5 mr-1 rounded bg-surface-container-lowest font-code-sm border border-outline-variant">⌘/</span>
+</div>
+</div>
+<!-- Provider Filter Tabs -->
+<div class="flex items-center space-x-1 px-2 py-1 bg-surface-container border-b border-outline-variant overflow-x-auto no-scrollbar text-[10px] font-label-sm shrink-0">
+<button class="px-2 py-0.5 rounded bg-primary text-on-primary font-bold shrink-0">All (28)</button>
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high shrink-0 flex items-center space-x-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="">Anthropic</span>
+</button>
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high shrink-0 flex items-center space-x-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="">OpenAI</span>
+</button>
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high shrink-0 flex items-center space-x-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="">Google</span>
+</button>
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high shrink-0 flex items-center space-x-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="">DeepSeek</span>
+</button>
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high shrink-0 flex items-center space-x-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span class="">Ollama / Local</span>
+</button>
+</div>
+<!-- Scrollable Model List Groups -->
+<div class="flex-1 overflow-y-auto p-1.5 space-y-2 font-code-sm text-code-sm divide-y divide-outline-variant/30">
+<!-- GROUP 1: Anthropic -->
+<div class="pt-1 space-y-1">
+<div class="flex items-center justify-between px-1.5 text-[10px] font-label-sm text-outline">
+<span class="flex items-center space-x-1">
+<span class="font-bold text-on-surface-variant">ANTHROPIC</span>
+<span class="text-[9px] text-tertiary font-medium">• API Connected</span>
+</span>
+<span class="text-[9px]">3 models</span>
+</div>
+<div class="flex flex-col p-1.5 rounded bg-surface-container-high border border-primary/60 cursor-pointer">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-1.5 truncate">
+<span class="material-symbols-outlined text-primary text-[14px]">check_circle</span>
+<span class="font-bold text-primary text-[11px] truncate">Claude 3.7 Sonnet</span>
+<span class="px-1 py-0.2 rounded bg-tertiary/10 text-tertiary text-[8px] font-bold border border-tertiary/30">HYBRID THINKING</span>
+</div>
+<span class="text-outline text-[9px] shrink-0">42 t/s</span>
+</div>
+<div class="flex items-center justify-between mt-1 text-[9px] text-outline">
+<div class="flex items-center space-x-1">
+<span class="px-1 py-0.2 rounded bg-surface-container text-on-surface-variant">200k ctx</span>
+<span class="px-1 py-0.2 rounded bg-surface-container text-secondary">Reasoning</span>
+<span class="px-1 py-0.2 rounded bg-surface-container text-on-surface-variant">Tools</span>
+<span class="px-1 py-0.2 rounded bg-surface-container text-on-surface-variant">Vision</span>
+</div>
+<span class="text-tertiary font-medium">Selected</span>
+</div>
+</div>
+<div class="flex flex-col p-1.5 rounded hover:bg-surface-container-high/60 cursor-pointer transition-colors border border-transparent hover:border-outline-variant">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-1.5 truncate">
+<span class="material-symbols-outlined text-outline text-[14px]">radio_button_unchecked</span>
+<span class="font-medium text-on-surface text-[11px] truncate">Claude 3.5 Sonnet</span>
+<span class="px-1 py-0.2 rounded bg-surface-container text-on-surface-variant text-[8px]">STABLE</span>
+</div>
+<span class="text-outline text-[9px] shrink-0">55 t/s</span>
+</div>
+<div class="flex items-center justify-between mt-1 text-[9px] text-outline">
+<div class="flex items-center space-x-1">
+<span class="px-1 py-0.2 rounded bg-surface-container text-on-surface-variant">200k ctx</span>
+<span class="px-1 py-0.2 rounded bg-surface-container text-on-surface-variant">Coding</span>
+<span class="px-1 py-0.2 rounded bg-surface-container text-on-surface-variant">Tools</span>
+</div>
+<span class="">$3.00 / $15.00</span>
+</div>
+</div>
+<div class="flex flex-col p-1.5 rounded hover:bg-surface-container-high/60 cursor-pointer transition-colors border border-transparent hover:border-outline-variant">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-1.5 truncate">
+<span class="material-symbols-outlined text-outline text-[14px]">radio_button_unchecked</span>
+<span class="font-medium text-on-surface text-[11px] truncate">Claude 3.5 Haiku</span>
+<span class="px-1 py-0.2 rounded bg-secondary/10 text-secondary text-[8px]">FAST</span>
+</div>
+<span class="text-outline text-[9px] shrink-0">78 t/s</span>
+</div>
+<div class="flex items-center justify-between mt-1 text-[9px] text-outline">
+<div class="flex items-center space-x-1">
+<span class="px-1 py-0.2 rounded bg-surface-container text-on-surface-variant">200k ctx</span>
+<span class="px-1 py-0.2 rounded bg-surface-container text-on-surface-variant">Low Latency</span>
+</div>
+<span class="">$0.80 / $4.00</span>
+</div>
+</div>
+</div>
+<!-- GROUP 2: OpenAI -->
+<div class="pt-1 space-y-1">
+<div class="flex items-center justify-between px-1.5 text-[10px] font-label-sm text-outline">
+<span class="flex items-center space-x-1">
+<span class="font-bold text-on-surface-variant">OPENAI</span>
+<span class="text-[9px] text-tertiary font-medium">• API Connected</span>
+</span>
+<span class="text-[9px]">4 models</span>
+</div>
+<div class="flex flex-col p-1.5 rounded hover:bg-surface-container-high/60 cursor-pointer transition-colors border border-transparent hover:border-outline-variant">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-1.5 truncate">
+<span class="material-symbols-outlined text-outline text-[14px]">radio_button_unchecked</span>
+<span class="font-medium text-on-surface text-[11px] truncate">o3-mini</span>
+<span class="px-1 py-0.2 rounded bg-tertiary/10 text-tertiary text-[8px] font-bold border border-tertiary/30">HIGH REASONING</span>
+</div>
+<span class="text-outline text-[9px] shrink-0">68 t/s</span>
+</div>
+<div class="flex items-center justify-between mt-1 text-[9px] text-outline">
+<div class="flex items-center space-x-1">
+<span class="px-1 py-0.2 rounded bg-surface-container text-on-surface-variant">200k ctx</span>
+<span class="px-1 py-0.2 rounded bg-surface-container text-secondary">Tier-3 Code</span>
+<span class="px-1 py-0.2 rounded bg-surface-container text-on-surface-variant">Tools</span>
+</div>
+<span class="">$1.10 / $4.40</span>
+</div>
+</div>
+</div>
+<!-- GROUP 3: Google -->
+<div class="pt-1 space-y-1">
+<div class="flex items-center justify-between px-1.5 text-[10px] font-label-sm text-outline">
+<span class="flex items-center space-x-1">
+<span class="font-bold text-on-surface-variant">GOOGLE VERTEX / STUDIO</span>
+<span class="text-[9px] text-tertiary font-medium">• API Connected</span>
+</span>
+<span class="text-[9px]">2 models</span>
+</div>
+<div class="flex flex-col p-1.5 rounded hover:bg-surface-container-high/60 cursor-pointer transition-colors border border-transparent hover:border-outline-variant">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-1.5 truncate">
+<span class="material-symbols-outlined text-outline text-[14px]">radio_button_unchecked</span>
+<span class="font-medium text-on-surface text-[11px] truncate">Gemini 2.0 Flash</span>
+<span class="px-1 py-0.2 rounded bg-secondary/10 text-secondary text-[8px] font-bold">1M CTX</span>
+</div>
+<span class="text-secondary font-bold text-[9px] shrink-0">110 t/s</span>
+</div>
+<div class="flex items-center justify-between mt-1 text-[9px] text-outline">
+<div class="flex items-center space-x-1">
+<span class="px-1 py-0.2 rounded bg-surface-container text-on-surface-variant">1,048k ctx</span>
+<span class="px-1 py-0.2 rounded bg-surface-container text-on-surface-variant">Multimodal</span>
+</div>
+<span class="">$0.10 / $0.40</span>
+</div>
+</div>
+</div>
+<!-- GROUP 4: DeepSeek -->
+<div class="pt-1 space-y-1">
+<div class="flex items-center justify-between px-1.5 text-[10px] font-label-sm text-outline">
+<span class="flex items-center space-x-1">
+<span class="font-bold text-on-surface-variant">DEEPSEEK</span>
+<span class="text-[9px] text-tertiary font-medium">• API Connected</span>
+</span>
+<span class="text-[9px]">2 models</span>
+</div>
+<div class="flex flex-col p-1.5 rounded hover:bg-surface-container-high/60 cursor-pointer transition-colors border border-transparent hover:border-outline-variant">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-1.5 truncate">
+<span class="material-symbols-outlined text-outline text-[14px]">radio_button_unchecked</span>
+<span class="font-medium text-on-surface text-[11px] truncate">DeepSeek-R1</span>
+<span class="px-1 py-0.2 rounded bg-tertiary/10 text-tertiary text-[8px] font-bold border border-tertiary/30">OPEN REASONING</span>
+</div>
+<span class="text-outline text-[9px] shrink-0">28 t/s</span>
+</div>
+<div class="flex items-center justify-between mt-1 text-[9px] text-outline">
+<div class="flex items-center space-x-1">
+<span class="px-1 py-0.2 rounded bg-surface-container text-on-surface-variant">64k ctx</span>
+<span class="px-1 py-0.2 rounded bg-surface-container text-secondary">CoT</span>
+</div>
+<span class="">$0.55 / $2.19</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Popover Footer -->
+<div class="p-2 bg-surface-container-low border-t border-outline-variant flex items-center justify-between text-label-sm font-label-sm">
+<button class="flex items-center space-x-1 text-primary hover:underline hover:text-primary transition-colors text-[10px]">
+<span class="material-symbols-outlined text-[13px]">add_circle</span>
+<span class="">Add Endpoint (vLLM, LM Studio)</span>
+</button>
+<button class="flex items-center space-x-1 text-on-surface-variant hover:text-on-surface text-[10px]" title="Configure Provider API Keys">
+<span class="material-symbols-outlined text-[13px]">key</span>
+<span class="">API Keys</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Mode Switcher Pills -->
+<div class="flex items-center justify-between text-label-sm font-label-sm pt-0.5">
+<div class="flex items-center space-x-1 bg-surface-container-low p-0.5 rounded border border-outline-variant text-[11px]">
+<button class="px-1.5 py-0.5 rounded text-on-surface-variant hover:text-on-surface">Auto (L1)</button>
+<button class="px-1.5 py-0.5 rounded bg-primary text-on-primary font-bold shadow-sm">Supervised (L3)</button>
+<button class="px-1.5 py-0.5 rounded text-on-surface-variant hover:text-on-surface">Plan-Only</button>
+</div>
+<div class="flex items-center space-x-1">
+<span class="text-[9px] font-label-sm px-1.5 py-0.5 rounded bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/40 font-semibold tracking-wider">
+            GATE: L3 CONTROLLED
+          </span>
+</div>
+</div>
+</div>
+<!-- Main Conversation & Agent Execution Stream -->
+<div class="flex-1 overflow-y-auto p-3 space-y-3 font-body-sm text-body-sm">
+<!-- Attached Files Context Pill -->
+<div class="flex items-center flex-wrap gap-1 text-label-sm font-label-sm bg-surface-container-low p-1.5 rounded border border-outline-variant">
+<span class="text-outline text-[10px] mr-0.5">CONTEXT:</span>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded bg-surface-container text-on-surface border border-outline-variant">
+<span class="material-symbols-outlined text-[11px] text-primary mr-1">description</span>
+<span class="">supervisor.ts</span>
+</span>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded bg-surface-container text-on-surface border border-outline-variant">
+<span class="material-symbols-outlined text-[11px] text-[#fac863] mr-1">shield</span>
+<span class="">governance_policy.json</span>
+</span>
+</div>
+<!-- User Intent Card -->
+<div class="rounded bg-surface-container p-2.5 border border-outline-variant">
+<div class="flex items-center justify-between mb-1 text-label-sm font-label-sm text-outline">
+<span class="font-semibold text-primary">OPERATOR INTENT</span>
+<span class="">14:02:19</span>
+</div>
+<p class="text-on-surface leading-snug font-medium">
+          Implement human-in-the-loop authorization interceptor when an agent attempts disk writes or network sockets outside localhost.
+        </p>
+</div>
+<!-- Agent Thought & Step Progress Card -->
+<div class="rounded bg-surface-container-low border border-outline-variant p-2.5 space-y-2">
+<div class="flex items-center justify-between text-label-sm font-label-sm">
+<div class="flex items-center space-x-1.5 text-secondary">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary animate-ping"></span>
+<span class="font-bold">Agent #yana-core-49 running...</span>
+</div>
+<span class="text-outline text-[10px]">thinking (1.2s)</span>
+</div>
+<!-- Steps Timeline -->
+<div class="pl-2 border-l border-outline-variant space-y-1.5 text-label-sm font-label-sm">
+<div class="flex items-center space-x-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-tertiary text-[13px]">check_circle</span>
+<span class="">Read AST of <span class="font-code-sm text-on-surface">runtime_orchestrator.ts</span></span>
+<span class="text-outline text-[9px] ml-auto">24ms</span>
+</div>
+<div class="flex items-center space-x-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-tertiary text-[13px]">check_circle</span>
+<span class="">Policy check against <span class="font-code-sm text-on-surface">governance_policy.json</span></span>
+<span class="px-1 py-0.2 rounded bg-tertiary/10 text-tertiary text-[9px] font-bold ml-auto">ALLOW</span>
+</div>
+<div class="flex items-center space-x-1.5 text-on-surface">
+<span class="material-symbols-outlined text-secondary text-[13px] animate-spin">sync</span>
+<span class="">Generating proposed diff for <span class="font-code-sm text-primary">supervisor.ts</span></span>
+</div>
+</div>
+</div>
+<!-- Proposed Code Changes Box (Diff Card) -->
+<div class="rounded border border-outline-variant bg-[#0c0e12] overflow-hidden">
+<div class="flex items-center justify-between px-2.5 py-1.5 bg-surface-container-high border-b border-outline-variant text-label-sm font-label-sm">
+<div class="flex items-center space-x-1">
+<span class="material-symbols-outlined text-[13px] text-tertiary">difference</span>
+<span class="font-code-sm text-on-surface font-semibold">src/runtime/engine/supervisor.ts</span>
+</div>
+<span class="text-tertiary text-[10px] font-bold">+18 <span class="text-error">-4</span></span>
+</div>
+<div class="p-2 font-code-sm text-code-sm leading-tight space-y-0.5 overflow-x-auto select-text">
+<div class="text-outline">@@ -42,7 +42,9 @@ export class Supervisor {</div>
+<div class="text-error bg-error-container/20 px-1 rounded">-    return await this.dispatchDirect(action);</div>
+<div class="text-tertiary bg-tertiary/10 px-1 rounded">+    // Governance approval interceptor gate</div>
+<div class="text-tertiary bg-tertiary/10 px-1 rounded">+    const approval = await this.runtime.requestHumanApproval(action);</div>
+<div class="text-tertiary bg-tertiary/10 px-1 rounded">+    if (!approval.granted) throw new PolicyRejectionError();</div>
+<div class="text-on-surface-variant">     return await this.dispatchDirect(action);</div>
+</div>
+<div class="p-2 bg-surface-container-low border-t border-outline-variant flex items-center space-x-1.5">
+<button class="flex-1 py-1 px-2 rounded bg-primary text-on-primary text-label-sm font-label-sm font-semibold hover:brightness-110 transition-colors flex items-center justify-center space-x-1">
+<span class="material-symbols-outlined text-[13px]">check</span>
+<span class="">Accept &amp; Apply</span>
+</button>
+<button class="py-1 px-2 rounded bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant text-label-sm font-label-sm transition-colors">
+            Inspect Full Diff
+          </button>
+<button class="py-1 px-1.5 rounded hover:bg-surface-container-high text-error text-label-sm font-label-sm transition-colors" title="Reject Changes">
+<span class="material-symbols-outlined text-[15px]">close</span>
+</button>
+</div>
+</div>
+<!-- Runtime Governance Callout: Human Approval Gate -->
+<div class="rounded border border-[#f59e0b]/40 bg-[#f59e0b]/10 p-2.5 space-y-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-[#f59e0b] text-[16px]">warning</span>
+<span class="text-label-sm font-label-sm font-bold text-[#f59e0b] tracking-wide">HUMAN APPROVAL GATE (L3 INTERCEPT)</span>
+</div>
+<span class="text-[9px] px-1.5 py-0.2 rounded bg-surface-container text-on-surface border border-outline-variant font-mono">Truth Gate: Active</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface leading-tight text-[12px]">
+          Agent requested capability: <code class="font-code-sm bg-surface-container-lowest px-1 py-0.5 rounded text-[#f59e0b] border border-[#f59e0b]/30">fs.write(/etc/hosts)</code>. Permission profile:
+          <span class="text-outline text-[11px] block mt-1">
+            [Read: <span class="text-tertiary">ALLOW</span>] • [Write: <span class="text-[#f59e0b]">APPROVAL</span>] • [Terminal: <span class="text-secondary">RESTRICTED</span>] • [Deploy: <span class="text-error">BLOCKED</span>]
+          </span>
+</p>
+<div class="flex items-center space-x-2 pt-1">
+<button class="flex-1 py-1 px-2.5 rounded bg-tertiary/20 text-tertiary border border-tertiary/40 text-label-sm font-label-sm font-bold hover:bg-tertiary/30 transition-colors flex items-center justify-center space-x-1">
+<span class="material-symbols-outlined text-[13px]">verified</span>
+<span class="">Approve (L3 Gate)</span>
+</button>
+<button class="flex-1 py-1 px-2.5 rounded bg-error/20 text-error border border-error/40 text-label-sm font-label-sm font-bold hover:bg-error/30 transition-colors flex items-center justify-center space-x-1">
+<span class="material-symbols-outlined text-[13px]">block</span>
+<span class="">Deny Action</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Input & Composer Area (Bottom) -->
+<div class="p-2.5 border-t border-outline-variant bg-[#111317] space-y-2">
+<div class="relative bg-surface-container rounded border border-outline-variant focus-within:border-primary transition-colors">
+<textarea class="w-full bg-transparent p-2 text-body-sm font-body-sm text-on-surface placeholder:text-outline focus:outline-none resize-none font-sans text-[12px]" placeholder="Ask Yana, execute task, or @mention files/symbols... (Cmd+K)" rows="2"></textarea>
+<div class="flex items-center justify-between px-2 pb-1.5 text-label-sm font-label-sm">
+<div class="flex items-center space-x-1 text-on-surface-variant">
+<button class="hover:text-on-surface px-1 py-0.5 rounded hover:bg-surface-container-high text-[11px]" title="Reference file">@ Files</button>
+<button class="hover:text-on-surface px-1 py-0.5 rounded hover:bg-surface-container-high text-[11px]" title="Slash commands">/ Commands</button>
+<button class="px-1.5 py-0.5 rounded bg-error/10 text-error border border-error/30 text-[10px] font-medium hover:bg-error/20 flex items-center space-x-0.5">
+<span class="">Stop Streaming ■</span>
+</button>
+</div>
+<button class="flex items-center space-x-1 bg-primary text-on-primary px-2.5 py-1 rounded font-bold hover:brightness-110 transition-colors text-[11px]">
+<span class="">Send</span>
+<span class="text-[9px] opacity-80 font-code-sm">⌘↵</span>
+</button>
+</div>
+</div>
+<div class="flex items-center justify-between text-label-sm font-label-sm text-outline px-0.5 text-[10px]">
+<span class="">Runtime: <span class="text-tertiary font-semibold">yana-rt IPC</span> • MoA: 3/3 layers</span>
+<span class="">Tokens: ~4.2k context</span>
+</div>
+</div>
+</aside>
+</div>
+<!-- 7. GLOBAL STATUS BAR (Bottom 22px): EXACT MATCH TO VS CODE + SCREENSHOT 2 BADGE -->
+<footer class="h-[22px] w-full bg-[#111317] border-t border-outline-variant flex items-center justify-between px-2.5 text-label-sm font-label-sm select-none shrink-0 z-30 text-[11px]">
+<!-- Status Bar Left: Remote Window + Git Branch exactly matching Screenshot 2 -->
+<div class="flex items-center space-x-3 text-on-surface-variant">
+<!-- Blue VS Code Remote Host Indicator -->
+<div class="bg-[#007acc] text-white flex items-center justify-center px-1.5 py-0.5 rounded-sm hover:brightness-110 cursor-pointer -ml-1">
+<span class="material-symbols-outlined text-[13px]">multiple_stop</span>
+</div>
+<!-- Exact Git branch string matching Screenshot 2: fix/yana-rt-pypi-shim-forkbomb* 3↓ 0↑ 0 0 -->
+<div class="flex items-center space-x-1.5 text-on-surface hover:text-primary cursor-pointer"><span class="material-symbols-outlined text-[13px] text-secondary">account_tree</span><span class="font-code-sm text-[11px]" title="origin: https://github.com/yanacuti1121/Yana-AI.git">fix/yana-rt-pypi-shim-forkbomb*</span><span class="text-[10px] text-outline ml-1">(origin: yanacuti1121/Yana-AI)</span><span class="material-symbols-outlined text-[12px] text-outline ml-0.5">sync</span><span class="text-[10px] text-on-surface-variant">3↓ 0↑</span></div>
+<!-- Error & Warning Counters from screenshot -->
+<div class="flex items-center space-x-1.5 cursor-pointer hover:text-on-surface">
+<span class="material-symbols-outlined text-[13px] text-outline">cancel</span>
+<span class="">0</span>
+<span class="material-symbols-outlined text-[13px] text-outline ml-1">warning</span>
+<span class="">0</span>
+</div>
+<!-- Yana Runtime Status -->
+<div class="flex items-center space-x-1 text-tertiary">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
+<span class="font-medium">Yana Runtime: Active [Port 7120]</span>
+</div>
+</div>
+<!-- Status Bar Center: Policy State -->
+<div class="hidden sm:flex items-center space-x-1.5 text-on-surface">
+<span class="material-symbols-outlined text-tertiary text-[13px]">verified_user</span>
+<span class="text-on-surface-variant">Policy:</span>
+<span class="font-bold text-secondary">SUPERVISED</span>
+<span class="text-outline text-[9px]">[ALLOW: Read, REQUIRE: Write]</span>
+</div>
+<!-- Status Bar Right: Editor Telemetry -->
+<div class="flex items-center space-x-3 text-on-surface-variant font-code-sm text-code-sm text-[11px]">
+<span class="hover:text-on-surface cursor-pointer">Ln 17, Col 42</span>
+<span class="hover:text-on-surface cursor-pointer">Spaces: 2</span>
+<span class="hover:text-on-surface cursor-pointer">UTF-8</span>
+<span class="hover:text-on-surface cursor-pointer">LF</span>
+<span class="text-primary hover:text-primary cursor-pointer font-semibold">TypeScript</span>
+<span class="hover:text-on-surface cursor-pointer">Prettier</span>
+<button class="hover:text-on-surface" title="Notifications">
+<span class="material-symbols-outlined text-[13px]">notifications</span>
+</button>
+</div>
+</footer>
+
+
+<div id="snapdom-sandbox" data-snapdom-sandbox="true" aria-hidden="true" style="position: absolute; left: -9999px; top: -9999px; width: 0px; height: 0px; overflow: hidden;"></div></body></html>

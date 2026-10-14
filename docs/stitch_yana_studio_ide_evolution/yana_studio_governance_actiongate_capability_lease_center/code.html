@@ -1,0 +1,851 @@
+<!DOCTYPE html><html class="dark" lang="en" style="width: 1280px; height: 1024px; overflow: hidden; position: relative;"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>YANA STUDIO — Governance, ActionGate &amp; Capability Lease Center</title>
+<!-- Material Symbols Outlined font -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Fonts: Geist and JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-background": "#e2e2e8",
+            "surface-bright": "#37393e",
+            "secondary-container": "#00d2c4",
+            "tertiary-container": "#00a572",
+            "outline-variant": "#434654",
+            "error-container": "#93000a",
+            "on-surface-variant": "#c3c6d7",
+            "surface-container": "#1e2024",
+            "tertiary": "#4edea3",
+            "error": "#ffb4ab",
+            "on-tertiary-fixed": "#002113",
+            "tertiary-fixed-dim": "#4edea3",
+            "on-error-container": "#ffdad6",
+            "on-secondary": "#003733",
+            "primary-fixed-dim": "#b4c5ff",
+            "surface-container-highest": "#333539",
+            "surface-dim": "#111317",
+            "outline": "#8d90a0",
+            "tertiary-fixed": "#6ffbbe",
+            "primary-container": "#608bff",
+            "surface-tint": "#b4c5ff",
+            "secondary": "#46eee0",
+            "surface-container-low": "#1a1c20",
+            "inverse-on-surface": "#2f3035",
+            "on-primary-fixed": "#00174b",
+            "surface-variant": "#333539",
+            "surface-container-high": "#282a2e",
+            "on-error": "#690005",
+            "on-tertiary": "#003824",
+            "surface-container-lowest": "#0c0e12",
+            "surface": "#111317",
+            "on-secondary-fixed": "#00201d",
+            "on-secondary-fixed-variant": "#00504a",
+            "primary-fixed": "#dbe1ff",
+            "on-primary-container": "#002469",
+            "on-primary-fixed-variant": "#003ea7",
+            "secondary-fixed-dim": "#28ddcf",
+            "secondary-fixed": "#56faeb",
+            "on-tertiary-container": "#00311f",
+            "inverse-primary": "#1454d3",
+            "on-tertiary-fixed-variant": "#005236",
+            "primary": "#b4c5ff",
+            "inverse-surface": "#e2e2e8",
+            "on-surface": "#e2e2e8",
+            "on-primary": "#002a77",
+            "on-secondary-container": "#00554f",
+            "background": "#111317"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-lg": "0.75rem",
+            "space-md": "0.5rem",
+            "margin": "0px",
+            "space-xl": "1rem",
+            "space-sm": "0.25rem",
+            "space-xs": "0.125rem",
+            "gutter": "0px"
+          },
+          "fontFamily": {
+            "body-md": ["Geist"],
+            "label-md": ["JetBrains Mono"],
+            "headline-md": ["Geist"],
+            "headline-lg": ["Geist"],
+            "label-sm": ["JetBrains Mono"],
+            "body-lg": ["Geist"],
+            "headline-sm": ["Geist"],
+            "body-sm": ["Geist"],
+            "code-sm": ["JetBrains Mono"],
+            "code-md": ["JetBrains Mono"],
+            "code-lg": ["JetBrains Mono"]
+          },
+          "fontSize": {
+            "body-md": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+            "label-md": ["11px", {"lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+            "headline-md": ["15px", {"lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+            "headline-lg": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.015em", "fontWeight": "600"}],
+            "label-sm": ["10px", {"lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+            "body-lg": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+            "headline-sm": ["13px", {"lineHeight": "18px", "letterSpacing": "-0.005em", "fontWeight": "600"}],
+            "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+            "code-sm": ["11px", {"lineHeight": "15px", "fontWeight": "400"}],
+            "code-md": ["12px", {"lineHeight": "18px", "fontWeight": "400"}],
+            "code-lg": ["13px", {"lineHeight": "20px", "fontWeight": "400"}]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    /* Precision hairline IDE styling rules */
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+    .material-symbols-outlined {
+      font-size: 16px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Scrollbar styling for IDE efficiency */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #111317;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #282a2e;
+      border-radius: 2px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #434654;
+    }
+  </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface h-screen w-screen overflow-hidden flex flex-col font-body-md text-body-md antialiased select-none">
+<!-- ================= TOP DESKTOP CHROME BAR (Shared Component: TopNavBar) ================= -->
+<header class="flex justify-between items-center w-full px-space-md border-b border-outline-variant dark:border-outline-variant bg-surface-container-low dark:bg-surface-container-low h-9 flex-shrink-0 z-40 select-none">
+<!-- Brand Anchor & Desktop App Menus -->
+<div class="flex items-center space-x-3">
+<div class="flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-primary text-base" data-icon="terminal">terminal</span>
+<span class="text-headline-sm font-headline-sm font-bold text-on-surface dark:text-on-surface tracking-wider">YANA STUDIO</span>
+</div>
+<div class="h-3.5 w-[1px] bg-outline-variant"></div>
+<nav class="flex items-center space-x-0.5">
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-150 text-label-sm font-label-sm">File</button>
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-150 text-label-sm font-label-sm">Edit</button>
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-150 text-label-sm font-label-sm">Selection</button>
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-150 text-label-sm font-label-sm">View</button>
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-150 text-label-sm font-label-sm">Go</button>
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-150 text-label-sm font-label-sm">Run</button>
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-150 text-label-sm font-label-sm">Terminal</button>
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-150 text-label-sm font-label-sm">Help</button>
+</nav>
+</div>
+<!-- Center Command Surface Search Bar -->
+<div class="flex items-center max-w-md w-full mx-4">
+<div class="flex items-center w-full bg-surface-container-lowest border border-outline-variant rounded px-2 py-0.5 text-on-surface-variant text-label-sm font-label-sm justify-between hover:border-outline cursor-pointer transition-colors duration-150">
+<div class="flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-outline" data-icon="search">search</span>
+<span class="text-outline">yana security:gate --action-level=strict (⌘K to focus)</span>
+</div>
+<span class="px-1 py-0.2 rounded bg-surface-container-high text-outline text-[9px]">⌘P</span>
+</div>
+</div>
+<!-- Trailing Actions & User Operator Profile -->
+<div class="flex items-center space-x-1.5">
+<div class="flex items-center space-x-1 px-1.5 py-0.5 rounded bg-surface-container border border-outline-variant text-label-sm font-label-sm mr-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
+<span class="text-tertiary">DAEMON ONLINE</span>
+</div>
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-150 text-label-sm font-label-sm flex items-center space-x-1 border border-outline-variant">
+<span class="material-symbols-outlined text-xs" data-icon="call_split">call_split</span>
+<span>Fork</span>
+</button>
+<button class="px-2.5 py-0.5 rounded bg-primary-container text-on-primary-container hover:brightness-105 transition-colors duration-150 text-label-sm font-label-sm font-medium flex items-center space-x-1">
+<span class="material-symbols-outlined text-xs" data-icon="bolt">bolt</span>
+<span>Deploy</span>
+</button>
+<div class="h-3.5 w-[1px] bg-outline-variant mx-1"></div>
+<button class="p-1 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-150" title="Split Panel">
+<span class="material-symbols-outlined" data-icon="splitscreen">splitscreen</span>
+</button>
+<button class="p-1 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-150" title="Terminal">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+</button>
+<button class="p-1 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-150" title="Governance Gate Settings">
+<span class="material-symbols-outlined" data-icon="tune">tune</span>
+</button>
+<button class="p-1 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-150" title="User Operator Profile Avatar">
+<span class="material-symbols-outlined text-primary" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<!-- ================= CORE WORKSPACE CHROME (Edge-to-Edge) ================= -->
+<div class="flex flex-1 w-full overflow-hidden">
+<!-- Vertical Activity Bar (Shared Component: SideNavBar) -->
+<!-- Governance tab is active based on page intent -->
+<aside class="flex flex-col justify-between items-center w-12 h-full py-space-xs border-r border-outline-variant dark:border-outline-variant bg-surface-dim dark:bg-surface-dim flex-shrink-0 z-30 select-none">
+<div class="flex flex-col items-center w-full space-y-1">
+<!-- Activity Bar Top Icon Badge -->
+<div class="w-8 h-8 rounded flex items-center justify-center mb-1 text-primary cursor-default group" title="YANA v2.4-alpha Runtime Node">
+<span class="material-symbols-outlined text-lg" data-icon="security">security</span>
+</div>
+<!-- Activity Icons: Exact match from JSON. Active item: 'Governance' -->
+<!-- Tab 0: Explorer -->
+<button class="w-full h-10 flex items-center justify-center text-on-surface-variant border-l-2 border-transparent hover:bg-surface-container hover:text-on-surface transition-colors duration-150" title="Explorer">
+<span class="material-symbols-outlined text-lg" data-icon="folder">folder</span>
+</button>
+<!-- Tab 1: Search -->
+<button class="w-full h-10 flex items-center justify-center text-on-surface-variant border-l-2 border-transparent hover:bg-surface-container hover:text-on-surface transition-colors duration-150" title="Search">
+<span class="material-symbols-outlined text-lg" data-icon="search">search</span>
+</button>
+<!-- Tab 2: Source Control -->
+<button class="w-full h-10 flex items-center justify-center text-on-surface-variant border-l-2 border-transparent hover:bg-surface-container hover:text-on-surface transition-colors duration-150" title="Source Control">
+<span class="material-symbols-outlined text-lg" data-icon="account_tree">account_tree</span>
+</button>
+<!-- Tab 3: Yana Agents -->
+<button class="w-full h-10 flex items-center justify-center text-on-surface-variant border-l-2 border-transparent hover:bg-surface-container hover:text-on-surface transition-colors duration-150 relative" title="Yana Agents">
+<span class="material-symbols-outlined text-lg" data-icon="smart_toy">smart_toy</span>
+<span class="absolute top-2 right-2 w-1.5 h-1.5 bg-secondary rounded-full"></span>
+</button>
+<!-- Tab 4: Governance (ACTIVE TARGET per Semantic Mapping Rule) -->
+<button class="w-full h-10 flex items-center justify-center text-primary dark:text-primary border-l-2 border-primary bg-surface-container-high dark:bg-surface-container-high transition-colors duration-150 relative" title="Governance (Active)">
+<span class="material-symbols-outlined text-lg" data-icon="verified_user">verified_user</span>
+<span class="absolute right-1 top-1 text-[8px] font-label-sm text-tertiary font-bold">L4</span>
+</button>
+<!-- Tab 5: Extensions -->
+<button class="w-full h-10 flex items-center justify-center text-on-surface-variant border-l-2 border-transparent hover:bg-surface-container hover:text-on-surface transition-colors duration-150" title="Extensions">
+<span class="material-symbols-outlined text-lg" data-icon="extension">extension</span>
+</button>
+</div>
+<!-- Footer Tab Icons from JSON -->
+<div class="flex flex-col items-center w-full space-y-1">
+<button class="w-full h-9 flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors duration-150" title="Telemetry">
+<span class="material-symbols-outlined text-base" data-icon="show_chart">show_chart</span>
+</button>
+<button class="w-full h-9 flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors duration-150" title="Settings">
+<span class="material-symbols-outlined text-base" data-icon="settings">settings</span>
+</button>
+</div>
+</aside>
+<!-- ================= MAIN MISSION-CRITICAL COCKPIT CANVAS ================= -->
+<main class="flex-1 flex flex-col min-w-0 bg-surface-container-lowest overflow-hidden">
+<!-- Surface Tab Header Bar (Visual Breadcrumb & Workspace Intent) -->
+<div class="h-8 bg-surface-container-low border-b border-outline-variant flex items-center justify-between px-3 flex-shrink-0">
+<div class="flex items-center space-x-1 h-full">
+<!-- Active Governance Tab -->
+<div class="flex items-center space-x-2 px-3 h-full bg-surface-container-lowest border-r border-t-2 border-t-primary border-outline-variant text-headline-sm font-headline-sm text-on-surface">
+<span class="material-symbols-outlined text-sm text-primary" data-icon="verified_user">verified_user</span>
+<span>Governance &amp; ActionGate Center</span>
+<span class="px-1 py-0.2 rounded bg-tertiary-container/30 text-tertiary text-[9px] font-label-sm border border-tertiary/30">STRICT ENFORCEMENT</span>
+</div>
+<!-- Inactive Secondary Tabs -->
+<div class="flex items-center space-x-2 px-3 h-full text-on-surface-variant hover:bg-surface-container transition-colors cursor-pointer text-body-sm font-body-sm border-r border-outline-variant">
+<span class="material-symbols-outlined text-sm" data-icon="smart_toy">smart_toy</span>
+<span>Agent Orchestrator</span>
+</div>
+<div class="flex items-center space-x-2 px-3 h-full text-on-surface-variant hover:bg-surface-container transition-colors cursor-pointer text-body-sm font-body-sm border-r border-outline-variant">
+<span class="material-symbols-outlined text-sm" data-icon="history_edu">history_edu</span>
+<span>Audit Trail Ledger</span>
+</div>
+</div>
+<div class="flex items-center space-x-2 text-label-sm font-label-sm">
+<span class="text-on-surface-variant">AIRGAP MODE:</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high border border-outline-variant text-on-surface font-label-sm">L5_ENFORCED</span>
+<span class="text-outline">|</span>
+<span class="text-on-surface-variant">POLICY VERSION:</span>
+<span class="text-primary font-label-sm">v2025.04.1-r3</span>
+</div>
+</div>
+<!-- Multi-Pane Dynamic Grid: Center Scrollable Control Surface -->
+<div class="flex-1 overflow-y-auto p-space-md space-y-space-md">
+<!-- SECTION 1: ActionGate L1 to L5 Status Overview Bento Cards -->
+<section class="space-y-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-2">
+<span class="text-label-md font-label-md uppercase tracking-wider text-outline">ActionGate Multilevel Hierarchy</span>
+<span class="h-1.5 w-1.5 rounded-full bg-secondary-container"></span>
+<span class="text-code-sm font-code-sm text-on-surface-variant">Continuous Runtime Interception</span>
+</div>
+<div class="flex items-center space-x-2 text-label-sm font-label-sm text-outline">
+<span>All 5 Gates Synchronized with Local OS Enclave</span>
+<span class="material-symbols-outlined text-tertiary text-xs" data-icon="check_circle">check_circle</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-5 gap-2">
+<!-- L1 Card -->
+<div class="bg-surface-container-low border border-outline-variant rounded p-2.5 flex flex-col justify-between hover:border-outline transition-colors">
+<div class="flex items-start justify-between">
+<div>
+<span class="text-label-sm font-label-sm text-outline">TIER 1</span>
+<h4 class="text-headline-sm font-headline-sm text-on-surface mt-0.5">L1 Read-Only</h4>
+</div>
+<span class="text-[9px] font-label-sm px-1.5 py-0.5 rounded bg-tertiary/10 border border-tertiary/40 text-tertiary font-semibold">PERMITTED</span>
+</div>
+<p class="text-code-sm font-code-sm text-on-surface-variant my-2 line-clamp-2">AST inspection, symbol search, memory diff reads.</p>
+<div class="flex items-center justify-between pt-1 border-t border-outline-variant/50 text-[10px] font-label-sm text-outline">
+<span>Pass-thru latency</span>
+<span class="text-on-surface font-code-sm">&lt; 0.12ms</span>
+</div>
+</div>
+<!-- L2 Card -->
+<div class="bg-surface-container-low border border-outline-variant rounded p-2.5 flex flex-col justify-between hover:border-outline transition-colors">
+<div class="flex items-start justify-between">
+<div>
+<span class="text-label-sm font-label-sm text-outline">TIER 2</span>
+<h4 class="text-headline-sm font-headline-sm text-on-surface mt-0.5">L2 Sandbox</h4>
+</div>
+<span class="text-[9px] font-label-sm px-1.5 py-0.5 rounded bg-secondary/10 border border-secondary/40 text-secondary font-semibold">ACTIVE</span>
+</div>
+<p class="text-code-sm font-code-sm text-on-surface-variant my-2 line-clamp-2">Ephemeral gVisor container, microVM scratchpad write.</p>
+<div class="flex items-center justify-between pt-1 border-t border-outline-variant/50 text-[10px] font-label-sm text-outline">
+<span>Isolation Layer</span>
+<span class="text-secondary font-code-sm">gVisor/firecracker</span>
+</div>
+</div>
+<!-- L3 Card -->
+<div class="bg-surface-container-low border border-outline-variant rounded p-2.5 flex flex-col justify-between border-l-2 border-l-primary hover:border-outline transition-colors">
+<div class="flex items-start justify-between">
+<div>
+<span class="text-label-sm font-label-sm text-primary">TIER 3</span>
+<h4 class="text-headline-sm font-headline-sm text-on-surface mt-0.5">L3 Terminal Exec</h4>
+</div>
+<span class="text-[9px] font-label-sm px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/40 text-amber-400 font-semibold">SUPERVISED</span>
+</div>
+<p class="text-code-sm font-code-sm text-on-surface-variant my-2 line-clamp-2">CLI invocations, test suites, non-mutating shell tools.</p>
+<div class="flex items-center justify-between pt-1 border-t border-outline-variant/50 text-[10px] font-label-sm text-outline">
+<span>Gate Rule</span>
+<span class="text-amber-400 font-code-sm">Manual Approval</span>
+</div>
+</div>
+<!-- L4 Card -->
+<div class="bg-surface-container-low border border-outline-variant rounded p-2.5 flex flex-col justify-between border-l-2 border-l-error hover:border-outline transition-colors">
+<div class="flex items-start justify-between">
+<div>
+<span class="text-label-sm font-label-sm text-error">TIER 4</span>
+<h4 class="text-headline-sm font-headline-sm text-on-surface mt-0.5">L4 Mutation</h4>
+</div>
+<span class="text-[9px] font-label-sm px-1.5 py-0.5 rounded bg-error/10 border border-error/40 text-error font-semibold">STRICT DUAL-KEY</span>
+</div>
+<p class="text-code-sm font-code-sm text-on-surface-variant my-2 line-clamp-2">Host file system write, dependency upgrade, git push.</p>
+<div class="flex items-center justify-between pt-1 border-t border-outline-variant/50 text-[10px] font-label-sm text-outline">
+<span>Signatures</span>
+<span class="text-error font-code-sm">Operator + Lead</span>
+</div>
+</div>
+<!-- L5 Card -->
+<div class="bg-surface-container-low border border-outline-variant rounded p-2.5 flex flex-col justify-between hover:border-outline transition-colors">
+<div class="flex items-start justify-between">
+<div>
+<span class="text-label-sm font-label-sm text-outline">TIER 5</span>
+<h4 class="text-headline-sm font-headline-sm text-on-surface mt-0.5">L5 Gateway</h4>
+</div>
+<span class="text-[9px] font-label-sm px-1.5 py-0.5 rounded bg-surface-container-high border border-outline text-on-surface-variant font-semibold">AIRGAPPED</span>
+</div>
+<p class="text-code-sm font-code-sm text-on-surface-variant my-2 line-clamp-2">Outbound sockets, remote telemetry, cloud egress pins.</p>
+<div class="flex items-center justify-between pt-1 border-t border-outline-variant/50 text-[10px] font-label-sm text-outline">
+<span>Socket Filter</span>
+<span class="text-on-surface font-code-sm">0 Drops / Total Block</span>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 2: Active Capability Leases Manager & Quick Lease Grant Form -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-md">
+<!-- Leases Table Panel (8 cols) -->
+<div class="lg:col-span-8 bg-surface-container-low border border-outline-variant rounded flex flex-col">
+<div class="h-8 bg-surface-container px-3 flex items-center justify-between border-b border-outline-variant flex-shrink-0">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="vpn_key">vpn_key</span>
+<span class="text-headline-sm font-headline-sm text-on-surface">Active Capability Leases</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container-high text-primary font-code-sm text-[10px] border border-outline-variant">3 Active Ephemeral Leases</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="text-label-sm font-label-sm text-outline">Total Budget Remaining: <strong class="text-tertiary">382 / 500 Ops</strong></span>
+</div>
+</div>
+<!-- Table Content Area -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-lowest/60 border-b border-outline-variant text-label-sm font-label-sm text-outline">
+<th class="py-1.5 px-3 font-medium">AGENT SUBJECT</th>
+<th class="py-1.5 px-3 font-medium">GRANTED CAPABILITY</th>
+<th class="py-1.5 px-3 font-medium">TARGET SCOPE / BLAST RADIUS</th>
+<th class="py-1.5 px-3 font-medium">TIME-BOX EXPIRY</th>
+<th class="py-1.5 px-3 font-medium text-right">ACTION</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/50 text-code-sm font-code-sm">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-high/40 transition-colors">
+<td class="py-2 px-3">
+<div class="flex items-center space-x-1.5">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="text-on-surface font-semibold">yana-core-architect</span>
+<span class="text-[9px] px-1 bg-surface-container text-outline rounded">agent_09</span>
+</div>
+</td>
+<td class="py-2 px-3">
+<div class="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded bg-surface-container-high border border-outline-variant text-primary">
+<span class="material-symbols-outlined text-xs" data-icon="terminal">terminal</span>
+<span>cargo test --package=engine-runtime</span>
+</div>
+</td>
+<td class="py-2 px-3 text-on-surface-variant">
+<span class="text-on-surface font-code-sm">./crates/engine-runtime/**</span>
+</td>
+<td class="py-2 px-3">
+<div class="flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-amber-400 text-xs" data-icon="timer">timer</span>
+<span class="text-amber-400 font-medium">14m 22s</span>
+<span class="text-[9px] text-outline">(18/50 ops used)</span>
+</div>
+</td>
+<td class="py-2 px-3 text-right">
+<button class="px-2 py-0.5 rounded bg-error-container/30 border border-error/40 text-error hover:bg-error-container/60 transition-colors text-label-sm font-label-sm inline-flex items-center space-x-1" onclick="alert('Revoking Lease for yana-core-architect: cargo test')">
+<span class="material-symbols-outlined text-xs" data-icon="cancel">cancel</span>
+<span>Revoke Lease</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-high/40 transition-colors">
+<td class="py-2 px-3">
+<div class="flex items-center space-x-1.5">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="text-on-surface font-semibold">yana-refactor-bot</span>
+<span class="text-[9px] px-1 bg-surface-container text-outline rounded">agent_14</span>
+</div>
+</td>
+<td class="py-2 px-3">
+<div class="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded bg-surface-container-high border border-outline-variant text-tertiary">
+<span class="material-symbols-outlined text-xs" data-icon="edit_note">edit_note</span>
+<span>write_file</span>
+</div>
+</td>
+<td class="py-2 px-3 text-on-surface-variant">
+<span class="text-on-surface font-code-sm">src/controllers/governance/*.ts</span>
+</td>
+<td class="py-2 px-3">
+<div class="flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-tertiary text-xs" data-icon="timer">timer</span>
+<span class="text-tertiary font-medium">42m 10s</span>
+<span class="text-[9px] text-outline">(3/10 files)</span>
+</div>
+</td>
+<td class="py-2 px-3 text-right">
+<button class="px-2 py-0.5 rounded bg-error-container/30 border border-error/40 text-error hover:bg-error-container/60 transition-colors text-label-sm font-label-sm inline-flex items-center space-x-1" onclick="alert('Revoking Lease for yana-refactor-bot: write_file')">
+<span class="material-symbols-outlined text-xs" data-icon="cancel">cancel</span>
+<span>Revoke Lease</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-high/40 transition-colors">
+<td class="py-2 px-3">
+<div class="flex items-center space-x-1.5">
+<span class="w-2 h-2 rounded-full bg-primary-fixed-dim"></span>
+<span class="text-on-surface font-semibold">yana-dep-auditor</span>
+<span class="text-[9px] px-1 bg-surface-container text-outline rounded">agent_03</span>
+</div>
+</td>
+<td class="py-2 px-3">
+<div class="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded bg-surface-container-high border border-outline-variant text-on-surface">
+<span class="material-symbols-outlined text-xs" data-icon="sync">sync</span>
+<span>npm audit fix --dry-run</span>
+</div>
+</td>
+<td class="py-2 px-3 text-on-surface-variant">
+<span class="text-on-surface font-code-sm">./package.json, lockfile</span>
+</td>
+<td class="py-2 px-3">
+<div class="flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-on-surface-variant text-xs" data-icon="timer">timer</span>
+<span class="text-on-surface-variant font-medium">01m 45s</span>
+<span class="text-[9px] text-error">(expiring soon)</span>
+</div>
+</td>
+<td class="py-2 px-3 text-right">
+<button class="px-2 py-0.5 rounded bg-error-container/30 border border-error/40 text-error hover:bg-error-container/60 transition-colors text-label-sm font-label-sm inline-flex items-center space-x-1" onclick="alert('Revoking Lease for yana-dep-auditor')">
+<span class="material-symbols-outlined text-xs" data-icon="cancel">cancel</span>
+<span>Revoke Lease</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Lease Table Bottom Toolbar -->
+<div class="h-7 bg-surface-container-low px-3 flex items-center justify-between border-t border-outline-variant text-[11px] font-label-sm text-outline">
+<div class="flex items-center space-x-3">
+<span>Default TTL: <strong>30 minutes</strong></span>
+<span>•</span>
+<span>Dual-Key Enforced for L4</span>
+<span>•</span>
+<span>HMAC Signatures Verified</span>
+</div>
+<div class="flex items-center space-x-2 text-primary">
+<button class="hover:underline flex items-center space-x-1">
+<span class="material-symbols-outlined text-xs" data-icon="refresh">refresh</span>
+<span>Sync Policy Enclave</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Grant New Capability Lease Form (4 cols) -->
+<div class="lg:col-span-4 bg-surface-container-low border border-outline-variant rounded flex flex-col justify-between">
+<div class="h-8 bg-surface-container px-3 flex items-center justify-between border-b border-outline-variant flex-shrink-0">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-secondary text-sm" data-icon="add_moderator">add_moderator</span>
+<span class="text-headline-sm font-headline-sm text-on-surface">Grant Ephemeral Lease</span>
+</div>
+<span class="text-[9px] font-label-sm px-1 rounded bg-surface-container-high border border-outline-variant text-outline">COCKPIT FORM</span>
+</div>
+<form class="p-3 space-y-2.5 flex-1 flex flex-col justify-between" onsubmit="event.preventDefault(); alert('Capability Lease Granted Successfully: Lease ID #LSE-9942');">
+<!-- Agent Picker -->
+<div>
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-1">Subject Agent</label>
+<div class="relative">
+<select class="w-full bg-surface-container-lowest border border-outline-variant rounded px-2 py-1 text-code-sm font-code-sm text-on-surface focus:border-primary focus:ring-0">
+<option>yana-core-architect (Autonomous)</option>
+<option>yana-refactor-bot (Code Mutation)</option>
+<option>yana-dep-auditor (Package Manager)</option>
+<option>yana-e2e-tester (Browser Sandbox)</option>
+</select>
+</div>
+</div>
+<!-- Capability Selector -->
+<div>
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-1">Capability / Command Mask</label>
+<div class="relative">
+<select class="w-full bg-surface-container-lowest border border-outline-variant rounded px-2 py-1 text-code-sm font-code-sm text-on-surface focus:border-primary focus:ring-0">
+<option>write_file (L4 Path-Restricted)</option>
+<option>cargo test / cargo build (L3 Supervised)</option>
+<option>git checkout -b &amp; commit (L4 Dual-Key)</option>
+<option>spawn_process (L3 Sandboxed)</option>
+<option>network_fetch (Requires L5 Override)</option>
+</select>
+</div>
+</div>
+<!-- Blast Radius Limit -->
+<div>
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-1">Blast Radius Path Filter</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded px-2 py-1 text-code-sm font-code-sm text-on-surface focus:border-primary focus:ring-0" placeholder="Glob pattern e.g. ./tests/**" type="text" value="./src/modules/auth/**">
+</div>
+<!-- Duration & Invocation Budget -->
+<div class="grid grid-cols-2 gap-2">
+<div>
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-1">TTL Duration (Mins)</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded px-2 py-1 text-code-sm font-code-sm text-on-surface focus:border-primary focus:ring-0" max="1440" min="1" type="number" value="30">
+</div>
+<div>
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-1">Budget Limit (Ops)</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded px-2 py-1 text-code-sm font-code-sm text-on-surface focus:border-primary focus:ring-0" max="5000" min="1" type="number" value="50">
+</div>
+</div>
+<!-- Action Confirmation Button -->
+<div class="pt-2 border-t border-outline-variant/60 flex items-center justify-between">
+<span class="text-[10px] font-label-sm text-outline">Authorizer: user_lead</span>
+<button class="h-[26px] px-3 rounded bg-primary text-on-primary font-headline-sm text-headline-sm hover:brightness-105 transition-all flex items-center space-x-1" type="submit">
+<span class="material-symbols-outlined text-xs" data-icon="lock_open">lock_open</span>
+<span>Authorize &amp; Issue Lease</span>
+</button>
+</div>
+</form>
+</div>
+</div>
+<!-- SECTION 3: Live Audit Log Stream (Last 500 decisions) -->
+<section class="bg-surface-container-low border border-outline-variant rounded flex flex-col">
+<div class="h-8 bg-surface-container px-3 flex items-center justify-between border-b border-outline-variant flex-shrink-0">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-tertiary text-sm" data-icon="policy">policy</span>
+<span class="text-headline-sm font-headline-sm text-on-surface">Audit Log Stream</span>
+<span class="text-outline text-label-sm font-label-sm">(Last 500 ActionGate Decisions)</span>
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
+</div>
+<!-- Filters & Export -->
+<div class="flex items-center space-x-2">
+<div class="flex items-center space-x-1 bg-surface-container-lowest border border-outline-variant rounded px-1.5 py-0.5 text-label-sm font-label-sm text-on-surface-variant">
+<span>Filter:</span>
+<button class="px-1 text-on-surface font-semibold">ALL</button>
+<button class="px-1 text-outline hover:text-tertiary">ALLOW</button>
+<button class="px-1 text-outline hover:text-error">DENY</button>
+<button class="px-1 text-outline hover:text-amber-400">WARN</button>
+</div>
+<button class="px-2 py-0.5 rounded bg-surface-container-high border border-outline-variant text-label-sm font-label-sm text-on-surface hover:bg-surface-bright transition-colors flex items-center space-x-1">
+<span class="material-symbols-outlined text-xs" data-icon="download">download</span>
+<span>Export JSONL</span>
+</button>
+</div>
+</div>
+<!-- Interactive Stream Table -->
+<div class="overflow-x-auto max-h-64">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-lowest/70 border-b border-outline-variant text-label-sm font-label-sm text-outline sticky top-0 z-10 backdrop-blur-sm">
+<th class="py-1 px-3 font-medium">TIMESTAMP</th>
+<th class="py-1 px-3 font-medium">CALLING AGENT</th>
+<th class="py-1 px-3 font-medium">INTERCEPTED ACTION / TOOL</th>
+<th class="py-1 px-3 font-medium">DECISION</th>
+<th class="py-1 px-3 font-medium">REVIEWER / SIGNATURE</th>
+<th class="py-1 px-3 font-medium">RATIONALE / POLICY TARGET</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/40 text-code-sm font-code-sm">
+<!-- Log 1: ALLOW -->
+<tr class="hover:bg-surface-container-high/40 transition-colors">
+<td class="py-1.5 px-3 text-outline">16:42:09.102</td>
+<td class="py-1.5 px-3 font-medium text-on-surface">yana-core-architect</td>
+<td class="py-1.5 px-3 text-primary">exec("cargo check --all-targets")</td>
+<td class="py-1.5 px-3">
+<span class="px-1.5 py-0.2 rounded text-[10px] font-label-sm font-semibold bg-tertiary/10 border border-tertiary/40 text-tertiary">ALLOW</span>
+</td>
+<td class="py-1.5 px-3 text-outline">AUTO (Rule #L3-094)</td>
+<td class="py-1.5 px-3 text-on-surface-variant">Read-only diagnostic compiler pass within sandbox bounds.</td>
+</tr>
+<!-- Log 2: DENY -->
+<tr class="hover:bg-surface-container-high/40 transition-colors bg-error-container/5">
+<td class="py-1.5 px-3 text-outline">16:41:55.844</td>
+<td class="py-1.5 px-3 font-medium text-on-surface">yana-refactor-bot</td>
+<td class="py-1.5 px-3 text-error">socket_connect("198.51.100.44:443")</td>
+<td class="py-1.5 px-3">
+<span class="px-1.5 py-0.2 rounded text-[10px] font-label-sm font-semibold bg-error/10 border border-error/40 text-error">DENY</span>
+</td>
+<td class="py-1.5 px-3 text-error">TurnEngine Policy Daemon</td>
+<td class="py-1.5 px-3 text-error">Egress Violation: Target host not in explicit network allowlist (L5 Airgap).</td>
+</tr>
+<!-- Log 3: WARN / SUPERVISED ALLOW -->
+<tr class="hover:bg-surface-container-high/40 transition-colors">
+<td class="py-1.5 px-3 text-outline">16:40:18.239</td>
+<td class="py-1.5 px-3 font-medium text-on-surface">yana-core-architect</td>
+<td class="py-1.5 px-3 text-primary">fs.unlink("./migrations/004_down.sql")</td>
+<td class="py-1.5 px-3">
+<span class="px-1.5 py-0.2 rounded text-[10px] font-label-sm font-semibold bg-amber-500/10 border border-amber-500/40 text-amber-400">WARN / ALLOW</span>
+</td>
+<td class="py-1.5 px-3 text-on-surface">operator: alex.dev (dual-key)</td>
+<td class="py-1.5 px-3 text-on-surface-variant">Destructive file deletion permitted after explicit operator biometric auth.</td>
+</tr>
+<!-- Log 4: ALLOW -->
+<tr class="hover:bg-surface-container-high/40 transition-colors">
+<td class="py-1.5 px-3 text-outline">16:38:02.011</td>
+<td class="py-1.5 px-3 font-medium text-on-surface">yana-dep-auditor</td>
+<td class="py-1.5 px-3 text-primary">read_file("./Cargo.lock")</td>
+<td class="py-1.5 px-3">
+<span class="px-1.5 py-0.2 rounded text-[10px] font-label-sm font-semibold bg-tertiary/10 border border-tertiary/40 text-tertiary">ALLOW</span>
+</td>
+<td class="py-1.5 px-3 text-outline">AUTO (Rule #L1-READ)</td>
+<td class="py-1.5 px-3 text-on-surface-variant">L1 AST &amp; lockfile parsing inside project workspace.</td>
+</tr>
+<!-- Log 5: DENY -->
+<tr class="hover:bg-surface-container-high/40 transition-colors bg-error-container/5">
+<td class="py-1.5 px-3 text-outline">16:35:49.771</td>
+<td class="py-1.5 px-3 font-medium text-on-surface">unregistered_worker_v2</td>
+<td class="py-1.5 px-3 text-error">write_file("/etc/hosts")</td>
+<td class="py-1.5 px-3">
+<span class="px-1.5 py-0.2 rounded text-[10px] font-label-sm font-semibold bg-error/10 border border-error/40 text-error">DENY</span>
+</td>
+<td class="py-1.5 px-3 text-error">Kernel Sandbox BPF</td>
+<td class="py-1.5 px-3 text-error">CRITICAL: Host boundary escape attempt. Process immediately killed &amp; isolated.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</main>
+<!-- ================= RIGHT SIDEBAR: TELEMETRY & POLICY INSPECTOR ================= -->
+<aside class="w-72 bg-surface-container-low border-l border-outline-variant flex flex-col flex-shrink-0 z-20 overflow-y-auto">
+<!-- Panel Header -->
+<div class="h-8 bg-surface-container px-3 flex items-center justify-between border-b border-outline-variant flex-shrink-0">
+<div class="flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-secondary text-sm" data-icon="monitor_heart">monitor_heart</span>
+<span class="text-headline-sm font-headline-sm text-on-surface">Security Telemetry</span>
+</div>
+<span class="text-[9px] font-label-sm px-1 py-0.2 rounded bg-tertiary/10 text-tertiary border border-tertiary/30">REALTIME</span>
+</div>
+<div class="p-3 space-y-4">
+<!-- TurnEngine Authority Policy Inspector -->
+<div class="space-y-1.5">
+<div class="flex items-center justify-between">
+<span class="text-label-sm font-label-sm uppercase tracking-wide text-outline">TurnEngine Policy Inspector</span>
+<span class="text-code-sm font-code-sm text-primary">v2025.04</span>
+</div>
+<div class="p-2.5 rounded bg-surface-container-lowest border border-outline-variant space-y-2">
+<div class="flex items-center justify-between text-code-sm font-code-sm">
+<span class="text-outline">Active Enforcement:</span>
+<span class="text-tertiary font-medium">Deterministic</span>
+</div>
+<div class="flex items-center justify-between text-code-sm font-code-sm">
+<span class="text-outline">Pre-Flight Intercepts:</span>
+<span class="text-on-surface font-medium">100% Guaranteed</span>
+</div>
+<div class="flex items-center justify-between text-code-sm font-code-sm">
+<span class="text-outline">Dynamic Blast Guard:</span>
+<span class="text-primary font-medium">Glob Path Masking</span>
+</div>
+<div class="flex items-center justify-between text-code-sm font-code-sm">
+<span class="text-outline">Dual-Key Consensus:</span>
+<span class="text-amber-400 font-medium">2 of 2 Required</span>
+</div>
+<div class="pt-1.5 border-t border-outline-variant/60">
+<div class="w-full bg-surface-container-high rounded-full h-1.5 overflow-hidden">
+<div class="bg-tertiary h-1.5 rounded-full" style="width: 98.4%"></div>
+</div>
+<div class="flex justify-between items-center text-[10px] font-label-sm text-outline mt-1">
+<span>Pass Rate: 98.4%</span>
+<span class="text-error">1.6% Blocked</span>
+</div>
+</div>
+</div>
+</div>
+<!-- OS Keychain Credential Status -->
+<div class="space-y-1.5">
+<div class="flex items-center justify-between">
+<span class="text-label-sm font-label-sm uppercase tracking-wide text-outline">OS Keychain Credential Status</span>
+<span class="material-symbols-outlined text-xs text-primary" data-icon="lock">lock</span>
+</div>
+<div class="p-2.5 rounded bg-surface-container-lowest border border-outline-variant space-y-2 text-code-sm font-code-sm">
+<div class="flex items-center justify-between">
+<span class="text-outline">GitHub PAT (Fine-Grained):</span>
+<span class="text-tertiary flex items-center space-x-1">
+<span class="material-symbols-outlined text-xs" data-icon="check">check</span>
+<span>Sealed</span>
+</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-outline">AWS IAM STS Token:</span>
+<span class="text-tertiary flex items-center space-x-1">
+<span class="material-symbols-outlined text-xs" data-icon="check">check</span>
+<span>Vaulted</span>
+</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-outline">OpenAI / Anthropic Keys:</span>
+<span class="text-primary flex items-center space-x-1">
+<span class="material-symbols-outlined text-xs" data-icon="shield">shield</span>
+<span>Proxy Only</span>
+</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-outline">SSH Host Key:</span>
+<span class="text-tertiary flex items-center space-x-1">
+<span class="material-symbols-outlined text-xs" data-icon="check">check</span>
+<span>Hardware Pin</span>
+</span>
+</div>
+</div>
+</div>
+<!-- Security Boundary Telemetry -->
+<div class="space-y-1.5">
+<div class="flex items-center justify-between">
+<span class="text-label-sm font-label-sm uppercase tracking-wide text-outline">Security Boundary Gauges</span>
+<span class="text-[9px] font-label-sm text-outline">Live Micro-Sensors</span>
+</div>
+<div class="p-2.5 rounded bg-surface-container-lowest border border-outline-variant space-y-2.5">
+<!-- Sensor 1 -->
+<div>
+<div class="flex justify-between text-code-sm font-code-sm mb-0.5">
+<span class="text-outline">Sandbox Memory Cap</span>
+<span class="text-on-surface">512MB / 2048MB</span>
+</div>
+<div class="w-full bg-surface-container-high rounded h-1">
+<div class="bg-secondary h-1 rounded" style="width: 25%"></div>
+</div>
+</div>
+<!-- Sensor 2 -->
+<div>
+<div class="flex justify-between text-code-sm font-code-sm mb-0.5">
+<span class="text-outline">Kernel BPF Interceptions</span>
+<span class="text-on-surface">1,492 / sec</span>
+</div>
+<div class="w-full bg-surface-container-high rounded h-1">
+<div class="bg-primary h-1 rounded" style="width: 42%"></div>
+</div>
+</div>
+<!-- Sensor 3 -->
+<div>
+<div class="flex justify-between text-code-sm font-code-sm mb-0.5">
+<span class="text-outline">Anomalous Prompt Drift</span>
+<span class="text-tertiary">0.02% (Nominal)</span>
+</div>
+<div class="w-full bg-surface-container-high rounded h-1">
+<div class="bg-tertiary h-1 rounded" style="width: 2%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick Governance Gate Override Box -->
+<div class="p-2.5 rounded bg-surface-container-high/50 border border-outline-variant space-y-2">
+<div class="flex items-center space-x-1.5 text-headline-sm font-headline-sm text-on-surface">
+<span class="material-symbols-outlined text-xs text-amber-400" data-icon="warning">warning</span>
+<span>Emergency Quarantine Mode</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Immediately suspend all active autonomous leases and lock down execution gates to L1 Read-Only.</p>
+<button class="w-full h-[26px] rounded bg-error/20 border border-error/50 text-error hover:bg-error/30 transition-colors text-label-sm font-label-sm font-semibold flex items-center justify-center space-x-1" onclick="alert('EMERGENCY QUARANTINE TRIGGERED: All active leases purged.')">
+<span class="material-symbols-outlined text-xs" data-icon="gavel">gavel</span>
+<span>Trigger Emergency Lockdown</span>
+</button>
+</div>
+</div>
+</aside>
+</div>
+<!-- ================= BOTTOM STATUS BAR (IDE Aesthetic) ================= -->
+<footer class="h-6 bg-surface-container-low border-t border-outline-variant flex items-center justify-between px-3 text-label-sm font-label-sm text-on-surface-variant flex-shrink-0 z-40 select-none">
+<div class="flex items-center space-x-3">
+<div class="flex items-center space-x-1 text-primary">
+<span class="material-symbols-outlined text-xs" data-icon="shield">shield</span>
+<span class="font-semibold">YANA-GOVERNANCE</span>
+</div>
+<div class="h-3 w-[1px] bg-outline-variant"></div>
+<div class="flex items-center space-x-1 text-tertiary">
+<span class="material-symbols-outlined text-xs" data-icon="lock">lock</span>
+<span>ActionGate: L4-ENFORCED</span>
+</div>
+<div class="h-3 w-[1px] bg-outline-variant"></div>
+<div class="flex items-center space-x-1">
+<span>Active Leases: <strong class="text-on-surface">3</strong></span>
+</div>
+<div class="h-3 w-[1px] bg-outline-variant"></div>
+<div class="flex items-center space-x-1">
+<span>Intercepted Total: <strong class="text-on-surface">14,291</strong></span>
+</div>
+</div>
+<div class="flex items-center space-x-3">
+<div class="flex items-center space-x-1 text-outline">
+<span class="material-symbols-outlined text-xs" data-icon="dns">dns</span>
+<span>DAEMON: PID 89402 (ACTIVE)</span>
+</div>
+<div class="h-3 w-[1px] bg-outline-variant"></div>
+<div class="flex items-center space-x-1">
+<span class="text-outline">ENCLAVE:</span>
+<span class="text-on-surface font-medium">Apple T2 / Secure Enclave</span>
+</div>
+<div class="h-3 w-[1px] bg-outline-variant"></div>
+<div class="flex items-center space-x-1 text-tertiary">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span>100% INTEGRITY</span>
+</div>
+</div>
+</footer>
+<div id="snapdom-sandbox" data-snapdom-sandbox="true" aria-hidden="true" style="position: absolute; left: -9999px; top: -9999px; width: 0px; height: 0px; overflow: hidden;"></div></body></html>
