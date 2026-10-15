@@ -27,6 +27,8 @@
     "format": "prettier --write host renderer test scripts *.json *.ts *.html",
     "format:check": "prettier --check host renderer test scripts *.json *.ts *.html",
     "dist:mac": "npm run write:secrets && npm run build && electron-builder --mac --arm64",
+    "dist:mac-x64": "npm run write:secrets && npm run build && electron-builder --mac --x64",
+    "dist:mac:all": "npm run write:secrets && npm run build && electron-builder --mac --arm64 --x64",
     "dist:win": "npm run write:secrets && npm run build && electron-builder --win --x64",
     "dist:win-arm64": "npm run write:secrets && npm run build && electron-builder --win --arm64",
     "dist:linux": "npm run write:secrets && npm run build && electron-builder --linux --x64"
