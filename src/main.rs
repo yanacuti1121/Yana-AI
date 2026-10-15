@@ -33,6 +33,7 @@ mod score;
 mod session_context;
 mod session_db;
 mod skill_quality;
+mod skills;
 mod spec;
 mod task;
 mod vault;
@@ -172,6 +173,12 @@ enum Commands {
     SkillQuality {
         #[command(subcommand)]
         action: skill_quality::SkillQualityAction,
+    },
+    /// Skills the user or the project added: folders with a SKILL.md (the Claude Code and Codex format).
+    /// Lists them and prints one. Never follows a symbolic link and caps what it reads.
+    Skill {
+        #[command(subcommand)]
+        action: skills::cli::SkillAction,
     },
     /// Active security scanner — secrets, code vulns, deps, supply-chain
     Hunt {
@@ -1279,6 +1286,7 @@ fn main() {
             }
         },
         Commands::SkillQuality { action } => skill_quality::dispatch(action),
+        Commands::Skill { action } => skills::cli::dispatch(action),
         // Program J Phase 9 spike — the only command in this match that
         // needs an async runtime (rmcp requires tokio). Bridged with a
         // one-off Runtime rather than making `main()` itself async, since
