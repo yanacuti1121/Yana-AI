@@ -220,7 +220,7 @@ class YanaPanel {
 				name: 'Careful Reviewer',
 				description: 'Plans carefully, explains logic before changes',
 				provider: 'anthropic',
-				model: 'claude-3-5-sonnet-20241022',
+				model: 'claude-sonnet-5-5',
 				mode: 'act',
 				instructions: 'Be thorough, verify evidence before making claims, and prioritize safety.',
 				tools: { write: true, run: true }
@@ -230,7 +230,7 @@ class YanaPanel {
 				name: 'Fast Coder',
 				description: 'Quick iterations, minimal explanations',
 				provider: 'openai',
-				model: 'gpt-4o',
+				model: 'gpt-6-astra',
 				mode: 'act',
 				instructions: 'Provide concise, production-ready code with minimal overhead.',
 				tools: { write: true, run: true }

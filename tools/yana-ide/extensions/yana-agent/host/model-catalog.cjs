@@ -37,11 +37,43 @@ const PROVIDERS = Object.freeze([
     "kind": "cloud",
     "category": "cloud",
     "badge": "balanced · tools",
-    "modelsSummary": "4 models",
+    "modelsSummary": "6 models",
     "requiresKey": true,
     "envVar": "ANTHROPIC_API_KEY",
     "defaultModel": "claude-sonnet-5",
     "baseModels": [
+      {
+        "id": "claude-opus-5-5",
+        "label": "Opus 5.5",
+        "context": "1M",
+        "tags": [
+          "smartest",
+          "frontier",
+          "coding",
+          "reasoning"
+        ]
+      },
+      {
+        "id": "claude-sonnet-5-5",
+        "label": "Sonnet 5.5",
+        "context": "1M",
+        "tags": [
+          "balanced",
+          "fast",
+          "tools",
+          "coding"
+        ]
+      },
+      {
+        "id": "claude-fable-5-1",
+        "label": "Fable 5.1",
+        "context": "1M",
+        "tags": [
+          "agents",
+          "reasoning",
+          "tools"
+        ]
+      },
       {
         "id": "claude-sonnet-5",
         "label": "Sonnet 5",
@@ -57,19 +89,8 @@ const PROVIDERS = Object.freeze([
         "label": "Opus 5",
         "context": "1M",
         "tags": [
-          "smartest",
           "reasoning",
           "vision"
-        ]
-      },
-      {
-        "id": "claude-fable-5-1",
-        "label": "Fable 5.1",
-        "context": "1M",
-        "tags": [
-          "agents",
-          "reasoning",
-          "tools"
         ]
       },
       {
@@ -90,21 +111,50 @@ const PROVIDERS = Object.freeze([
     "company": "OpenAI",
     "kind": "cloud",
     "category": "cloud",
-    "badge": "fast · cheap",
-    "modelsSummary": "5 models",
+    "badge": "flagship · reasoning",
+    "modelsSummary": "6 models",
     "requiresKey": true,
     "envVar": "OPENAI_API_KEY",
     "defaultModel": "gpt-4o-mini",
     "baseModels": [
       {
-        "id": "gpt-4o-mini",
-        "label": "GPT-4o mini",
-        "context": "128K",
+        "id": "gpt-6-astra",
+        "label": "GPT-6 Astra",
+        "context": "1M",
         "tags": [
-          "fast",
-          "cheap",
+          "smartest",
+          "reasoning",
           "tools",
           "vision"
+        ]
+      },
+      {
+        "id": "gpt-6-1-sol",
+        "label": "GPT-6.1 Sol",
+        "context": "1M",
+        "tags": [
+          "flagship",
+          "coding",
+          "tools",
+          "fast"
+        ]
+      },
+      {
+        "id": "o3",
+        "label": "o3",
+        "context": "200K",
+        "tags": [
+          "reasoning",
+          "stem"
+        ]
+      },
+      {
+        "id": "o3-mini",
+        "label": "o3-mini",
+        "context": "200K",
+        "tags": [
+          "reasoning",
+          "fast"
         ]
       },
       {
@@ -118,31 +168,14 @@ const PROVIDERS = Object.freeze([
         ]
       },
       {
-        "id": "gpt-6-astra",
-        "label": "GPT-6 Astra",
-        "context": "1M",
-        "tags": [
-          "smartest",
-          "reasoning",
-          "tools",
-          "vision"
-        ]
-      },
-      {
-        "id": "o1",
-        "label": "o1",
-        "context": "200K",
-        "tags": [
-          "reasoning"
-        ]
-      },
-      {
-        "id": "o1-mini",
-        "label": "o1-mini",
+        "id": "gpt-4o-mini",
+        "label": "GPT-4o mini",
         "context": "128K",
         "tags": [
-          "reasoning",
-          "cheap"
+          "fast",
+          "cheap",
+          "tools",
+          "vision"
         ]
       }
     ]
@@ -154,11 +187,22 @@ const PROVIDERS = Object.freeze([
     "kind": "cloud",
     "category": "cloud",
     "badge": "fast · cheap",
-    "modelsSummary": "3 models",
+    "modelsSummary": "4 models",
     "requiresKey": true,
     "envVar": "GEMINI_API_KEY",
     "defaultModel": "gemini-3.8-flash",
     "baseModels": [
+      {
+        "id": "gemini-4-argon",
+        "label": "Gemini 4 Argon",
+        "context": "1M",
+        "tags": [
+          "smartest",
+          "frontier",
+          "coding",
+          "reasoning"
+        ]
+      },
       {
         "id": "gemini-3.8-flash",
         "label": "3.8 Flash",
