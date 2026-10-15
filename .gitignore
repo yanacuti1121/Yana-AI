@@ -135,3 +135,7 @@ docs-dist/
 docs/*.zip
 !docs/files.zip
 src/*.zip
+
+# Public website build output (scripts/build_site.py) and Vercel CLI link data
+web-dist/
+.vercel

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Build the public website (yana.vutam.link) from docs/ by copying an allowlist into site/.
+"""Build the public website (yana.vutam.link) from docs/ by copying an allowlist into web-dist/.
 
 docs/ holds the whole documentation of the repository, not only the website: internal runbooks, audit reports, state
 files and scripts. A host that serves the whole folder publishes all of it. This step copies only what the website pages
 use, so anything not listed here is never published, whatever else is added to docs/ later.
 
-    python3 scripts/build_site.py [--src docs] [--out site]
+    python3 scripts/build_site.py [--src docs] [--out web-dist]
 
 It never follows a symbolic link, never writes into a folder that already has files, and exits 1 when a page links to a
 file that was not published.
@@ -27,6 +27,10 @@ ALLOWED_DIRS = ("assets", "music", "downloads")
 BLOCKED_SUFFIXES = {".md", ".py", ".jsonl"}
 LINK_PATTERN = re.compile(r"""(?:href|src)=["']([^"']*)["']""")
 EXTERNAL_PATTERN = re.compile(r"^(?:[a-zA-Z][a-zA-Z0-9+.-]*:|//|#)")
+
+
+# Not "site": the repository already tracks a site/ folder (an Astro project) and the output folder must be new.
+DEFAULT_OUT = "web-dist"
 
 
 class BuildError(Exception):
@@ -105,7 +109,7 @@ def missing_links(site: Path) -> list:
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--src", default="docs")
-    parser.add_argument("--out", default="site")
+    parser.add_argument("--out", default=DEFAULT_OUT)
     args = parser.parse_args(argv)
     try:
         result = build(Path(args.src), Path(args.out))

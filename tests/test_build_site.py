@@ -120,7 +120,12 @@ class VercelConfigTests(unittest.TestCase):
         return {}
 
     def test_it_builds_the_allowlisted_site_and_nothing_else(self):
-        self.assertEqual(self.config["outputDirectory"], "site")
+        self.assertEqual(self.config["outputDirectory"], "web-dist")
+        # The repository already has a tracked site/ folder (an Astro project): the output must not collide with any tracked path.
+        import subprocess
+        tracked = subprocess.run(["git", "ls-files", "web-dist"], cwd=ROOT, capture_output=True, text=True, check=True).stdout
+        self.assertEqual(tracked, "")
+        self.assertEqual(build_site.DEFAULT_OUT, "web-dist")
         self.assertIn("scripts/build_site.py", self.config["buildCommand"])
         # The repository root has a package.json of the product: it must not be installed to build a static site.
         self.assertEqual(self.config["installCommand"], "true")

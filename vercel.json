@@ -2,7 +2,7 @@
   "framework": null,
   "installCommand": "true",
   "buildCommand": "python3 scripts/build_site.py",
-  "outputDirectory": "site",
+  "outputDirectory": "web-dist",
   "cleanUrls": true,
   "trailingSlash": false,
   "headers": [
