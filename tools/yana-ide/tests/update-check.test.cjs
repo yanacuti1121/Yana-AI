@@ -74,6 +74,8 @@ const response = (body, status = 200) => ({ ok: status >= 200 && status < 300, s
 	check('a tampered manifest on the server is refused', await rejects(checkForUpdate({ currentVersion: '1.5.0', publicKeyPem: publicPem, fetchImpl: serving(manifestBytes({ version: '9.9.9' }), sig) }), /signature/i));
 	check('a server error is an error, not "no update"', await rejects(checkForUpdate({ currentVersion: '1.5.0', publicKeyPem: publicPem, fetchImpl: serving('x', 'y', 404) }), /404|status/i));
 	check('an oversized manifest is refused', await rejects(checkForUpdate({ currentVersion: '1.5.0', publicKeyPem: publicPem, fetchImpl: serving('x'.repeat(MAX_MANIFEST_BYTES + 1), sig) }), /too large/i));
+	const redirected = async () => { const error = new TypeError('fetch failed'); error.cause = new Error('unexpected redirect'); throw error; };
+	check('a redirect is explained, because a host move or a trailing-slash setting can cause one', await rejects(checkForUpdate({ currentVersion: '1.5.0', publicKeyPem: publicPem, fetchImpl: redirected }), /redirect.*(not followed|do not follow)/i));
 	check('a refused redirect surfaces as an error', await rejects(checkForUpdate({ currentVersion: '1.5.0', publicKeyPem: publicPem, fetchImpl: async () => { throw new TypeError('fetch failed: redirect mode is set to error'); } }), /redirect|failed/i));
 	check('a URL outside the Yana site is never fetched', await rejects(fetchBytes('https://evil.example/latest.json', { fetchImpl: async () => { throw new Error('must not be called'); } }), /not an allowed address/i) && await rejects(fetchBytes('http://yana.vutam.link/latest.json', { fetchImpl: async () => { throw new Error('must not be called'); } }), /not an allowed address/i));
 

@@ -84,13 +84,22 @@ function verifyManifest(bytes, signatureBase64, publicKeyPem) {
 
 async function fetchBytes(url, { fetchImpl = fetch, maxBytes = MAX_MANIFEST_BYTES, timeoutMs = REQUEST_TIMEOUT_MS, version = 'unknown' } = {}) {
 	if (!allowedAddress(url)) throw new Error(`${url} is not an allowed address`);
-	const response = await fetchImpl(url, {
-		redirect: 'error',
-		credentials: 'omit',
-		cache: 'no-store',
-		headers: { 'User-Agent': `YanaStudio/${version}` },
-		signal: AbortSignal.timeout(timeoutMs),
-	});
+	let response;
+	try {
+		response = await fetchImpl(url, {
+			redirect: 'error',
+			credentials: 'omit',
+			cache: 'no-store',
+			headers: { 'User-Agent': `YanaStudio/${version}` },
+			signal: AbortSignal.timeout(timeoutMs),
+		});
+	} catch (error) {
+		// Redirects are refused on purpose. Say so, because moving the site or a trailing-slash setting causes one.
+		const reason = String(error?.cause?.message || error?.message || error);
+		throw new Error(/redirect/i.test(reason)
+			? 'The update server redirected the request. Update checks do not follow redirects: serve latest.json and latest.json.sig directly at the site root.'
+			: `The update server could not be reached (${reason})`);
+	}
 	if (!response.ok) throw new Error(`The update server answered with status ${response.status}`);
 	const declared = Number(response.headers?.get?.('content-length'));
 	if (declared > maxBytes) throw new Error('The update file is too large');
