@@ -121,7 +121,7 @@ test("Studio capability surface stays aligned with Rust registry", () => {
     CAPABILITIES.map(([name]) => name),
     names,
   );
-  assert.equal(names.length, 12);
+  assert.equal(names.length, 13);
 });
 
 test("command reference parser reads real CLI tables", () => {
