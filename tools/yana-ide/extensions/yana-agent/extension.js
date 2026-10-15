@@ -12,6 +12,7 @@ const usage = require('./features/usage');
 const conversations = require('./features/conversations');
 const approvalStore = require('./features/approval-store');
 const auditLog = require('./features/audit-log');
+const skills = require('./features/skills');
 const changes = require('./features/changes');
 const MAX_HISTORY_MESSAGES = 40; // 20 lượt hỏi đáp gần nhất gửi kèm làm ngữ cảnh
 // Chỉ dùng khi yana-rt quá cũ để chặn ghi thật: lúc đó Plan chỉ là lời nhờ model.
@@ -78,16 +79,17 @@ class YanaPanel {
 	}
 
 	// System prompt của hội thoại mới: Project Memory + hướng dẫn của trợ lý đang chọn.
-	systemFor(root) {
+	systemFor(root, skillsIndex = '') {
 		const items = this.context.globalState.get('yana.assistants.v1', this.defaultAssistants());
 		const selectedId = this.context.globalState.get('yana.assistants.selected', items[0]?.id || '');
-		return composeSystem(memorySystem(root), instructionsOf(items, selectedId));
+		const base = [memorySystem(root), skillsIndex].filter(Boolean).join('\n\n');
+		return composeSystem(base, instructionsOf(items, selectedId));
 	}
 
 	async newConversation() {
 		if (this.active) return;
 		const folder = vscode.workspace.workspaceFolders?.[0];
-		await conversations.create(this.systemFor(folder?.uri.fsPath));
+		await conversations.create(this.systemFor(folder?.uri.fsPath, await skills.indexText()));
 		this.showConversation(true);
 	}
 
@@ -506,7 +508,9 @@ class YanaPanel {
 			this.post({ type: 'event', event: { type: 'error', message: ready.error } });
 			return;
 		}
-		const conversation = await conversations.ensureActive(() => this.systemFor(ready.cwd));
+		// Chỉ mục kỹ năng chỉ cần khi tạo hội thoại mới (system prompt được chụp một lần), nên không gọi yana-rt mỗi tin nhắn.
+		const skillsIndex = conversations.active() ? '' : await skills.indexText();
+		const conversation = await conversations.ensureActive(() => this.systemFor(ready.cwd, skillsIndex));
 		this.shownId = conversation.id;
 		this.post({ type: 'intent', text: task, at: new Date().toISOString(), images, files });
 
@@ -535,6 +539,13 @@ class YanaPanel {
 			task = (task || 'Please review and process the attached file(s).') + filesContext;
 		}
 
+		try {
+			const expanded = await skills.expandFromWorkspace(task); // /tên-kỹ-năng: nội dung kỹ năng đi kèm yêu cầu
+			if (expanded) task = expanded.task;
+		} catch (error) {
+			this.post({ type: 'event', event: { type: 'error', message: `Could not use that skill: ${error.message}` } });
+			return;
+		}
 		const payload = { task: task || 'Analyze the attached image(s)', history: conversation.messages.slice(-MAX_HISTORY_MESSAGES), session_id: conversation.id };
 		if (ready.key) {
 			payload.api_key = ready.key;

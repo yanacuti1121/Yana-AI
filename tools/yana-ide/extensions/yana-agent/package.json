@@ -59,6 +59,7 @@
 				{ "id": "yana.conversations", "name": "Conversations", "icon": "media/yana.svg" },
 				{ "id": "yana.models", "name": "Models & Runtime", "icon": "media/yana.svg" },
 				{ "id": "yana.project", "name": "Project", "icon": "media/yana.svg", "visibility": "collapsed" },
+				{ "id": "yana.skills", "name": "Skills", "icon": "media/yana.svg", "visibility": "collapsed" },
 				{ "id": "yana.tasks", "name": "Tasks", "icon": "media/yana.svg", "visibility": "collapsed" },
 				{ "id": "yana.governance", "name": "Governance", "icon": "media/yana.svg", "visibility": "collapsed" },
 				{ "id": "yana.tools", "name": "Tools", "icon": "media/yana.svg", "visibility": "collapsed" },
@@ -69,6 +70,9 @@
 			{ "command": "yana.welcome.open", "title": "Open Yana Home", "category": "Yana", "icon": "$(home)" },
 			{ "command": "yana.guide.open", "title": "Open Guide", "category": "Yana", "icon": "$(book)" },
 			{ "command": "yana.credits.open", "title": "Third-Party Components", "category": "Yana", "icon": "$(heart)" },
+			{ "command": "yana.skills.refresh", "title": "Refresh Skills", "category": "Yana", "icon": "$(refresh)" },
+			{ "command": "yana.skills.new", "title": "New Skill", "category": "Yana", "icon": "$(add)" },
+			{ "command": "yana.skills.openUserFolder", "title": "Open My Skills Folder", "category": "Yana", "icon": "$(folder-opened)" },
 			{ "command": "yana.idePreferences.open", "title": "Yana IDE Settings", "category": "Yana", "icon": "$(settings-gear)" },
 			{ "command": "yana.controlCenter.open", "title": "Yana Control Center", "category": "Yana", "icon": "$(dashboard)" },
 			{ "command": "yana.office.open", "title": "Open Office Tools", "category": "Yana", "icon": "$(file-pdf)" },
@@ -136,7 +140,10 @@
 				{ "command": "yana.tasks.refresh", "when": "view == yana.tasks", "group": "navigation@2" },
 				{ "command": "yana.permissions.open", "when": "view == yana.governance", "group": "navigation@0" },
 				{ "command": "yana.governance.refresh", "when": "view == yana.governance", "group": "navigation@1" },
-				{ "command": "yana.tools.pick", "when": "view == yana.tools", "group": "navigation" }
+				{ "command": "yana.tools.pick", "when": "view == yana.tools", "group": "navigation" },
+				{ "command": "yana.skills.new", "when": "view == yana.skills", "group": "navigation@0" },
+				{ "command": "yana.skills.openUserFolder", "when": "view == yana.skills", "group": "navigation@1" },
+				{ "command": "yana.skills.refresh", "when": "view == yana.skills", "group": "navigation@2" }
 			],
 			"view/item/context": [
 				{ "command": "yana.chat.rename", "when": "view == yana.conversations && viewItem == yana.conversation", "group": "inline@1" },
