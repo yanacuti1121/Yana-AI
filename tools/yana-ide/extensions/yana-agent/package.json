@@ -70,6 +70,7 @@
 			{ "command": "yana.welcome.open", "title": "Open Yana Home", "category": "Yana", "icon": "$(home)" },
 			{ "command": "yana.guide.open", "title": "Open Guide", "category": "Yana", "icon": "$(book)" },
 			{ "command": "yana.credits.open", "title": "Third-Party Components", "category": "Yana", "icon": "$(heart)" },
+			{ "command": "yana.updates.check", "title": "Check for Updates", "category": "Yana", "icon": "$(cloud-download)" },
 			{ "command": "yana.skills.refresh", "title": "Refresh Skills", "category": "Yana", "icon": "$(refresh)" },
 			{ "command": "yana.skills.new", "title": "New Skill", "category": "Yana", "icon": "$(add)" },
 			{ "command": "yana.skills.openUserFolder", "title": "Open My Skills Folder", "category": "Yana", "icon": "$(folder-opened)" },
@@ -173,6 +174,11 @@
 		"configuration": {
 			"title": "Yana",
 			"properties": {
+				"yana.updates.check": {
+					"type": "boolean",
+					"default": true,
+					"description": "Once a day, ask yana.vutam.link whether a newer Yana Studio exists and tell you. Only a signed file is fetched, nothing is downloaded or installed, and the request carries only \"YanaStudio/<version>\": no machine or project information."
+				},
 				"yana.welcome.showOnStartup": {
 					"type": "boolean",
 					"default": true,

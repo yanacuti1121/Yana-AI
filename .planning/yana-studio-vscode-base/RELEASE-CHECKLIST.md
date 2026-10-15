@@ -30,7 +30,9 @@ Ký hiệu: ✅ đã kiểm chứng bằng lệnh (ghi rõ lệnh), ⬜ chưa l�
 - ⬜ Xác nhận `bundledTools/` nằm đúng trong `Contents/Resources/app/` của app và file `cua-driver` còn quyền thực thi.
 - ⚠ Ký và notarize: hiện **không có chứng chỉ**. Cần quyết định cách phát hành bản không ký (macOS: người dùng phải mở bằng chuột phải, Windows: cảnh báo SmartScreen) và ghi hướng dẫn cho người dùng.
 - ⬜ Quyền macOS (Accessibility, Screen Recording) khi binary của Cua chạy dưới một app không ký: **chưa biết** hộp thoại sẽ hiện tên nào. Phải thử trên bản đóng gói thật.
-- ⬜ Tự cập nhật: `product.json` chưa có `updateUrl`, nên app hiện không tự cập nhật.
+- ✅ Thông báo bản mới (không tự cập nhật): `features/update-check.js`, tệp thông tin có chữ ký Ed25519, 34 test đạt, đã thử đường mạng thật (xem `UPDATE-CHECK.md`).
+- ⬜ Để bật: anh Tâm tạo cặp khoá offline, dán khoá công khai vào `update-public-key.js`, và quyết định nguồn phiên bản của app. Khi khoá còn trống, app không gửi yêu cầu nào.
+- ⬜ Tự cập nhật thật sự (tải và cài) **không làm**: app chưa ký nên không có cách an toàn để cài tự động trên macOS.
 - ⬜ `VERSIONING.md` chưa có hàng cho IDE (phiên bản, tag, workflow). Chưa có workflow GitHub cho IDE (hiện chỉ có `yana-studio-desktop.yml` của Studio cũ).
 
 ## D. Kiểm tra trên bản đóng gói, bằng mắt trên cửa sổ thật
@@ -76,6 +78,6 @@ Bản đóng gói đi tới tay người dùng nên mục này **chặn phát h�
 - ⬜ CSP của mọi webview: rà `style-src 'unsafe-inline'`, không `unsafe-eval`, nguồn ảnh. Hiện chỉ mới đọc lướt.
 - ⬜ Bản không ký: công bố **sha256 của từng bản tải** và hướng dẫn kiểm tra. Cân nhắc ký phát hành (cosign/sigstore theo `slsa-artifact-law`); `cosign` hiện chưa cài trên máy.
 - ⬜ Token công bố (crates.io, PyPI): chỉ dùng trong CI, bật 2FA, không để trên máy phát triển. Công bố từ checkout sạch của CI.
-- ⬜ Tự cập nhật (khi có): kênh phải xác thực được (chữ ký hoặc sha256 từ nguồn tin cậy), không bao giờ tải script rồi chạy thẳng.
+- ✅ Kênh thông báo bản mới xác thực bằng chữ ký Ed25519 và chỉ nhận link về `https://yana.vutam.link/`. ⬜ Phải có khoá thật và thử với một `latest.json` thật trước khi phát hành.
 - ⬜ Quyền riêng tư: telemetry bên thứ ba tắt mặc định (K3). Xuất nhật ký kiểm toán chỉ sao chép file người dùng chọn. Chụp màn hình của Cua có thể chứa mật khẩu: cần cảnh báo rõ lúc bật.
 - ⬜ Một bản mô hình mối đe doạ ngắn cho kỹ năng, MCP, Cua, bộ cài và xuất nhật ký, được **hai người xem độc lập** (`54-bft-consensus-law`).
