@@ -29,9 +29,11 @@
     "dist:mac": "npm run write:secrets && npm run build && electron-builder --mac --arm64",
     "dist:mac-x64": "npm run write:secrets && npm run build && electron-builder --mac --x64",
     "dist:mac:all": "npm run write:secrets && npm run build && electron-builder --mac --arm64 --x64",
-    "dist:win": "npm run write:secrets && npm run build && electron-builder --win --x64",
-    "dist:win-arm64": "npm run write:secrets && npm run build && electron-builder --win --arm64",
-    "dist:linux": "npm run write:secrets && npm run build && electron-builder --linux --x64"
+    "dist:win": "npm run write:secrets && npm run build && electron-builder --win --x64 -c.npmRebuild=false",
+    "dist:win-arm64": "npm run write:secrets && npm run build && electron-builder --win --arm64 -c.npmRebuild=false",
+    "dist:win:all": "npm run write:secrets && npm run build && electron-builder --win --x64 --arm64 -c.npmRebuild=false",
+    "dist:linux": "npm run write:secrets && npm run build && electron-builder --linux --x64 -c.npmRebuild=false",
+    "dist:all": "npm run dist:mac:all && npm run dist:win:all && npm run dist:linux"
   },
   "build": {
     "appId": "com.yana-ai.studio",
