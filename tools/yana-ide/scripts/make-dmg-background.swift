@@ -96,38 +96,25 @@ if let accentGrad = CGGradient(colorsSpace: colorSpace, colors: accentColors, lo
     ctx.restoreGState()
 }
 
-// 3. Draw Watermark Stylized Rabbit in Center Background (low opacity 0.06)
-ctx.saveGState()
-ctx.setStrokeColor(CGColor(red: 223/255.0, green: 229/255.0, blue: 241/255.0, alpha: 0.045))
-ctx.setLineWidth(5)
-ctx.setLineCap(.round)
-ctx.setLineJoin(.round)
+// 3. Official Yana Rabbit Emblem
+let svgPath = "tools/yana-ide/extensions/yana-agent/media/yana-emblem.svg"
+let rabbitSvg = NSImage(contentsOfFile: svgPath)
 
-// Draw centered rabbit watermark
-let rx: CGFloat = 280
-let ry: CGFloat = 145
-let rw: CGFloat = 80
-let rh: CGFloat = 80
+// 3a. Center Rabbit Holographic Watermark behind drag arrow
+if let svg = rabbitSvg {
+    let centerH: CGFloat = 136
+    let centerW: CGFloat = centerH * (260.0 / 340.0) // ~104 pt
+    let centerRect = rct(320 - centerW / 2, 136, centerW, centerH)
 
-// Geometric diamond / face
-ctx.move(to: pt(rx + 40, ry + 15))
-ctx.addLine(to: pt(rx + 65, ry + 40))
-ctx.addLine(to: pt(rx + 40, ry + 75))
-ctx.addLine(to: pt(rx + 15, ry + 40))
-ctx.closePath()
-ctx.strokePath()
-
-// Ears
-ctx.move(to: pt(rx + 25, ry + 15))
-ctx.addLine(to: pt(rx + 15, ry - 15))
-ctx.addLine(to: pt(rx + 32, ry - 5))
-ctx.strokePath()
-
-ctx.move(to: pt(rx + 55, ry + 15))
-ctx.addLine(to: pt(rx + 65, ry - 15))
-ctx.addLine(to: pt(rx + 48, ry - 5))
-ctx.strokePath()
-ctx.restoreGState()
+    NSGraphicsContext.saveGraphicsState()
+    NSGraphicsContext.current = NSGraphicsContext(cgContext: ctx, flipped: false)
+    ctx.saveGState()
+    ctx.setAlpha(0.22)
+    ctx.setShadow(offset: .zero, blur: 20, color: CGColor(red: 56/255.0, green: 189/255.0, blue: 248/255.0, alpha: 0.5))
+    svg.draw(in: centerRect)
+    ctx.restoreGState()
+    NSGraphicsContext.restoreGraphicsState()
+}
 
 // 4. Pedestal Target Rings under icons
 // Left Pedestal (under Yana Studio at x: 160, y: 225)
@@ -234,15 +221,26 @@ func drawText(_ str: String, x: CGFloat, y: CGFloat, font: NSFont, color: NSColo
     nsStr.draw(in: cgRect)
 }
 
-// Header: Yana Emblem & Slogan
+// Header: Yana Emblem Badge & Typography
+if let svg = rabbitSvg {
+    let badgeH: CGFloat = 52
+    let badgeW: CGFloat = badgeH * (260.0 / 340.0) // ~40 pt
+    let badgeRect = rct(320 - badgeW / 2, 12, badgeW, badgeH)
+    
+    ctx.saveGState()
+    ctx.setShadow(offset: .zero, blur: 20, color: CGColor(red: 56/255.0, green: 189/255.0, blue: 248/255.0, alpha: 0.9))
+    svg.draw(in: badgeRect)
+    ctx.restoreGState()
+}
+
 // Title: "Yana Studio"
-let titleFont = NSFont.systemFont(ofSize: 22, weight: .bold)
-drawText("Yana Studio", x: 0, y: 38, font: titleFont, color: NSColor.white, align: .center, width: width)
+let titleFont = NSFont.systemFont(ofSize: 20, weight: .bold)
+drawText("Yana Studio", x: 0, y: 70, font: titleFont, color: NSColor.white, align: .center, width: width)
 
 // Slogan: "AI works. You hold authority."
-let sloganFont = NSFont.systemFont(ofSize: 11.5, weight: .medium)
-let sloganColor = NSColor(calibratedRed: 160/255.0, green: 175/255.0, blue: 200/255.0, alpha: 0.95)
-drawText("AI works. You hold authority.", x: 0, y: 64, font: sloganFont, color: sloganColor, align: .center, width: width)
+let sloganFont = NSFont.systemFont(ofSize: 11, weight: .medium)
+let sloganColor = NSColor(calibratedRed: 160/255.0, green: 175/255.0, blue: 205/255.0, alpha: 0.95)
+drawText("AI works. You hold authority.", x: 0, y: 94, font: sloganFont, color: sloganColor, align: .center, width: width)
 
 // Drag & drop instruction above/below arrow
 let dragFont = NSFont.systemFont(ofSize: 11, weight: .semibold)
