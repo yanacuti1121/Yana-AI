@@ -1,0 +1,9 @@
+.git
+target
+node_modules
+.planning
+.claude
+.env
+.env.*
+*.pem
+*.key
