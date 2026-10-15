@@ -71,6 +71,7 @@
     ],
     "mac": {
       "category": "public.app-category.developer-tools",
+      "icon": "build/icon.icns",
       "target": [
         {
           "target": "dmg",
@@ -93,7 +94,7 @@
     },
     "dmg": {
       "title": "${productName} ${version}",
-      "background": "build/background@2x.png",
+      "background": "build/background.tiff",
       "iconSize": 128,
       "window": {
         "width": 640,
@@ -114,6 +115,7 @@
       ]
     },
     "linux": {
+      "icon": "build/icon.png",
       "target": [
         "AppImage",
         "deb"
@@ -121,6 +123,7 @@
       "category": "Development"
     },
     "win": {
+      "icon": "build/icon.png",
       "target": [
         {
           "target": "nsis"
