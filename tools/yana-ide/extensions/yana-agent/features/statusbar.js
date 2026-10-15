@@ -52,6 +52,7 @@ function activate(context) {
 	context.subscriptions.push(
 		runtimeItem, policyItem, auditItem,
 		{ dispose: () => clearInterval(timer) },
+		vscode.commands.registerCommand('yana.runtime.refresh', refreshRuntime),
 		vscode.workspace.onDidGrantWorkspaceTrust(refreshAudit),
 		vscode.workspace.onDidChangeConfiguration(event => event.affectsConfiguration('yana') && refreshRuntime()),
 	);

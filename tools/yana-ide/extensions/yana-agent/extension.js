@@ -4,13 +4,18 @@
 
 const vscode = require('vscode');
 const crypto = require('node:crypto');
+const path = require('node:path');
 const { resolveBinary, runtimeVersion, startTurn, supportsTurnControls } = require('./runtime');
 const models = require('./features/models');
 const { memorySystem } = require('./features/project');
+const { instructionsOf, composeSystem } = require('./features/assistant-system');
 const usage = require('./features/usage');
 const conversations = require('./features/conversations');
 const approvalStore = require('./features/approval-store');
+const auditLog = require('./features/audit-log');
 const changes = require('./features/changes');
+const edits = require('./features/edits');
+const { EDIT_INSTRUCTIONS } = require('./features/edit-protocol');
 const MAX_HISTORY_MESSAGES = 40; // 20 lượt hỏi đáp gần nhất gửi kèm làm ngữ cảnh
 // Chỉ dùng khi yana-rt quá cũ để chặn ghi thật: lúc đó Plan chỉ là lời nhờ model.
 const PLAN_HINT = '[Plan Mode - Do not edit any files or execute write commands. Only analyze and provide a step-by-step plan]';
@@ -75,10 +80,18 @@ class YanaPanel {
 		this.post({ type: 'conversation', title: current?.title || 'New conversation', messages: current?.messages || [] });
 	}
 
+	// System prompt của hội thoại mới: Project Memory + hướng dẫn của trợ lý đang chọn.
+	systemFor(root) {
+		const items = this.context.globalState.get('yana.assistants.v1', this.defaultAssistants());
+		const selectedId = this.context.globalState.get('yana.assistants.selected', items[0]?.id || '');
+		const base = composeSystem(memorySystem(root), instructionsOf(items, selectedId));
+		return base ? `${base}\n\n${EDIT_INSTRUCTIONS}` : EDIT_INSTRUCTIONS;
+	}
+
 	async newConversation() {
 		if (this.active) return;
 		const folder = vscode.workspace.workspaceFolders?.[0];
-		await conversations.create(memorySystem(folder?.uri.fsPath));
+		await conversations.create(this.systemFor(folder?.uri.fsPath));
 		this.showConversation(true);
 	}
 
@@ -99,6 +112,7 @@ class YanaPanel {
 		const voiceJs = webview.asWebviewUri(vscode.Uri.joinPath(media, 'voice.js'));
 		const mentionsJs = webview.asWebviewUri(vscode.Uri.joinPath(media, 'mentions.js'));
 		const auditViewJs = webview.asWebviewUri(vscode.Uri.joinPath(media, 'audit-view.js'));
+		const editsJs = webview.asWebviewUri(vscode.Uri.joinPath(media, 'edits.js'));
 		const js = webview.asWebviewUri(vscode.Uri.joinPath(media, 'panel.js'));
 		const emblem = webview.asWebviewUri(vscode.Uri.joinPath(media, 'yana-emblem.svg'));
 		const csp = `default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; img-src ${webview.cspSource} data: blob: https:; script-src 'nonce-${nonce}'; font-src ${webview.cspSource};`;
@@ -106,7 +120,7 @@ class YanaPanel {
 <meta http-equiv="Content-Security-Policy" content="${csp}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="${css}"></head>
-<body data-emblem="${emblem}"><div id="app"></div><script nonce="${nonce}" src="${markdown}"></script><script nonce="${nonce}" src="${assistantsJs}"></script><script nonce="${nonce}" src="${voiceJs}"></script><script nonce="${nonce}" src="${mentionsJs}"></script><script nonce="${nonce}" src="${auditViewJs}"></script><script nonce="${nonce}" src="${js}"></script></body></html>`;
+<body data-emblem="${emblem}"><div id="app"></div><script nonce="${nonce}" src="${markdown}"></script><script nonce="${nonce}" src="${assistantsJs}"></script><script nonce="${nonce}" src="${voiceJs}"></script><script nonce="${nonce}" src="${mentionsJs}"></script><script nonce="${nonce}" src="${auditViewJs}"></script><script nonce="${nonce}" src="${editsJs}"></script><script nonce="${nonce}" src="${js}"></script></body></html>`;
 	}
 
 	async onMessage(message) {
@@ -117,6 +131,8 @@ class YanaPanel {
 				return this.refreshRuntime();
 			}
 			case 'home': return vscode.commands.executeCommand('yana.welcome.open');
+			case 'onboarding':
+			case 'openOnboarding': return vscode.commands.executeCommand('yana.onboarding.open');
 			case 'guide':
 			case 'openGuide': return vscode.commands.executeCommand('yana.guide.open');
 			case 'history': return vscode.commands.executeCommand('yana.chat.history');
@@ -124,13 +140,47 @@ class YanaPanel {
 			case 'send': return this.send(String(message.text || ''), Array.isArray(message.images) ? message.images : [], message.mode === 'plan' ? 'plan' : 'act', Array.isArray(message.files) ? message.files : []);
 			case 'decide': return this.decide(String(message.approvalId || ''), message.decision === true);
 			case 'stop': return this.active?.stop();
+			case 'editApply': {
+				const res = await edits.apply(message.id);
+				this.post({ type: 'editResult', id: message.id, ok: res.ok, error: res.error });
+				return;
+			}
+			case 'editReject': {
+				edits.reject(message.id);
+				this.post({ type: 'editResult', id: message.id, ok: false, error: 'Rejected' });
+				return;
+			}
+			case 'editPreview': {
+				try {
+					await edits.preview(message.id);
+				} catch (err) {
+					vscode.window.showErrorMessage(`Yana edit preview: ${err.message}`);
+				}
+				return;
+			}
 			case 'reset': return this.newConversation();
 			case 'pickModel': return vscode.commands.executeCommand('yana.pickModel');
 			case 'setKey': return vscode.commands.executeCommand('yana.setApiKey');
+			case 'manageTrust': return vscode.commands.executeCommand('workbench.trust.manage');
+			case 'openFile': {
+				if (message.path) {
+					const folder = vscode.workspace.workspaceFolders?.[0];
+					let fullPath = String(message.path).trim();
+					if (!path.isAbsolute(fullPath) && folder) {
+						fullPath = path.join(folder.uri.fsPath, fullPath);
+					}
+					const uri = vscode.Uri.file(fullPath);
+					return vscode.window.showTextDocument(uri).then(undefined, () => {
+						vscode.commands.executeCommand('vscode.open', uri);
+					});
+				}
+				return;
+			}
 			case 'openSettings': return vscode.commands.executeCommand('yana.modelsRuntime.open');
 			case 'droppedUri': return this.handleDroppedUri(String(message.uri || ''));
 			case 'exportPresentation':
 			case 'exportPresentationHtml': return this.exportPresentation(message.deck);
+			case 'openOffice': return vscode.commands.executeCommand('yana.office.open');
 			case 'newCanvas': return vscode.commands.executeCommand('yana.canvas.new');
 			case 'openTasks': return vscode.commands.executeCommand('yana.tasks.open');
 			case 'openMemory': return vscode.commands.executeCommand('yana.memory.open');
@@ -146,6 +196,10 @@ class YanaPanel {
 				this.post({ type: 'voice.state', phase: 'idle', cloud: false, error: 'Voice runtime not configured (see Settings)' });
 				return;
 			}
+			case 'audit.load': this.post(auditLog.loadForView()); return;
+			case 'office.export': return message.kind === 'audit' ? auditLog.exportLog() : undefined;
+			// Công cụ chẩn đoán chạy trong terminal riêng, chỉ các tên cố định này.
+			case 'runTool': return /^(doctor|scan|hunt|score|map|ci|cost)$/.test(String(message.tool)) ? vscode.commands.executeCommand(`yana.tool.${message.tool}`) : undefined;
 			case 'buildScreen': {
 				const taskText = `Implement the UI design from screen "${message.name || 'Canvas Screen'}" as clean, modular code for this project.\n\nHTML Preview:\n\`\`\`html\n${message.html}\n\`\`\``;
 				return this.send(taskText, []);
@@ -493,7 +547,7 @@ class YanaPanel {
 			this.post({ type: 'event', event: { type: 'error', message: ready.error } });
 			return;
 		}
-		const conversation = await conversations.ensureActive(() => memorySystem(ready.cwd));
+		const conversation = await conversations.ensureActive(() => this.systemFor(ready.cwd));
 		this.shownId = conversation.id;
 		this.post({ type: 'intent', text: task, at: new Date().toISOString(), images, files });
 
@@ -594,6 +648,16 @@ class YanaPanel {
 				} else if (task && reply && options.conversationId) {
 					conversations.appendTurn(options.conversationId, task, reply)
 						.catch(error => vscode.window.showErrorMessage(`Yana: could not save the conversation: ${error.message}`));
+					if (options.cwd) {
+						try {
+							const items = edits.propose(reply, options.cwd);
+							if (items && items.length > 0) {
+								this.post({ type: 'editProposals', items });
+							}
+						} catch (err) {
+							console.warn('Failed to propose edits:', err);
+						}
+					}
 				}
 				this.postState();
 			},

@@ -14,6 +14,7 @@ const FEATURES = [
 	require('./guide'),
 	require('./ide-preferences'),
 	require('./control-center'),
+	require('./settings'),
 	require('./studio-screens'),
 	require('./conversations'),
 	require('./statusbar'),
@@ -25,6 +26,9 @@ const FEATURES = [
 	require('./system'),
 	require('./canvas'),
 	require('./office'),
+	require('./updates'),
+	require('./edits'),
+	require('./onboarding'),
 ];
 
 const FIRST_RUN_KEY = 'yana.firstRunRevealed';

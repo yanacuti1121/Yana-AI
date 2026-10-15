@@ -4,7 +4,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const os = require('node:os');
 
-const ext = process.argv[2];
+const ext = process.argv[2] || path.resolve(__dirname, "../extensions/yana-agent");
 const project = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'yana-gov-')));
 fs.mkdirSync(path.join(project, '.claude/state'), { recursive: true });
 fs.writeFileSync(path.join(project, '.claude/state/locking-protocol-version'), 'flock-v1\n');

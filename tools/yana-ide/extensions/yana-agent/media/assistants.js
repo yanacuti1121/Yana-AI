@@ -57,7 +57,7 @@
 	// Assistant selector chip in composer / header
 	let selectorNode = null;
 	function createSelectorElement() {
-		selectorNode = el('div', 'assistant-chip mono');
+		selectorNode = el('div', 'assistant-chip');
 		selectorNode.title = 'Current Assistant Profile (Click to manage)';
 		selectorNode.addEventListener('click', () => openAssistantManager());
 		updateSelectorUI();

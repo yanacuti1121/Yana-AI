@@ -4,7 +4,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const ext = process.argv[2];
+const ext = process.argv[2] || path.resolve(__dirname, "../extensions/yana-agent");
 const read = rel => fs.readFileSync(path.join(ext, rel), 'utf8');
 const manifest = JSON.parse(read('package.json'));
 const markdown = read('media/guide.vi.md');

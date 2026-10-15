@@ -20,6 +20,12 @@
 				"path": "./themes/yana-dark-color-theme.json"
 			},
 			{
+				"id": "Yana Web",
+				"label": "Yana Web (vutam.link)",
+				"uiTheme": "vs",
+				"path": "./themes/yana-web-color-theme.json"
+			},
+			{
 				"id": "Yana Light",
 				"label": "Yana Light",
 				"uiTheme": "vs",

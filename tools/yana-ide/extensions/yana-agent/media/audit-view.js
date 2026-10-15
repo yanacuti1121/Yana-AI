@@ -4,6 +4,12 @@
 	'use strict';
 
 	let activeModal = null;
+	let onAuditEntries = null;
+
+	function stopListening() {
+		if (onAuditEntries) window.removeEventListener('message', onAuditEntries);
+		onAuditEntries = null;
+	}
 
 	function el(tag, className, text) {
 		const node = document.createElement(tag);
@@ -71,20 +77,25 @@
 	}
 
 	function closeModal() {
+		stopListening();
 		if (activeModal) {
 			activeModal.remove();
 			activeModal = null;
 		}
 	}
 
+	// Quyết định nào của nhật ký thuộc nút lọc nào.
+	const FILTERS = { ALL: null, ALLOW: ['allow'], DENY: ['deny', 'block'], WARN: ['warn'] };
+
 	function renderAuditLog(container) {
 		container.replaceChildren();
 
 		const toolbar = el('div', 'audit-toolbar');
 		const filterGroup = el('div', 'audit-filter-group');
-
 		let currentFilter = 'ALL';
-		['ALL', 'ALLOW', 'DENY', 'WARN'].forEach(f => {
+		let data = null;
+
+		Object.keys(FILTERS).forEach(f => {
 			const b = button(`btn btn-sm ${currentFilter === f ? 'primary' : ''}`, f, () => {
 				currentFilter = f;
 				toolbar.querySelectorAll('.audit-filter-group button').forEach(x => x.className = 'btn btn-sm');
@@ -96,7 +107,7 @@
 
 		const exportBtn = button('btn btn-sm', 'Export Log', () => {
 			window.vscode?.postMessage({ type: 'office.export', kind: 'audit' });
-		}, 'Export audit log chain');
+		}, 'Save a copy of the audit log file (you choose where)');
 
 		toolbar.append(filterGroup, exportBtn);
 		container.append(toolbar);
@@ -104,20 +115,50 @@
 		const list = el('div', 'audit-entries-list');
 		container.append(list);
 
-		// Render honest state
 		function renderEntries() {
 			list.replaceChildren();
-			const infoBox = el('div', 'audit-notice card');
-			infoBox.append(
-				el('strong', '', 'Audit Chain: .claude/state/audit-chain.log'),
-				el('p', 'muted small', 'Immutable hash-chained log recorded by Yana governance hooks. Reads are permitted; all mutations and commands require individual authorization.')
+			if (!data) {
+				list.append(el('div', 'audit-empty muted', 'Loading the audit log…'));
+				return;
+			}
+			if (!data.available) {
+				list.append(el('div', 'audit-empty muted', data.reason || 'The audit log is not available.'));
+				return;
+			}
+			const counts = data.counts || {};
+			const chain = data.chain || {};
+			const summary = el('div', 'audit-notice card');
+			summary.append(
+				el('strong', '', `${data.total} entries · ${counts.allow || 0} allow · ${(counts.deny || 0) + (counts.block || 0)} deny · ${counts.warn || 0} warn`),
+				el('p', 'muted small', chain.linked
+					? 'Chain links are intact: no entry was removed or inserted. This checks links only, not each hash.'
+					: `Chain broken at line ${chain.brokenAt}: an entry was removed, inserted or changed. Review before trusting this log.`),
 			);
-			list.append(infoBox);
+			if (data.unreadable) summary.append(el('p', 'muted small', `${data.unreadable} line(s) could not be read.`));
+			list.append(summary);
 
-			const emptyNotice = el('div', 'audit-empty muted', 'No recent security exceptions recorded for current workspace session.');
-			list.append(emptyNotice);
+			const wanted = FILTERS[currentFilter];
+			const shown = (data.entries || []).filter(e => !wanted || wanted.includes(e.decision));
+			if (shown.length === 0) {
+				list.append(el('div', 'audit-empty muted', 'No entries match this filter.'));
+				return;
+			}
+			shown.forEach(e => {
+				const row = el('div', 'audit-entry');
+				row.append(el('span', 'audit-entry-time mono', e.ts), el('span', 'audit-entry-tool mono', e.tool || e.hook), el('span', `audit-entry-decision ${e.decision}`, e.decision.toUpperCase()));
+				list.append(row);
+			});
 		}
 
+		stopListening();
+		onAuditEntries = event => {
+			if (event.data && event.data.type === 'audit.entries') {
+				data = event.data;
+				renderEntries();
+			}
+		};
+		window.addEventListener('message', onAuditEntries);
+		window.vscode?.postMessage({ type: 'audit.load' });
 		renderEntries();
 	}
 
@@ -130,9 +171,9 @@
 			el('p', 'muted small', 'Run integrity, drift detection, and governance checks across the current workspace.')
 		);
 
-		const runBtn = button('btn primary', 'Run Full /verify Check', () => {
+		const runBtn = button('btn primary', 'Run yana-rt doctor', () => {
 			closeModal();
-			window.vscode?.postMessage({ type: 'send', text: '/verify' });
+			window.vscode?.postMessage({ type: 'runTool', tool: 'doctor' });
 		}, 'Execute comprehensive verification in chat');
 
 		doctorHead.append(runBtn);

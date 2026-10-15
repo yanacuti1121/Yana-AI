@@ -15,7 +15,6 @@ const changes = require('./changes');
 // entry = khoá của màn trong media/studio/manifest.json (Vite ghi ra khi build, xem studio-web/vite.config.mjs).
 const SCREENS = {
 	canvas: { title: 'Yana Studio Canvas', entry: 'canvas-entry.tsx' },
-	settings: { title: 'Yana Settings', entry: 'settings-entry.tsx' },
 	tasks: { title: 'Yana Tasks', entry: 'tasks-entry.tsx' },
 	permissions: { title: 'Yana Permissions', entry: 'permissions-entry.tsx' },
 };
@@ -113,7 +112,6 @@ function openScreen(context, id) {
 function activate(context) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('yana.studio.canvas', () => openScreen(context, 'canvas')),
-		vscode.commands.registerCommand('yana.settings.open', () => openScreen(context, 'settings')),
 		vscode.commands.registerCommand('yana.tasks.open', () => openScreen(context, 'tasks')),
 		vscode.commands.registerCommand('yana.permissions.open', () => openScreen(context, 'permissions')),
 	);

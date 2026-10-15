@@ -5,7 +5,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const os = require('node:os');
 
-const ext = process.argv[2];
+const ext = process.argv[2] || path.resolve(__dirname, "../extensions/yana-agent");
 const typst = require(path.join(ext, 'features', 'office-typst.js'));
 const documents = require(path.join(ext, 'features', 'office-documents.js'));
 

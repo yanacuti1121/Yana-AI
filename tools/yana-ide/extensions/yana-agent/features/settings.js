@@ -11,8 +11,9 @@ const { commandReference, systemOverview } = require('../host/system-surfaces.cj
 const { binary, workspaceRoot } = require('../cli');
 const models = require('./models');
 const data = require('./settings-data');
+const { getActiveLanguage, applyLanguage } = require('./language');
 
-const TABS = ['account', 'appearance', 'models', 'usage', 'connections', 'permissions', 'tools', 'commands', 'data'];
+const TABS = ['account', 'general', 'appearance', 'models', 'customizations', 'browser', 'tab', 'editor', 'usage', 'connections', 'permissions', 'tools', 'commands', 'data'];
 const MAX_MODEL_ID = 200;
 
 let panel;
@@ -59,11 +60,20 @@ function fillTerminal(command) {
 async function openToolTerminal(command) {
 	const overview = await systemOverview({ runtime: binary(), projectRoot: workspaceRoot() });
 	const tool = overview.externalTools.find(entry => entry.command === command && entry.available);
-	if (!tool) throw new Error('Tool is not installed on this machine');
-	if (!vscode.workspace.isTrusted) throw new Error('Trust this folder before opening an external tool');
+	if (!tool) {
+		vscode.window.showWarningMessage(`Tool '${command}' is not installed or not available on PATH.`);
+		throw new Error('Tool is not installed on this machine');
+	}
 	const terminal = vscode.window.createTerminal({ name: tool.label, cwd: workspaceRoot() || undefined });
-	terminal.show();
-	terminal.sendText(tool.command);
+	terminal.show(true);
+	const runCmd = tool.path ? `"${tool.path}"` : tool.command;
+	terminal.sendText(runCmd);
+}
+
+async function updateSetting(section, key, value) {
+	const allowed = ['editor', 'diffEditor', 'files', 'telemetry', 'explorer', 'yana'];
+	if (!allowed.includes(section)) throw new Error('Disallowed configuration section');
+	await vscode.workspace.getConfiguration(section).update(key, value, vscode.ConfigurationTarget.Global);
 }
 
 // Hành động webview được phép gọi. Tham số luôn được kiểm tra lại, không tin dữ liệu từ webview.
@@ -76,19 +86,33 @@ const ACTIONS = {
 	pickRuntime,
 	revokeLease: msg => typeof msg.id === 'string' && vscode.commands.executeCommand('yana.governance.revokeLease', { leaseId: msg.id }),
 	useYanaTheme: () => vscode.workspace.getConfiguration('workbench').update('colorTheme', 'Yana Dark', vscode.ConfigurationTarget.Global),
+	useYanaWebTheme: () => vscode.workspace.getConfiguration('workbench').update('colorTheme', 'Yana Web (vutam.link)', vscode.ConfigurationTarget.Global),
+	useYanaLightTheme: () => vscode.workspace.getConfiguration('workbench').update('colorTheme', 'Yana Light', vscode.ConfigurationTarget.Global),
+	useYanaHcTheme: () => vscode.workspace.getConfiguration('workbench').update('colorTheme', 'Yana High Contrast', vscode.ConfigurationTarget.Global),
 	pickTheme: () => vscode.commands.executeCommand('workbench.action.selectTheme'),
 	pickLanguage: () => vscode.commands.executeCommand('workbench.action.configureLocale'),
+	setLanguage: async msg => {
+		await applyLanguage(String(msg.lang || 'en'));
+		panel?.webview.postMessage({ type: 'languageChanged', language: msg.lang });
+		if (panel) {
+			panel.title = msg.lang === 'vi' ? 'Cài đặt Yana' : msg.lang === 'ko' ? 'Yana 설정' : 'Yana Settings';
+		}
+	},
 	copy: msg => vscode.env.clipboard.writeText(String(msg.text || '').slice(0, 2000)),
 	fillTerminal: msg => fillTerminal(String(msg.command || '')),
 	openToolTerminal: msg => openToolTerminal(String(msg.command || '')),
 	openMemory: () => vscode.commands.executeCommand('yana.memory.open'),
 	openChat: () => vscode.commands.executeCommand('yana.focus'),
 	openKeybindings: () => vscode.commands.executeCommand('workbench.action.openGlobalKeybindings', 'yana'),
+	updateSetting: msg => updateSetting(String(msg.section), String(msg.key), msg.value),
+	openShortcuts: () => vscode.commands.executeCommand('workbench.action.openGlobalKeybindings', 'yana'),
+	provideFeedback: () => vscode.env.openExternal(vscode.Uri.parse('https://github.com/yanacuti1121/Yana-AI/issues')),
 };
 
 async function onMessage(context, msg) {
 	if (msg?.type === 'ready') {
-		panel?.webview.postMessage({ type: 'select', tab: pendingTab });
+		const lang = getActiveLanguage();
+		panel?.webview.postMessage({ type: 'init', language: lang, tab: pendingTab });
 		return;
 	}
 	if (msg?.type === 'load' && TABS.concat('local').includes(msg.tab)) {
@@ -102,6 +126,7 @@ async function onMessage(context, msg) {
 		const result = await action(msg);
 		panel?.webview.postMessage({ type: 'result', requestId: msg.requestId, ok: true, result: Array.isArray(result) ? result : undefined });
 	} catch (error) {
+		vscode.window.showErrorMessage(error.message);
 		panel?.webview.postMessage({ type: 'result', requestId: msg.requestId, ok: false, error: error.message });
 	}
 }
@@ -112,10 +137,12 @@ function html(webview, media) {
 	const scripts = ['settings.js', 'settings-models.js', 'settings-tabs.js']
 		.map(name => `<script nonce="${nonce}" src="${webview.asWebviewUri(vscode.Uri.joinPath(media, name))}"></script>`).join('');
 	const csp = `default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}'; font-src ${webview.cspSource}; img-src ${webview.cspSource};`;
-	return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+	const lang = getActiveLanguage();
+	const title = lang === 'vi' ? 'Cài đặt Yana' : lang === 'ko' ? 'Yana 설정' : 'Yana Settings';
+	return `<!DOCTYPE html><html lang="${lang}"><head><meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="${csp}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="${css}"><title>Yana Settings</title></head>
+<link rel="stylesheet" href="${css}"><title>${title}</title></head>
 <body><div id="app"></div>${scripts}</body></html>`;
 }
 
@@ -127,22 +154,41 @@ function open(context, tab) {
 		return;
 	}
 	const media = vscode.Uri.joinPath(context.extensionUri, 'media');
-	panel = vscode.window.createWebviewPanel('yana.settings', 'Yana Settings', vscode.ViewColumn.Active,
+	const lang = getActiveLanguage();
+	const title = lang === 'vi' ? 'Cài đặt Yana' : lang === 'ko' ? 'Yana 설정' : 'Yana Settings';
+	panel = vscode.window.createWebviewPanel('yana.settings', title, vscode.ViewColumn.Active,
 		{ enableScripts: true, retainContextWhenHidden: true, localResourceRoots: [media] });
 	panel.iconPath = vscode.Uri.joinPath(media, 'yana.svg');
 	panel.webview.html = html(panel.webview, media);
 	pendingTab = initial; // webview gửi 'ready' khi script đã chạy, lúc đó mới chọn tab
 	panel.webview.onDidReceiveMessage(msg => onMessage(context, msg));
 	panel.onDidDispose(() => { panel = undefined; });
+	panel.reveal(vscode.ViewColumn.One);
 }
 
 function activate(context) {
 	const refresh = () => panel?.webview.postMessage({ type: 'refresh' });
 	context.subscriptions.push(
 		vscode.commands.registerCommand('yana.settings.open', tab => open(context, typeof tab === 'string' ? tab : 'models')),
-		vscode.workspace.onDidChangeConfiguration(event => (event.affectsConfiguration('yana') || event.affectsConfiguration('workbench.colorTheme')) && refresh()),
+		vscode.commands.registerCommand('yana.account.open', () => open(context, 'account')),
+		vscode.commands.registerCommand('yana.models.open', () => open(context, 'models')),
+		vscode.workspace.onDidChangeConfiguration(event => {
+			if (event.affectsConfiguration('yana.language')) {
+				const lang = getActiveLanguage();
+				if (panel) {
+					panel.title = lang === 'vi' ? 'Cài đặt Yana' : lang === 'ko' ? 'Yana 설정' : 'Yana Settings';
+					panel.webview.postMessage({ type: 'languageChanged', language: lang });
+				}
+			}
+			if (event.affectsConfiguration('yana') || event.affectsConfiguration('workbench.colorTheme')) {
+				refresh();
+			}
+		}),
 		context.secrets.onDidChange(refresh),
 	);
+	if (process.env.YANA_OPEN_SETTINGS === '1') {
+		setTimeout(() => open(context, 'models'), 2500);
+	}
 }
 
 module.exports = { id: 'settings', activate, fillTerminal, openToolTerminal };

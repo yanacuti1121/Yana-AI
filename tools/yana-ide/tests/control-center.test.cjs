@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const ext = process.argv[2];
+const ext = process.argv[2] || path.resolve(__dirname, "../extensions/yana-agent");
 const dataModule = require(path.join(ext, 'features/control-center-data.js'));
 const { collect, verify } = dataModule;
 

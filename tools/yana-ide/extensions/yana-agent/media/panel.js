@@ -5,6 +5,7 @@
 	window.vscode = vscode;
 	const app = document.getElementById('app');
 	const ui = { trace: null, reply: null, approval: null, pendingCall: null, tokens: { input: 0, output: 0 }, busy: false };
+	const editManager = window.yanaEdits ? window.yanaEdits.create({ el, button, append, post: msg => vscode.postMessage(msg) }) : null;
 
 	function el(tag, className, text) {
 		const node = document.createElement(tag);
@@ -94,7 +95,10 @@
 		if (isMenuOpen && !popover.contains(e.target)) closeMenu();
 	});
 	window.addEventListener('keydown', e => {
-		if (e.key === 'Escape' && isMenuOpen) closeMenu();
+		if (e.key === 'Escape') {
+			if (isMenuOpen) closeMenu();
+			else if (ui.busy) vscode.postMessage({ type: 'stop' });
+		}
 	});
 
 	function createPopoverItem(icon, label, desc, onClick) {
@@ -123,6 +127,14 @@
 		sec1.append(el('div', 'popover-section-label', 'ATTACH & CREATE'));
 
 		sec1.append(
+			createPopoverItem('🚀', 'Getting Started Walkthrough', 'Step-by-step introduction and setup wizard', () => {
+				closeMenu();
+				vscode.postMessage({ type: 'openOnboarding' });
+			}),
+			createPopoverItem('🏠', 'Yana Home', 'Open the main Yana Home dashboard and hub', () => {
+				closeMenu();
+				vscode.postMessage({ type: 'home' });
+			}),
 			createPopoverItem('📎', 'Files & Documents', 'Attach documents (PDF, PPT, Word), code, or images', () => {
 				closeMenu();
 				fileInput.click();
@@ -131,6 +143,10 @@
 				closeMenu();
 				input.value = '/deck ';
 				input.focus();
+			}),
+			createPopoverItem('📊', 'Yana Office (Slides & Docs)', 'Write slides, preview Marp, export PDF, PPTX, Word, Excel', () => {
+				closeMenu();
+				vscode.postMessage({ type: 'openOffice' });
 			}),
 			createPopoverItem('🎨', 'Design Canvas', 'Open visual UI design canvas sandbox', () => {
 				closeMenu();
@@ -184,7 +200,7 @@
 
 	const toolsLeft = el('div', 'composer-tools-left');
 	const plusBtn = button('plus-btn', '+', toggleMenu, 'Capabilities & actions (+)');
-	const modeBadge = button('mode-badge act mono', '', () => {
+	const modeBadge = button('mode-badge act', '', () => {
 		isPlanMode = !isPlanMode;
 		updateModeBadge();
 	}, 'Click to toggle Plan Mode vs Act Mode');
@@ -193,26 +209,76 @@
 		const icon = el('span', 'mode-badge-icon', isPlanMode ? '💡' : '⚡');
 		const label = el('span', 'mode-badge-text', isPlanMode ? 'Plan' : 'Act');
 		modeBadge.append(icon, label);
-		modeBadge.className = isPlanMode ? 'mode-badge plan mono' : 'mode-badge act mono';
+		modeBadge.className = isPlanMode ? 'mode-badge plan' : 'mode-badge act';
 	}
 	updateModeBadge();
-	toolsLeft.append(plusBtn, modeBadge);
 
-	const chipsRow = el('div', 'composer-chips-row');
 	const assistantChip = window.YanaAssistants ? window.YanaAssistants.createSelectorElement() : el('span');
-	const modelPickerBtn = button('model-chip mono', '', () => vscode.postMessage({ type: 'pickModel' }), 'Change provider and model');
-	const keyBtn = button('ghost-chip mono', 'Key', () => vscode.postMessage({ type: 'setKey' }), 'Save an API key for this provider');
-	chipsRow.append(assistantChip, modelPickerBtn, keyBtn);
+	const modelPickerBtn = button('model-chip', '', () => vscode.postMessage({ type: 'pickModel' }), 'Change provider and model');
+	const keyBtn = button('ghost-chip', 'Key', () => vscode.postMessage({ type: 'setKey' }), 'Save an API key for this provider');
 
 	const toolsRight = el('div', 'composer-tools-right');
 	const footerTokens = el('span', 'muted mono ellipsis tokens-label', '0 in · 0 out');
 	footerTokens.title = 'Tokens reported by the provider for this conversation';
-	const micBtn = button('mic-btn', '🎙️', () => window.YanaVoice?.toggleRecording(), 'Voice input (Whisper / Cloud)');
+
+	// Movable microphone button (drag & drop or right-click to reposition left vs right)
+	let micPosition = (typeof localStorage !== 'undefined' && localStorage.getItem('yana.mic.position')) || 'right';
+	const micBtn = button('mic-btn', '🎙️', () => window.YanaVoice?.toggleRecording(), 'Voice input (Whisper / Cloud) · Right-click to move position');
+	micBtn.style.display = 'none'; // hiện lại khi capabilities.voice.input là true (voice.js)
+	micBtn.draggable = true;
+	micBtn.addEventListener('dragstart', e => {
+		e.dataTransfer.setData('text/plain', 'mic');
+		micBtn.classList.add('dragging');
+	});
+	micBtn.addEventListener('dragend', () => {
+		micBtn.classList.remove('dragging');
+	});
+	micBtn.addEventListener('contextmenu', e => {
+		e.preventDefault();
+		micPosition = micPosition === 'right' ? 'left' : 'right';
+		try { localStorage.setItem('yana.mic.position', micPosition); } catch (_) {}
+		placeMicButton();
+	});
+
+	function placeMicButton() {
+		micBtn.remove();
+		if (micPosition === 'left') {
+			plusBtn.after(micBtn);
+			micBtn.title = 'Voice input (Whisper / Cloud) · Left position · Right-click to move right';
+		} else {
+			sendBtn.before(micBtn);
+			micBtn.title = 'Voice input (Whisper / Cloud) · Right position · Right-click to move left';
+		}
+	}
+
+	[toolsLeft, toolsRight].forEach(container => {
+		const isFileDrag = e => Array.from(e.dataTransfer?.types || []).some(t => t === 'Files' || t === 'text/uri-list');
+		container.addEventListener('dragover', e => {
+			if (isFileDrag(e)) return; // file drops are handled by the composer
+			e.preventDefault();
+			container.classList.add('drop-target');
+		});
+		container.addEventListener('dragleave', () => {
+			container.classList.remove('drop-target');
+		});
+		container.addEventListener('drop', e => {
+			if (isFileDrag(e)) return;
+			e.preventDefault();
+			container.classList.remove('drop-target');
+			micPosition = container === toolsLeft ? 'left' : 'right';
+			try { localStorage.setItem('yana.mic.position', micPosition); } catch (_) {}
+			placeMicButton();
+		});
+	});
+
 	const sendBtn = button('send-btn primary', '↑', submit, 'Send (Enter)');
 	sendBtn.title = 'Send (Enter), Shift+Enter for new line';
-	toolsRight.append(footerTokens, micBtn, sendBtn);
 
-	composerTools.append(toolsLeft, chipsRow, toolsRight);
+	toolsLeft.append(plusBtn, modeBadge, assistantChip, modelPickerBtn, keyBtn);
+	toolsRight.append(footerTokens, sendBtn);
+	placeMicButton();
+
+	composerTools.append(toolsLeft, toolsRight);
 
 	window.YanaVoice?.init(input);
 	window.YanaMentions?.init(input);
@@ -430,7 +496,27 @@
 				attachmentsBar.append(chip);
 			}
 		});
+		if (attachedItems.length > 1) {
+			const clearAll = el('button', 'attachment-clear-all', 'Clear all');
+			clearAll.title = 'Remove all attachments';
+			clearAll.addEventListener('click', e => {
+				e.stopPropagation();
+				attachedItems.length = 0;
+				renderAttachments();
+				input.focus();
+			});
+			attachmentsBar.append(clearAll);
+		}
 	}
+
+	// Backspace on an empty composer removes the most recent attachment (like most chat apps).
+	input.addEventListener('keydown', event => {
+		if (event.key === 'Backspace' && !input.value && attachedItems.length > 0 && !event.isComposing) {
+			event.preventDefault();
+			attachedItems.pop();
+			renderAttachments();
+		}
+	});
 
 	fileInput.addEventListener('change', () => {
 		handleFiles(Array.from(fileInput.files || []));
@@ -454,6 +540,12 @@
 
 	let dragCounter = 0;
 	function handleDragDrop(event) {
+		// The mic button drags with text/plain 'mic'; leave that to the toolbar's own drop handler.
+		if (event.dataTransfer?.getData('text/plain') === 'mic') {
+			dragCounter = 0;
+			composerBox.classList.remove('drag-over');
+			return;
+		}
 		event.preventDefault();
 		event.stopPropagation();
 		dragCounter = 0;
@@ -494,24 +586,26 @@
 		}
 	}
 
+	// Capture phase on purpose: VS Code's webview bootstrap sends `drag-start` to the workbench (which then takes the
+	// drop and opens the file in an editor) unless the event is already defaultPrevented when its own listener runs.
 	window.addEventListener('dragenter', event => {
 		event.preventDefault();
 		dragCounter++;
 		composerBox.classList.add('drag-over');
-	});
+	}, true);
 	window.addEventListener('dragover', event => {
 		event.preventDefault();
 		if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
 		composerBox.classList.add('drag-over');
-	});
+	}, true);
 	window.addEventListener('dragleave', () => {
 		dragCounter--;
 		if (dragCounter <= 0) {
 			dragCounter = 0;
 			composerBox.classList.remove('drag-over');
 		}
-	});
-	window.addEventListener('drop', handleDragDrop);
+	}, true);
+	window.addEventListener('drop', handleDragDrop, true);
 
 	function submit() {
 		if (ui.busy) {
@@ -599,11 +693,23 @@
 		statusText.title = state.runtime.found ? `yana-rt at ${state.runtime.path}` : 'Set yana.runtimePath in settings';
 		workspaceText.textContent = !state.workspace ? 'no folder' : state.trusted ? state.workspace : `${state.workspace} · restricted`;
 		workspaceText.className = state.workspace && !state.trusted ? 'ellipsis waiting' : 'ellipsis muted';
-		workspaceText.title = workspaceText.textContent;
+		if (state.workspace && !state.trusted) {
+			workspaceText.style.cursor = 'pointer';
+			workspaceText.title = 'Workspace is in Restricted Mode. Click to Trust Folder (Tin cậy thư mục).';
+			workspaceText.onclick = () => vscode.postMessage({ type: 'manageTrust' });
+		} else {
+			workspaceText.style.cursor = 'default';
+			workspaceText.title = workspaceText.textContent;
+			workspaceText.onclick = null;
+		}
 		modelPickerBtn.replaceChildren();
+		const rawModel = state.model || 'default';
+		const cleanModel = rawModel.includes('/') ? rawModel.split('/').pop() : rawModel;
 		const pName = el('span', 'font-semibold model-provider', state.provider || 'ollama');
-		const mName = el('span', 'model-tag', state.model || 'default');
+		const mName = el('span', 'model-tag', cleanModel);
 		modelPickerBtn.append(pName, el('span', 'sep', '·'), mName, el('span', 'caret', '▾'));
+		modelPickerBtn.title = `${state.provider || 'ollama'} · ${rawModel} (Click to change model)`;
+		keyBtn.style.display = (state.provider === 'ollama' || !state.provider) ? 'none' : '';
 		sendBtn.textContent = state.busy ? '■' : '↑';
 		sendBtn.className = state.busy ? 'send-btn danger' : 'send-btn primary';
 	}
@@ -644,22 +750,131 @@
 	}
 
 	// Câu trả lời hiển thị bằng Markdown an toàn (media/markdown.js). Khi đang stream, vẽ lại tối đa
-	// mỗi STREAM_RENDER_MS một lần thay vì mỗi token hay mỗi khung hình: mỗi lần vẽ dựng lại cả câu trả
-	// lời, nên vẽ 60 lần/giây với câu trả lời dài làm CPU (và nhiệt độ máy) tăng không cần thiết.
+	// mỗi STREAM_RENDER_MS một lần. Giữ nguyên vùng chọn chuột (selection) của người dùng để không làm
+	// mất highlight khi đang copy code lúc model đang gõ.
 	const STREAM_RENDER_MS = 120;
 	let renderTimer = 0;
+	let isUserSelecting = false;
+	let renderPending = false;
+
+	document.addEventListener('mousedown', e => {
+		if (ui.reply && ui.reply.contains(e.target)) {
+			isUserSelecting = true;
+		}
+	});
+	document.addEventListener('mouseup', () => {
+		if (isUserSelecting) {
+			isUserSelecting = false;
+			if (renderPending) {
+				renderPending = false;
+				renderReply();
+			}
+		}
+	});
+
+	function getSelectionRangeInfo(container) {
+		const sel = window.getSelection();
+		if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return null;
+		const range = sel.getRangeAt(0);
+		if (!container || !container.contains(range.commonAncestorContainer)) return null;
+		try {
+			const preCaretRange = range.cloneRange();
+			preCaretRange.selectNodeContents(container);
+			preCaretRange.setEnd(range.startContainer, range.startOffset);
+			const start = preCaretRange.toString().length;
+			const end = start + range.toString().length;
+			return { start, end };
+		} catch (_) {
+			return null;
+		}
+	}
+
+	function restoreSelectionRangeInfo(container, savedSel) {
+		if (!savedSel || savedSel.start === savedSel.end) return;
+		const sel = window.getSelection();
+		if (!sel) return;
+		try {
+			let charIndex = 0;
+			const range = document.createRange();
+			range.setStart(container, 0);
+			range.collapse(true);
+			const nodeStack = [container];
+			let node;
+			let foundStart = false;
+			let stop = false;
+
+			while (!stop && (node = nodeStack.pop())) {
+				if (node.nodeType === Node.TEXT_NODE) {
+					const nextCharIndex = charIndex + node.length;
+					if (!foundStart && savedSel.start >= charIndex && savedSel.start <= nextCharIndex) {
+						range.setStart(node, savedSel.start - charIndex);
+						foundStart = true;
+					}
+					if (foundStart && savedSel.end >= charIndex && savedSel.end <= nextCharIndex) {
+						range.setEnd(node, savedSel.end - charIndex);
+						stop = true;
+					}
+					charIndex = nextCharIndex;
+				} else {
+					let i = node.childNodes.length;
+					while (i--) {
+						nodeStack.push(node.childNodes[i]);
+					}
+				}
+			}
+			if (foundStart) {
+				sel.removeAllRanges();
+				sel.addRange(range);
+			}
+		} catch (_) {}
+	}
+
 	function renderReply() {
 		renderTimer = 0;
+		if (isUserSelecting) {
+			renderPending = true;
+			return;
+		}
 		const block = replyBlock();
+		const savedSel = getSelectionRangeInfo(block);
 		block.replaceChildren(window.YanaMarkdown.render(ui.replyText));
-		const speakBar = el('div', 'reply-action-bar');
-		const textToSpeak = ui.replyText;
+		const actionToolbar = el('div', 'reply-action-bar');
+		const textToCopy = ui.replyText;
+		const copyBtn = button('reply-action-btn mono', '📋 Copy', () => {
+			navigator.clipboard.writeText(textToCopy).then(() => {
+				copyBtn.textContent = '✓ Copied';
+				copyBtn.classList.add('copied');
+				setTimeout(() => {
+					copyBtn.textContent = '📋 Copy';
+					copyBtn.classList.remove('copied');
+				}, 2000);
+			}).catch(() => {
+				try {
+					const range = document.createRange();
+					range.selectNodeContents(block);
+					const sel = window.getSelection();
+					sel.removeAllRanges();
+					sel.addRange(range);
+					document.execCommand('copy');
+					copyBtn.textContent = '✓ Copied';
+					copyBtn.classList.add('copied');
+					setTimeout(() => {
+						copyBtn.textContent = '📋 Copy';
+						copyBtn.classList.remove('copied');
+					}, 2000);
+				} catch (_) {}
+			});
+		}, 'Copy response to clipboard');
 		const speakBtn = button('reply-action-btn mono', '🔊 Speak', () => {
-			window.YanaVoice?.speakText('', textToSpeak);
+			window.YanaVoice?.speakText('', textToCopy);
 		}, 'Read this response aloud');
-		speakBar.append(speakBtn);
-		block.append(speakBar);
-		feed.scrollTop = feed.scrollHeight;
+		actionToolbar.append(copyBtn, speakBtn);
+		block.append(actionToolbar);
+		if (savedSel) {
+			restoreSelectionRangeInfo(block, savedSel);
+		} else {
+			feed.scrollTop = feed.scrollHeight;
+		}
 	}
 	function appendReply(text) {
 		ui.replyText += text;
@@ -703,7 +918,15 @@
 			if (callId) trace.byCall.set(callId, row);
 		}
 		row.icon.textContent = icon;
-		if (text) row.text.textContent = text;
+		if (text) {
+			row.text.textContent = text;
+			const matchPath = text.match(/(?:file|path|edit|in)\s+([a-zA-Z0-9_./\\-]+\.[a-zA-Z0-9]+)/i);
+			if (matchPath) {
+				row.text.title = `Click to open ${matchPath[1]} in editor`;
+				row.text.style.cursor = 'pointer';
+				row.text.onclick = () => vscode.postMessage({ type: 'openFile', path: matchPath[1] });
+			}
+		}
 		row.badge.textContent = badge || '';
 		row.badge.className = badge ? `chip ${badgeClass}` : 'chip';
 		feed.scrollTop = feed.scrollHeight;
@@ -720,11 +943,34 @@
 	function buildDiffCard(filePath, additions, deletions, lines, label = 'diff') {
 		const card = el('div', 'diff-card mono');
 		const head = el('div', 'diff-head');
-		head.append(
-			el('span', 'diff-file', `${label}: ${filePath}`),
-			el('span', 'diff-stats', `+${additions || 0} `),
-		);
-		head.querySelector('.diff-stats').append(el('span', 'del', `-${deletions || 0}`));
+		const fileSpan = el('span', 'diff-file', `${label}: ${filePath}`);
+		fileSpan.title = 'Click to open file in editor';
+		fileSpan.style.cursor = 'pointer';
+		fileSpan.addEventListener('click', () => {
+			vscode.postMessage({ type: 'openFile', path: filePath });
+		});
+
+		const stats = el('span', 'diff-stats', `+${additions || 0} `);
+		stats.append(el('span', 'del', `-${deletions || 0}`));
+
+		const actions = el('div', 'diff-head-actions');
+		const openBtn = button('diff-btn-open mono', 'Open', () => {
+			vscode.postMessage({ type: 'openFile', path: filePath });
+		}, 'Open file in editor');
+		const copyDiffBtn = button('diff-btn-copy mono', 'Copy Diff', () => {
+			navigator.clipboard.writeText((lines || []).join('\n')).then(() => {
+				copyDiffBtn.textContent = '✓ Copied';
+				setTimeout(() => copyDiffBtn.textContent = 'Copy Diff', 2000);
+			});
+		}, 'Copy diff lines');
+		const toggleBtn = button('diff-btn-toggle mono', '▾', () => {
+			const isHidden = body.style.display === 'none';
+			body.style.display = isHidden ? 'block' : 'none';
+			toggleBtn.textContent = isHidden ? '▾' : '▸';
+		}, 'Toggle diff visibility');
+		actions.append(openBtn, copyDiffBtn, toggleBtn);
+
+		head.append(fileSpan, stats, actions);
 		card.append(head);
 
 		const body = el('div', 'diff-body');
@@ -732,6 +978,7 @@
 			let lineCls = 'diff-line-ctx';
 			if (line.startsWith('+')) lineCls = 'diff-line-add';
 			else if (line.startsWith('-')) lineCls = 'diff-line-del';
+			else if (line.startsWith('@@')) lineCls = 'diff-line-hunk';
 			body.append(el('div', lineCls, line));
 		});
 		card.append(body);
@@ -842,12 +1089,26 @@
 			renderApproval(event);
 		} else if (event.type === 'completed') {
 			finishTrace('● Done', 'ok');
+			if (renderPending) { renderPending = false; renderReply(); }
 			if (!ui.replyText && event.message) appendReply(event.message);
 		} else if (event.type === 'cancelled') {
 			finishTrace('● Cancelled', 'muted');
+			if (renderPending) { renderPending = false; renderReply(); }
 		} else if (event.type === 'error') {
 			finishTrace('● Failed', 'bad');
-			append(el('div', 'card error mono', event.message || 'Runtime error'));
+			const msg = event.message || 'Runtime error';
+			const errCard = el('div', 'card error mono');
+			const msgDiv = el('div', 'error-text', msg);
+			errCard.append(msgDiv);
+			if (/restricted mode|trust it|trust this folder/i.test(msg)) {
+				const actionRow = el('div', 'restricted-actions');
+				const trustBtn = button('btn-trust primary mono', '🛡️ Trust Workspace (Tin cậy thư mục)', () => {
+					vscode.postMessage({ type: 'manageTrust' });
+				}, 'Open Workspace Trust dialog to allow running commands and editing files');
+				actionRow.append(trustBtn);
+				errCard.append(actionRow);
+			}
+			append(errCard);
 		}
 	}
 
@@ -888,6 +1149,8 @@
 		else if (data?.type === 'mentions') { window.YanaMentions?.setSuggestions(data); }
 		else if (data?.type === 'voice.state') { window.YanaVoice?.updateVoiceState(data); }
 		else if (data?.type === 'voice.transcript') { window.YanaVoice?.handleTranscript(data.text); }
+		else if (data?.type === 'editProposals') { editManager?.render(data.items); }
+		else if (data?.type === 'editResult') { editManager?.status(data); }
 	});
 	vscode.postMessage({ type: 'ready' });
 })();

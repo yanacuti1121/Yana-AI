@@ -59,10 +59,11 @@
 		const endList = () => { list = null; };
 		for (let i = 0; i < lines.length; i++) {
 			const line = lines[i];
-			const fence = /^```\s*([\w+-]*)/.exec(line);
+			const fence = /^```\s*([\w+-]*)(?:\s+(?:path=|file=)?([^\s\n]+))?/.exec(line);
 			if (fence) {
 				flush(); endList();
 				const lang = (fence[1] || '').toLowerCase();
+				const filePath = fence[2] || '';
 				const body = [];
 				while (++i < lines.length && !/^```/.test(lines[i])) body.push(lines[i]);
 				if (lang === 'slide-deck' || lang === 'presentation' || lang === 'slides') {
@@ -72,12 +73,87 @@
 						continue;
 					}
 				}
+				const wrapper = document.createElement('div');
+				wrapper.className = 'code-block-wrapper';
+
+				const header = document.createElement('div');
+				header.className = 'code-block-header';
+
+				const langLabel = document.createElement('span');
+				langLabel.className = 'code-block-lang mono';
+				langLabel.textContent = filePath ? `${(fence[1] || 'code').toUpperCase()} · ${filePath}` : (fence[1] || 'code').toUpperCase();
+
+				const headerActions = document.createElement('div');
+				headerActions.className = 'code-block-actions';
+
+				if (filePath && window.vscode) {
+					const openBtn = document.createElement('button');
+					openBtn.className = 'code-block-action-btn mono';
+					openBtn.textContent = 'Open';
+					openBtn.title = `Open ${filePath} in editor`;
+					openBtn.addEventListener('click', () => {
+						window.vscode?.postMessage({ type: 'openFile', path: filePath });
+					});
+					headerActions.append(openBtn);
+				}
+
+				const copyBtn = document.createElement('button');
+				copyBtn.className = 'code-block-copy mono';
+				copyBtn.textContent = 'Copy';
+				copyBtn.title = 'Copy code snippet';
+				const rawCode = body.join('\n');
+				copyBtn.addEventListener('click', () => {
+					navigator.clipboard.writeText(rawCode).then(() => {
+						copyBtn.textContent = '✓ Copied';
+						copyBtn.classList.add('copied');
+						setTimeout(() => {
+							copyBtn.textContent = 'Copy';
+							copyBtn.classList.remove('copied');
+						}, 2000);
+					}).catch(() => {
+						// fallback selection if clipboard API blocked
+						try {
+							const range = document.createRange();
+							range.selectNodeContents(code);
+							const sel = window.getSelection();
+							sel.removeAllRanges();
+							sel.addRange(range);
+							document.execCommand('copy');
+							copyBtn.textContent = '✓ Copied';
+							copyBtn.classList.add('copied');
+							setTimeout(() => {
+								copyBtn.textContent = 'Copy';
+								copyBtn.classList.remove('copied');
+							}, 2000);
+						} catch (_) {}
+					});
+				});
+
+				headerActions.append(copyBtn);
+				header.append(langLabel, headerActions);
+				wrapper.append(header);
+
 				const pre = document.createElement('pre');
-				const code = document.createElement('code');
 				if (fence[1]) pre.dataset.lang = fence[1];
-				code.textContent = body.join('\n');
+				const code = document.createElement('code');
+
+				if (lang === 'diff' || lang === 'patch') {
+					pre.classList.add('diff-code-body');
+					body.forEach(l => {
+						const lineDiv = document.createElement('div');
+						if (l.startsWith('+')) lineDiv.className = 'diff-line-add';
+						else if (l.startsWith('-')) lineDiv.className = 'diff-line-del';
+						else if (l.startsWith('@@')) lineDiv.className = 'diff-line-hunk';
+						else lineDiv.className = 'diff-line-ctx';
+						lineDiv.textContent = l;
+						code.append(lineDiv);
+					});
+				} else {
+					code.textContent = rawCode;
+				}
 				pre.append(code);
-				fragment.append(pre);
+				wrapper.append(pre);
+				fragment.append(wrapper);
 				continue;
 			}
 			const heading = /^(#{1,4})\s+(.*)$/.exec(line);

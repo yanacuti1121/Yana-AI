@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const crypto = require('node:crypto');
 
-const ext = process.argv[2];
+const ext = process.argv[2] || path.resolve(__dirname, "../extensions/yana-agent");
 const model = process.argv[3] || 'llama3.2:latest';
 const decision = (process.argv[4] || 'approve') === 'approve';
 const { resolveBinary, startTurn } = require(path.join(ext, 'runtime.js'));

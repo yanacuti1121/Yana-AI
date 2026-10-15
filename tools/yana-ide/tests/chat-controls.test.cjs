@@ -5,7 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 const Module = require('node:module');
 
-const ext = process.argv[2];
+const ext = process.argv[2] || path.resolve(__dirname, "../extensions/yana-agent");
 const origResolve = Module._resolveFilename;
 Module._resolveFilename = function (request, ...rest) { return request === 'vscode' ? 'vscode' : origResolve.call(this, request, ...rest); };
 require.cache.vscode = { id: 'vscode', filename: 'vscode', loaded: true, exports: {} };

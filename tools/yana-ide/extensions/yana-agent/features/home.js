@@ -16,10 +16,11 @@ const SECTIONS = [
 		['New conversation', 'add', 'yana.chat.new'],
 		['Open a past conversation…', 'history', 'yana.chat.history'],
 	]],
-	['Design', 'paintcan', [
+	['Design & Office', 'paintcan', [
 		['New Design Canvas', 'paintcan', 'yana.canvas.new', 'AI builds screens live; any model'],
 		['Open a design canvas…', 'folder-opened', 'yana.canvas.open'],
 		['Studio Canvas (component editor)', 'layout', 'yana.studio.canvas', 'From Yana Studio: 22 components, layers, AI edits'],
+		['Yana Office (slides & docs)', 'file-pdf', 'yana.office.open', 'Slides, reports, PowerPoint, Word & Excel'],
 	]],
 	['Models & settings', 'settings-gear', [
 		['Choose model', 'sparkle', 'yana.pickModel'],

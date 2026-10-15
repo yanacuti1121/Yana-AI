@@ -33,10 +33,16 @@
 		return indicatorNode;
 	}
 
+	// Nút micro chỉ hiện khi phần trong báo giọng nói dùng được (capabilities.voice.input). Không hiện nút chưa chạy được.
+	function showMic(visible) {
+		document.querySelectorAll('.mic-btn').forEach(node => { node.style.display = visible ? '' : 'none'; });
+	}
+
 	function updateCapabilities(caps) {
 		if (caps?.voice) {
 			voiceCapabilities = caps.voice;
 		}
+		showMic(Boolean(voiceCapabilities.input));
 	}
 
 	function updateVoiceState(state) {

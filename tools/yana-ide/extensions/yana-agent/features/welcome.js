@@ -73,6 +73,7 @@ async function status() {
 		model: { provider: info?.label || provider, model: cfg.get('model', '') || 'provider default', keyed },
 		local: local.map(entry => ({ name: entry.name, endpoint: entry.endpoint, ready: entry.status === 'ready', models: entry.models.length })),
 		folder: workspaceRoot() ? workspaceRoot().split('/').pop() : '',
+		language: getActiveLanguage(),
 		recent: await recentFolders(),
 	};
 }
@@ -88,8 +89,13 @@ function html(webview, media) {
 <body data-emblem="${uri('yana-emblem.svg')}"><div id="app"></div><script nonce="${nonce}" src="${uri('welcome.js')}"></script></body></html>`;
 }
 
+const { applyLanguage, getActiveLanguage } = require('./language');
+
 async function onMessage(msg, webview) {
 	if (msg?.type === 'ready' || msg?.type === 'refresh') {
+		webview.postMessage({ type: 'status', status: await status() });
+	} else if (msg?.type === 'setLanguage' && typeof msg.lang === 'string') {
+		await applyLanguage(msg.lang);
 		webview.postMessage({ type: 'status', status: await status() });
 	} else if (msg?.type === 'run' && Object.hasOwn(COMMANDS, msg.id)) {
 		await vscode.commands.executeCommand(COMMANDS[msg.id]);

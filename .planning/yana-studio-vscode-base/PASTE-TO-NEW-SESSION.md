@@ -34,6 +34,19 @@ Lý do: dự án đã cài nhận bản chép đầy đủ `giamthi-watch.sh` v�
 - Bảng công tắc trong Cài đặt, áp gói vào dự án (`yana.pack.apply`), agent và skill tích hợp sẵn, 24 nhóm lệnh yana-rt chưa nối, sửa đường dẫn sandbox (yana-rt tìm ở `<dự án>/core/scripts/`).
 - Phát hành bản PyPI mới với `pyproject.toml` đã sửa (bản 1.5.1 đang công bố còn chứa dữ liệu `core/memory`): việc của anh.
 
+**Đã hoàn thành gần nhất (15/10/2026):**
+- **Việt hóa 100% Menu Bánh Răng & Cài đặt Yana**: Menu góc trái bên dưới và màn hình Cài đặt IDE Yana hiển thị tiếng Việt hoàn chỉnh, đồng bộ `getEffectiveLocale` với `argv.json` và cấu hình hệ thống.
+- **Tính năng Cập nhật tự động (Updates)**: Kiểm tra và thông báo bản mới của Yana Studio & `yana-rt`, tải bản nâng cấp về tự động.
+- **Live Code Edits / Đề xuất sửa file trực tiếp**:
+  - Tích hợp `features/edits.js` và `media/edits.js` vào panel chat.
+  - Hỗ trợ thẻ đề xuất với đầy đủ nút: `Apply` (ghi file & auto-save qua WorkspaceEdit), `Reject` (từ chối), `Review diff` (mở cửa sổ so sánh song song split-diff trực tiếp trong VS Code editor qua `vscode.diff`), `Open` (mở file), `Copy Diff` và toggle thu gọn/mở rộng.
+- **Copy ngay khi đang Streaming & Bảo toàn bôi đen**:
+  - Không còn hiện tượng DOM bị xóa làm mất vùng bôi đen (selection) khi model đang gõ.
+  - Nút `📋 Copy` và nút `Copy` trên từng khối code hoạt động mượt mà ngay cả khi model đang stream, có phản hồi trực quan `✓ Copied`.
+- **Nút Dừng / Hủy lượt phản hồi (Stop Turn)**:
+  - Nút dừng nổi bật hiển thị ô vuông đỏ `■` khi model đang xử lý, hỗ trợ phím tắt `Esc` để dừng tức thì và chuyển trạng thái `● Cancelled`.
+- **Kiểm thử**: Tất cả 17 bộ test trong `tools/yana-ide/tests/*.test.cjs` đều vượt qua 100% (Summary: 17 passed, 0 failed).
+
 **Không được commit:** `turbo-fieldfare/` (14 GB, repo git lồng nhau của dự án khác), `.yana-ai/project-memory.md` và `untitled.yana-canvas.json` (mẫu rỗng IDE tự sinh khi thử).
 
 Tên phiên: bạn có thể là `yana-ai-a8`. Phiên B (`yana-ai-80`, mã ad7b9e) làm Office/PPT. Dùng `ListAgents` rồi `SendMessage` nếu cần phối hợp, và đừng sửa file thuộc phần của phiên kia (xem `SPLIT-2026-10-14.md`).

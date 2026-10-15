@@ -4,7 +4,7 @@
 const Module = require('node:module');
 const path = require('node:path');
 
-const ext = process.argv[2];
+const ext = process.argv[2] || path.resolve(__dirname, "../extensions/yana-agent");
 const storage = new Map(); // workspaceState bền qua các lần "khởi động"
 const registered = {};
 const shown = {};

@@ -1,0 +1,369 @@
+diff --git a/src/vs/workbench/browser/parts/globalCompositeBar.ts b/src/vs/workbench/browser/parts/globalCompositeBar.ts
+index d0f5bd1b..d1343033 100644
+--- a/src/vs/workbench/browser/parts/globalCompositeBar.ts
++++ b/src/vs/workbench/browser/parts/globalCompositeBar.ts
+@@ -5,8 +5,9 @@
+ 
+ import './media/globalCompositeBar.css';
+ import { localize } from '../../../nls.js';
++import { Language } from '../../../base/common/platform.js';
+ import { ActionBar, ActionsOrientation } from '../../../base/browser/ui/actionbar/actionbar.js';
+-import { ACCOUNTS_ACTIVITY_ID, ACCOUNTS_SHARED_SIGN_IN_GROUP, GLOBAL_ACTIVITY_ID } from '../../common/activity.js';
++import { ACCOUNTS_ACTIVITY_ID, GLOBAL_ACTIVITY_ID } from '../../common/activity.js';
+ import { IActivityService } from '../../services/activity/common/activity.js';
+ import { IInstantiationService } from '../../../platform/instantiation/common/instantiation.js';
+ import { DisposableStore, Disposable } from '../../../base/common/lifecycle.js';
+@@ -50,7 +51,7 @@ import { IBaseActionViewItemOptions } from '../../../base/browser/ui/actionbar/a
+ import { ICommandService } from '../../../platform/commands/common/commands.js';
+ import { IDefaultAccountService } from '../../../platform/defaultAccount/common/defaultAccount.js';
+ import { WORKBENCH_MENU_MOTION_CLASS, workbenchMenuCloseAnimation } from '../actions/menuMotion.js';
+-import { createCodexAccountMenuActions, ICodexAccountService, shouldShowCodexAccount } from '../../services/agentHost/browser/codexAccountService.js';
++import { ICodexAccountService } from '../../services/agentHost/browser/codexAccountService.js';
+ 
+ export class GlobalCompositeBar extends Disposable {
+ 
+@@ -272,6 +273,105 @@ abstract class AbstractGlobalActivityActionViewItem extends CompositeBarActionVi
+ 	}
+ }
+ 
++
++function getEffectiveLocale(configService: IConfigurationService): string {
++	const inspect = configService.inspect<string>('yana.language');
++	if (inspect?.userValue) {
++		return inspect.userValue;
++	}
++	const lang = Language.value();
++	if (lang && lang.toLowerCase().split('-')[0] !== 'en') {
++		return lang;
++	}
++	return inspect?.defaultValue || configService.getValue<string>('yana.language') || lang || 'en';
++}
++
++function getGlobalMenuLabel(key: string, currentLocale: string, fallback: string): string {
++	const lang = (currentLocale || '').toLowerCase().split('-')[0];
++	const VI: Record<string, string> = {
++		'manage': 'Quản lý & Cài đặt',
++		'manageProfile': 'Quản lý {0} (Hồ sơ)',
++		'yanaSettings': 'Cài đặt Yana',
++		'yanaIdeSettings': 'Cài đặt IDE Yana',
++		'yanaControlCenter': 'Trung tâm điều khiển Yana',
++		'yanaOffice': 'Văn phòng Yana',
++		'yanaHome': 'Trang chủ Yana',
++		'yanaUpdates': 'Kiểm tra bản cập nhật...',
++		'keybindings': 'Phím tắt bàn phím',
++		'colorTheme': 'Giao diện màu',
++		'displayLanguage': 'Cấu hình ngôn ngữ hiển thị',
++		'rawSettingsJson': 'Mở cài đặt gốc (JSON)',
++		'commandPalette': 'Bảng lệnh...',
++		'extensions': 'Tiện ích mở rộng',
++		'tasks': 'Tác vụ',
++		'themes': 'Giao diện (Themes)',
++		'layoutDensity': 'Mật độ bố cục',
++		'accounts': 'Tài khoản',
++		'yanaAccount': 'Tài khoản & Hồ sơ Yana',
++		'yanaModels': 'Mô hình & Mức sử dụng',
++		'yanaPermissions': 'Bảo mật & Quyền truy cập',
++		'yanaSetApiKey': 'Cấu hình khóa API...'
++	};
++	const KO: Record<string, string> = {
++		'manage': '관리 및 설정',
++		'manageProfile': '{0} 관리 (프로필)',
++		'yanaSettings': 'Yana 설정',
++		'yanaIdeSettings': 'Yana IDE 기본 설정',
++		'yanaControlCenter': 'Yana 제어 센터',
++		'yanaOffice': 'Yana 오피스',
++		'yanaHome': 'Yana 홈',
++		'yanaUpdates': '업데이트 확인...',
++		'keybindings': '키보드 바로 가기',
++		'colorTheme': '색 테마',
++		'displayLanguage': '표시 언어 구성',
++		'rawSettingsJson': '원시 설정 열기 (JSON)',
++		'commandPalette': '명령 팔레트...',
++		'extensions': '확장',
++		'tasks': '작업',
++		'themes': '테마',
++		'layoutDensity': '레이아웃 밀도',
++		'accounts': '계정',
++		'yanaAccount': 'Yana 계정 및 프로필',
++		'yanaModels': '모델 및 사용량',
++		'yanaPermissions': '보안 임대 및 권한',
++		'yanaSetApiKey': 'API 키 구성...'
++	};
++		const EN: Record<string, string> = {
++		'manage': 'Manage & Settings',
++		'manageProfile': 'Manage {0} (Profile)',
++		'yanaSettings': 'Yana Settings',
++		'yanaIdeSettings': 'Yana IDE Settings',
++		'yanaControlCenter': 'Yana Control Center',
++		'yanaOffice': 'Yana Office',
++		'yanaHome': 'Yana Home',
++		'yanaUpdates': 'Check for Updates...',
++		'keybindings': 'Keyboard Shortcuts',
++		'colorTheme': 'Color Theme',
++		'displayLanguage': 'Configure Display Language',
++		'rawSettingsJson': 'Open Raw Settings (JSON)',
++		'commandPalette': 'Command Palette...',
++		'extensions': 'Extensions',
++		'tasks': 'Tasks',
++		'themes': 'Themes',
++		'layoutDensity': 'Layout Density',
++		'accounts': 'Accounts',
++		'yanaAccount': 'Yana Account & Profile',
++		'yanaModels': 'Models & Usage',
++		'yanaPermissions': 'Security Leases & Permissions',
++		'yanaSetApiKey': 'Configure API Keys...'
++	};
++	if (lang === 'vi' && VI[key]) {
++		return VI[key];
++	}
++	if (lang === 'ko' && KO[key]) {
++		return KO[key];
++	}
++	if (lang === 'en' && EN[key]) {
++		return EN[key];
++	}
++	return fallback;
++}
++
+ export class AccountsActivityActionViewItem extends AbstractGlobalActivityActionViewItem {
+ 
+ 	static readonly ACCOUNTS_VISIBILITY_PREFERENCE_KEY = 'workbench.activity.showAccounts';
+@@ -304,7 +404,7 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
+ 		@IActivityService activityService: IActivityService,
+ 		@IInstantiationService instantiationService: IInstantiationService,
+ 		@ICommandService private readonly commandService: ICommandService,
+-		@ICodexAccountService private readonly codexAccountService: ICodexAccountService,
++		@ICodexAccountService _codexAccountService: ICodexAccountService,
+ 		@IDefaultAccountService private readonly defaultAccountService: IDefaultAccountService,
+ 	) {
+ 		const action = instantiationService.createInstance(CompositeBarAction, {
+@@ -585,33 +685,61 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
+ 			}
+ 		}
+ 
+-		const sharedAccountCommandGroups = otherCommands.filter(([group]) => group === ACCOUNTS_SHARED_SIGN_IN_GROUP);
+-		const remainingCommandGroups = otherCommands.filter(([group]) => group !== ACCOUNTS_SHARED_SIGN_IN_GROUP);
+-		const appendCommandGroups = (groups: typeof otherCommands) => {
+-			for (const [, actions] of groups) {
+-				if (menus.length && actions.length) {
+-					menus.push(new Separator());
+-				}
+-				menus = menus.concat(actions);
+-			}
+-		};
+-		appendCommandGroups(sharedAccountCommandGroups);
++		const locale = getEffectiveLocale(this.configurationService);
++		const yanaAccountActions: IAction[] = [
++			toAction({
++				id: 'yana.account.open',
++				label: getGlobalMenuLabel('yanaAccount', locale, "Yana Account & Profile"),
++				run: () => this.commandService.executeCommand('yana.settings.open', 'account')
++			}),
++			toAction({
++				id: 'yana.models.open',
++				label: getGlobalMenuLabel('yanaModels', locale, "Models & Usage"),
++				run: () => this.commandService.executeCommand('yana.settings.open', 'models')
++			}),
++			toAction({
++				id: 'yana.permissions.open',
++				label: getGlobalMenuLabel('yanaPermissions', locale, "Security Leases & Permissions"),
++				run: () => this.commandService.executeCommand('yana.permissions.open')
++			}),
++			toAction({
++				id: 'yana.setApiKey',
++				label: getGlobalMenuLabel('yanaSetApiKey', locale, "Configure API Keys..."),
++				run: () => this.commandService.executeCommand('yana.setApiKey')
++			})
++		];
++
++		const disallowedAccountIds = new Set([
++			'_manageAccountPreferencesForExtension',
++			'workbench.action.manageAccountPreferencesForExtension',
++			'workbench.action.chat.manageLanguageModelAccess',
++			'workbench.action.chat.manageLanguageModelAuthentication',
++			'workbench.userDataSync.actions.turnOn',
++			'workbench.userDataSync.actions.manage'
++		]);
++
++		const filteredOtherCommands = otherCommands
++			.map(([group, actions]) => [
++				group,
++				actions.filter(a => !disallowedAccountIds.has(a.id) && !a.id.startsWith('workbench.userDataSync.actions.'))
++			] as [string, IAction[]])
++			.filter(([, actions]) => actions.length > 0);
++
++		let resultMenus: IAction[] = [...yanaAccountActions];
++
++		if (menus.length) {
++			resultMenus.push(new Separator());
++			resultMenus = resultMenus.concat(menus);
++		}
+ 
+-		const codexAccountActions = this.initialized
+-			? createCodexAccountMenuActions(this.codexAccountService, shouldShowCodexAccount(this.configurationService, false))
+-			: [];
+-		if (codexAccountActions.length) {
+-			if (menus.length) {
+-				menus.push(new Separator());
+-			}
+-			for (const action of codexAccountActions) {
+-				menus.push(action instanceof Action ? disposables.add(action) : action);
++		for (const [, actions] of filteredOtherCommands) {
++			if (resultMenus.length && actions.length) {
++				resultMenus.push(new Separator());
+ 			}
++			resultMenus = resultMenus.concat(actions);
+ 		}
+ 
+-		appendCommandGroups(remainingCommandGroups);
+-
+-		return menus;
++		return resultMenus;
+ 	}
+ 
+ 	protected override async resolveContextMenuActions(disposables: DisposableStore): Promise<IAction[]> {
+@@ -716,6 +844,7 @@ export class GlobalActivityActionViewItem extends AbstractGlobalActivityActionVi
+ 		@IKeybindingService keybindingService: IKeybindingService,
+ 		@IInstantiationService instantiationService: IInstantiationService,
+ 		@IActivityService activityService: IActivityService,
++		@ICommandService private readonly commandService: ICommandService,
+ 	) {
+ 		const action = instantiationService.createInstance(CompositeBarAction, {
+ 			id: GLOBAL_ACTIVITY_ID,
+@@ -771,7 +900,116 @@ export class GlobalActivityActionViewItem extends AbstractGlobalActivityActionVi
+ 	}
+ 
+ 	protected override computeTitle(): string {
+-		return this.userDataProfileService.currentProfile.isDefault ? super.computeTitle() : localize('manage profile', "Manage {0} (Profile)", this.userDataProfileService.currentProfile.name);
++		const locale = getEffectiveLocale(this.configurationService);
++		return this.userDataProfileService.currentProfile.isDefault ? getGlobalMenuLabel('manage', locale, localize('manage', "Manage")) : getGlobalMenuLabel('manageProfile', locale, localize('manage profile', "Manage {0} (Profile)", this.userDataProfileService.currentProfile.name)).replace('{0}', this.userDataProfileService.currentProfile.name);
++	}
++
++	protected override async resolveMainMenuActions(menu: IMenu, _disposable: DisposableStore): Promise<IAction[]> {
++		const locale = getEffectiveLocale(this.configurationService);
++		const rawActions = getActionBarActions(menu.getActions({ renderShortTitle: true })).secondary;
++		const disallowedIds = new Set([
++			'workbench.action.openSettings',
++			'workbench.action.openSettings2',
++			'workbench.profiles.actions.profileSubMenu',
++			'workbench.action.openSnippets',
++			'workbench.action.tasks.configureTaskRunner',
++			'workbench.action.layoutDensity.sub',
++			'LayoutDensityMenu',
++			'workbench.action.checkForUpdates',
++			'workbench.userDataSync.actions.turnOn',
++			'workbench.userDataSync.actions.manage'
++		]);
++
++		const filteredActions: IAction[] = [];
++		for (const action of rawActions) {
++						if (disallowedIds.has(action.id) || action.label === 'Layout Density' || action.id.startsWith('workbench.userDataSync.actions.') || action.id.startsWith('workbench.profiles.actions.')) {
++				continue;
++			}
++			if (action instanceof Separator && filteredActions[filteredActions.length - 1] instanceof Separator) {
++				continue;
++			}
++			filteredActions.push(action);
++		}
++
++		while (filteredActions.length && filteredActions[0] instanceof Separator) {
++			filteredActions.shift();
++		}
++		while (filteredActions.length && filteredActions[filteredActions.length - 1] instanceof Separator) {
++			filteredActions.pop();
++		}
++
++		for (let i = 0; i < filteredActions.length; i++) {
++			const action = filteredActions[i];
++			if (action instanceof Separator) {
++				continue;
++			}
++			const lowerLabel = (action.label || '').toLowerCase();
++			const id = action.id || '';
++			if (action instanceof SubmenuAction) {
++				if (id.includes('theme') || lowerLabel.includes('theme')) {
++					filteredActions[i] = new SubmenuAction(action.id, getGlobalMenuLabel('themes', locale, action.label), action.actions);
++				}
++				continue;
++			}
++			if (id === 'workbench.action.openGlobalKeybindings' || lowerLabel.includes('keyboard shortcuts') || lowerLabel.includes('phím tắt') || lowerLabel.includes('바로 가기')) {
++				action.label = getGlobalMenuLabel('keybindings', locale, action.label);
++			} else if (id === 'workbench.action.selectTheme' || lowerLabel.includes('color theme')) {
++				action.label = getGlobalMenuLabel('colorTheme', locale, action.label);
++			} else if (id === 'workbench.action.configureLocale' || lowerLabel.includes('display language')) {
++				action.label = getGlobalMenuLabel('displayLanguage', locale, action.label);
++			} else if (id.includes('showCommands') || lowerLabel.includes('command palette') || lowerLabel.includes('bảng lệnh') || lowerLabel.includes('명령 팔레트')) {
++				action.label = getGlobalMenuLabel('commandPalette', locale, action.label);
++			} else if (id.includes('extension') || lowerLabel.includes('extensions') || lowerLabel.includes('tiện ích') || lowerLabel.includes('확장')) {
++				action.label = getGlobalMenuLabel('extensions', locale, action.label);
++			} else if (id.includes('tasks') || lowerLabel === 'tasks' || lowerLabel === 'tác vụ') {
++				action.label = getGlobalMenuLabel('tasks', locale, action.label);
++			}
++		}
++
++		const yanaActions: IAction[] = [
++			toAction({
++				id: 'yana.settings.open',
++				label: getGlobalMenuLabel('yanaSettings', locale, "Yana Settings"),
++				run: () => this.commandService.executeCommand('yana.settings.open')
++			}),
++			toAction({
++				id: 'yana.idePreferences.open',
++				label: getGlobalMenuLabel('yanaIdeSettings', locale, "Yana IDE Settings"),
++				run: () => this.commandService.executeCommand('yana.idePreferences.open')
++			}),
++			toAction({
++				id: 'yana.controlCenter.open',
++				label: getGlobalMenuLabel('yanaControlCenter', locale, "Yana Control Center"),
++				run: () => this.commandService.executeCommand('yana.controlCenter.open')
++			}),
++			toAction({
++				id: 'yana.office.open',
++				label: getGlobalMenuLabel('yanaOffice', locale, "Yana Office"),
++				run: () => this.commandService.executeCommand('yana.office.open')
++			}),
++			toAction({
++				id: 'yana.welcome.open',
++				label: getGlobalMenuLabel('yanaHome', locale, "Yana Home"),
++				run: () => this.commandService.executeCommand('yana.welcome.open')
++			}),
++			toAction({
++				id: 'yana.updates.check',
++				label: getGlobalMenuLabel('yanaUpdates', locale, "Check for Updates..."),
++				run: () => this.commandService.executeCommand('yana.updates.check')
++			}),
++			new Separator()
++		];
++
++		const advancedActions: IAction[] = [
++			new Separator(),
++			toAction({
++				id: 'workbench.action.openSettingsJson',
++				label: getGlobalMenuLabel('rawSettingsJson', locale, "Open Raw Settings (JSON)"),
++				run: () => this.commandService.executeCommand('workbench.action.openSettingsJson')
++			})
++		];
++
++		return [...yanaActions, ...filteredActions, ...advancedActions];
+ 	}
+ }
+ 
+@@ -829,7 +1067,8 @@ export class SimpleGlobalActivityActionViewItem extends GlobalActivityActionView
+ 		@IKeybindingService keybindingService: IKeybindingService,
+ 		@IInstantiationService instantiationService: IInstantiationService,
+ 		@IActivityService activityService: IActivityService,
+-		@IStorageService storageService: IStorageService
++		@IStorageService storageService: IStorageService,
++		@ICommandService commandService: ICommandService
+ 	) {
+ 		super(() => simpleActivityContextMenuActions(storageService, false),
+ 			{
+@@ -840,7 +1079,7 @@ export class SimpleGlobalActivityActionViewItem extends GlobalActivityActionView
+ 				}),
+ 				hoverOptions,
+ 				compact: true,
+-			}, () => undefined, userDataProfileService, themeService, hoverService, menuService, contextMenuService, contextKeyService, configurationService, environmentService, keybindingService, instantiationService, activityService);
++			}, () => undefined, userDataProfileService, themeService, hoverService, menuService, contextMenuService, contextKeyService, configurationService, environmentService, keybindingService, instantiationService, activityService, commandService);
+ 	}
+ }
+ 

@@ -5,7 +5,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const os = require('node:os');
 
-const ext = process.argv[2];
+const ext = process.argv[2] || path.resolve(__dirname, "../extensions/yana-agent");
 const files = require(path.join(ext, 'features', 'office-files.js'));
 const pptx = require(path.join(ext, 'features', 'office-pptx.js'));
 const slides = require(path.join(ext, 'features', 'office-slides.js'));

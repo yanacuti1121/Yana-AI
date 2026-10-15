@@ -66,12 +66,16 @@
 			]
 		},
 		"commands": [
+			{ "command": "yana.onboarding.open", "title": "Getting Started (Onboarding Walkthrough)", "category": "Yana", "icon": "$(rocket)" },
 			{ "command": "yana.welcome.open", "title": "Open Yana Home", "category": "Yana", "icon": "$(home)" },
 			{ "command": "yana.guide.open", "title": "Open Guide", "category": "Yana", "icon": "$(book)" },
 			{ "command": "yana.idePreferences.open", "title": "Yana IDE Settings", "category": "Yana", "icon": "$(settings-gear)" },
 			{ "command": "yana.controlCenter.open", "title": "Yana Control Center", "category": "Yana", "icon": "$(dashboard)" },
 			{ "command": "yana.office.open", "title": "Open Office Tools", "category": "Yana", "icon": "$(file-pdf)" },
 			{ "command": "yana.settings.open", "title": "Yana Settings", "category": "Yana", "icon": "$(settings-gear)" },
+			{ "command": "yana.updates.check", "title": "Check for Updates…", "category": "Yana", "icon": "$(cloud-download)" },
+			{ "command": "yana.account.open", "title": "Account & Profile", "category": "Yana", "icon": "$(account)" },
+			{ "command": "yana.models.open", "title": "Models & Quota", "category": "Yana", "icon": "$(sparkle)" },
 			{ "command": "yana.canvas.new", "title": "New Design Canvas", "category": "Yana", "icon": "$(paintcan)" },
 			{ "command": "yana.canvas.open", "title": "Open Design Canvas…", "category": "Yana", "icon": "$(folder-opened)" },
 			{ "command": "yana.tasks.open", "title": "Open Tasks Board", "category": "Yana", "icon": "$(tasklist)" },
@@ -118,6 +122,7 @@
 				{ "command": "yana.settings.open", "when": "view == yana.home", "group": "navigation@0" },
 				{ "command": "yana.chat.new", "when": "view == yana.conversations", "group": "navigation@1" },
 				{ "command": "yana.chat.history", "when": "view == yana.conversations", "group": "navigation@2" },
+				{ "command": "yana.welcome.open", "when": "view == yana.panel", "group": "navigation@0" },
 				{ "command": "yana.guide.open", "when": "view == yana.panel", "group": "navigation@1" },
 				{ "command": "yana.chat.new", "when": "view == yana.panel", "group": "navigation@2" },
 				{ "command": "yana.settings.open", "when": "view == yana.panel", "group": "navigation@3" },
@@ -160,7 +165,8 @@
 			]
 		},
 		"keybindings": [
-			{ "command": "yana.focus", "key": "ctrl+l", "mac": "cmd+l" }
+			{ "command": "yana.focus", "key": "ctrl+l", "mac": "cmd+l" },
+			{ "command": "yana.settings.open", "key": "ctrl+,", "mac": "cmd+," }
 		],
 		"configuration": {
 			"title": "Yana",
@@ -209,6 +215,17 @@
 					"type": "string",
 					"default": "",
 					"description": "Model passed to yana-rt chat --model. Empty: provider default."
+				},
+				"yana.language": {
+					"type": "string",
+					"default": "en",
+					"enum": ["en", "vi", "ko"],
+					"description": "Display language for Yana Studio and Yana Agent."
+				},
+				"yana.updates.checkOnStartup": {
+					"type": "boolean",
+					"default": true,
+					"description": "Automatically check for Yana Studio and yana-rt updates at startup."
 				}
 			}
 		}

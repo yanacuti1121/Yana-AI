@@ -12,10 +12,17 @@ const MAX_LINE_BYTES = 1024 * 1024; // giới hạn 1 dòng giao thức, khớp 
 const TURN_TIMEOUT_MS = 10 * 60 * 1000; // 10 phút mỗi turn, khớp bản Studio cũ
 const KILL_GRACE_MS = 1500; // chờ SIGTERM trước khi SIGKILL
 const TERMINAL_TYPES = ['completed', 'awaiting_approval', 'cancelled', 'error'];
-const SEARCH_DIRS = [path.join(os.homedir(), '.local', 'bin'), '/opt/homebrew/bin', '/usr/local/bin'];
+const BIN_NAME = process.platform === 'win32' ? 'yana-rt.exe' : 'yana-rt';
+const SEARCH_DIRS = [
+	path.join(os.homedir(), '.local', 'bin'),
+	path.join(os.homedir(), '.cargo', 'bin'),
+	'/opt/homebrew/bin',
+	'/usr/local/bin',
+	...(process.resourcesPath ? [path.join(process.resourcesPath, 'runtime')] : [])
+];
 
 function resolveBinary(configured) {
-	const candidates = configured ? [configured] : SEARCH_DIRS.map(dir => path.join(dir, 'yana-rt'));
+	const candidates = configured ? [configured] : SEARCH_DIRS.map(dir => path.join(dir, BIN_NAME));
 	for (const candidate of candidates) {
 		try {
 			fs.accessSync(candidate, fs.constants.X_OK);

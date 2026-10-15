@@ -8,7 +8,7 @@ const http = require('node:http');
 const https = require('node:https');
 const net = require('node:net');
 
-const ext = process.argv[2];
+const ext = process.argv[2] || path.resolve(__dirname, "../extensions/yana-agent");
 const documents = require(path.join(ext, 'features', 'office-documents.js'));
 const xlsx = require(path.join(ext, 'features', 'office-xlsx.js'));
 const pptx = require(path.join(ext, 'features', 'office-pptx.js'));

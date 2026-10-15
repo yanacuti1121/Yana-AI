@@ -135,3 +135,9 @@ docs-dist/
 docs/*.zip
 !docs/files.zip
 src/*.zip
+
+# Exclude local scratch / nested projects
+turbo-fieldfare/
+untitled.yana-canvas.json
+.planning/**/*.png
+.yana-ai/project-memory.md

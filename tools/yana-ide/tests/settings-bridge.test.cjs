@@ -4,7 +4,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const os = require('node:os');
 
-const ext = process.argv[2];
+const ext = process.argv[2] || path.resolve(__dirname, "../extensions/yana-agent");
 const storage = fs.mkdtempSync(path.join(os.tmpdir(), 'yana-settings-'));
 fs.writeFileSync(path.join(storage, 'a.json'), '{"x":1}');
 const config = { provider: 'ollama', model: '', baseUrl: '', runtimePath: '' };

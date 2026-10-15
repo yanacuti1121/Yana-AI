@@ -13,6 +13,7 @@ const { runtimeVersion } = require('../runtime');
 const models = require('./models');
 const usage = require('./usage');
 const { memorySystem } = require('./project');
+const { getActiveLanguage } = require('./language');
 
 // Các luồng phụ trợ của app cũ chưa có nơi nào gọi tới (host/model-orchestration.cjs AUXILIARY_FLOWS).
 const AUXILIARY_FLOWS = [
@@ -47,9 +48,18 @@ async function keyedProviders() {
 	return present.filter(Boolean);
 }
 
-async function modelsTab() {
+function getWorkspaces() {
+	return (vscode.workspace.workspaceFolders || []).map(f => ({
+		name: f.name,
+		path: f.uri.fsPath,
+		isTrusted: vscode.workspace.isTrusted,
+	}));
+}
+
+async function modelsTab(context) {
 	const keyed = new Set(await keyedProviders());
 	const bin = binary();
+	const root = workspaceRoot();
 	const providers = publicCatalog().map(p => ({
 		id: p.id, label: p.label, company: p.company, kind: p.kind, category: p.category || (p.kind === 'local' ? 'local' : p.kind === 'cloud' ? 'cloud' : 'enterprise'),
 		badge: p.badge || '', modelsSummary: p.modelsSummary || `${p.modelCatalog.length} models`,
@@ -61,6 +71,95 @@ async function modelsTab() {
 		providers,
 		runtime: { path: bin, version: bin ? await runtimeVersion(bin) : '' },
 		auxiliary: AUXILIARY_FLOWS.map(([name, reason]) => ({ name, reason })),
+		tokenUsage: context ? usage.summary(context, root) : { all: { input: 0, output: 0, total: 0, rounds: 0 } },
+		workspaces: getWorkspaces(),
+	};
+}
+
+async function editorTab() {
+	const cfgEditor = vscode.workspace.getConfiguration('editor');
+	const cfgDiff = vscode.workspace.getConfiguration('diffEditor');
+	const cfgYana = vscode.workspace.getConfiguration('yana');
+	return {
+		formatOnSave: cfgEditor.get('formatOnSave', false),
+		formatOnSaveMode: cfgEditor.get('formatOnSaveMode', 'file'),
+		formatOnType: cfgEditor.get('formatOnType', false),
+		codeLens: cfgEditor.get('codeLens', true),
+		diffAlgorithm: cfgDiff.get('algorithm', 'advanced'),
+		showEmptyDecorations: cfgDiff.get('experimental.showEmptyDecorations', true),
+		showMoves: cfgDiff.get('experimental.showMoves', false),
+		useInlineView: cfgDiff.get('useInlineViewWhenSpaceIsLimited', true),
+		hideUnchangedContextLines: cfgDiff.get('hideUnchangedRegions.contextLineCount', 3),
+		hideUnchangedEnabled: cfgDiff.get('hideUnchangedRegions.enabled', false),
+		agent: {
+			name: 'Yana-AI',
+			disclaimer: 'AI may make mistakes. Double-check all generated code.',
+			requireApprovalForWrites: cfgYana.get('guardrails.requireApprovalForWrites', true),
+			blastRadiusLimit: cfgYana.get('guardrails.blastRadiusLimit', 5),
+		},
+	};
+}
+
+async function customizationsTab() {
+	const root = workspaceRoot();
+	let rulesCount = 0;
+	let skillsCount = 0;
+	let hasAgentsMd = false;
+	if (root) {
+		const agentsMd = path.join(root, 'AGENTS.md');
+		hasAgentsMd = fs.existsSync(agentsMd);
+		for (const candidate of ['.agents/rules', 'core/rules', 'rules']) {
+			const rulesDir = path.join(root, candidate);
+			if (fs.existsSync(rulesDir)) {
+				try { rulesCount = fs.readdirSync(rulesDir).filter(f => f.endsWith('.md')).length; break; } catch {}
+			}
+		}
+		for (const candidate of ['.agents/skills', 'core/skills', 'skills']) {
+			const skillsDir = path.join(root, candidate);
+			if (fs.existsSync(skillsDir)) {
+				try { skillsCount = fs.readdirSync(skillsDir).length; break; } catch {}
+			}
+		}
+	}
+	return {
+		rulesCount,
+		skillsCount,
+		hasAgentsMd,
+		root: root || 'No workspace opened',
+		rules: [
+			{ id: 'truth-gate', name: 'Truth Gate (L3)', desc: 'Evidence required before stating done, fixed, or passed' },
+			{ id: 'action-gate', name: 'Action Gate (L0-L5)', desc: 'Approval required before writes, commits, or deployments' },
+			{ id: 'destructive-guard', name: 'Destructive Action Guard', desc: 'Blocks rm -rf, drop table, force push' },
+			{ id: 'scope-guard', name: 'Scope Boundary Guard', desc: 'Prevents unintended cross-scope modifications' },
+		],
+	};
+}
+
+async function generalTab() {
+	const cfgFiles = vscode.workspace.getConfiguration('files');
+	const cfgExplorer = vscode.workspace.getConfiguration('explorer');
+	const cfgTelemetry = vscode.workspace.getConfiguration('telemetry');
+	return {
+		language: getActiveLanguage(),
+		autoSave: cfgFiles.get('autoSave', 'off'),
+		confirmDelete: cfgExplorer.get('confirmDelete', true),
+		telemetryLevel: cfgTelemetry.get('telemetryLevel', 'off'),
+	};
+}
+
+async function browserTab() {
+	const cfg = vscode.workspace.getConfiguration('yana');
+	return {
+		previewMode: cfg.get('browser.previewMode', 'internal-webview'),
+		debugPort: cfg.get('browser.debugPort', 9222),
+	};
+}
+
+async function tabTab() {
+	const cfg = vscode.workspace.getConfiguration('editor');
+	return {
+		inlineSuggest: cfg.get('inlineSuggest.enabled', true),
+		quickSuggestions: Boolean(cfg.get('quickSuggestions', true)),
 	};
 }
 
@@ -111,23 +210,31 @@ function dataTab(context) {
 
 async function themeTab() {
 	const cfg = vscode.workspace.getConfiguration('workbench');
-	return { colorTheme: cfg.get('colorTheme', ''), language: vscode.env.language };
+	return { colorTheme: cfg.get('colorTheme', ''), language: getActiveLanguage() };
 }
 
 async function load(tab, context) {
+	const lang = getActiveLanguage();
+	let result = {};
 	switch (tab) {
-		case 'account': return { language: vscode.env.language, machine: vscode.env.appName };
-		case 'appearance': return themeTab();
-		case 'models': return modelsTab();
-		case 'local': return localTab();
-		case 'usage': return usage.summary(context, workspaceRoot());
-		case 'connections': return {};
-		case 'permissions': return permissionsTab();
-		case 'tools': return toolsTab();
-		case 'commands': return commandReference(workspaceRoot());
-		case 'data': return dataTab(context);
-		default: return {};
+		case 'account': result = { language: lang, machine: vscode.env.appName, workspaces: getWorkspaces() }; break;
+		case 'general': result = await generalTab(); break;
+		case 'appearance': result = await themeTab(); break;
+		case 'models': result = await modelsTab(context); break;
+		case 'customizations': result = await customizationsTab(); break;
+		case 'browser': result = await browserTab(); break;
+		case 'tab': result = await tabTab(); break;
+		case 'editor': result = await editorTab(); break;
+		case 'local': result = await localTab(); break;
+		case 'usage': result = usage.summary(context, workspaceRoot()); break;
+		case 'connections': result = { runtime: await toolsTab() }; break;
+		case 'permissions': result = await permissionsTab(); break;
+		case 'tools': result = await toolsTab(); break;
+		case 'commands': result = commandReference(workspaceRoot()); break;
+		case 'data': result = dataTab(context); break;
+		default: result = {}; break;
 	}
+	return { ...result, currentLanguage: lang };
 }
 
 module.exports = { load };

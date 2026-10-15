@@ -5,7 +5,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const ext = process.argv[2];
+const ext = process.argv[2] || path.resolve(__dirname, "../extensions/yana-agent");
 const manifest = JSON.parse(fs.readFileSync(path.join(ext, 'package.json'), 'utf8'));
 const files = [...fs.readdirSync(path.join(ext, 'features')).filter(name => name.endsWith('.js')).map(name => path.join('features', name)), 'extension.js'];
 const source = files.map(file => fs.readFileSync(path.join(ext, file), 'utf8')).join('\n');

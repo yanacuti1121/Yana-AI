@@ -11,6 +11,7 @@ const guide = require('./guide');
 const { binary, workspaceRoot } = require('../cli');
 const { supportsTurnControls } = require('../runtime');
 const { parseMaxTokens, parseTemperature } = require('./chat-controls');
+const { getActiveLanguage } = require('./language');
 
 const VIEW_TYPE = 'yana.idePreferences';
 
@@ -35,7 +36,9 @@ async function state(context) {
 	const cfg = vscode.workspace.getConfiguration('yana');
 	const root = workspaceRoot();
 	const { items, selectedId } = await assistants();
+	const lang = getActiveLanguage();
 	return {
+		language: lang,
 		guide: { autoOpen: cfg.get('guide.autoOpen', true), seen: Boolean(context.globalState.get(guide.SEEN_KEY)) },
 		home: { showOnStartup: cfg.get('welcome.showOnStartup', true) },
 		approvals: { hasFolder: Boolean(root), trusted: vscode.workspace.isTrusted, active: root ? approvals.isActive(root) : false },
@@ -45,6 +48,7 @@ async function state(context) {
 		planned: PLANNED,
 	};
 }
+
 
 async function setConfig(key, value) {
 	await vscode.workspace.getConfiguration('yana').update(key, value, vscode.ConfigurationTarget.Global);
@@ -101,10 +105,12 @@ function html(webview, media) {
 	const nonce = crypto.randomBytes(16).toString('base64');
 	const uri = name => webview.asWebviewUri(vscode.Uri.joinPath(media, name));
 	const csp = `default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';`;
-	return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+	const lang = getActiveLanguage();
+	const title = lang === 'vi' ? 'Cài đặt IDE Yana' : lang === 'ko' ? 'Yana IDE 기본 설정' : 'Yana IDE Settings';
+	return `<!DOCTYPE html><html lang="${lang}"><head><meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="${csp}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="${uri('ide-preferences.css')}"><title>Yana IDE</title></head>
+<link rel="stylesheet" href="${uri('ide-preferences.css')}"><title>${title}</title></head>
 <body><div id="app"><p>Loading…</p></div><script nonce="${nonce}" src="${uri('ide-preferences.js')}"></script></body></html>`;
 }
 
@@ -114,7 +120,9 @@ function open(context) {
 		return;
 	}
 	const media = vscode.Uri.joinPath(context.extensionUri, 'media');
-	panel = vscode.window.createWebviewPanel(VIEW_TYPE, 'Yana IDE', vscode.ViewColumn.Active, { enableScripts: true, localResourceRoots: [media] });
+	const lang = getActiveLanguage();
+	const title = lang === 'vi' ? 'Cài đặt IDE Yana' : lang === 'ko' ? 'Yana IDE 기본 설정' : 'Yana IDE Settings';
+	panel = vscode.window.createWebviewPanel(VIEW_TYPE, title, vscode.ViewColumn.Active, { enableScripts: true, localResourceRoots: [media] });
 	panel.iconPath = vscode.Uri.joinPath(media, 'yana.svg');
 	panel.webview.html = html(panel.webview, media);
 	panel.webview.onDidReceiveMessage(msg => onMessage(context, msg));
@@ -128,7 +136,17 @@ function activate(context) {
 		changes.listen(['config', 'trust', 'governance'], async () => {
 			if (panel) panel.webview.postMessage({ type: 'state', state: await state(context) });
 		}),
+		vscode.workspace.onDidChangeConfiguration(async event => {
+			if (event.affectsConfiguration('yana.language')) {
+				const lang = getActiveLanguage();
+				if (panel) {
+					panel.title = lang === 'vi' ? 'Cài đặt IDE Yana' : lang === 'ko' ? 'Yana IDE 기본 설정' : 'Yana IDE Settings';
+					panel.webview.postMessage({ type: 'state', state: await state(context) });
+				}
+			}
+		})
 	);
 }
 
 module.exports = { id: 'ide-preferences', activate };
+
