@@ -24,7 +24,7 @@ fn read(d: &TempDir, rel: &str) -> String {
 }
 
 fn is_valid_yaml(s: &str) -> bool {
-    serde_yml::from_str::<serde_yml::Value>(s).is_ok()
+    noyalib::from_str::<noyalib::Value>(s).is_ok()
 }
 
 const WORKFLOW: &str = "name: CI\non: [push]\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n";
@@ -263,9 +263,9 @@ fn ac003_produces_valid_yaml_with_the_timeout_at_job_level() {
     fix_ac003(&t, false).unwrap();
     let out = read(&d, ".github/workflows/ci.yml");
     assert!(is_valid_yaml(&out), "invalid YAML after fix:\n{out}");
-    let v: serde_yml::Value = serde_yml::from_str(&out).unwrap();
-    assert_eq!(v["jobs"]["build"]["timeout-minutes"], serde_yml::Value::from(30));
-    assert_eq!(v["jobs"]["build"]["runs-on"], serde_yml::Value::from("ubuntu-latest"));
+    let v: noyalib::Value = noyalib::from_str(&out).unwrap();
+    assert_eq!(v["jobs"]["build"]["timeout-minutes"], noyalib::Value::from(30));
+    assert_eq!(v["jobs"]["build"]["runs-on"], noyalib::Value::from("ubuntu-latest"));
 }
 
 #[test]
@@ -275,8 +275,8 @@ fn ci007_produces_valid_yaml_with_one_environment_gate_on_the_job() {
     fix_ci007(&t, false).unwrap();
     let out = read(&d, ".github/workflows/p.yml");
     assert!(is_valid_yaml(&out), "invalid YAML after fix:\n{out}");
-    let v: serde_yml::Value = serde_yml::from_str(&out).unwrap();
-    assert_eq!(v["jobs"]["publish"]["environment"], serde_yml::Value::from("production"));
+    let v: noyalib::Value = noyalib::from_str(&out).unwrap();
+    assert_eq!(v["jobs"]["publish"]["environment"], noyalib::Value::from("production"));
     assert_eq!(out.matches("environment:").count(), 1);
 }
 

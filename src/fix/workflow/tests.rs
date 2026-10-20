@@ -3,12 +3,12 @@
 //! but breaks the structure still fails.
 
 use super::*;
-use serde_yml::Value;
+use noyalib::Value;
 
 const PATTERNS: &[&str] = &["npm publish", "cargo publish", "pypi"];
 
 fn yaml(s: &str) -> Value {
-    serde_yml::from_str(s).unwrap_or_else(|e| panic!("invalid YAML ({e}):\n{s}"))
+    noyalib::from_str(s).unwrap_or_else(|e| panic!("invalid YAML ({e}):\n{s}"))
 }
 
 const ONE_JOB: &str = "name: CI\non: [push]\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n";
