@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Yana AI — MacBook Pro M5 3D Interactive Showcase</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg-dark: #07070a;
+    --card-surface: #0f1016;
+    --accent-cyan: #38bdf8;
+    --accent-indigo: #818cf8;
+    --accent-emerald: #34d399;
+  }
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background: radial-gradient(circle at 50% 30%, #151624 0%, #08080c 60%, #030305 100%);
+    color: #f1f5f9;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .display { font-family: 'Space Grotesk', sans-serif; }
+
+  /* 3D Stage & Interactive Perspective */
+  .stage-viewport {
+    perspective: 2000px;
+    transform-style: preserve-3d;
+  }
+  .macbook-rig {
+    transform-style: preserve-3d;
+    transition: transform 0.15s cubic-bezier(0.2, 0, 0.2, 1);
+    transform: rotateX(12deg) rotateY(-18deg) rotateZ(0deg);
+  }
+
+  /* MacBook Screen Assembly */
+  .mac-lid {
+    width: 640px;
+    height: 415px;
+    border-radius: 20px 20px 4px 4px;
+    background: #000;
+    border: 10px solid #1c1d22;
+    border-bottom: 14px solid #1a1b20;
+    box-shadow: 
+      0 0 0 1px rgba(255,255,255,0.12),
+      0 25px 60px -15px rgba(0,0,0,0.85),
+      0 0 80px rgba(56, 189, 248, 0.15);
+    position: relative;
+    transform-origin: bottom center;
+    transform: translateZ(4px);
+    overflow: hidden;
+  }
+
+  /* Screen Bezel Notch */
+  .mac-notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 110px;
+    height: 13px;
+    background: #1c1d22;
+    border-radius: 0 0 10px 10px;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .mac-camera {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #0f172a;
+    box-shadow: inset 0 0 2px #38bdf8;
+  }
+  .mac-sensor {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: #1e293b;
+  }
+
+  /* MacBook Keyboard Base */
+  .mac-base {
+    width: 680px;
+    height: 22px;
+    margin: -4px auto 0;
+    background: linear-gradient(180deg, #32333b 0%, #1c1d23 45%, #0e0f13 100%);
+    border-radius: 0 0 22px 22px;
+    box-shadow: 
+      0 1px 0 rgba(255,255,255,0.15) inset,
+      0 40px 70px -15px rgba(0,0,0,0.9);
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+  .mac-notch-thumb {
+    width: 70px;
+    height: 4px;
+    background: #121318;
+    border-radius: 0 0 6px 6px;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.06);
+  }
+
+  /* Ground Shadow & Ambient Light */
+  .ground-shadow {
+    position: absolute;
+    bottom: -60px;
+    left: 50%;
+    transform: translateX(-50%) rotateX(90deg);
+    width: 800px;
+    height: 350px;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.85) 0%, rgba(56, 189, 248, 0.08) 40%, transparent 70%);
+    pointer-events: none;
+    filter: blur(10px);
+  }
+
+  /* Studio Glow Nodes */
+  .pulse-glow {
+    animation: glowPulse 3s ease-in-out infinite;
+  }
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0.8; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.03); }
+  }
+
+  /* Custom Scrollbar for Terminal */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+</style>
+</head>
+<body class="flex flex-col items-center justify-between min-h-screen p-6 select-none">
+
+  <!-- TOP HEADER -->
+  <header class="w-full max-w-6xl flex items-center justify-between py-4 px-6 border-b border-white/5 backdrop-blur-md bg-white/[0.02] rounded-2xl">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+        <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-2">
+          Yana Studio <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono">v1.6.2 M5</span>
+        </h1>
+        <p class="text-xs text-slate-400">Personal Agent Operating System • 3D Interactive Cockpit</p>
+      </div>
+    </div>
+
+    <!-- Quick Controls -->
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 text-xs text-slate-400 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        <span>Rê chuột để xoay 3D</span>
+      </div>
+      <button onclick="resetAngle()" class="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-slate-200 transition font-medium">
+        Góc chuẩn (115°)
+      </button>
+      <button onclick="toggleSideView()" class="text-xs px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30 transition font-medium">
+        Xem góc nghiêng CNC
+      </button>
+    </div>
+  </header>
+
+  <!-- 3D MACBOOK VIEWPORT -->
+  <main class="w-full flex-1 flex items-center justify-center relative py-12 stage-viewport">
+
+    <div class="macbook-rig" id="macbookRig">
+      <!-- Ground Ambient Shadow -->
+      <div class="ground-shadow"></div>
+
+      <!-- SCREEN / LID -->
+      <div class="mac-lid">
+        <!-- Bezel Notch & Webcam -->
+        <div class="mac-notch">
+          <div class="mac-camera"></div>
+          <div class="mac-sensor"></div>
+        </div>
+
+        <!-- SCREEN CONTENT: YANA STUDIO SYSTEM INTERFACE -->
+        <div class="w-full h-full bg-[#0a0a0f] flex flex-col text-slate-300 overflow-hidden font-sans">
+          
+          <!-- macOS Top Menu Bar -->
+          <div class="h-6 bg-[#12131a] border-b border-white/5 px-3 flex items-center justify-between text-[11px] text-slate-400">
+            <div class="flex items-center gap-3">
+              <span class="text-white font-bold"></span>
+              <span class="text-white font-semibold">Yana Studio</span>
+              <span class="hover:text-white cursor-pointer">File</span>
+              <span class="hover:text-white cursor-pointer">Edit</span>
+              <span class="hover:text-white cursor-pointer">View</span>
+              <span class="hover:text-white cursor-pointer">Run</span>
+              <span class="hover:text-white cursor-pointer">Terminal</span>
+              <span class="hover:text-white cursor-pointer">Help</span>
+            </div>
+            <div class="flex items-center gap-3 text-[10px]">
+              <span class="text-emerald-400 flex items-center gap-1 font-mono">● ActionGate: SUPERVISED</span>
+              <span class="text-slate-500">|</span>
+              <span>Audit: 500✓ 0✕</span>
+              <span class="text-slate-500">|</span>
+              <span>100% 🔋</span>
+              <span>23:18</span>
+            </div>
+          </div>
+
+          <!-- Studio Main Workspace: 3 Columns -->
+          <div class="flex-1 grid grid-cols-[180px_1fr_200px] overflow-hidden">
+            
+            <!-- Column 1: Explorer & Missions -->
+            <div class="bg-[#0e0f16] border-r border-white/5 p-2.5 flex flex-col justify-between text-[11px]">
+              <div class="space-y-3">
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">Tài nguyên Yana</div>
+                <div class="space-y-1">
+                  <div class="px-2 py-1 rounded bg-cyan-500/10 text-cyan-300 font-medium flex items-center gap-2">
+                    <span>⚡</span> <span>Agent Cockpit</span>
+                  </div>
+                  <div class="px-2 py-1 rounded hover:bg-white/5 text-slate-400 flex items-center gap-2">
+                    <span>📁</span> <span>core/gates</span>
+                  </div>
+                  <div class="px-2 py-1 rounded hover:bg-white/5 text-slate-400 flex items-center gap-2">
+                    <span>🛡️</span> <span>truth_gate.md</span>
+                  </div>
+                  <div class="px-2 py-1 rounded hover:bg-white/5 text-slate-400 flex items-center gap-2">
+                    <span>🧠</span> <span>L1_atomic</span>
+                  </div>
+                  <div class="px-2 py-1 rounded hover:bg-white/5 text-slate-400 flex items-center gap-2">
+                    <span>🦀</span> <span>yana-rt (Rust)</span>
+                  </div>
+                </div>
+
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1 pt-2">Active Task</div>
+                <div class="p-2 rounded-lg bg-white/[0.03] border border-white/5">
+                  <div class="text-[10px] text-cyan-400 font-semibold">MISSION #042</div>
+                  <div class="text-xs text-white mt-0.5 font-medium">CAD 3D Industrial Core</div>
+                  <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                    <div class="bg-gradient-to-r from-cyan-400 to-indigo-500 h-full w-[88%]"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-2 rounded bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400">
+                ● TurnEngine: Active (0/25)
+              </div>
+            </div>
+
+            <!-- Column 2: Code Editor & Live Terminal -->
+            <div class="flex flex-col bg-[#08080c] overflow-hidden">
+              <!-- Editor Tab -->
+              <div class="h-7 bg-[#0b0c12] border-b border-white/5 px-3 flex items-center gap-2 text-[11px]">
+                <div class="px-2.5 py-1 bg-[#08080c] border-t-2 border-cyan-400 text-white font-mono flex items-center gap-2">
+                  <span>⚛️</span> <span>macbook_pro_m5.cad</span>
+                </div>
+                <div class="px-2 py-1 text-slate-500 hover:text-slate-400 font-mono">
+                  truth_gate.rs
+                </div>
+              </div>
+
+              <!-- Code Lines -->
+              <div class="flex-1 p-3 mono text-[10.5px] leading-relaxed text-slate-300 overflow-y-auto bg-[#07070b]">
+                <div><span class="text-indigo-400">pub struct</span> <span class="text-cyan-300">MacBookProM5</span> {</div>
+                <div class="pl-4"><span class="text-slate-400">chassis:</span> <span class="text-amber-300">CNC_Aluminum::SpaceBlack</span>,</div>
+                <div class="pl-4"><span class="text-slate-400">display:</span> <span class="text-emerald-300">LiquidRetinaXDR::120Hz</span>,</div>
+                <div class="pl-4"><span class="text-slate-400">neural_core:</span> <span class="text-indigo-300">AppleSilicon::M5_Max</span>,</div>
+                <div class="pl-4"><span class="text-slate-400">security_boundary:</span> <span class="text-cyan-300">YanaActionGate::L5</span>,</div>
+                <div>}</div>
+                <div class="mt-2 text-slate-500">// Real-time evidence log stream</div>
+                <div><span class="text-cyan-400 font-bold">INFO</span> [0.002s] L3 TruthGate verified claim: OK</div>
+                <div><span class="text-emerald-400 font-bold">SUCCESS</span> [0.015s] Geometry unibody rendered smoothly</div>
+                <div class="flex items-center gap-1 text-slate-400 mt-1">
+                  <span class="text-cyan-400 font-bold">yana-agent %</span>
+                  <span class="inline-block w-2 h-4 bg-cyan-400 animate-pulse"></span>
+                </div>
+              </div>
+
+              <!-- Terminal Dock -->
+              <div class="h-28 bg-[#0a0a0f] border-t border-white/10 p-2.5 mono text-[10px]">
+                <div class="flex items-center justify-between text-slate-500 pb-1 border-b border-white/5 mb-1.5">
+                  <span class="text-cyan-400 font-semibold">TERMINAL · zsh</span>
+                  <span>vutam@MacBook-cua-yana Yana-AI</span>
+                </div>
+                <div class="text-emerald-400">✓ 123 automated verification gates passed</div>
+                <div class="text-slate-400">→ Target: Autonomous Industrial Showcase for Tomorrow</div>
+                <div class="text-cyan-300 font-semibold">✨ Ready for presentation. Press any key to interact.</div>
+              </div>
+            </div>
+
+            <!-- Column 3: Agent Cockpit & Inspector -->
+            <div class="bg-[#0e0f16] border-l border-white/5 p-3 flex flex-col justify-between text-[11px]">
+              <div class="space-y-3">
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Agent Cockpit</div>
+                
+                <div class="p-2.5 rounded-xl bg-cyan-500/5 border border-cyan-500/20">
+                  <div class="text-xs font-bold text-white flex items-center justify-between">
+                    <span>Yana Core</span>
+                    <span class="text-emerald-400 text-[10px]">99.8% Load</span>
+                  </div>
+                  <div class="text-[10px] text-slate-400 mt-1">Dual-mode: Act + Careful Reviewer active</div>
+                </div>
+
+                <div class="space-y-2">
+                  <div class="flex justify-between text-[10.5px]">
+                    <span class="text-slate-400">Engine Parity</span>
+                    <span class="text-white font-mono">100% Rust</span>
+                  </div>
+                  <div class="flex justify-between text-[10.5px]">
+                    <span class="text-slate-400">Evidence Chain</span>
+                    <span class="text-emerald-400 font-mono">L1 Locked</span>
+                  </div>
+                  <div class="flex justify-between text-[10.5px]">
+                    <span class="text-slate-400">Screen Ratio</span>
+                    <span class="text-white font-mono">16:10 XDR</span>
+                  </div>
+                </div>
+
+                <div class="pt-2">
+                  <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Mặt lưng máy</div>
+                  <div class="p-2 rounded bg-black/40 border border-white/5 text-center">
+                    <span class="text-cyan-400 font-bold tracking-widest text-xs">YANA AI</span>
+                    <div class="text-[9px] text-slate-500">Laser-engraved Backplate</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Footer Badge -->
+              <div class="text-center pt-2 border-t border-white/5 text-[10px] text-slate-500">
+                Autodesk CAD Reference Spec
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- MACBOOK BASE (CHASSIS & NOTCH) -->
+      <div class="mac-base">
+        <div class="mac-notch-thumb"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- BOTTOM FOOTER CONTROLLER -->
+  <footer class="w-full max-w-4xl flex items-center justify-between py-3 px-6 bg-white/[0.02] border border-white/5 rounded-2xl text-xs text-slate-400">
+    <div class="flex items-center gap-4">
+      <span>📐 <b>Kích thước:</b> 312.6 × 221.2 × 15.5 mm</span>
+      <span>💻 <b>Chip:</b> Apple M5 Max</span>
+      <span>🛡️ <b>OS:</b> Yana Agent OS</span>
+    </div>
+    <div class="text-right">
+      <span class="text-cyan-400 font-semibold">Tự động xoay 3D theo con trỏ chuột</span>
+    </div>
+  </footer>
+
+<script>
+  const rig = document.getElementById('macbookRig');
+  let currentRx = 12;
+  let currentRy = -18;
+  let targetRx = 12;
+  let targetRy = -18;
+
+  // Lắng nghe rê chuột trên toàn màn hình để xoay không gian 3D
+  window.addEventListener('mousemove', (e) => {
+    const x = (e.clientX / window.innerWidth) - 0.5;
+    const y = (e.clientY / window.innerHeight) - 0.5;
+    targetRy = x * 45; // Xoay ngang tối đa 45 độ
+    targetRx = 12 - (y * 30); // Xoay dọc
+  });
+
+  // Smooth interpolation loop
+  function animate() {
+    currentRx += (targetRx - currentRx) * 0.08;
+    currentRy += (targetRy - currentRy) * 0.08;
+    rig.style.transform = `rotateX(${currentRx}deg) rotateY(${currentRy}deg)`;
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  function resetAngle() {
+    targetRx = 10;
+    targetRy = 0;
+  }
+
+  function toggleSideView() {
+    targetRx = 8;
+    targetRy = 55; // Nhìn vát một bên hông máy thấy rõ độ mỏng nhôm CNC
+  }
+</script>
+</body>
+</html>

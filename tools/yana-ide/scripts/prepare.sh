@@ -23,7 +23,8 @@ while IFS= read -r name; do
 done < "$IDE_DIR/removed-extensions.txt"
 
 # Khôi phục đúng những file upstream mà patch, product.json và danh sách trên đụng tới.
-touched_files=("product.json")
+ICON_FILE="resources/darwin/code.icns"
+touched_files=("product.json" "$ICON_FILE")
 WATERMARK_DIR="src/vs/workbench/browser/parts/editor/media"
 for variant in dark light hcDark hcLight; do
 	touched_files+=("$WATERMARK_DIR/letterpress-$variant.svg")
@@ -65,6 +66,10 @@ for variant in dark light hcDark hcLight; do
 	cp "$IDE_DIR/branding/letterpress-$variant.svg" "$VSCODE_DIR/$WATERMARK_DIR/letterpress-$variant.svg"
 done
 echo "[yana-ide] replaced editor watermark"
+
+# Icon app macOS: thay icon VS Code bằng thỏ Yana (branding/yana.icns, sinh từ scripts/make-icon.swift).
+cp "$IDE_DIR/branding/yana.icns" "$VSCODE_DIR/$ICON_FILE"
+echo "[yana-ide] replaced app icon"
 
 node "$IDE_DIR/scripts/merge-product.mjs" "$VSCODE_DIR/product.json" "$IDE_DIR/product.overrides.json"
 

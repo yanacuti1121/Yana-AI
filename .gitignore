@@ -78,6 +78,7 @@ artifacts/release-gate/
 # Added by cargo
 
 /target
+/target-*/
 
 # Yana AI — only ignore runtime/generated dirs, NOT source dirs
 # .yana-ai/schemas, context-packs, policies, templates are source — do not ignore
