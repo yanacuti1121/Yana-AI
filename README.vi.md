@@ -111,12 +111,13 @@ Skill dạy agent cách làm việc. Chỉ capability mới cấp quyền hành 
 
 | Thành phần | Làm gì | Trạng thái |
 | --- | --- | --- |
-| **[Yana Studio](tools/yana-studio)** | Không gian làm việc desktop: file, editor, terminal, chat, task và canvas thiết kế cho một dự án thật. | ![Đang dùng, chưa đủ tính năng](https://img.shields.io/badge/đang_dùng-chưa_đủ_tính_năng-2e8b75) |
+| **[Yana Studio](tools/yana-studio)** | Không gian làm việc desktop: file, editor, terminal, chat, task và canvas thiết kế cho một dự án thật (v1.7.0). | ![Đang dùng, chưa đủ tính năng](https://img.shields.io/badge/đang_dùng-chưa_đủ_tính_năng-2e8b75) |
+| **[Yana IDE](tools/yana-ide)** | Không gian làm việc agent trên nền VS Code được tùy biến sâu với Yana agent cockpit và công cụ office. | ![Đang dùng](https://img.shields.io/badge/-đang_dùng-2e8b75) |
 | **[Runtime `yana-rt`](src)** | Engine Rust với một vòng lặp turn và một hợp đồng authority cho mọi client, mọi provider. | ![Đang dùng](https://img.shields.io/badge/-đang_dùng-2e8b75) |
 | **[Governance](core)** | Capability manifest, phê duyệt của con người, nhật ký kiểm toán nối băm, toàn vẹn core-lock. | ![Đang dùng](https://img.shields.io/badge/-đang_dùng-2e8b75) |
 | **[Giám Thị](#giám-thị)** | Bộ giám sát chạy ngoài mọi phiên AI, khóa mọi tool call về sau khi phát hiện sai lệch. | ![Đang dùng, tùy chọn bật](https://img.shields.io/badge/đang_dùng-tùy_chọn_bật-2e8b75) |
 | **[Harness adapters](adapters)** | Claude Code, Codex, Cursor và Antigravity. Mức thực thi khác nhau tùy host. | ![Tùy host](https://img.shields.io/badge/đang_dùng-tùy_host-2e8b75) |
-| **[Lớp tri thức](core/skills)** | Agent, skill, command và rule dạy agent cách làm việc. Chúng không cấp quyền nào. | ![Đang dùng](https://img.shields.io/badge/-đang_dùng-2e8b75) |
+| **[Lớp tri thức](core/skills)** | 60 agent, 2.027 skill, command và rule dạy agent cách làm việc. Chúng không cấp quyền nào. | ![Đang dùng](https://img.shields.io/badge/-đang_dùng-2e8b75) |
 | **[Yana OS](src/os)** | Lớp quản lý cục bộ: danh tính agent, mức tự chủ, quota, sức khỏe, cách ly. | ![Đang phát triển](https://img.shields.io/badge/-đang_phát_triển-d97706) |
 | **[Yana Desktop / Web](tools/yana-web)** | Vỏ Electron và giao diện web đời trước. Studio là bản dựng lại riêng, không phải đổi giao diện. | ![Bảo trì riêng](https://img.shields.io/badge/-bảo_trì_riêng-64748b) |
 | **[Yana Wheelbot](https://github.com/yanacuti1121/yana-wheelbot)** | Nền tảng robot trên ESP32-S3, nằm trong repository riêng. | ![Thử nghiệm](https://img.shields.io/badge/-thử_nghiệm-dc2626) |
@@ -132,14 +133,14 @@ cấu hình build, kể cả các lệnh nằm sau feature flag.
 core/
 ├── hooks/    # 66 hook PreToolUse / PostToolUse / Stop (63 shell, 3 JavaScript)
 ├── rules/    # 71 rule, phần lớn là hướng dẫn agent tự áp dụng; hook thực thi một phần
-├── agents/   # 100 agent chuyên biệt
-├── skills/   # 2.026 skill
+├── agents/   # 60 agent chuyên biệt
+├── skills/   # 2.027 skill
 ├── commands/ # 170 slash command của Claude Code
 └── config/
     └── core-lock.json    # manifest SHA-256, ghim 287 file lõi
 ```
 
-## Yana Studio
+## Yana Studio (v1.7.0)
 
 <p align="center">
   <img src="docs/studio-screen-1.png" alt="Yana Studio với khung chat, bảng thông tin dự án và trạng thái quản trị" width="900">

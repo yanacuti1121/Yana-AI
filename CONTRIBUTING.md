@@ -90,7 +90,7 @@ replaced_by: new-skill-name              # only if deprecated: true
 When a skill becomes outdated or is superseded:
 
 1. Add `deprecated: true` and `replaced_by: <new-skill>` to the old skill's frontmatter.
-2. Add a `> ⚠️ Deprecated in vX.Y.Z — use [new-skill](../new-skill/SKILL.md) instead.` notice at the top of the file body.
+2. Add a `> ⚠️ Deprecated in vX.Y.Z — use [new-skill](../<new-skill>/SKILL.md) instead.` notice at the top of the file body.
 3. Keep the deprecated file for **2 minor versions** before deletion (grace period for users with the old pack installed).
 4. Do NOT delete the skills-lock entry until the file is deleted.
 5. Update `CHANGELOG.md` with the deprecation notice.
