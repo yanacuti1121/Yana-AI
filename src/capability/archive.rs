@@ -112,7 +112,12 @@ fn inspect_zip_observation(zip_path: &Path) -> Result<ZipInspection, CapabilityE
         let entry = archive.by_index(i).map_err(|e| CapabilityError::InvalidInput {
             detail: format!("reading archive entry {i}: {e}"),
         })?;
-        let name = entry.name().to_string();
+        let name = entry
+            .name()
+            .map_err(|e| CapabilityError::InvalidInput {
+                detail: format!("reading archive entry {i} name: {e}"),
+            })?
+            .to_string();
         let uncompressed = entry.size();
         let compressed = entry.compressed_size();
 
@@ -188,7 +193,12 @@ fn extract_zip_observation(zip_path: &Path, dest_root: &Path) -> Result<Extracti
         let mut entry = archive.by_index(i).map_err(|e| CapabilityError::InvalidInput {
             detail: format!("reading archive entry {i}: {e}"),
         })?;
-        let name = entry.name().to_string();
+        let name = entry
+            .name()
+            .map_err(|e| CapabilityError::InvalidInput {
+                detail: format!("reading archive entry {i} name: {e}"),
+            })?
+            .to_string();
 
         if entry.is_symlink() {
             return Err(CapabilityError::InvalidInput {
