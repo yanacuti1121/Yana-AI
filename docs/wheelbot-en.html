@@ -183,58 +183,82 @@
       <p class="lead-text" style="margin:0 auto 20px;">Open-source ESP32-S3 robot branch of the Yana ecosystem: Connecting AI models via WebSocket + MCP protocol, equipped with ToF cliff-sensors and 3D-printable Bambu Studio kit.</p>
     </section>
 
-    <!-- Showcase Cards -->
-    <section class="wb-showcase-grid">
+    <!-- Showcase Cards with 3D depth and mouse spotlight -->
+    <section class="wb-showcase-grid perspective-container-2026">
       
       <!-- Concept Robot -->
-      <div class="wb-media-card">
-        <img src="assets/yana-wheelbot-concept-v2.jpg" alt="Yana Wheelbot Concept Art" loading="eager">
-        <h2 class="wb-media-title">Concept Yana Wheelbot 2026</h2>
-        <p class="wb-media-desc">Mẫu thiết kế 2 bánh vi sai linh hoạt, màn hình hiển thị cảm xúc ST7735 và cụm cảm biến ToF phía trước.</p>
-        <a href="downloads/yana-wheelbot-firmware.bin" class="wb-action-btn">
-          Tải Firmware (.bin) ↓
-        </a>
+      <div class="wb-media-card has-glow-2026 card-3d-interactive">
+        <div style="position: relative;">
+          <img src="assets/yana-wheelbot-concept-v2.jpg" alt="Yana Wheelbot Concept Art" loading="eager">
+          <span class="organic-badge-pulse" style="position: absolute; top: 14px; left: 14px; background: rgba(255,255,255,0.95); backdrop-filter: blur(4px);">
+            ESP32-S3 Physical AI
+          </span>
+          <span class="hand-note-tag" style="position: absolute; bottom: 22px; right: 16px; background: rgba(254, 243, 199, 0.95); padding: 4px 10px; border-radius: 8px; border: 1px dashed #d97706; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+            ← ST7735 expressive screen!
+          </span>
+        </div>
+        <h2 class="wb-media-title">Yana Wheelbot 2026 Concept</h2>
+        <p class="wb-media-desc">Differential two-wheel drive chassis, ST7735 emotional screen and forward ToF cliff-detection array.</p>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <a href="downloads/yana-wheelbot-firmware.bin" class="btn-spring-2026 btn-spring-primary" style="padding: 10px 20px; font-size: 13.5px;">
+            Download Firmware (.bin) ↓
+          </a>
+          <span style="font-size: 12.5px; color: #64748b; font-family: var(--font-mono);">v1.2.0 · Port 8080</span>
+        </div>
       </div>
 
       <!-- File in 3D Bambu Studio -->
-      <div class="wb-media-card">
-        <img src="assets/yana-wheelbot-print-plates.png" alt="Bộ 15 tấm in Bambu Studio" loading="lazy">
-        <h2 class="wb-media-title">Bộ chi tiết in 3D (Bambu Studio)</h2>
-        <p class="wb-media-desc">15 bàn in chi tiết vỏ và khung đỡ động cơ servo được dàn trang sẵn sàng để in trực tiếp trên máy in 3D.</p>
-        <a href="downloads/yana-wheelbot-print-kit.3mf" class="wb-action-btn">
-          Tải Kit in 3D (.3mf) ↓
-        </a>
+      <div class="wb-media-card has-glow-2026 card-3d-interactive">
+        <div style="position: relative;">
+          <img src="assets/yana-wheelbot-print-plates.png" alt="15 Bambu Studio Print Plates" loading="lazy">
+          <span class="organic-badge-pulse" style="position: absolute; top: 14px; left: 14px; background: rgba(255,255,255,0.95); backdrop-filter: blur(4px);">
+            Bambu Lab 3MF
+          </span>
+          <span class="hand-note-tag" style="position: absolute; bottom: 22px; right: 16px; background: rgba(239, 246, 255, 0.95); color: #2563eb; padding: 4px 10px; border-radius: 8px; border: 1px dashed #3b82f6; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+            ← 15 plates ready to 3D print!
+          </span>
+        </div>
+        <h2 class="wb-media-title">3D Print Assembly Kit (Bambu Studio)</h2>
+        <p class="wb-media-desc">15 layout plates of chassis, enclosures, and servo mount brackets prepared for direct home 3D printing.</p>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <a href="downloads/yana-wheelbot-print-kit.3mf" class="btn-spring-2026 btn-spring-secondary" style="padding: 10px 20px; font-size: 13.5px;">
+            Download 3D Kit (.3mf) ↓
+          </a>
+          <span style="font-size: 12.5px; color: #64748b; font-family: var(--font-mono);">15 Plates · PLA / PETG</span>
+        </div>
       </div>
 
     </section>
 
-    <!-- Bảng thông số kỹ thuật -->
-    <div class="spec-grid">
-      <div class="spec-card">
-        <small>VI ĐIỀU KHIỂN</small>
+    <!-- Technical Specifications 3D Tiles -->
+    <div class="spec-grid perspective-container-2026">
+      <div class="spec-card has-glow-2026 card-3d-interactive">
+        <small>MICROCONTROLLER</small>
         <strong>ESP32-S3 N16R8</strong>
-        <p>Vi xử lý 2 nhân 240MHz, 16MB Flash, 8MB PSRAM cho xử lý giao thức AI tại chỗ.</p>
+        <p>Dual-core 240MHz MCU, 16MB Flash, 8MB PSRAM for local low-latency AI protocol parsing.</p>
       </div>
-      <div class="spec-card">
-        <small>CẢM BIẾN CHỐNG RƠI</small>
+      <div class="spec-card has-glow-2026 card-3d-interactive">
+        <small>CLIFF DETECTION SENSOR</small>
         <strong>VL53L0X Time-of-Flight</strong>
-        <p>Đo khoảng cách laser chính xác theo thời gian thực, tự động kích hoạt phanh an toàn khi đến mép bàn.</p>
+        <p>Real-time laser distance measurement, triggering automated emergency braking before edge drops.</p>
       </div>
-      <div class="spec-card">
-        <small>GIAO THỨC ĐIỀU KHIỂN</small>
+      <div class="spec-card has-glow-2026 card-3d-interactive">
+        <small>CONTROL PROTOCOL</small>
         <strong>WebSocket + MCP Subset</strong>
-        <p>Giao tiếp trực tiếp với Yana Studio qua mạng LAN nội bộ an toàn (Cổng 8080 JSON-RPC 2.0).</p>
+        <p>Direct communication with Yana Studio across secure local LAN (Port 8080 JSON-RPC 2.0).</p>
       </div>
-      <div class="spec-card">
-        <small>NGUỒN GỐC THIẾT KẾ</small>
+      <div class="spec-card has-glow-2026 card-3d-interactive">
+        <small>DESIGN HERITAGE</small>
         <strong>Kênh Sáng Tạo Reference</strong>
-        <p>Kế thừa và mở rộng từ thiết kế KST AI Robot, bổ sung ranh giới an toàn và lớp điều khiển thông minh.</p>
+        <p>Extended from KST AI Robot architecture, enhanced with hardware safety gates and supervised control.</p>
       </div>
     </div>
   </main>
 
   <footer style="text-align:center;padding:40px;color:#64748b;font-size:14px;border-top:1px solid #e2e8f0;background:#f8fafc;">
-    <p>© 2026 Yana AI. Bản quyền thuộc về Vũ Văn Tâm. AI làm việc · Bạn giữ quyền.</p>
+    <p>© 2026 Yana AI. Built by Vu Van Tam. AI executes · You hold the authority.</p>
   </footer>
+
+  <script src="assets/site26.js"></script>
 </body>
 </html>

@@ -183,49 +183,71 @@
       <p class="lead-text" style="margin:0 auto 20px;">Nhánh robot ESP32-S3 mã nguồn mở của hệ sinh thái Yana: Kết nối model AI qua WebSocket + MCP protocol, trang bị cảm biến ToF chống rơi và bộ khung in 3D Bambu Studio.</p>
     </section>
 
-    <!-- Showcase Cards -->
-    <section class="wb-showcase-grid">
+    <!-- Showcase Cards có chiều sâu 3D và vệt sáng chuột -->
+    <section class="wb-showcase-grid perspective-container-2026">
       
       <!-- Concept Robot -->
-      <div class="wb-media-card">
-        <img src="assets/yana-wheelbot-concept-v2.jpg" alt="Yana Wheelbot Concept Art" loading="eager">
+      <div class="wb-media-card has-glow-2026 card-3d-interactive">
+        <div style="position: relative;">
+          <img src="assets/yana-wheelbot-concept-v2.jpg" alt="Yana Wheelbot Concept Art" loading="eager">
+          <span class="organic-badge-pulse" style="position: absolute; top: 14px; left: 14px; background: rgba(255,255,255,0.95); backdrop-filter: blur(4px);">
+            ESP32-S3 AI Physical
+          </span>
+          <span class="hand-note-tag" style="position: absolute; bottom: 22px; right: 16px; background: rgba(254, 243, 199, 0.95); padding: 4px 10px; border-radius: 8px; border: 1px dashed #d97706; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+            ← Biểu cảm màn hình ST7735!
+          </span>
+        </div>
         <h2 class="wb-media-title">Concept Yana Wheelbot 2026</h2>
         <p class="wb-media-desc">Mẫu thiết kế 2 bánh vi sai linh hoạt, màn hình hiển thị cảm xúc ST7735 và cụm cảm biến ToF phía trước.</p>
-        <a href="downloads/yana-wheelbot-firmware.bin" class="wb-action-btn">
-          Tải Firmware (.bin) ↓
-        </a>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <a href="downloads/yana-wheelbot-firmware.bin" class="btn-spring-2026 btn-spring-primary" style="padding: 10px 20px; font-size: 13.5px;">
+            Tải Firmware (.bin) ↓
+          </a>
+          <span style="font-size: 12.5px; color: #64748b; font-family: var(--font-mono);">v1.2.0 · Cổng 8080</span>
+        </div>
       </div>
 
       <!-- File in 3D Bambu Studio -->
-      <div class="wb-media-card">
-        <img src="assets/yana-wheelbot-print-plates.png" alt="Bộ 15 tấm in Bambu Studio" loading="lazy">
+      <div class="wb-media-card has-glow-2026 card-3d-interactive">
+        <div style="position: relative;">
+          <img src="assets/yana-wheelbot-print-plates.png" alt="Bộ 15 tấm in Bambu Studio" loading="lazy">
+          <span class="organic-badge-pulse" style="position: absolute; top: 14px; left: 14px; background: rgba(255,255,255,0.95); backdrop-filter: blur(4px);">
+            Bambu Lab 3MF
+          </span>
+          <span class="hand-note-tag" style="position: absolute; bottom: 22px; right: 16px; background: rgba(239, 246, 255, 0.95); color: #2563eb; padding: 4px 10px; border-radius: 8px; border: 1px dashed #3b82f6; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+            ← 15 tấm in sẵn tại nhà!
+          </span>
+        </div>
         <h2 class="wb-media-title">Bộ chi tiết in 3D (Bambu Studio)</h2>
         <p class="wb-media-desc">15 bàn in chi tiết vỏ và khung đỡ động cơ servo được dàn trang sẵn sàng để in trực tiếp trên máy in 3D.</p>
-        <a href="downloads/yana-wheelbot-print-kit.3mf" class="wb-action-btn">
-          Tải Kit in 3D (.3mf) ↓
-        </a>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <a href="downloads/yana-wheelbot-print-kit.3mf" class="btn-spring-2026 btn-spring-secondary" style="padding: 10px 20px; font-size: 13.5px;">
+            Tải Kit in 3D (.3mf) ↓
+          </a>
+          <span style="font-size: 12.5px; color: #64748b; font-family: var(--font-mono);">15 Plates · PLA / PETG</span>
+        </div>
       </div>
 
     </section>
 
-    <!-- Bảng thông số kỹ thuật -->
-    <div class="spec-grid">
-      <div class="spec-card">
+    <!-- Bảng thông số kỹ thuật 3D Tiles -->
+    <div class="spec-grid perspective-container-2026">
+      <div class="spec-card has-glow-2026 card-3d-interactive">
         <small>VI ĐIỀU KHIỂN</small>
         <strong>ESP32-S3 N16R8</strong>
         <p>Vi xử lý 2 nhân 240MHz, 16MB Flash, 8MB PSRAM cho xử lý giao thức AI tại chỗ.</p>
       </div>
-      <div class="spec-card">
+      <div class="spec-card has-glow-2026 card-3d-interactive">
         <small>CẢM BIẾN CHỐNG RƠI</small>
         <strong>VL53L0X Time-of-Flight</strong>
         <p>Đo khoảng cách laser chính xác theo thời gian thực, tự động kích hoạt phanh an toàn khi đến mép bàn.</p>
       </div>
-      <div class="spec-card">
+      <div class="spec-card has-glow-2026 card-3d-interactive">
         <small>GIAO THỨC ĐIỀU KHIỂN</small>
         <strong>WebSocket + MCP Subset</strong>
         <p>Giao tiếp trực tiếp với Yana Studio qua mạng LAN nội bộ an toàn (Cổng 8080 JSON-RPC 2.0).</p>
       </div>
-      <div class="spec-card">
+      <div class="spec-card has-glow-2026 card-3d-interactive">
         <small>NGUỒN GỐC THIẾT KẾ</small>
         <strong>Kênh Sáng Tạo Reference</strong>
         <p>Kế thừa và mở rộng từ thiết kế KST AI Robot, bổ sung ranh giới an toàn và lớp điều khiển thông minh.</p>
@@ -236,5 +258,7 @@
   <footer style="text-align:center;padding:40px;color:#64748b;font-size:14px;border-top:1px solid #e2e8f0;background:#f8fafc;">
     <p>© 2026 Yana AI. Bản quyền thuộc về Vũ Văn Tâm. AI làm việc · Bạn giữ quyền.</p>
   </footer>
+
+  <script src="assets/site26.js"></script>
 </body>
 </html>
