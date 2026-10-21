@@ -1,227 +1,246 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Changelog / Updates — Yana AI 2026</title>
-  <meta name="description" content="Ecosystem release history, updates for Yana AI, Yana Studio, Wheelbot and official announcements.">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Changelog & Release Updates — Yana AI 2026</title>
   <link rel="icon" type="image/svg+xml" href="yana-mark.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/site26.css">
   <link rel="stylesheet" href="assets/studio26.css">
   <style>
-    .site26-nav {
+    .updates-hero {
+      text-align: center;
+      padding: 120px 24px 30px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .timeline-container {
+      max-width: 900px;
+      margin: 40px auto 80px;
+      padding: 0 24px;
+      position: relative;
+    }
+    .timeline-item {
+      position: relative;
+      padding-left: 40px;
+      margin-bottom: 40px;
+    }
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: 7px;
+      top: 10px;
+      bottom: -40px;
+      width: 2px;
+      background: #e2e8f0;
+    }
+    .timeline-item:last-child::before {
+      display: none;
+    }
+    .timeline-dot {
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #2563eb;
+      box-shadow: 0 0 0 4px rgba(37,99,235,0.2);
+    }
+    .timeline-card {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 4px 20px -2px rgba(0,0,0,0.03);
+    }
+    .timeline-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .version-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 14px;
+      color: #2563eb;
+      background: #eff6ff;
+      padding: 4px 12px;
+      border-radius: 9999px;
+    }
+    .date-tag {
+      font-size: 13.5px;
+      color: #64748b;
+      font-weight: 500;
+    }
+    .timeline-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0 0 10px;
+    }
+    .timeline-body {
+      font-size: 14.5px;
+      color: #475569;
+      line-height: 1.6;
+    }
+    .timeline-body ul {
+      margin: 10px 0 0;
+      padding-left: 20px;
+    }
+    .timeline-body li {
+      margin-bottom: 6px;
+    }
+    .studio26-nav {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      width: calc(100% - 40px);
       max-width: 1040px;
-      margin: 16px auto;
-      background: rgba(255, 255, 255, 0.88);
-      border: 1px solid rgba(226, 232, 240, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
       border-radius: 9999px;
       padding: 10px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 4px 20px -2px rgba(0,0,0,0.04);
     }
-    .nav-brand {
+    .brand-link {
       display: flex;
       align-items: center;
       gap: 10px;
-      text-decoration: none;
-      color: #0f172a;
       font-weight: 700;
-      font-size: 16px;
+      font-size: 17px;
+      color: #0f172a;
+      text-decoration: none;
     }
-    .nav-links {
+    .nav-menu {
       display: flex;
       align-items: center;
       gap: 20px;
-      list-style: none;
-      margin: 0;
-      padding: 0;
     }
-    .nav-links a {
+    .nav-menu a {
       text-decoration: none;
       color: #475569;
-      font-weight: 500;
       font-size: 14px;
-      transition: color 0.15s ease;
-    }
-    .nav-links a:hover {
-      color: #2563eb;
-    }
-    .nav-cta {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .btn-nav-primary {
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
-      color: #fff !important;
-      padding: 8px 18px;
-      border-radius: 9999px;
-      font-size: 13.5px;
       font-weight: 600;
-      text-decoration: none;
-      box-shadow: 0 4px 12px rgba(37,99,235,0.25);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      transition: color 0.15s;
     }
-    .btn-nav-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(37,99,235,0.35);
-    }
-    .lang-switch-badge {
-      font-size: 12px;
-      color: #64748b;
-      text-decoration: none;
-      padding: 4px 10px;
-      border: 1px solid #cbd5e1;
-      border-radius: 9999px;
-      font-weight: 600;
-    }
-    .lang-switch-badge:hover {
-      border-color: #2563eb;
+    .nav-menu a:hover {
       color: #2563eb;
-    }
-    .doc-hero {
-      max-width: 900px;
-      margin: 48px auto 32px;
-      text-align: center;
-      padding: 0 20px;
-    }
-    .doc-badge {
-      display: inline-block;
-      padding: 4px 14px;
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      color: #2563eb;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      border-radius: 9999px;
-      margin-bottom: 16px;
-    }
-    .doc-title {
-      font-size: clamp(28px, 4.5vw, 44px);
-      font-weight: 800;
-      color: #0f172a;
-      letter-spacing: -0.02em;
-      line-height: 1.2;
-      margin: 0 0 16px;
-    }
-    .doc-lead {
-      font-size: 17px;
-      line-height: 1.6;
-      color: #475569;
-      max-width: 680px;
-      margin: 0 auto;
-    }
-    .doc-container {
-      max-width: 960px;
-      margin: 0 auto 80px;
-      padding: 0 24px;
-    }
-    .doc-main-body {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 20px;
-      padding: 36px 40px;
-      box-shadow: 0 10px 30px -5px rgba(0,0,0,0.03);
-    }
-    .doc-main-body h2 {
-      font-size: 22px;
-      font-weight: 700;
-      color: #0f172a;
-      margin: 32px 0 14px;
-      border-bottom: 1px solid #f1f5f9;
-      padding-bottom: 8px;
-    }
-    .doc-main-body h2:first-child {
-      margin-top: 0;
-    }
-    .doc-main-body p, .doc-main-body li {
-      font-size: 15px;
-      line-height: 1.7;
-      color: #334155;
-    }
-    .doc-main-body code {
-      font-family: var(--font-mono);
-      background: #f1f5f9;
-      padding: 2px 6px;
-      border-radius: 6px;
-      font-size: 13.5px;
-      color: #0f172a;
-    }
-    .site26-footer {
-      border-top: 1px solid #e2e8f0;
-      padding: 40px 24px;
-      text-align: center;
-      color: #64748b;
-      font-size: 13.5px;
-      background: #f8fafc;
-    }
-    .site26-footer a {
-      color: #2563eb;
-      text-decoration: none;
-      margin: 0 8px;
     }
   </style>
 </head>
-<body class="site26-body">
+<body class="sakura-site home-page">
   <div class="site26-bg-canvas" aria-hidden="true"></div>
 
-  <header class="site26-nav-wrap">
-    <nav class="site26-nav" aria-label="Điều hướng chính">
-      <a href="index.html" class="nav-brand">
-        <img src="assets/yana-rabbit-app-icon.png" alt="Yana Logo" width="30" height="30">
-        <span>Yana <small style="font-weight:400;color:#64748b;">2026</small></span>
-      </a>
-      <ul class="nav-links">
-        <li><a href="index.html">Trang chủ</a></li>
-        <li><a href="studio.html">Studio IDE</a></li>
-        <li><a href="wheelbot.html">Wheelbot</a></li>
-        <li><a href="updates.html">Updates</a></li>
-        <li><a href="support.html">Support</a></li>
-      </ul>
-      <div class="nav-cta">
-        <a href="updates.html" class="lang-switch-badge">Tiếng Việt ↗</a>
-        <a href="download.html" class="btn-nav-primary">Download Studio</a>
-      </div>
-    </nav>
-  </header>
-
-  <main class="site26-main">
-    <div class="doc-hero">
-      <div class="doc-badge">CHANGELOG & TIMELINE</div>
-      <h1 class="doc-title">All updates in one place.</h1>
-      <p class="doc-lead">Ecosystem release history, updates for Yana AI, Yana Studio, Wheelbot and official announcements.</p>
+  <nav class="studio26-nav">
+    <a href="index.html" class="brand-link">
+      <img src="assets/yana-rabbit-app-icon.png" alt="Yana Logo" width="30" height="30">
+      <span>Yana <small style="font-weight:400;color:#64748b;">Changelog</small></span>
+    </a>
+    <div class="nav-menu">
+      <a href="index.html">Trang chủ</a>
+      <a href="studio.html">Studio IDE</a>
+      <a href="wheelbot.html">Wheelbot</a>
+      <a href="updates.html" style="color:#2563eb;">Updates</a>
+      <a href="support.html">Support</a>
     </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="updates.html" style="font-size:12px;font-weight:700;color:#64748b;border:1px solid #cbd5e1;padding:4px 12px;border-radius:9999px;text-decoration:none;">Tiếng Việt ↗</a>
+      <a href="download.html" class="btn-spring-2026 btn-spring-primary" style="padding:8px 18px;font-size:13.5px;">Get Studio</a>
+    </div>
+  </nav>
 
-    <div class="doc-container">
-      <div class="doc-main-body">
-        
-<section class="updates-section" aria-labelledby="updates-channels"><div class="updates-section-head"><p class="eyebrow">01 / PROJECTS</p><h2 id="updates-channels">Projects we follow</h2><p>Each project reads versions from its own repository Releases page.</p></div><div class="updates-grid"><article class="update-card" data-update-card="core"><div class="update-card-top"><span class="update-number">01</span><span class="update-source">GITHUB RELEASES</span></div><h3>Yana AI</h3><p class="update-value" data-update-value>Checking…</p><p class="update-date" data-update-date></p><a class="update-link" href="https://github.com/yanacuti1121/Yana-AI/releases" data-update-link>Open Releases ↗</a></article><article class="update-card" data-update-card="wheelbot"><div class="update-card-top"><span class="update-number">02</span><span class="update-source">GITHUB RELEASES</span></div><h3>Yana Wheelbot</h3><p class="update-value" data-update-value>Checking…</p><p class="update-date" data-update-date></p><a class="update-link" href="https://github.com/yanacuti1121/yana-wheelbot/releases" data-update-link>Open Releases ↗</a></article><article class="update-card" data-update-card="terminal"><div class="update-card-top"><span class="update-number">03</span><span class="update-source">GITHUB RELEASES</span></div><h3>Yana AI Chat Terminal</h3><p class="update-value" data-update-value>Checking…</p><p class="update-date" data-update-date></p><a class="update-link" href="https://github.com/yanacuti1121/Yana-AI-Chat_Teminal/releases" data-update-link>Open Releases ↗</a></article></div></section>
-<section class="updates-section updates-feed-section" aria-labelledby="updates-feed"><div class="updates-section-head"><p class="eyebrow">02 / RELEASES</p><h2 id="updates-feed">Complete update history</h2><p>Every public Release from the three projects, plus Yana announcements, dated and linked for details.</p></div><ol class="updates-feed" data-updates-feed><li>Checking…</li></ol></section>
-<section class="updates-section updates-announcements" aria-labelledby="updates-posts"><div class="updates-section-head updates-section-head--split"><div><p class="eyebrow">03 / ANNOUNCEMENTS</p><h2 id="updates-posts">Yana announcements</h2><p>Additional updates written and published by the project owner.</p></div><a class="updates-editor" href="https://github.com/yanacuti1121/Yana-AI/edit/main/docs/updates-announcements.json" target="_blank" rel="noopener noreferrer">Write an announcement ↗</a></div><div class="updates-post-list" data-updates-posts><p>Checking…</p></div></section>
-<section class="updates-section updates-future" aria-labelledby="updates-future"><div class="updates-section-head"><p class="eyebrow">04 / NEXT</p><h2 id="updates-future">More to come</h2><p>Other Yana projects will appear when their official repositories are public.</p></div><div class="updates-future-grid"><article><span>04</span><h3>Unannounced project</h3></article><article><span>05</span><h3>Unannounced project</h3></article></div><p class="updates-note">Only public Releases count as versions. Maintainer announcements come from a website content file and appear after the website is updated.</p></section>
+  <main>
+    <section class="updates-hero">
+      <div class="floating-hero-pill">
+        <span>⏱ Nhật ký phát hành liên tục</span>
+        <span style="opacity: 0.4;">·</span>
+        <span style="color: #059669;">GitHub Verified</span>
       </div>
+      <h1 class="studio-hero-2026" style="padding:0;margin:16px 0 20px;">All updates in one place.<br><span class="text-rainbow-2026">Ecosystem Release History.</span></h1>
+      <p class="lead-text" style="margin:0 auto 20px;">Follow public releases of Yana AI, Yana Studio, Wheelbot and ongoing announcements directly from the author.</p>
+    </section>
+
+    <!-- Timeline các mốc phát hành -->
+    <div class="timeline-container">
+      
+      <!-- v1.7.0 -->
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-card">
+          <div class="timeline-header">
+            <span class="version-tag">✨ Yana Studio v1.7.0</span>
+            <span class="date-tag">21 Tháng 10, 2026</span>
+          </div>
+          <h2 class="timeline-title">Bản nâng cấp toàn diện IDE Code-OSS & Giao diện mới 2026</h2>
+          <div class="timeline-body">
+            <ul>
+              <li><strong>UI Redesign 2026:</strong> Thiết kế buồng lái Cockpit với 13 tab cấu hình hoàn chỉnh (Account, Models, Usage, Customizations, Browser, Editor...).</li>
+              <li><strong>App Icon Thỏ Yana:</strong> Biểu tượng chính thức macOS Apple Silicon với độ phân giải siêu nét (Retina).</li>
+              <li><strong>Tối ưu hóa bảo mật:</strong> Vượt qua toàn diện kiểm tra an ninh CodeQL, Dependabot 0 vulnerabilities và nâng cấp khóa hạt nhân flock-v1.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- v1.5.2 -->
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background:#059669;"></div>
+        <div class="timeline-card">
+          <div class="timeline-header">
+            <span class="version-tag" style="color:#059669;background:#ecfdf5;">📦 Yana AI PyPI & Runtime v1.5.2</span>
+            <span class="date-tag">21 Tháng 10, 2026</span>
+          </div>
+          <h2 class="timeline-title">Cập nhật gói phân phối PyPI và khóa hạt nhân flock-v1</h2>
+          <div class="timeline-body">
+            <ul>
+              <li>Phát hành chính thức <code>yana-ai 1.5.2</code> trên PyPI, loại bỏ triệt để release drift.</li>
+              <li>Tối ưu đóng gói các module cốt lõi <code>core/lib</code>, <code>core/adapters</code> và bảo vệ an toàn tệp phiên.</li>
+              <li>Xác thực 100% các bài test khóa file đa luồng và đồng bộ runtime <code>yana-rt</code>.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wheelbot Prototype -->
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background:#d97706;"></div>
+        <div class="timeline-card">
+          <div class="timeline-header">
+            <span class="version-tag" style="color:#d97706;background:#fef3c7;">🤖 Yana Wheelbot Firmware v1.0.0</span>
+            <span class="date-tag">Tháng 9, 2026</span>
+          </div>
+          <h2 class="timeline-title">Firmware nhúng ESP32-S3 & Bộ in 3D Bambu Studio</h2>
+          <div class="timeline-body">
+            <ul>
+              <li>Hoàn thiện firmware điều khiển vi sai ESP32-S3 với cảm biến ToF VL53L0X.</li>
+              <li>Giao thức kết nối WebSocket + MCP subset hoạt động qua mạng LAN tin cậy.</li>
+              <li>Bộ tệp in 3D 15 chi tiết (.3mf) sẵn sàng tải về cho cộng đồng maker.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
     </div>
   </main>
 
-  <footer class="site26-footer">
+  <footer style="text-align:center;padding:40px;color:#64748b;font-size:14px;border-top:1px solid #e2e8f0;background:#f8fafc;">
     <p>© 2026 Yana AI. Bản quyền thuộc về Vũ Văn Tâm. AI làm việc · Bạn giữ quyền.</p>
-    <p>
-      <a href="index.html">Trang chủ</a> ·
-      <a href="studio.html">Yana Studio</a> ·
-      <a href="wheelbot.html">Wheelbot</a> ·
-      <a href="updates.html">Changelog</a> ·
-      <a href="support.html">Hỗ trợ</a> ·
-      <a href="download.html">Tải về</a> ·
-      <a href="https://github.com/yanacuti1121/Yana-AI" target="_blank" rel="noopener">GitHub ↗</a>
-    </p>
   </footer>
 </body>
 </html>

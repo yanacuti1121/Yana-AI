@@ -1,271 +1,327 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Download Yana Studio — Yana AI 2026</title>
-  <meta name="description" content="Native Code-OSS IDE installers for macOS (Apple Silicon M1-M5), Windows, and Linux.">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Download Yana Studio (v1.7.0) — Native Code-OSS IDE 2026</title>
   <link rel="icon" type="image/svg+xml" href="yana-mark.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/site26.css">
   <link rel="stylesheet" href="assets/studio26.css">
   <style>
-    .site26-nav {
-      max-width: 1040px;
-      margin: 16px auto;
+    .download-hero {
+      text-align: center;
+      padding: 120px 24px 40px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .dl-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      max-width: 1080px;
+      margin: 40px auto 60px;
+      padding: 0 24px;
+    }
+    .dl-card {
       background: rgba(255, 255, 255, 0.88);
-      border: 1px solid rgba(226, 232, 240, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: 28px;
+      padding: 32px 28px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.04);
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+    }
+    .dl-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px -12px rgba(37,99,235,0.12);
+      border-color: #bfdbfe;
+    }
+    .dl-card.featured {
+      border: 2px solid #2563eb;
+      background: linear-gradient(180deg, rgba(239,246,255,0.8) 0%, rgba(255,255,255,0.95) 100%);
+    }
+    .dl-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      margin-bottom: 16px;
+      width: fit-content;
+    }
+    .dl-card.featured .dl-badge {
+      background: #2563eb;
+      color: #fff;
+    }
+    .dl-card:not(.featured) .dl-badge {
+      background: #f1f5f9;
+      color: #475569;
+    }
+    .dl-os-title {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--ink-primary);
+      margin: 0 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .dl-os-desc {
+      font-size: 14.5px;
+      color: #64748b;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    .dl-btn-group {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .dl-main-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #2563eb;
+      color: #ffffff !important;
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
+      padding: 14px 20px;
+      border-radius: 16px;
+      text-decoration: none;
+      box-shadow: 0 6px 20px -4px rgba(37,99,235,0.4);
+      transition: all 0.15s ease;
+    }
+    .dl-main-btn:hover {
+      background: #1d4ed8;
+      transform: scale(1.02);
+    }
+    .dl-sub-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #334155 !important;
+      font-size: 13.5px;
+      font-weight: 600;
+      padding: 10px 16px;
+      border-radius: 14px;
+      text-decoration: none;
+      transition: background 0.15s ease;
+    }
+    .dl-sub-btn:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+    .device-preview-card {
+      max-width: 980px;
+      margin: 0 auto 80px;
+      padding: 0 24px;
+    }
+    .studio26-nav {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      width: calc(100% - 40px);
+      max-width: 1040px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
       border-radius: 9999px;
       padding: 10px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 4px 20px -2px rgba(0,0,0,0.04);
     }
-    .nav-brand {
+    .brand-link {
       display: flex;
       align-items: center;
       gap: 10px;
-      text-decoration: none;
-      color: #0f172a;
       font-weight: 700;
-      font-size: 16px;
+      font-size: 17px;
+      color: #0f172a;
+      text-decoration: none;
     }
-    .nav-links {
+    .nav-menu {
       display: flex;
       align-items: center;
       gap: 20px;
-      list-style: none;
-      margin: 0;
-      padding: 0;
     }
-    .nav-links a {
+    .nav-menu a {
       text-decoration: none;
       color: #475569;
-      font-weight: 500;
       font-size: 14px;
-      transition: color 0.15s ease;
-    }
-    .nav-links a:hover {
-      color: #2563eb;
-    }
-    .nav-cta {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .btn-nav-primary {
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
-      color: #fff !important;
-      padding: 8px 18px;
-      border-radius: 9999px;
-      font-size: 13.5px;
       font-weight: 600;
-      text-decoration: none;
-      box-shadow: 0 4px 12px rgba(37,99,235,0.25);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      transition: color 0.15s;
     }
-    .btn-nav-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(37,99,235,0.35);
-    }
-    .lang-switch-badge {
-      font-size: 12px;
-      color: #64748b;
-      text-decoration: none;
-      padding: 4px 10px;
-      border: 1px solid #cbd5e1;
-      border-radius: 9999px;
-      font-weight: 600;
-    }
-    .lang-switch-badge:hover {
-      border-color: #2563eb;
+    .nav-menu a:hover {
       color: #2563eb;
     }
-    .doc-hero {
-      max-width: 900px;
-      margin: 48px auto 32px;
-      text-align: center;
-      padding: 0 20px;
-    }
-    .doc-badge {
-      display: inline-block;
-      padding: 4px 14px;
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      color: #2563eb;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      border-radius: 9999px;
-      margin-bottom: 16px;
-    }
-    .doc-title {
-      font-size: clamp(28px, 4.5vw, 44px);
-      font-weight: 800;
-      color: #0f172a;
-      letter-spacing: -0.02em;
-      line-height: 1.2;
-      margin: 0 0 16px;
-    }
-    .doc-lead {
-      font-size: 17px;
-      line-height: 1.6;
-      color: #475569;
-      max-width: 680px;
-      margin: 0 auto;
-    }
-    .doc-container {
-      max-width: 960px;
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      max-width: 1080px;
       margin: 0 auto 80px;
       padding: 0 24px;
     }
-    .doc-main-body {
-      background: #ffffff;
+    .info-card {
+      background: rgba(255, 255, 255, 0.85);
       border: 1px solid #e2e8f0;
       border-radius: 20px;
-      padding: 36px 40px;
-      box-shadow: 0 10px 30px -5px rgba(0,0,0,0.03);
+      padding: 24px;
     }
-    .doc-main-body h2 {
-      font-size: 22px;
+    .info-card h3 {
+      font-size: 17px;
       font-weight: 700;
       color: #0f172a;
-      margin: 32px 0 14px;
-      border-bottom: 1px solid #f1f5f9;
-      padding-bottom: 8px;
+      margin: 0 0 8px;
     }
-    .doc-main-body h2:first-child {
-      margin-top: 0;
-    }
-    .doc-main-body p, .doc-main-body li {
-      font-size: 15px;
-      line-height: 1.7;
-      color: #334155;
-    }
-    .doc-main-body code {
-      font-family: var(--font-mono);
-      background: #f1f5f9;
-      padding: 2px 6px;
-      border-radius: 6px;
-      font-size: 13.5px;
-      color: #0f172a;
-    }
-    .site26-footer {
-      border-top: 1px solid #e2e8f0;
-      padding: 40px 24px;
-      text-align: center;
+    .info-card p {
+      font-size: 14px;
       color: #64748b;
-      font-size: 13.5px;
-      background: #f8fafc;
-    }
-    .site26-footer a {
-      color: #2563eb;
-      text-decoration: none;
-      margin: 0 8px;
+      line-height: 1.6;
+      margin: 0;
     }
   </style>
 </head>
-<body class="site26-body">
+<body class="sakura-site home-page">
   <div class="site26-bg-canvas" aria-hidden="true"></div>
 
-  <header class="site26-nav-wrap">
-    <nav class="site26-nav" aria-label="Điều hướng chính">
-      <a href="index.html" class="nav-brand">
-        <img src="assets/yana-rabbit-app-icon.png" alt="Yana Logo" width="30" height="30">
-        <span>Yana <small style="font-weight:400;color:#64748b;">2026</small></span>
-      </a>
-      <ul class="nav-links">
-        <li><a href="index.html">Trang chủ</a></li>
-        <li><a href="studio.html">Studio IDE</a></li>
-        <li><a href="wheelbot.html">Wheelbot</a></li>
-        <li><a href="updates.html">Updates</a></li>
-        <li><a href="support.html">Support</a></li>
-      </ul>
-      <div class="nav-cta">
-        <a href="download.html" class="lang-switch-badge">Tiếng Việt ↗</a>
-        <a href="download.html" class="btn-nav-primary">Download Studio</a>
-      </div>
-    </nav>
-  </header>
-
-  <main class="site26-main">
-    <div class="doc-hero">
-      <div class="doc-badge">DESKTOP APPLICATION</div>
-      <h1 class="doc-title">Download Yana Studio (v1.7.0).</h1>
-      <p class="doc-lead">Native Code-OSS IDE installers for macOS (Apple Silicon M1-M5), Windows, and Linux.</p>
+  <nav class="studio26-nav">
+    <a href="index.html" class="brand-link">
+      <img src="assets/yana-rabbit-app-icon.png" alt="Yana Logo" width="30" height="30">
+      <span>Yana <small style="font-weight:400;color:#64748b;">Studio</small></span>
+    </a>
+    <div class="nav-menu">
+      <a href="index.html">Trang chủ</a>
+      <a href="studio.html">Studio IDE</a>
+      <a href="wheelbot.html">Wheelbot</a>
+      <a href="updates.html">Updates</a>
+      <a href="support.html">Support</a>
     </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="download.html" style="font-size:12px;font-weight:700;color:#64748b;border:1px solid #cbd5e1;padding:4px 12px;border-radius:9999px;text-decoration:none;">Tiếng Việt ↗</a>
+      <a href="#download" class="btn-spring-2026 btn-spring-primary" style="padding:8px 18px;font-size:13.5px;">Download Now ↓</a>
+    </div>
+  </nav>
 
-    <div class="doc-container">
-      <div class="doc-main-body">
-        
-  
-  <section class="section" style="padding-top:0">
-    <div class="section-head"><p class="eyebrow">APP INSTALLER</p><h2>Open the app as a desktop workspace.</h2><p>macOS, Windows, and Linux builds are all available on GitHub Releases.</p></div>
-    <div class="download-panel">
-      <div data-release-download>
-        <p class="loading" data-release-loading>Checking for the Yana Studio installer…</p>
-        <div class="download-grid">
-          <article class="os-card"><div class="os-title"><h3>macOS</h3></div><p class="meta">Apple Silicon (M1 or later)</p></article>
-          <article class="os-card"><div class="os-title"><h3>Windows</h3></div><p class="meta">x64 · ARM64</p></article>
-          <article class="os-card"><div class="os-title"><h3>Linux</h3></div><p class="meta">x64</p></article>
+  <main>
+    <section class="download-hero">
+      <div class="floating-hero-pill">
+        <span>✨ Yana Studio v1.7.0</span>
+        <span style="opacity: 0.4;">·</span>
+        <span style="color: #059669;">Code-OSS Core + Supervised Cockpit</span>
+      </div>
+      <h1 class="studio-hero-2026" style="padding:0;margin:16px 0 20px;">AI Workspace.<br><span class="text-rainbow-2026">Yana Studio v1.7.0 Installers.</span></h1>
+      <p class="lead-text" style="margin:0 auto 30px;">Full VS Code extension ecosystem with human-in-the-loop control: AI agents cannot run shell commands or touch files without your explicit approval.</p>
+    </section>
+
+    <!-- Bảng Download Cards Hiện Đại -->
+    <section class="dl-cards-grid" id="download">
+      
+      <!-- macOS (Trọng tâm Apple Silicon M1-M5) -->
+      <div class="dl-card featured">
+        <span class="dl-badge">Khuyên dùng · Apple Silicon</span>
+        <h2 class="dl-os-title">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 3.5c.62-.75 1.04-1.8 0.92-2.85-.9.04-2 .6-2.65 1.35-.58.67-.99 1.74-.86 2.78.99.08 2.01-.51 2.59-1.28z"/></svg>
+          macOS
+        </h2>
+        <p class="dl-os-desc">Bản build tối ưu riêng cho Apple Silicon M1/M2/M3/M4/M5 (macOS 12.0 trở lên).</p>
+        <div class="dl-btn-group">
+          <a href="https://github.com/yanacuti1121/Yana-AI/releases" class="dl-main-btn">
+            Tải bộ cài .DMG (Apple Silicon) ↓
+          </a>
+          <a href="https://github.com/yanacuti1121/Yana-AI/releases" class="dl-sub-btn">
+            Tải tệp nén .ZIP di động
+          </a>
         </div>
       </div>
-      <div class="error-note" data-release-error>Couldn't read GitHub Releases. <a href="https://github.com/yanacuti1121/Yana-AI/releases">Check directly on GitHub</a></div>
-    </div>
-  </section>
-  <section class="section" style="padding-top:0">
-    <div class="section-head"><p class="eyebrow">GUIDES BY PLATFORM</p><h2>Each platform has its own page.</h2><p>Only installers that actually appear in GitHub Releases get a working download link.</p></div>
-    <div class="route-grid"><a class="route-card" href="install-macos-en.html"><small>APPLE SILICON</small><h3>macOS</h3><p>Public installer and the Gatekeeper walkthrough.</p><b>Open guide ↗</b></a><a class="route-card" href="install-windows-en.html"><small>WINDOWS 10/11</small><h3>Windows</h3><p>Public .exe installer and how to get past the SmartScreen warning.</p><b>Open guide ↗</b></a><a class="route-card" href="install-linux-en.html"><small>DEB · APPIMAGE</small><h3>Linux</h3><p>Public .deb/.AppImage installer and the install steps for Debian/Ubuntu or other distros.</p><b>Open guide ↗</b></a></div>
-  </section>
-  <section class="section" style="padding-top:0">
-    <div class="section-head"><p class="eyebrow">TERMINAL TOOLS</p><h2>Command-line tools are a separate channel.</h2><p>These two commands belong to the Yana AI project generally, not just Yana Studio — they don't replace the desktop installer, and they work fine on their own without Studio installed.</p></div>
-    <div class="registry-row"><a class="registry" href="https://pypi.org/project/yana-ai/"><strong>Yana framework · PyPI</strong><small>Governance, agents, skills and memory for a repository.</small><code>pip install yana-ai</code></a><a class="registry" href="https://crates.io/crates/yana-rt"><strong>Yana Runtime · crates.io</strong><small>The canonical Rust TurnEngine and CLI.</small><code>cargo install yana-rt</code></a></div>
-    <div class="product-grid" style="margin-top:24px">
-      <article class="product-card"><div><p class="eyebrow">PIP · REPOSITORY GOVERNANCE</p><h3>yana-ai — apply the governance layer to a project</h3><p>Installs the Python CLI <code>yana-ai</code>, used to wire rules, hooks, agents, skills and commands into one specific project and check its integrity — everything stays scoped to that project, not your machine or other projects.</p></div><div class="product-art"><code>pip install yana-ai
-cd your-project
-yana-ai install   # wires the hooks, ~60 seconds
-yana-ai doctor .  # integrity check</code></div><p style="margin-top:12px">After <code>yana-ai install</code>, your AI agent (Claude Code, Cursor, Codex, Antigravity...) gets intercepted if it tries a dangerous command — hard-blocked on Claude Code/Cursor, advisory on Codex/Antigravity — and logged, entirely locally with no LLM call.</p></article>
-      <article class="product-card"><div><p class="eyebrow">CARGO · RUNTIME &amp; ORCHESTRATION</p><h3>yana-rt — the canonical TurnEngine and terminal workspace</h3><p>Installs the Rust CLI <code>yana-rt</code> (the same binary Yana Studio runs internally) — both a terminal workspace for running local models and a task-orchestration tool with direct command-line access to evidence, capability and memory, no Studio window needed.</p></div><div class="product-art"><code>cargo install yana-rt
-yana-ai-rt --provider ollama   # terminal workspace, local model
-yana-rt route classify "fix auth"
-yana-rt mission create "add-auth"</code></div><p style="margin-top:12px">The terminal workspace has streaming, mid-run cancellation, multiple tabs, multiple sessions, and live model switching. <code>route</code>/<code>mission</code> classify and create dependency-aware tasks through the same runtime Studio uses.</p></article>
-    </div>
-  </section>
-  <section class="section" style="padding-top:0">
-    <div class="section-head"><p class="eyebrow">INSTALL GUIDE</p><h2>After downloading the Studio installer.</h2><p>Yana Studio doesn't yet have a paid code-signing certificate on any platform — macOS isn't notarized by Apple, Windows isn't signed with Microsoft. The first time you open the app, macOS and Windows will show a warning (Linux won't). That's expected — it doesn't mean the app is broken or unsafe, only that no one (Apple/Microsoft) has personally reviewed this specific build yet.</p></div>
-    <div class="product-grid">
-      <article class="product-card"><div><p class="eyebrow">WHY THE WARNING APPEARS</p><h3>Signed is different from notarized</h3><p>Gatekeeper checks two things before letting an app run without asking: whether it's signed with a trusted Developer ID, and whether Apple has notarized that specific build (an automated malware scan). Yana Studio is signed (ad-hoc) but not notarized, so Gatekeeper shows a warning instead of blocking outright or opening silently.</p></div></article>
-      <article class="product-card"><div><p class="eyebrow">METHOD 1 — RECOMMENDED</p><h3>Right-click → Open</h3><ol><li>Open the <code>.dmg</code> and drag <strong>Yana Studio</strong> into <strong>Applications</strong>.</li><li>In <strong>Applications</strong>, <strong>right-click</strong> (or Control-click) <strong>Yana Studio</strong> and choose <strong>Open</strong> — don't just double-click it.</li><li>macOS shows a dialog saying it can't verify the developer. Click <strong>Open</strong> in that dialog.</li><li>The app launches. From now on, double-clicking it also works — macOS remembers this app.</li></ol></div></article>
-      <article class="product-card"><div><p class="eyebrow">METHOD 2 — IF ALREADY BLOCKED</p><h3>System Settings → Privacy &amp; Security</h3><p>Use this if you already double-clicked and macOS refused to open it ("can't be opened because Apple cannot check it for malicious software" / "the developer cannot be verified").</p><ol><li>Open <strong>System Settings</strong> → <strong>Privacy &amp; Security</strong>.</li><li>Scroll to the <strong>Security</strong> section — you'll see a line saying "Yana Studio" was blocked because it isn't from an identified developer.</li><li>Click <strong>Open Anyway</strong>.</li><li>macOS may ask you to confirm once more (Touch ID or your password) — confirm.</li><li>Open <strong>Yana Studio</strong> again; it now launches normally.</li></ol></div></article>
-      <article class="product-card"><div><p class="eyebrow">WHAT NOT TO DO</p><h3>Don't do this — it's unnecessary</h3><p>Some guides suggest disabling Gatekeeper entirely (<code>sudo spctl --master-disable</code>) or stripping the quarantine flag from Terminal (<code>xattr -cr</code>). <strong>Don't do either.</strong> They turn off a real macOS protection for <em>every</em> app on your Mac, not just this one — and aren't needed; Method 1 or Method 2 above is enough, and only ever applies to this one app.</p></div></article>
-      <article class="product-card"><div><p class="eyebrow">WHAT "AD-HOC SIGNED" MEANS</p><h3>Signed, but with no Developer ID yet</h3><p>"Ad-hoc signed" means the app's code is cryptographically sealed (so macOS can detect if the file was corrupted or tampered with after this build) using a signature not tied to any registered developer identity — different from being <strong>unsigned</strong>, but carrying none of the trust an Apple Developer ID certificate provides. It's a real, Apple-documented signing mechanism (<code>codesign --sign -</code>), used here only so the app can launch at all on Apple Silicon, not to imply any Apple review or endorsement.</p></div></article>
-      <article class="product-card"><div><p class="eyebrow">WINDOWS</p><h3>SmartScreen shows a similar warning</h3><p>The Windows installer (<code>.exe</code>) is currently <strong>unsigned</strong> — the project doesn't have a paid Microsoft code-signing certificate yet. The first time you run the <code>.exe</code>, Windows SmartScreen will show "Windows protected your PC." Click <strong>More info</strong> → <strong>Run anyway</strong> to continue. This is the standard warning for an unsigned app, not a sign the app is broken or unsafe.</p></div></article>
-      <article class="product-card"><div><p class="eyebrow">LINUX</p><h3>AppImage needs the execute bit set first</h3><p>For <code>.AppImage</code>: make it executable and run it directly — <code>chmod +x Yana-Studio-*.AppImage &amp;&amp; ./Yana-Studio-*.AppImage</code>. For <code>.deb</code>: install with <code>sudo dpkg -i Yana-Studio-*.deb</code>, or open it with your distro's package manager. Linux doesn't have a notarization/SmartScreen-style warning layer like macOS/Windows, but the same principle applies: only download from the official Release page, and always verify the checksum.</p></div></article>
-      <article class="product-card"><div><p class="eyebrow">VERIFYING YOUR DOWNLOAD</p><h3>Check the checksum</h3><p>Every release publishes a SHA-256 checksum for its installer files. To confirm your download wasn't corrupted or tampered with in transit, run in Terminal:</p><div class="product-art"><code>shasum -a 256 ~/Downloads/Yana-Studio-*</code></div><p>...and compare it against the checksum published on the <a href="https://github.com/yanacuti1121/Yana-AI/releases">release page</a>. This is a data-integrity check, not a substitute for code signing/notarization — it confirms the file matches what was published, not that Apple/Microsoft reviewed it.</p></article>
-    </div>
-    <p class="meta" style="margin-top:24px;text-align:center">When this page will stop being needed: once the project has a real code-signing certificate (an Apple Developer Program membership for macOS, an Authenticode certificate for Windows), future builds will be fully signed — Gatekeeper and SmartScreen will open the app with no warning, and this page will be updated to say so. See the <a href="https://github.com/yanacuti1121/Yana-AI/blob/main/docs/MACOS_INSTALL.md">full macOS guide on GitHub</a>.</p>
-  </section>
 
+      <!-- Windows -->
+      <div class="dl-card">
+        <span class="dl-badge">Windows 10/11</span>
+        <h2 class="dl-os-title">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.901-1.799"/></svg>
+          Windows
+        </h2>
+        <p class="dl-os-desc">Hỗ trợ kiến trúc x64 và ARM64 cho máy Surface / Snapdragon X Elite.</p>
+        <div class="dl-btn-group">
+          <a href="https://github.com/yanacuti1121/Yana-AI/releases" class="dl-main-btn" style="background:#0284c7;">
+            Tải User Installer (.exe) ↓
+          </a>
+          <a href="https://github.com/yanacuti1121/Yana-AI/releases" class="dl-sub-btn">
+            Tải bản ARM64 / Zip di động
+          </a>
+        </div>
+      </div>
+
+      <!-- Linux -->
+      <div class="dl-card">
+        <span class="dl-badge">Linux Distros</span>
+        <h2 class="dl-os-title">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12.001 2c-3.1 0-5.5 2.5-5.5 5.6 0 1.5.6 2.9 1.6 4-1.2.9-2.6 2.3-3.1 3.9-.6 1.8-.2 3.6 1.2 4.7 1.3 1 3.1 1.4 4.8 1.4h2c1.7 0 3.5-.4 4.8-1.4 1.4-1.1 1.8-2.9 1.2-4.7-.5-1.6-1.9-3-3.1-3.9 1-1.1 1.6-2.5 1.6-4 0-3.1-2.4-5.6-5.5-5.6z"/></svg>
+          Linux
+        </h2>
+        <p class="dl-os-desc">Đóng gói sẵn cho Ubuntu/Debian (.deb) và chạy độc lập qua AppImage.</p>
+        <div class="dl-btn-group">
+          <a href="https://github.com/yanacuti1121/Yana-AI/releases" class="dl-main-btn" style="background:#0f172a;">
+            Tải gói .deb (Debian / Ubuntu) ↓
+          </a>
+          <a href="https://github.com/yanacuti1121/Yana-AI/releases" class="dl-sub-btn">
+            Tải tệp .AppImage (Chạy ngay)
+          </a>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Khung preview app thật trên MacBook Pro -->
+    <div class="device-preview-card">
+      <div class="studio-macbook-device">
+        <div class="studio-macbook-screen">
+          <img src="assets/yana-studio-app-tam-welcome.png" alt="Yana Studio Welcome Screen" loading="lazy">
+        </div>
+        <img class="studio-macbook-bezel" src="assets/apple-macbook-pro-14-silver.png" alt="Apple MacBook Pro Bezel" width="1930" height="1270">
+      </div>
+    </div>
+
+    <!-- Thông tin bổ sung hữu ích -->
+    <div class="info-grid">
+      <div class="info-card">
+        <h3>⚡ Cập nhật Runtime độc lập</h3>
+        <p>Binary lõi <code>yana-rt</code> được biên dịch bằng Rust và có thể cập nhật qua <code>cargo install yana-rt</code> mà không bắt buộc cài lại ứng dụng Studio.</p>
+      </div>
+      <div class="info-card">
+        <h3>🔒 100% An toàn trên macOS</h3>
+        <p>Lần đầu mở ứng dụng trên Mac, vui lòng chuột phải (Control-click) vào <strong>Yana Studio</strong> → chọn <strong>Open</strong> để hệ thống Gatekeeper cấp quyền.</p>
+      </div>
+      <div class="info-card">
+        <h3>🦙 Hỗ trợ AI On-Device</h3>
+        <p>Tương thích nguyên bản với Ollama (Llama 3.2, Qwen 2.5, DeepSeek R1) giúp anh lập trình hoàn toàn offline không cần internet.</p>
       </div>
     </div>
   </main>
 
-  <footer class="site26-footer">
+  <footer style="text-align:center;padding:40px;color:#64748b;font-size:14px;border-top:1px solid #e2e8f0;background:#f8fafc;">
     <p>© 2026 Yana AI. Bản quyền thuộc về Vũ Văn Tâm. AI làm việc · Bạn giữ quyền.</p>
-    <p>
-      <a href="index.html">Trang chủ</a> ·
-      <a href="studio.html">Yana Studio</a> ·
-      <a href="wheelbot.html">Wheelbot</a> ·
-      <a href="updates.html">Changelog</a> ·
-      <a href="support.html">Hỗ trợ</a> ·
-      <a href="download.html">Tải về</a> ·
-      <a href="https://github.com/yanacuti1121/Yana-AI" target="_blank" rel="noopener">GitHub ↗</a>
-    </p>
   </footer>
 </body>
 </html>

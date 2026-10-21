@@ -1,234 +1,240 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Yana Wheelbot — Yana AI 2026</title>
-  <meta name="description" content="Open-source ESP32-S3 robot branch being developed publicly within the Yana ecosystem.">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Yana Wheelbot — Physical AI Robot ESP32-S3 2026</title>
   <link rel="icon" type="image/svg+xml" href="yana-mark.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/site26.css">
   <link rel="stylesheet" href="assets/studio26.css">
   <style>
-    .site26-nav {
+    .wb-hero {
+      text-align: center;
+      padding: 120px 24px 30px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .wb-showcase-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      max-width: 1080px;
+      margin: 40px auto 60px;
+      padding: 0 24px;
+    }
+    .wb-media-card {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: 24px;
+      padding: 24px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px -2px rgba(0,0,0,0.03);
+    }
+    .wb-media-card img {
+      width: 100%;
+      height: auto;
+      border-radius: 16px;
+      display: block;
+      margin-bottom: 16px;
+      border: 1px solid #f1f5f9;
+    }
+    .wb-media-title {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0 0 8px;
+    }
+    .wb-media-desc {
+      font-size: 14px;
+      color: #64748b;
+      line-height: 1.6;
+      margin: 0 0 16px;
+    }
+    .wb-action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 18px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #2563eb !important;
+      font-weight: 700;
+      font-size: 13.5px;
+      border-radius: 12px;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .wb-action-btn:hover {
+      background: #2563eb;
+      color: #fff !important;
+    }
+    .spec-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      max-width: 1080px;
+      margin: 0 auto 80px;
+      padding: 0 24px;
+    }
+    .spec-card {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 20px;
+    }
+    .spec-card small {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #2563eb;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .spec-card strong {
+      font-size: 16px;
+      color: #0f172a;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .spec-card p {
+      font-size: 13.5px;
+      color: #64748b;
+      margin: 0;
+      line-height: 1.5;
+    }
+    .studio26-nav {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      width: calc(100% - 40px);
       max-width: 1040px;
-      margin: 16px auto;
-      background: rgba(255, 255, 255, 0.88);
-      border: 1px solid rgba(226, 232, 240, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
       border-radius: 9999px;
       padding: 10px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 4px 20px -2px rgba(0,0,0,0.04);
     }
-    .nav-brand {
+    .brand-link {
       display: flex;
       align-items: center;
       gap: 10px;
-      text-decoration: none;
-      color: #0f172a;
       font-weight: 700;
-      font-size: 16px;
+      font-size: 17px;
+      color: #0f172a;
+      text-decoration: none;
     }
-    .nav-links {
+    .nav-menu {
       display: flex;
       align-items: center;
       gap: 20px;
-      list-style: none;
-      margin: 0;
-      padding: 0;
     }
-    .nav-links a {
+    .nav-menu a {
       text-decoration: none;
       color: #475569;
-      font-weight: 500;
       font-size: 14px;
-      transition: color 0.15s ease;
-    }
-    .nav-links a:hover {
-      color: #2563eb;
-    }
-    .nav-cta {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .btn-nav-primary {
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
-      color: #fff !important;
-      padding: 8px 18px;
-      border-radius: 9999px;
-      font-size: 13.5px;
       font-weight: 600;
-      text-decoration: none;
-      box-shadow: 0 4px 12px rgba(37,99,235,0.25);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      transition: color 0.15s;
     }
-    .btn-nav-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(37,99,235,0.35);
-    }
-    .lang-switch-badge {
-      font-size: 12px;
-      color: #64748b;
-      text-decoration: none;
-      padding: 4px 10px;
-      border: 1px solid #cbd5e1;
-      border-radius: 9999px;
-      font-weight: 600;
-    }
-    .lang-switch-badge:hover {
-      border-color: #2563eb;
+    .nav-menu a:hover {
       color: #2563eb;
-    }
-    .doc-hero {
-      max-width: 900px;
-      margin: 48px auto 32px;
-      text-align: center;
-      padding: 0 20px;
-    }
-    .doc-badge {
-      display: inline-block;
-      padding: 4px 14px;
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      color: #2563eb;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      border-radius: 9999px;
-      margin-bottom: 16px;
-    }
-    .doc-title {
-      font-size: clamp(28px, 4.5vw, 44px);
-      font-weight: 800;
-      color: #0f172a;
-      letter-spacing: -0.02em;
-      line-height: 1.2;
-      margin: 0 0 16px;
-    }
-    .doc-lead {
-      font-size: 17px;
-      line-height: 1.6;
-      color: #475569;
-      max-width: 680px;
-      margin: 0 auto;
-    }
-    .doc-container {
-      max-width: 960px;
-      margin: 0 auto 80px;
-      padding: 0 24px;
-    }
-    .doc-main-body {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 20px;
-      padding: 36px 40px;
-      box-shadow: 0 10px 30px -5px rgba(0,0,0,0.03);
-    }
-    .doc-main-body h2 {
-      font-size: 22px;
-      font-weight: 700;
-      color: #0f172a;
-      margin: 32px 0 14px;
-      border-bottom: 1px solid #f1f5f9;
-      padding-bottom: 8px;
-    }
-    .doc-main-body h2:first-child {
-      margin-top: 0;
-    }
-    .doc-main-body p, .doc-main-body li {
-      font-size: 15px;
-      line-height: 1.7;
-      color: #334155;
-    }
-    .doc-main-body code {
-      font-family: var(--font-mono);
-      background: #f1f5f9;
-      padding: 2px 6px;
-      border-radius: 6px;
-      font-size: 13.5px;
-      color: #0f172a;
-    }
-    .site26-footer {
-      border-top: 1px solid #e2e8f0;
-      padding: 40px 24px;
-      text-align: center;
-      color: #64748b;
-      font-size: 13.5px;
-      background: #f8fafc;
-    }
-    .site26-footer a {
-      color: #2563eb;
-      text-decoration: none;
-      margin: 0 8px;
     }
   </style>
 </head>
-<body class="site26-body">
+<body class="sakura-site home-page">
   <div class="site26-bg-canvas" aria-hidden="true"></div>
 
-  <header class="site26-nav-wrap">
-    <nav class="site26-nav" aria-label="Điều hướng chính">
-      <a href="index.html" class="nav-brand">
-        <img src="assets/yana-rabbit-app-icon.png" alt="Yana Logo" width="30" height="30">
-        <span>Yana <small style="font-weight:400;color:#64748b;">2026</small></span>
-      </a>
-      <ul class="nav-links">
-        <li><a href="index.html">Trang chủ</a></li>
-        <li><a href="studio.html">Studio IDE</a></li>
-        <li><a href="wheelbot.html">Wheelbot</a></li>
-        <li><a href="updates.html">Updates</a></li>
-        <li><a href="support.html">Support</a></li>
-      </ul>
-      <div class="nav-cta">
-        <a href="wheelbot.html" class="lang-switch-badge">Tiếng Việt ↗</a>
-        <a href="download.html" class="btn-nav-primary">Download Studio</a>
-      </div>
-    </nav>
-  </header>
-
-  <main class="site26-main">
-    <div class="doc-hero">
-      <div class="doc-badge">PHYSICAL AI & ROBOTICS</div>
-      <h1 class="doc-title">AI steps out of the screen.</h1>
-      <p class="doc-lead">Open-source ESP32-S3 robot branch being developed publicly within the Yana ecosystem.</p>
+  <nav class="studio26-nav">
+    <a href="index.html" class="brand-link">
+      <img src="assets/yana-rabbit-app-icon.png" alt="Yana Logo" width="30" height="30">
+      <span>Yana <small style="font-weight:400;color:#64748b;">Wheelbot</small></span>
+    </a>
+    <div class="nav-menu">
+      <a href="index.html">Trang chủ</a>
+      <a href="studio.html">Studio IDE</a>
+      <a href="wheelbot.html" style="color:#2563eb;">Wheelbot</a>
+      <a href="updates.html">Updates</a>
+      <a href="support.html">Support</a>
     </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="wheelbot.html" style="font-size:12px;font-weight:700;color:#64748b;border:1px solid #cbd5e1;padding:4px 12px;border-radius:9999px;text-decoration:none;">Tiếng Việt ↗</a>
+      <a href="download.html" class="btn-spring-2026 btn-spring-primary" style="padding:8px 18px;font-size:13.5px;">Get Studio</a>
+    </div>
+  </nav>
 
-    <div class="doc-container">
-      <div class="doc-main-body">
-        
-<section class="section"><div class="product-grid"><article class="product-card"><div><p class="eyebrow">MOTION</p><h3>Two motor backends</h3><p>The planned build uses two continuous-rotation servos. Firmware also supports L298N, but that driver is not fitted in this build.</p></div><div class="product-art"><code>board    ESP32-S3
-backend  servo | L298N
-motion   differential
-safety   inhibit latch</code></div></article><article class="product-card"><div><p class="eyebrow">SENSORS</p><h3>Effective anti-fall control</h3><p>VL53L0X by default, with VL6180X as a build option. An unsafe reading blocks the next movement.</p></div><div class="product-art"><code>range   VL53L0X
-option  VL6180X
-touch   TTP223
-display ST7789 | ST7735</code></div></article><article class="product-card"><div><p class="eyebrow">LOCAL PROTOCOL</p><h3>WebSocket + MCP subset</h3><p>The controller uses JSON-RPC 2.0 initialize, tools/list and tools/call on a trusted LAN.</p></div><div class="product-art"><code>port    8080
-auth    token
-methods 3
-scope   trusted LAN</code></div></article></div></section>
-<section class="section firmware-release" id="firmware"><div class="firmware-release-copy"><p class="eyebrow">FIRMWARE / ESP32-S3</p><h2>Download Wheelbot firmware.</h2><p>Yana firmware customized from KST AI Robot ST7735 + ToF, with Wheelbot control features added. This 9.2 MB image has source/build verification, but has not been flashed or run on a physical robot.</p></div><div class="firmware-release-panel"><div class="firmware-release-head"><span>YANA WHEELBOT</span><span>9.2 MB</span></div><strong>yana-wheelbot-firmware.bin</strong><a class="button" href="downloads/yana-wheelbot-firmware.bin" download>Download .bin file ↓</a><small>SHA-256 for file verification</small><code>996bb663c6365904f982548ca3e8f22951a2f36215aabd3b2a43d7353ddca8b6</code></div></section><section class="section firmware-release firmware-reference" id="flash-firmware" aria-labelledby="flash-firmware-title"><div class="firmware-release-copy"><p class="eyebrow">ORIGINAL SOURCE / KST</p><h2 id="flash-firmware-title">Explore and flash the original KST firmware.</h2><p>Yana Wheelbot builds on <a href="https://ai.kenhsangtao.com/" target="_blank" rel="noopener noreferrer">KST AI Robot ST7735 + ToF</a> by Kênh Sáng Tạo. The Yana version adds motion control, LAN/MCP communication and project-specific changes; no physical device has been tested yet. The KST release documents the original hardware configuration, not a Yana hardware test.</p></div><div class="firmware-release-panel"><div class="firmware-release-head"><span>KST · ST7735 + ToF</span><span>v1.0.0 · 8.54 MB</span></div><strong>KST AI Robot ST7735 + ToF</strong><p>Original v1.0.0 firmware for the ESP32-S3 N16R8, ST7735 display and ToF sensor wired to KST’s design. KST’s browser flasher writes its own firmware at offset 0x0; check your hardware before choosing the USB port.</p><div class="wheelbot-source-actions"><a class="button" href="https://ai.kenhsangtao.com/#firmware" target="_blank" rel="noopener noreferrer">Flash original firmware at KST ↗</a><a class="button light" href="https://ai.kenhsangtao.com/" target="_blank" rel="noopener noreferrer">Visit KST website ↗</a><a class="button light" href="https://ai.kenhsangtao.com/firmware/KST-AI-Robot-ST7735.bin" target="_blank" rel="noopener noreferrer">Download original .bin ↗</a></div><small>SHA-256 of the original KST firmware</small><code>5c6f53d884ffbb19081e585d738447d1ea81b0faa848c4a0e9cc9831bc0b41ec</code></div></section><section class="section firmware-release print-release" id="print-files"><div class="firmware-release-copy"><p class="eyebrow">3D PRINT KIT / 3MF</p><h2>Download the Wheelbot print files.</h2><p>Owner-supplied .3mf project containing frame and shell parts arranged in Bambu Studio. Check material, dimensions and printer settings before printing; assembly has not been verified on a physical robot.</p></div><div class="firmware-release-panel"><div class="firmware-release-head"><span>YANA WHEELBOT · PRINT KIT</span><span>2.6 MB</span></div><strong>yana-wheelbot-print-kit.3mf</strong><a class="button" href="downloads/yana-wheelbot-print-kit.3mf" download>Download .3mf kit ↓</a><small>SHA-256 for file verification</small><code>0eef91c69f85db5cc9042551549b8ababc1987d820e38f1b5f8164837ae70306</code></div></section><section class="section feature" id="boundary"><div class="feature-copy"><p class="eyebrow">HONEST BOUNDARY</p><h2>Not overstating what has not been tested.</h2><p>Wheelbot is currently source/build verified: it compiles cleanly and its default GPIO mapping is checked against a published reference design. No physical robot has yet been built and run for complete hardware verification.</p><p>Local control is token-protected but unencrypted. Never expose port 8080 to the Internet; use a trusted LAN and verify STOP before placing the wheels on the ground.</p></div><div class="feature-visual"><div class="visual-window"><div class="visual-row"><strong>Source + build</strong><span class="status-chip live">VERIFIED</span></div><div class="visual-row"><strong>25 MCP tool shapes</strong><span class="status-chip live">MATCHED</span></div><div class="visual-row"><strong>Physical robot test</strong><span class="status-chip experimental">PENDING</span></div><div class="visual-row"><strong>Internet exposure</strong><span class="status-chip deferred">DO NOT</span></div></div></div></section>
+  <main>
+    <section class="wb-hero">
+      <div class="floating-hero-pill">
+        <span>🤖 Physical AI Platform</span>
+        <span style="opacity: 0.4;">·</span>
+        <span style="color: #059669;">ESP32-S3 Dual Backend</span>
+      </div>
+      <h1 class="studio-hero-2026" style="padding:0;margin:16px 0 20px;">AI steps out of the screen.<br><span class="text-rainbow-2026">Physical AI Robot Yana Wheelbot.</span></h1>
+      <p class="lead-text" style="margin:0 auto 20px;">Open-source ESP32-S3 robot branch of the Yana ecosystem: Connecting AI models via WebSocket + MCP protocol, equipped with ToF cliff-sensors and 3D-printable Bambu Studio kit.</p>
+    </section>
+
+    <!-- Showcase Cards -->
+    <section class="wb-showcase-grid">
+      
+      <!-- Concept Robot -->
+      <div class="wb-media-card">
+        <img src="assets/yana-wheelbot-concept-v2.jpg" alt="Yana Wheelbot Concept Art" loading="eager">
+        <h2 class="wb-media-title">Concept Yana Wheelbot 2026</h2>
+        <p class="wb-media-desc">Mẫu thiết kế 2 bánh vi sai linh hoạt, màn hình hiển thị cảm xúc ST7735 và cụm cảm biến ToF phía trước.</p>
+        <a href="downloads/yana-wheelbot-firmware.bin" class="wb-action-btn">
+          Tải Firmware (.bin) ↓
+        </a>
+      </div>
+
+      <!-- File in 3D Bambu Studio -->
+      <div class="wb-media-card">
+        <img src="assets/yana-wheelbot-print-plates.png" alt="Bộ 15 tấm in Bambu Studio" loading="lazy">
+        <h2 class="wb-media-title">Bộ chi tiết in 3D (Bambu Studio)</h2>
+        <p class="wb-media-desc">15 bàn in chi tiết vỏ và khung đỡ động cơ servo được dàn trang sẵn sàng để in trực tiếp trên máy in 3D.</p>
+        <a href="downloads/yana-wheelbot-print-kit.3mf" class="wb-action-btn">
+          Tải Kit in 3D (.3mf) ↓
+        </a>
+      </div>
+
+    </section>
+
+    <!-- Bảng thông số kỹ thuật -->
+    <div class="spec-grid">
+      <div class="spec-card">
+        <small>VI ĐIỀU KHIỂN</small>
+        <strong>ESP32-S3 N16R8</strong>
+        <p>Vi xử lý 2 nhân 240MHz, 16MB Flash, 8MB PSRAM cho xử lý giao thức AI tại chỗ.</p>
+      </div>
+      <div class="spec-card">
+        <small>CẢM BIẾN CHỐNG RƠI</small>
+        <strong>VL53L0X Time-of-Flight</strong>
+        <p>Đo khoảng cách laser chính xác theo thời gian thực, tự động kích hoạt phanh an toàn khi đến mép bàn.</p>
+      </div>
+      <div class="spec-card">
+        <small>GIAO THỨC ĐIỀU KHIỂN</small>
+        <strong>WebSocket + MCP Subset</strong>
+        <p>Giao tiếp trực tiếp với Yana Studio qua mạng LAN nội bộ an toàn (Cổng 8080 JSON-RPC 2.0).</p>
+      </div>
+      <div class="spec-card">
+        <small>NGUỒN GỐC THIẾT KẾ</small>
+        <strong>Kênh Sáng Tạo Reference</strong>
+        <p>Kế thừa và mở rộng từ thiết kế KST AI Robot, bổ sung ranh giới an toàn và lớp điều khiển thông minh.</p>
       </div>
     </div>
   </main>
 
-  <footer class="site26-footer">
+  <footer style="text-align:center;padding:40px;color:#64748b;font-size:14px;border-top:1px solid #e2e8f0;background:#f8fafc;">
     <p>© 2026 Yana AI. Bản quyền thuộc về Vũ Văn Tâm. AI làm việc · Bạn giữ quyền.</p>
-    <p>
-      <a href="index.html">Trang chủ</a> ·
-      <a href="studio.html">Yana Studio</a> ·
-      <a href="wheelbot.html">Wheelbot</a> ·
-      <a href="updates.html">Changelog</a> ·
-      <a href="support.html">Hỗ trợ</a> ·
-      <a href="download.html">Tải về</a> ·
-      <a href="https://github.com/yanacuti1121/Yana-AI" target="_blank" rel="noopener">GitHub ↗</a>
-    </p>
   </footer>
 </body>
 </html>
