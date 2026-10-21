@@ -1,6 +1,208 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Yana Wheelbot — Physical AI</title><meta name="description" content="Yana Wheelbot is an ESP32-S3 robot branch with firmware, sensors and a local controller."><link rel="canonical" href="https://yana.vutam.link/wheelbot-en.html"><link rel="alternate" hreflang="vi" href="https://yana.vutam.link/wheelbot.html"><link rel="alternate" hreflang="en" href="https://yana.vutam.link/wheelbot-en.html"><link rel="alternate" hreflang="ko" href="https://yana.vutam.link/wheelbot-ko.html"><link rel="icon" href="yana-mark.svg"><link rel="stylesheet" href="assets/ecosystem-pages.css?v=20260926a"><link rel="stylesheet" href="assets/sakura-site.css?v=20260926a"><link rel="stylesheet" href="assets/yana-white.css?v=20261001wheelbot"></head><body class="sakura-site"><div class="yana-opening yana-opening--inner" aria-label="Yana"><div class="opening-center"><div class="opening-mark"><img src="yana-mark.svg" alt="" width="58" height="58"></div><div class="opening-word" aria-hidden="true"><span>Y</span><span>a</span><span>n</span><span>a</span></div><p class="opening-caption">AI works. You hold authority.</p></div><button class="opening-skip" type="button">Skip intro <span aria-hidden="true">↗</span></button></div>
-<nav class="site-nav"></nav>
-<main><section class="hero"><div class="hero-inner"><p class="eyebrow">YANA WHEELBOT</p><h1>AI steps off the screen.</h1><p class="hero-copy">The public ESP32-S3 robotics branch of the Yana ecosystem. Its technical repository is the source of truth for hardware, firmware and current status.</p><div class="hero-actions"><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="downloads/yana-wheelbot-firmware.bin" download><span class="lbl">Download firmware (.bin)</span></a></div><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="#flash-firmware"><span class="lbl">Flash firmware</span></a></div><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="https://github.com/yanacuti1121/yana-wheelbot"><span class="lbl">See the source</span></a></div><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="#boundary"><span class="lbl">See the technical boundary</span></a></div></div><div class="hero-stage wheelbot-stage depth-card" data-wheelbot-switch><div class="wheelbot-view-switch" role="group" aria-label="Choose Wheelbot image"><button type="button" data-wheelbot-view-button="concept" aria-pressed="true">Concept</button><button type="button" data-wheelbot-view-button="plates" aria-pressed="false">3D print plates</button></div><figure class="wheelbot-concept wheelbot-view" data-wheelbot-view="concept"><img src="assets/yana-wheelbot-concept-v2.jpg" alt="Yana Wheelbot exterior concept" loading="lazy" width="1312" height="1199"><figcaption>Concept informed by the 3D-print file and BOM · component fit is unverified</figcaption></figure><figure class="wheelbot-concept wheelbot-view" data-wheelbot-view="plates" hidden><img src="assets/yana-wheelbot-print-plates.png" alt="Fifteen print plates for the Yana Wheelbot frame in Bambu Studio" loading="lazy" decoding="async" width="2986" height="2160"><figcaption>3D-print part layout in Bambu Studio · component fit is unverified <a href="downloads/yana-wheelbot-print-kit.3mf" download>Download .3mf kit ↓</a> <a class="wheelbot-zoom" href="assets/yana-wheelbot-print-plates.png" target="_blank" rel="noopener">Open full image ↗</a></figcaption></figure><p class="stage-note">Yana customization of KST · build verified, not tested on a physical robot.</p></div></div></section>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yana Wheelbot — Yana AI 2026</title>
+  <meta name="description" content="Open-source ESP32-S3 robot branch being developed publicly within the Yana ecosystem.">
+  <link rel="icon" type="image/svg+xml" href="yana-mark.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site26.css">
+  <link rel="stylesheet" href="assets/studio26.css">
+  <style>
+    .site26-nav {
+      max-width: 1040px;
+      margin: 16px auto;
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(226, 232, 240, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 9999px;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 20px -2px rgba(0,0,0,0.04);
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #0f172a;
+      font-weight: 700;
+      font-size: 16px;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: #475569;
+      font-weight: 500;
+      font-size: 14px;
+      transition: color 0.15s ease;
+    }
+    .nav-links a:hover {
+      color: #2563eb;
+    }
+    .nav-cta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .btn-nav-primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff !important;
+      padding: 8px 18px;
+      border-radius: 9999px;
+      font-size: 13.5px;
+      font-weight: 600;
+      text-decoration: none;
+      box-shadow: 0 4px 12px rgba(37,99,235,0.25);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .btn-nav-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(37,99,235,0.35);
+    }
+    .lang-switch-badge {
+      font-size: 12px;
+      color: #64748b;
+      text-decoration: none;
+      padding: 4px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 9999px;
+      font-weight: 600;
+    }
+    .lang-switch-badge:hover {
+      border-color: #2563eb;
+      color: #2563eb;
+    }
+    .doc-hero {
+      max-width: 900px;
+      margin: 48px auto 32px;
+      text-align: center;
+      padding: 0 20px;
+    }
+    .doc-badge {
+      display: inline-block;
+      padding: 4px 14px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #2563eb;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      border-radius: 9999px;
+      margin-bottom: 16px;
+    }
+    .doc-title {
+      font-size: clamp(28px, 4.5vw, 44px);
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin: 0 0 16px;
+    }
+    .doc-lead {
+      font-size: 17px;
+      line-height: 1.6;
+      color: #475569;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    .doc-container {
+      max-width: 960px;
+      margin: 0 auto 80px;
+      padding: 0 24px;
+    }
+    .doc-main-body {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 36px 40px;
+      box-shadow: 0 10px 30px -5px rgba(0,0,0,0.03);
+    }
+    .doc-main-body h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 32px 0 14px;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 8px;
+    }
+    .doc-main-body h2:first-child {
+      margin-top: 0;
+    }
+    .doc-main-body p, .doc-main-body li {
+      font-size: 15px;
+      line-height: 1.7;
+      color: #334155;
+    }
+    .doc-main-body code {
+      font-family: var(--font-mono);
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 13.5px;
+      color: #0f172a;
+    }
+    .site26-footer {
+      border-top: 1px solid #e2e8f0;
+      padding: 40px 24px;
+      text-align: center;
+      color: #64748b;
+      font-size: 13.5px;
+      background: #f8fafc;
+    }
+    .site26-footer a {
+      color: #2563eb;
+      text-decoration: none;
+      margin: 0 8px;
+    }
+  </style>
+</head>
+<body class="site26-body">
+  <div class="site26-bg-canvas" aria-hidden="true"></div>
+
+  <header class="site26-nav-wrap">
+    <nav class="site26-nav" aria-label="Điều hướng chính">
+      <a href="index.html" class="nav-brand">
+        <img src="assets/yana-rabbit-app-icon.png" alt="Yana Logo" width="30" height="30">
+        <span>Yana <small style="font-weight:400;color:#64748b;">2026</small></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Trang chủ</a></li>
+        <li><a href="studio.html">Studio IDE</a></li>
+        <li><a href="wheelbot.html">Wheelbot</a></li>
+        <li><a href="updates.html">Updates</a></li>
+        <li><a href="support.html">Support</a></li>
+      </ul>
+      <div class="nav-cta">
+        <a href="wheelbot.html" class="lang-switch-badge">Tiếng Việt ↗</a>
+        <a href="download.html" class="btn-nav-primary">Download Studio</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="site26-main">
+    <div class="doc-hero">
+      <div class="doc-badge">PHYSICAL AI & ROBOTICS</div>
+      <h1 class="doc-title">AI steps out of the screen.</h1>
+      <p class="doc-lead">Open-source ESP32-S3 robot branch being developed publicly within the Yana ecosystem.</p>
+    </div>
+
+    <div class="doc-container">
+      <div class="doc-main-body">
+        
 <section class="section"><div class="product-grid"><article class="product-card"><div><p class="eyebrow">MOTION</p><h3>Two motor backends</h3><p>The planned build uses two continuous-rotation servos. Firmware also supports L298N, but that driver is not fitted in this build.</p></div><div class="product-art"><code>board    ESP32-S3
 backend  servo | L298N
 motion   differential
@@ -11,4 +213,22 @@ display ST7789 | ST7735</code></div></article><article class="product-card"><div
 auth    token
 methods 3
 scope   trusted LAN</code></div></article></div></section>
-<section class="section firmware-release" id="firmware"><div class="firmware-release-copy"><p class="eyebrow">FIRMWARE / ESP32-S3</p><h2>Download Wheelbot firmware.</h2><p>Yana firmware customized from KST AI Robot ST7735 + ToF, with Wheelbot control features added. This 9.2 MB image has source/build verification, but has not been flashed or run on a physical robot.</p></div><div class="firmware-release-panel"><div class="firmware-release-head"><span>YANA WHEELBOT</span><span>9.2 MB</span></div><strong>yana-wheelbot-firmware.bin</strong><a class="button" href="downloads/yana-wheelbot-firmware.bin" download>Download .bin file ↓</a><small>SHA-256 for file verification</small><code>996bb663c6365904f982548ca3e8f22951a2f36215aabd3b2a43d7353ddca8b6</code></div></section><section class="section firmware-release firmware-reference" id="flash-firmware" aria-labelledby="flash-firmware-title"><div class="firmware-release-copy"><p class="eyebrow">ORIGINAL SOURCE / KST</p><h2 id="flash-firmware-title">Explore and flash the original KST firmware.</h2><p>Yana Wheelbot builds on <a href="https://ai.kenhsangtao.com/" target="_blank" rel="noopener noreferrer">KST AI Robot ST7735 + ToF</a> by Kênh Sáng Tạo. The Yana version adds motion control, LAN/MCP communication and project-specific changes; no physical device has been tested yet. The KST release documents the original hardware configuration, not a Yana hardware test.</p></div><div class="firmware-release-panel"><div class="firmware-release-head"><span>KST · ST7735 + ToF</span><span>v1.0.0 · 8.54 MB</span></div><strong>KST AI Robot ST7735 + ToF</strong><p>Original v1.0.0 firmware for the ESP32-S3 N16R8, ST7735 display and ToF sensor wired to KST’s design. KST’s browser flasher writes its own firmware at offset 0x0; check your hardware before choosing the USB port.</p><div class="wheelbot-source-actions"><a class="button" href="https://ai.kenhsangtao.com/#firmware" target="_blank" rel="noopener noreferrer">Flash original firmware at KST ↗</a><a class="button light" href="https://ai.kenhsangtao.com/" target="_blank" rel="noopener noreferrer">Visit KST website ↗</a><a class="button light" href="https://ai.kenhsangtao.com/firmware/KST-AI-Robot-ST7735.bin" target="_blank" rel="noopener noreferrer">Download original .bin ↗</a></div><small>SHA-256 of the original KST firmware</small><code>5c6f53d884ffbb19081e585d738447d1ea81b0faa848c4a0e9cc9831bc0b41ec</code></div></section><section class="section firmware-release print-release" id="print-files"><div class="firmware-release-copy"><p class="eyebrow">3D PRINT KIT / 3MF</p><h2>Download the Wheelbot print files.</h2><p>Owner-supplied .3mf project containing frame and shell parts arranged in Bambu Studio. Check material, dimensions and printer settings before printing; assembly has not been verified on a physical robot.</p></div><div class="firmware-release-panel"><div class="firmware-release-head"><span>YANA WHEELBOT · PRINT KIT</span><span>2.6 MB</span></div><strong>yana-wheelbot-print-kit.3mf</strong><a class="button" href="downloads/yana-wheelbot-print-kit.3mf" download>Download .3mf kit ↓</a><small>SHA-256 for file verification</small><code>0eef91c69f85db5cc9042551549b8ababc1987d820e38f1b5f8164837ae70306</code></div></section><section class="section feature" id="boundary"><div class="feature-copy"><p class="eyebrow">HONEST BOUNDARY</p><h2>Not overstating what has not been tested.</h2><p>Wheelbot is currently source/build verified: it compiles cleanly and its default GPIO mapping is checked against a published reference design. No physical robot has yet been built and run for complete hardware verification.</p><p>Local control is token-protected but unencrypted. Never expose port 8080 to the Internet; use a trusted LAN and verify STOP before placing the wheels on the ground.</p></div><div class="feature-visual"><div class="visual-window"><div class="visual-row"><strong>Source + build</strong><span class="status-chip live">VERIFIED</span></div><div class="visual-row"><strong>25 MCP tool shapes</strong><span class="status-chip live">MATCHED</span></div><div class="visual-row"><strong>Physical robot test</strong><span class="status-chip experimental">PENDING</span></div><div class="visual-row"><strong>Internet exposure</strong><span class="status-chip deferred">DO NOT</span></div></div></div></section></main><footer class="site-footer"></footer><script src="assets/ecosystem-pages.js?v=20260928b"></script><script src="assets/sakura-site.js?v=20261001c"></script><script src="assets/yana-showcase.js?v=20260929c"></script><script src="assets/yana-motion.js?v=20260929b"></script></body></html>
+<section class="section firmware-release" id="firmware"><div class="firmware-release-copy"><p class="eyebrow">FIRMWARE / ESP32-S3</p><h2>Download Wheelbot firmware.</h2><p>Yana firmware customized from KST AI Robot ST7735 + ToF, with Wheelbot control features added. This 9.2 MB image has source/build verification, but has not been flashed or run on a physical robot.</p></div><div class="firmware-release-panel"><div class="firmware-release-head"><span>YANA WHEELBOT</span><span>9.2 MB</span></div><strong>yana-wheelbot-firmware.bin</strong><a class="button" href="downloads/yana-wheelbot-firmware.bin" download>Download .bin file ↓</a><small>SHA-256 for file verification</small><code>996bb663c6365904f982548ca3e8f22951a2f36215aabd3b2a43d7353ddca8b6</code></div></section><section class="section firmware-release firmware-reference" id="flash-firmware" aria-labelledby="flash-firmware-title"><div class="firmware-release-copy"><p class="eyebrow">ORIGINAL SOURCE / KST</p><h2 id="flash-firmware-title">Explore and flash the original KST firmware.</h2><p>Yana Wheelbot builds on <a href="https://ai.kenhsangtao.com/" target="_blank" rel="noopener noreferrer">KST AI Robot ST7735 + ToF</a> by Kênh Sáng Tạo. The Yana version adds motion control, LAN/MCP communication and project-specific changes; no physical device has been tested yet. The KST release documents the original hardware configuration, not a Yana hardware test.</p></div><div class="firmware-release-panel"><div class="firmware-release-head"><span>KST · ST7735 + ToF</span><span>v1.0.0 · 8.54 MB</span></div><strong>KST AI Robot ST7735 + ToF</strong><p>Original v1.0.0 firmware for the ESP32-S3 N16R8, ST7735 display and ToF sensor wired to KST’s design. KST’s browser flasher writes its own firmware at offset 0x0; check your hardware before choosing the USB port.</p><div class="wheelbot-source-actions"><a class="button" href="https://ai.kenhsangtao.com/#firmware" target="_blank" rel="noopener noreferrer">Flash original firmware at KST ↗</a><a class="button light" href="https://ai.kenhsangtao.com/" target="_blank" rel="noopener noreferrer">Visit KST website ↗</a><a class="button light" href="https://ai.kenhsangtao.com/firmware/KST-AI-Robot-ST7735.bin" target="_blank" rel="noopener noreferrer">Download original .bin ↗</a></div><small>SHA-256 of the original KST firmware</small><code>5c6f53d884ffbb19081e585d738447d1ea81b0faa848c4a0e9cc9831bc0b41ec</code></div></section><section class="section firmware-release print-release" id="print-files"><div class="firmware-release-copy"><p class="eyebrow">3D PRINT KIT / 3MF</p><h2>Download the Wheelbot print files.</h2><p>Owner-supplied .3mf project containing frame and shell parts arranged in Bambu Studio. Check material, dimensions and printer settings before printing; assembly has not been verified on a physical robot.</p></div><div class="firmware-release-panel"><div class="firmware-release-head"><span>YANA WHEELBOT · PRINT KIT</span><span>2.6 MB</span></div><strong>yana-wheelbot-print-kit.3mf</strong><a class="button" href="downloads/yana-wheelbot-print-kit.3mf" download>Download .3mf kit ↓</a><small>SHA-256 for file verification</small><code>0eef91c69f85db5cc9042551549b8ababc1987d820e38f1b5f8164837ae70306</code></div></section><section class="section feature" id="boundary"><div class="feature-copy"><p class="eyebrow">HONEST BOUNDARY</p><h2>Not overstating what has not been tested.</h2><p>Wheelbot is currently source/build verified: it compiles cleanly and its default GPIO mapping is checked against a published reference design. No physical robot has yet been built and run for complete hardware verification.</p><p>Local control is token-protected but unencrypted. Never expose port 8080 to the Internet; use a trusted LAN and verify STOP before placing the wheels on the ground.</p></div><div class="feature-visual"><div class="visual-window"><div class="visual-row"><strong>Source + build</strong><span class="status-chip live">VERIFIED</span></div><div class="visual-row"><strong>25 MCP tool shapes</strong><span class="status-chip live">MATCHED</span></div><div class="visual-row"><strong>Physical robot test</strong><span class="status-chip experimental">PENDING</span></div><div class="visual-row"><strong>Internet exposure</strong><span class="status-chip deferred">DO NOT</span></div></div></div></section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site26-footer">
+    <p>© 2026 Yana AI. Bản quyền thuộc về Vũ Văn Tâm. AI làm việc · Bạn giữ quyền.</p>
+    <p>
+      <a href="index.html">Trang chủ</a> ·
+      <a href="studio.html">Yana Studio</a> ·
+      <a href="wheelbot.html">Wheelbot</a> ·
+      <a href="updates.html">Changelog</a> ·
+      <a href="support.html">Hỗ trợ</a> ·
+      <a href="download.html">Tải về</a> ·
+      <a href="https://github.com/yanacuti1121/Yana-AI" target="_blank" rel="noopener">GitHub ↗</a>
+    </p>
+  </footer>
+</body>
+</html>
