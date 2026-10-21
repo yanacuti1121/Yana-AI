@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Yana</title>
+  <desc id="desc">Biểu tượng chữ Y của Yana.</desc>
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fbfdff"/><stop offset="1" stop-color="#e8eff8"/></linearGradient>
+    <linearGradient id="glyph" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6785ab"/><stop offset="1" stop-color="#3f618d"/></linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="17" fill="url(#tile)" stroke="#cad7e7" stroke-width="1.5"/>
+  <path d="M17 16h8l7 11 7-11h8L36 34v15h-8V34L17 16Z" fill="url(#glyph)"/>
+  <circle cx="49" cy="48" r="3" fill="#9ab1cb"/>
+</svg>
