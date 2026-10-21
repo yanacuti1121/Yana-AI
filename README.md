@@ -66,8 +66,6 @@ Timings are local measurements from 2026-10-20; the method is under [Performance
 | Platform | Installer |
 | --- | --- |
 | macOS, Apple Silicon | `.dmg` or `.zip` |
-| Windows | `.exe`, x64 or ARM64 |
-| Linux, x86_64 | `.deb` or `.AppImage` |
 
 **Command line.** Govern the agent you already use:
 
