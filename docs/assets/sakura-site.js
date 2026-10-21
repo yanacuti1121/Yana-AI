@@ -73,52 +73,28 @@
     // One destination map feeds desktop groups, mobile subviews, and the command palette.
     const navigationConfig={
       products:{label:copy.products,title:copy.productsTitle,items:[
-        item("yana-ai","yana-ai","Yana AI","Yana AI","Lớp điều phối và quyền hạn","Orchestration and authority","◇","orchestration control plane"),
-        item("studio","studio","Yana Studio","Yana Studio","Giao diện trực quan để vận hành Yana","Visual workspace for Yana","▣","workspace desktop chat terminal"),
-        item("wheelbot","wheelbot","Yana Wheelbot","Yana Wheelbot","Nhánh robot vật lý","Physical robot project","◌","robot esp32 3d print"),
-        item("yana-runtime","runtime","Yana Runtime","Yana Runtime","Thực thi AI agent có kiểm soát","Controlled AI agent execution","⌘","agent runtime turnengine"),
-        item("safety","safety","Safety Engine","Safety Engine","Quy tắc, chốt chặn và quyền","Rules, guards and permissions","◇","safety policy guard guards permissions"),
-        item("audit","evidence","Audit System","Audit System","Bản ghi, trace và bằng chứng","Logs, traces and evidence","◎","audit receipt history evidence")
-      ]},
-      platform:{label:copy.platform,title:copy.platformTitle,items:[
-        item("runtime","runtime","Runtime","Runtime","Agent Runtime · TurnEngine","Agent Runtime · TurnEngine","⌘","agent execution"),
-        item("governance","governance","Governance","Governance","Policy Engine · quyền hạn","Policy Engine · authority","◇","policy safety guards permissions approval"),
-        item("agents-skills","agents-skills","Agents & Skills","Agents & Skills","Năng lực có thể điều phối","Composable capabilities","✳","agents skills capabilities"),
-        item("models","models","Models","Models","AI Providers · cloud và local","AI Providers · cloud and local","◈","providers llm model"),
-        item("connectors","connectors","Integrations","Integrations","Connectors có phạm vi","Scoped connectors","⇄","integrations connectors tools"),
-        item("infrastructure","architecture","Infrastructure","Infrastructure","Kiến trúc và các lớp hệ thống","Architecture and system layers","▦","architecture system")
-      ]},
-      solutions:{label:copy.solutions,title:copy.solutionsTitle,items:[
-        item("developers","studio","Cho Developer","For developers","Project, tệp và terminal","Projects, files and terminal","⌘","developer code"),
-        item("ai-agents","runtime","Cho AI Agent","For AI agents","Thực thi trong phạm vi được cấp","Execution within granted scope","◇","agent runtime"),
-        item("teams","governance","Cho Team","For teams","Quyết định và quyền hạn rõ ràng","Visible decisions and permissions","◌","team collaboration approvals"),
-        item("infra-teams","architecture","Cho Infrastructure","For infrastructure","Kết nối các lớp hệ thống","Connect system layers","▦","infrastructure architecture")
+        item("studio","studio","Yana Studio","Yana Studio","Giao diện trực quan để vận hành Yana AI","Visual workspace for Yana AI","▣","workspace desktop chat terminal ide"),
+        item("wheelbot","wheelbot","Yana Wheelbot","Yana Wheelbot","Robot vật lý ESP32-S3 mã nguồn mở","Open-source physical robot project","◌","robot esp32 3d print hardware")
       ]},
       resources:{label:copy.resources,title:copy.resourcesTitle,items:[
-        item("quick-start","download","Quick Start","Quick Start","Bắt đầu từ bản cài Studio","Start with the Studio installer","→","get started installation"),
-        item("documentation","yana-ai","Documentation","Documentation","Tổng quan hệ thống Yana AI","Yana AI system overview","▤","docs documentation guide"),
-        item("architecture","architecture","Architecture","Architecture","Luồng đề xuất tới thực thi","From proposal to execution","▦","system map design"),
-        item("commands","commands","Command Reference","Command Reference","Bảng lệnh CLI và slash command","CLI and slash command reference","⌘","api reference cli commands"),
-        item("examples","missions","Examples","Examples","Các luồng công việc minh họa","Illustrated workflows","◈","use cases examples missions"),
-        item("updates","updates","Cập nhật / Changelog","Updates / Changelog","Lịch sử phiên bản hệ sinh thái","Ecosystem release history","◴","releases version changelog"),
-        item("download","download","Tải Studio","Download Studio","Bộ cài các nền tảng được hỗ trợ","Installers for supported platforms","↓","download mac windows linux"),
-        item("support","support","Hỗ trợ & Liên hệ","Support & Contact","Kênh liên hệ hiện có","Available contact channels","?","help contact"),
-        item("legal","legal-notices","Thông báo pháp lý","Legal notices","Thông tin giấy phép","License information","§","legal license"),
-        item("privacy","privacy","Quyền riêng tư","Privacy","Cách xử lý dữ liệu","How data is handled","◌","privacy data"),
-        item("thanks","acknowledgements","Lời cảm ơn","Acknowledgements","Các nguồn và đóng góp","Sources and contributions","♡","credits thanks"),
-        item("github",githubHref,"GitHub","GitHub","Mã nguồn và trạng thái dự án","Source and project status","↗","source repository")
+        item("download","download","Tải Studio & CLI","Download Studio & CLI","Bộ cài macOS, Win, Linux & PyPI CLI","Installers for Mac, Windows, Linux & PyPI","↓","download mac windows linux pypi pip"),
+        item("updates","updates","Cập nhật / Changelog","Updates / Changelog","Lịch sử phiên bản & lộ trình phát triển","Ecosystem release history & roadmap","◴","releases version changelog updates"),
+        item("support","support","Hỗ trợ & Liên hệ","Support & Contact","Email, điện thoại, Facebook, TikTok & GitHub","Official contact channels & creator links","?","help contact support email"),
+        item("legal","legal-notices","Bản quyền & Pháp lý","Legal Notices & Copyright","Giấy phép Apache 2.0 & thông báo bản quyền","Apache 2.0 license & legal copyright notices","§","legal license copyright disclaimer"),
+        item("github",githubHref,"GitHub Mã nguồn","GitHub Repository","Kho mã nguồn mở chính thức của Yana AI","Official open source repository","↗","source repository github code")
       ]}
     };
-    const groupsOrder=["products","platform","solutions","resources"];
+    const groupsOrder=["products","resources"];
     const navItemHTML=entry=>`<a class="global-mega-link" href="${entry.href}" data-nav-id="${entry.id}"${entry.external?' target="_blank" rel="noopener noreferrer"':''}><span class="nav-link-icon" aria-hidden="true">${entry.icon}</span><span><strong>${entry.title}${entry.external?' <span class="external-indicator" aria-hidden="true">↗</span>':''}</strong><small>${entry.detail}</small></span></a>`;
     const groupHTML=key=>{
       const data=navigationConfig[key];
       return `<details class="global-nav-group" data-nav-group="${key}"><summary aria-haspopup="true" aria-expanded="false" aria-controls="nav-panel-${key}">${data.label}</summary><div class="global-mega-panel" id="nav-panel-${key}"><div class="global-mega-intro"><small>YANA / ${data.label}</small><h3>${data.title}</h3></div><div class="global-mega-column">${data.items.map(navItemHTML).join("")}</div></div></details>`;
     };
-    const searchButton='<button class="nav-search-trigger" type="button" aria-label="'+(vi?"Tìm kiếm Yana":ko?"Yana 검색":"Search Yana")+'" aria-keyshortcuts="Meta+K Control+K"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.7" cy="10.7" r="6.7"/><path d="m16 16 5 5"/></svg><span>'+copy.search+'</span><kbd>⌘K</kbd></button>';
-    const viHref=ko?(koreanPages.has(stem)?`${stem}.html`:"index.html"):vi?page:languageHref,enHref=ko?(koreanPages.has(stem)?`${stem}-en.html`:"en.html"):vi?languageHref:page,koHref=ko?page:koreanPages.has(stem)?`${stem}-ko.html`:"ko.html";
-    const languageOptions='<a href="'+viHref+'" data-locale="vi"'+(vi?' aria-current="true"':'')+'>'+(vi?'✓ ':'')+'Tiếng Việt</a><a href="'+enHref+'" data-locale="en"'+(!vi&&!ko?' aria-current="true"':'')+'>'+(!vi&&!ko?'✓ ':'')+'English</a><a href="'+koHref+'" data-locale="ko"'+(ko?' aria-current="true"':'')+'>'+(ko?'✓ ':'')+'한국어</a>';
-    const languageMenu='<details class="nav-language-menu"><summary aria-label="'+(vi?"Chọn ngôn ngữ":ko?"언어 선택":"Choose language")+'" aria-haspopup="true" aria-expanded="false">'+(vi?"VI":ko?"KO":"EN")+'</summary><div class="nav-language-panel"><small>'+(ko?'언어':'LANGUAGE')+'</small>'+languageOptions+'</div></details>';
+    const searchButton='<button class="nav-search-trigger" type="button" aria-label="'+(vi?"Tìm kiếm Yana":"Search Yana")+'" aria-keyshortcuts="Meta+K Control+K"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.7" cy="10.7" r="6.7"/><path d="m16 16 5 5"/></svg><span>'+copy.search+'</span><kbd>⌘K</kbd></button>';
+    const viHref=vi?page:(englishPages.has(stem)?`${stem}.html`:"index.html");
+    const enHref=vi?(englishPages.has(stem)?`${stem}-en.html`:"en.html"):page;
+    const languageOptions='<a href="'+viHref+'" data-locale="vi"'+(vi?' aria-current="true"':'')+'>'+(vi?'✓ ':'')+'Tiếng Việt</a><a href="'+enHref+'" data-locale="en"'+(!vi?' aria-current="true"':'')+'>'+(!vi?'✓ ':'')+'English</a>';
+    const languageMenu='<details class="nav-language-menu"><summary aria-label="'+(vi?"Chọn ngôn ngữ":"Choose language")+'" aria-haspopup="true" aria-expanded="false">'+(vi?"VI":"EN")+'</summary><div class="nav-language-panel"><small>LANGUAGE</small>'+languageOptions+'</div></details>';
     nav.innerHTML='<a class="brand" href="'+homeHref+'"><img class="brand-mark" src="yana-mark.svg" alt=""><span>Yana</span></a>'
       +liquidKnobButton("menu-button","☰",vi?"Mở menu":ko?"메뉴 열기":"Open menu")
       +'<div class="nav-links">'
@@ -280,10 +256,10 @@
   }
 
   const footer=document.querySelector(".site-footer");
-  if(footer) footer.innerHTML=`<div class="footer-inner"><div><a class="brand" href="${route("index")}"><img class="brand-mark" src="yana-mark.svg" alt=""><span>Yana</span></a><p>${vi?"Trí tuệ có thể thay. Quyền hạn phải bền vững.":ko?"지능은 바뀔 수 있어도 권한은 흔들리지 않아야 합니다.":"Intelligence may change. Authority must endure."}</p></div><div class="footer-links"><strong>${copy.products}</strong><a href="${route("yana-ai")}">Yana AI</a><a href="${route("studio")}">Yana Studio</a><a href="${route("wheelbot")}">Yana Wheelbot</a></div><div class="footer-links"><strong>${vi?"Hệ thống":ko?"시스템":"System"}</strong><a href="${route("architecture")}">${vi?"Kiến trúc":ko?"아키텍처":"Architecture"}</a><a href="${route("runtime")}">${ko?"런타임":"Runtime"}</a><a href="${route("governance")}">${ko?"거버넌스":"Governance"}</a><a href="${route("connectors")}">${ko?"연동":"Connectors"}</a></div><div class="footer-links"><strong>${copy.resources}</strong><a href="${route("updates")}">${copy.updates}</a><a href="${route("support")}">${vi?"Hỗ trợ & Liên hệ":ko?"지원 및 문의":"Support & Contact"}</a><a href="https://github.com/yanacuti1121/Yana-AI/issues">GitHub Issues</a><a href="https://vutam.link/">vutam.link</a></div><div class="footer-links"><strong>${vi?"Pháp lý":ko?"법적 고지":"Legal"}</strong><a href="${route("legal-notices")}">${vi?"Thông báo pháp lý":ko?"법적 고지":"Legal Notices"}</a><a href="${route("acknowledgements")}">${vi?"Lời cảm ơn":ko?"감사의 말":"Acknowledgements"}</a><a href="${route("privacy")}">${vi?"Quyền riêng tư":ko?"개인정보 보호":"Privacy"}</a></div></div><div class="footer-bottom">© 2026 Yana · ${vi?"Các thành phần nguồn mở giữ nguyên giấy phép tương ứng.":ko?"오픈 소스 구성 요소에는 각 라이선스가 적용됩니다.":"Open-source components remain under their respective licenses."}</div>`;
+  if(footer) footer.innerHTML=`<div class="footer-inner"><div><a class="brand" href="${route("index")}"><img class="brand-mark" src="yana-mark.svg" alt=""><span>Yana</span></a><p>${vi?"AI làm việc. Bạn giữ quyền. Trí tuệ có thể đổi, quyền hạn luôn bền vững.":"AI works. You hold authority. Intelligence may change, authority endures."}</p></div><div class="footer-links"><strong>${copy.products}</strong><a href="${route("studio")}">Yana Studio</a><a href="${route("wheelbot")}">Yana Wheelbot</a><a href="${route("download")}">Download & CLI</a></div><div class="footer-links"><strong>${copy.resources}</strong><a href="${route("updates")}">${copy.updates}</a><a href="${route("support")}">${vi?"Hỗ trợ & Liên hệ":"Support & Contact"}</a><a href="https://github.com/yanacuti1121/Yana-AI" target="_blank" rel="noopener noreferrer">GitHub Repository ↗</a><a href="https://vutam.link/" target="_blank" rel="noopener noreferrer">vutam.link ↗</a></div><div class="footer-links"><strong>${vi?"Pháp lý":"Legal"}</strong><a href="${route("legal-notices")}">${vi?"Bản quyền & Pháp lý":"Legal Notices & Copyright"}</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Apache 2.0 License ↗</a></div></div><div class="footer-bottom">© 2026 Yana AI · Vũ Văn Tâm · ${vi?"Các thành phần nguồn mở giữ nguyên giấy phép tương ứng.":"Open-source components remain under their respective licenses."}</div>`;
 
   if(footer){
-    const contextualFooterLinks={"support.html":route("support"),"legal-notices.html":route("legal-notices"),"privacy.html":route("privacy"),"acknowledgements.html":route("acknowledgements")};
+    const contextualFooterLinks={"support.html":route("support"),"legal-notices.html":route("legal-notices")};
     Object.entries(contextualFooterLinks).forEach(([current,target])=>{const anchor=footer.querySelector(`a[href="${current}"]`);if(anchor)anchor.setAttribute("href",target)});
   }
 
