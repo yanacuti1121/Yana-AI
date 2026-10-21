@@ -23,12 +23,13 @@
 	function sanitizeMediaSrc(src) {
 		if (typeof src !== 'string') return '';
 		const trimmed = src.trim();
-		// Allow safe base64 images
-		if (/^data:image\/(png|jpe?g|gif|webp|svg\+xml);base64,[A-Za-z0-9+/=]+$/i.test(trimmed)) {
-			return trimmed;
+		// Allow safe base64 images with strict alphabet check
+		const base64Match = trimmed.match(/^data:image\/(png|jpeg|jpg|gif|webp);base64,([A-Za-z0-9+/=]+)$/i);
+		if (base64Match) {
+			return `data:image/${base64Match[1].toLowerCase()};base64,${base64Match[2]}`;
 		}
 		// Allow https or vscode-resource URLs
-		if (/^(https:|vscode-webview-resource:|vscode-resource:)\/\//i.test(trimmed)) {
+		if (/^(https:|vscode-webview-resource:|vscode-resource:)\/\/[A-Za-z0-9\-._~:/?#[\]@!$&'()*+,;=]+$/i.test(trimmed)) {
 			return trimmed;
 		}
 		return '';

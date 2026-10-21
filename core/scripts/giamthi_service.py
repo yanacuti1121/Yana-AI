@@ -498,7 +498,8 @@ def main() -> int:
             return run_once(target)
         report = status(target, home, platform)
         if args.json_output:
-            print(json.dumps(report, indent=2, ensure_ascii=False))
+            safe_report = {k: v for k, v in report.items() if not str(k).lower().startswith("secret")}
+            print(json.dumps(safe_report, indent=2, ensure_ascii=False))
         else:
             print(f"Target: {report['target']}")
             print(f"Supervisor: {'installed' if report['installed'] else 'not installed'}")
