@@ -1,0 +1,884 @@
+<!DOCTYPE html><html class="dark" lang="en" style="width: 1280px; height: 1292px; overflow: hidden; position: relative;"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>YANA STUDIO — Multi-PTY Terminal &amp; Agent Execution Matrix</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "tertiary-fixed": "#6ffbbe",
+            "tertiary-container": "#00a572",
+            "on-error": "#690005",
+            "on-primary-fixed": "#00174b",
+            "on-primary": "#002a77",
+            "on-secondary-fixed": "#00201d",
+            "inverse-on-surface": "#2f3035",
+            "surface-container-lowest": "#0c0e12",
+            "secondary": "#46eee0",
+            "tertiary": "#4edea3",
+            "surface-container": "#1e2024",
+            "tertiary-fixed-dim": "#4edea3",
+            "surface-container-low": "#1a1c20",
+            "surface-tint": "#b4c5ff",
+            "surface": "#111317",
+            "on-tertiary-container": "#00311f",
+            "on-secondary": "#003733",
+            "surface-variant": "#333539",
+            "on-tertiary": "#003824",
+            "inverse-surface": "#e2e2e8",
+            "surface-dim": "#111317",
+            "on-surface-variant": "#c3c6d7",
+            "on-secondary-container": "#00554f",
+            "on-primary-container": "#002469",
+            "primary-fixed-dim": "#b4c5ff",
+            "primary": "#b4c5ff",
+            "primary-fixed": "#dbe1ff",
+            "background": "#111317",
+            "secondary-container": "#00d2c4",
+            "outline-variant": "#434654",
+            "on-tertiary-fixed": "#002113",
+            "on-tertiary-fixed-variant": "#005236",
+            "on-primary-fixed-variant": "#003ea7",
+            "secondary-fixed-dim": "#28ddcf",
+            "outline": "#8d90a0",
+            "inverse-primary": "#1454d3",
+            "on-secondary-fixed-variant": "#00504a",
+            "surface-container-highest": "#333539",
+            "secondary-fixed": "#56faeb",
+            "on-error-container": "#ffdad6",
+            "error": "#ffb4ab",
+            "on-surface": "#e2e2e8",
+            "error-container": "#93000a",
+            "surface-container-high": "#282a2e",
+            "on-background": "#e2e2e8",
+            "primary-container": "#608bff",
+            "surface-bright": "#37393e"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-xl": "1rem",
+            "space-sm": "0.25rem",
+            "space-md": "0.5rem",
+            "gutter": "0px",
+            "space-lg": "0.75rem",
+            "margin": "0px",
+            "space-xs": "0.125rem"
+          },
+          "fontFamily": {
+            "body-lg": ["Geist"],
+            "code-md": ["JetBrains Mono"],
+            "code-lg": ["JetBrains Mono"],
+            "code-sm": ["JetBrains Mono"],
+            "headline-sm": ["Geist"],
+            "body-sm": ["Geist"],
+            "label-sm": ["JetBrains Mono"],
+            "body-md": ["Geist"],
+            "headline-md": ["Geist"],
+            "label-md": ["JetBrains Mono"],
+            "headline-lg": ["Geist"]
+          },
+          "fontSize": {
+            "body-lg": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "code-md": ["12px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "code-lg": ["13px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "code-sm": ["11px", { "lineHeight": "15px", "fontWeight": "400" }],
+            "headline-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "-0.005em", "fontWeight": "600" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "label-sm": ["10px", { "lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "500" }],
+            "body-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "headline-md": ["15px", { "lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-md": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "headline-lg": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.015em", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+      font-size: 16px;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #0c0e12;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #282a2e;
+      border-radius: 2px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #434654;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+    .pulse-agent {
+      animation: pulse-dot 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body-md select-none overflow-hidden h-screen w-screen flex flex-col antialiased">
+<!-- TopNavBar (Shared Component from JSON Blueprint) -->
+<header class="bg-surface-container-low dark:bg-surface-container-low text-primary dark:text-primary docked full-width top-0 h-9 border-b border-outline-variant dark:border-outline-variant flex justify-between items-center w-full px-space-md shrink-0 z-50">
+<!-- Left: macOS Traffic Lights + Brand + Menu Items -->
+<div class="flex items-center space-x-space-md shrink-0">
+<!-- macOS traffic dots -->
+<div class="flex items-center space-x-1.5 pr-2">
+<span class="w-3 h-3 rounded-full bg-[#ef4444] inline-block opacity-80 hover:opacity-100 cursor-pointer"></span>
+<span class="w-3 h-3 rounded-full bg-[#f59e0b] inline-block opacity-80 hover:opacity-100 cursor-pointer"></span>
+<span class="w-3 h-3 rounded-full bg-[#10b981] inline-block opacity-80 hover:opacity-100 cursor-pointer"></span>
+</div>
+<!-- Brand Logo Anchor -->
+<div class="flex items-center space-x-space-xs pl-1 pr-3 border-r border-outline-variant">
+<span class="material-symbols-outlined text-secondary text-[18px]">terminal</span>
+<span class="text-headline-sm font-headline-sm font-bold text-on-surface dark:text-on-surface tracking-wider">YANA STUDIO</span>
+</div>
+<!-- Navigation Links from JSON -->
+<nav class="hidden xl:flex items-center space-x-1">
+<button class="px-2 py-0.5 text-label-md font-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors duration-150">File</button>
+<button class="px-2 py-0.5 text-label-md font-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors duration-150">Edit</button>
+<button class="px-2 py-0.5 text-label-md font-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors duration-150">Selection</button>
+<button class="px-2 py-0.5 text-label-md font-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors duration-150">View</button>
+<button class="px-2 py-0.5 text-label-md font-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors duration-150">Go</button>
+<button class="px-2 py-0.5 text-label-md font-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors duration-150">Run</button>
+<button class="px-2 py-0.5 text-label-md font-label-md text-on-surface dark:text-on-surface font-semibold bg-surface-container-high rounded transition-colors duration-150">Terminal</button>
+<button class="px-2 py-0.5 text-label-md font-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors duration-150">Help</button>
+</nav>
+</div>
+<!-- Center: Search Bar & PTY Matrix Workspaces -->
+<div class="flex items-center space-x-space-md flex-1 max-w-2xl mx-4">
+<!-- Search Bar -->
+<div class="flex items-center w-full max-w-sm bg-surface-container border border-outline-variant px-2.5 py-0.5 rounded cursor-pointer hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-outline text-[14px] mr-1.5">search</span>
+<span class="text-code-sm font-code-sm text-on-surface-variant truncate">yanacuti1121/Yana-AI ⌘P</span>
+<span class="ml-auto text-label-sm font-label-sm text-outline border border-outline-variant px-1 rounded">⌘K</span>
+</div>
+<!-- Surface Tabs Switcher -->
+<div class="hidden md:flex items-center bg-surface-container-lowest p-0.5 rounded border border-outline-variant">
+<button class="px-2 py-0.5 text-label-sm font-label-sm text-on-surface-variant hover:text-on-surface rounded">Editor Core</button>
+<button class="px-2 py-0.5 text-label-sm font-label-sm text-secondary bg-surface-container font-semibold rounded border border-outline-variant flex items-center space-x-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary inline-block"></span>
+<span>Terminal &amp; Agent PTY</span>
+</button>
+<button class="px-2 py-0.5 text-label-sm font-label-sm text-on-surface-variant hover:text-on-surface rounded">DAG Runtime</button>
+</div>
+</div>
+<!-- Right Trailing Primary/Secondary Actions & Icons -->
+<div class="flex items-center space-x-space-sm shrink-0">
+<!-- Trailing Action: Deploy & Fork from JSON -->
+<button class="h-[22px] px-2 bg-surface-container-high border border-outline-variant hover:border-outline text-on-surface text-label-sm font-label-sm rounded flex items-center space-x-1 transition-colors duration-150">
+<span class="material-symbols-outlined text-[13px]">call_split</span>
+<span>Fork</span>
+</button>
+<button class="h-[22px] px-2.5 bg-primary-container text-on-primary-container hover:bg-opacity-90 font-label-sm text-label-sm font-semibold rounded flex items-center space-x-1 transition-colors duration-150">
+<span class="material-symbols-outlined text-[13px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span>Deploy</span>
+</button>
+<div class="h-3.5 w-px bg-outline-variant mx-1"></div>
+<!-- Quick Session Controls -->
+<button class="h-6 w-6 flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded transition-colors duration-150" title="Split Terminal Horizontal/Vertical">
+<span class="material-symbols-outlined text-[15px]">splitscreen</span>
+</button>
+<button class="h-6 w-6 flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded transition-colors duration-150" title="New PTY Instance">
+<span class="material-symbols-outlined text-[15px]">terminal</span>
+</button>
+<button class="h-6 w-6 flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded transition-colors duration-150" title="System Control Tuning">
+<span class="material-symbols-outlined text-[15px]">tune</span>
+</button>
+<button class="h-6 px-1.5 flex items-center space-x-0.5 text-error hover:bg-error-container hover:text-on-error-container rounded transition-colors duration-150 text-label-sm font-label-sm" title="Kill All Unsafe Sessions">
+<span class="material-symbols-outlined text-[14px]">cancel</span>
+<span class="hidden lg:inline">Kill All</span>
+</button>
+<div class="h-3.5 w-px bg-outline-variant mx-1"></div>
+<button class="flex items-center text-on-surface-variant hover:text-on-surface pl-1" title="User Operator Profile">
+<span class="material-symbols-outlined text-[20px]">account_circle</span>
+</button>
+</div>
+</header>
+<!-- IDE Core Workspace Shell -->
+<div class="flex-1 flex overflow-hidden w-full relative">
+<!-- SideNavBar (Shared Component from JSON Blueprint) -->
+<aside class="bg-surface-dim dark:bg-surface-dim text-primary dark:text-primary docked left-0 top-9 bottom-6 w-12 flex flex-col justify-between items-center py-space-xs border-r border-outline-variant dark:border-outline-variant shrink-0 z-40 select-none">
+<!-- Top Activity Bar Tabs -->
+<div class="flex flex-col items-center space-y-1 w-full">
+<!-- Brand/Runtime indicator -->
+<div class="mb-2 flex flex-col items-center" title="YANA v2.4-alpha Autonomous Node">
+<span class="text-headline-sm font-headline-sm font-semibold text-primary dark:text-primary leading-none">YANA</span>
+<span class="text-[9px] font-label-sm text-outline mt-0.5">v2.4-α</span>
+</div>
+<!-- 6 Tabs defined in JSON -->
+<!-- Tab 1: Explorer -->
+<button class="w-full h-10 flex flex-col justify-center items-center text-on-surface-variant dark:text-on-surface-variant border-l-2 border-transparent hover:bg-surface-container dark:hover:bg-surface-container hover:text-on-surface transition-colors duration-150" title="Explorer">
+<span class="material-symbols-outlined text-[20px]">folder</span>
+</button>
+<!-- Tab 2: Search -->
+<button class="w-full h-10 flex flex-col justify-center items-center text-on-surface-variant dark:text-on-surface-variant border-l-2 border-transparent hover:bg-surface-container dark:hover:bg-surface-container hover:text-on-surface transition-colors duration-150" title="Search">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</button>
+<!-- Tab 3: Source Control -->
+<button class="w-full h-10 flex flex-col justify-center items-center text-on-surface-variant dark:text-on-surface-variant border-l-2 border-transparent hover:bg-surface-container dark:hover:bg-surface-container hover:text-on-surface transition-colors duration-150" title="Source Control">
+<span class="material-symbols-outlined text-[20px]">account_tree</span>
+</button>
+<!-- Tab 4: Yana Agents (ACTIVE FOR AGENT EXECUTION MATRIX) -->
+<button class="w-full h-10 flex flex-col justify-center items-center text-primary dark:text-primary border-l-2 border-primary bg-surface-container-high dark:bg-surface-container-high transition-colors duration-150 relative" title="Yana Agents &amp; Execution Matrix">
+<span class="material-symbols-outlined text-[20px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+<span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-secondary pulse-agent"></span>
+</button>
+<!-- Tab 5: Governance -->
+<button class="w-full h-10 flex flex-col justify-center items-center text-on-surface-variant dark:text-on-surface-variant border-l-2 border-transparent hover:bg-surface-container dark:hover:bg-surface-container hover:text-on-surface transition-colors duration-150" title="Governance">
+<span class="material-symbols-outlined text-[20px]">verified_user</span>
+</button>
+<!-- Tab 6: Extensions -->
+<button class="w-full h-10 flex flex-col justify-center items-center text-on-surface-variant dark:text-on-surface-variant border-l-2 border-transparent hover:bg-surface-container dark:hover:bg-surface-container hover:text-on-surface transition-colors duration-150" title="Extensions">
+<span class="material-symbols-outlined text-[20px]">extension</span>
+</button>
+</div>
+<!-- Footer Tabs from JSON -->
+<div class="flex flex-col items-center space-y-1 w-full border-t border-outline-variant pt-2">
+<button class="w-8 h-8 rounded bg-surface-container-high hover:bg-primary-container hover:text-on-primary-container text-secondary flex items-center justify-center transition-colors duration-150 mb-1" title="Run Task (Execution CTA)">
+<span class="material-symbols-outlined text-[17px]">play_arrow</span>
+</button>
+<button class="w-full h-9 flex justify-center items-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors duration-150" title="Telemetry">
+<span class="material-symbols-outlined text-[18px]">show_chart</span>
+</button>
+<button class="w-full h-9 flex justify-center items-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors duration-150" title="Settings">
+<span class="material-symbols-outlined text-[18px]">settings</span>
+</button>
+</div>
+</aside>
+<!-- LEFT PANE: Terminal Session Explorer & PTY Session Tree -->
+<div class="w-72 bg-surface-container-low border-r border-outline-variant flex flex-col shrink-0 select-none">
+<!-- Section Header -->
+<div class="h-7 px-space-md bg-surface-container flex items-center justify-between border-b border-outline-variant shrink-0">
+<div class="flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-[15px] text-primary">terminal</span>
+<span class="text-headline-sm font-headline-sm text-on-surface">PTY Matrix Explorer</span>
+</div>
+<div class="flex items-center space-x-1 text-on-surface-variant">
+<button class="hover:text-on-surface p-0.5" title="New Terminal"><span class="material-symbols-outlined text-[15px]">add</span></button>
+<button class="hover:text-on-surface p-0.5" title="Collapse All"><span class="material-symbols-outlined text-[15px]">unfold_less</span></button>
+</div>
+</div>
+<!-- Scrollable PTY Trees -->
+<div class="flex-1 overflow-y-auto custom-scrollbar p-space-xs space-y-3">
+<!-- GROUP 1: Human PTY Sessions -->
+<div>
+<div class="flex items-center justify-between px-2 py-1 text-label-sm font-label-sm text-outline tracking-wider cursor-pointer hover:text-on-surface">
+<div class="flex items-center space-x-1">
+<span class="material-symbols-outlined text-[13px]">expand_more</span>
+<span>HUMAN PTY SESSIONS</span>
+</div>
+<span class="bg-surface-container px-1 rounded text-[9px] text-outline">2 active</span>
+</div>
+<div class="space-y-0.5 mt-0.5 pl-1">
+<!-- Session 1: zsh interactive -->
+<div class="group flex flex-col p-1.5 rounded bg-surface-container border-l-2 border-primary hover:bg-surface-container-high transition-colors cursor-pointer">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-1.5 truncate">
+<span class="material-symbols-outlined text-[14px] text-tertiary">chevron_right</span>
+<span class="text-body-sm font-code-sm font-medium text-on-surface truncate">zsh /dev/ttys004</span>
+</div>
+<span class="text-label-sm font-label-sm text-secondary px-1 bg-surface-container-lowest rounded">PID 88201</span>
+</div>
+<div class="flex items-center justify-between mt-1 text-[10px] font-label-sm text-on-surface-variant">
+<span>CPU: 0.1% · MEM: 38MB</span>
+<span class="text-outline border border-outline-variant px-1 rounded text-[9px]">UNISOLATED</span>
+</div>
+</div>
+<!-- Session 2: cargo dev server -->
+<div class="group flex flex-col p-1.5 rounded hover:bg-surface-container border-l-2 border-transparent transition-colors cursor-pointer">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-1.5 truncate">
+<span class="material-symbols-outlined text-[14px] text-outline">developer_board</span>
+<span class="text-body-sm font-code-sm text-on-surface-variant truncate">cargo run --bin dev</span>
+</div>
+<span class="text-label-sm font-label-sm text-outline px-1 rounded">PID 89412</span>
+</div>
+<div class="flex items-center justify-between mt-1 text-[10px] font-label-sm text-outline">
+<span>CPU: 1.4% · MEM: 114MB</span>
+<span class="text-outline border border-outline-variant px-1 rounded text-[9px]">DEV_WATCH</span>
+</div>
+</div>
+</div>
+</div>
+<!-- GROUP 2: Agent Sandboxed PTYs -->
+<div>
+<div class="flex items-center justify-between px-2 py-1 text-label-sm font-label-sm text-secondary tracking-wider cursor-pointer hover:text-on-surface">
+<div class="flex items-center space-x-1">
+<span class="material-symbols-outlined text-[13px]">expand_more</span>
+<span>AGENT SANDBOXED PTYS</span>
+</div>
+<span class="bg-secondary-container/20 text-secondary px-1 rounded text-[9px]">3 gated</span>
+</div>
+<div class="space-y-1 mt-0.5 pl-1">
+<!-- Agent Session 1: Architect PTY -->
+<div class="p-1.5 rounded bg-surface-container border-l-2 border-secondary hover:bg-surface-container-high transition-colors cursor-pointer">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-1.5 truncate">
+<span class="material-symbols-outlined text-[14px] text-secondary">smart_toy</span>
+<span class="text-body-sm font-code-sm font-medium text-on-surface truncate">yana-core-architect</span>
+</div>
+<span class="text-label-sm font-label-sm text-secondary px-1 bg-surface-container-lowest rounded">PID 91042</span>
+</div>
+<div class="flex items-center space-x-1.5 mt-1">
+<span class="text-label-sm font-label-sm text-tertiary bg-tertiary/10 border border-tertiary/30 px-1 rounded text-[9px]">gVisor L2</span>
+<span class="text-label-sm font-label-sm text-[#f59e0b] bg-[#f59e0b]/10 border border-[#f59e0b]/30 px-1 rounded text-[9px]">Lease: 11m rem</span>
+</div>
+<div class="flex items-center justify-between mt-1 text-[10px] font-label-sm text-on-surface-variant">
+<span>cargo test --lib</span>
+<span class="text-secondary">420 tps stream</span>
+</div>
+</div>
+<!-- Agent Session 2: Refactor Bot -->
+<div class="p-1.5 rounded hover:bg-surface-container border-l-2 border-transparent transition-colors cursor-pointer">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-1.5 truncate">
+<span class="material-symbols-outlined text-[14px] text-outline">tune</span>
+<span class="text-body-sm font-code-sm text-on-surface-variant truncate">refactor-bot-ast</span>
+</div>
+<span class="text-label-sm font-label-sm text-outline px-1 rounded">PID 92430</span>
+</div>
+<div class="flex items-center space-x-1.5 mt-1">
+<span class="text-label-sm font-label-sm text-tertiary bg-tertiary/10 border border-tertiary/30 px-1 rounded text-[9px]">gVisor MicroVM</span>
+<span class="text-label-sm font-label-sm text-outline bg-surface-container-highest px-1 rounded text-[9px]">Limit: 512MB</span>
+</div>
+<div class="flex items-center justify-between mt-1 text-[10px] font-label-sm text-outline">
+<span>ast-grep --rewrite</span>
+<span>CPU: 0.0% (idle)</span>
+</div>
+</div>
+<!-- Agent Session 3: Daemon loop -->
+<div class="p-1.5 rounded hover:bg-surface-container border-l-2 border-transparent transition-colors cursor-pointer">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-1.5 truncate">
+<span class="material-symbols-outlined text-[14px] text-primary">memory</span>
+<span class="text-body-sm font-code-sm text-on-surface-variant truncate">tokio-event-loop</span>
+</div>
+<span class="text-label-sm font-label-sm text-outline px-1 rounded">PID 87010</span>
+</div>
+<div class="flex items-center space-x-1.5 mt-1">
+<span class="text-label-sm font-label-sm text-tertiary bg-tertiary/10 border border-tertiary/30 px-1 rounded text-[9px]">RingBuffer L0</span>
+<span class="text-label-sm font-label-sm text-primary bg-primary/10 border border-primary/30 px-1 rounded text-[9px]">Metal MPS</span>
+</div>
+<div class="flex items-center justify-between mt-1 text-[10px] font-label-sm text-outline">
+<span>Worker Threads: 4/4</span>
+<span class="text-tertiary">0.4ms tick</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Capability Leases Matrix widget -->
+<div class="mt-3 p-2 bg-surface-container rounded border border-outline-variant">
+<div class="flex items-center justify-between text-label-sm font-label-sm text-on-surface font-semibold mb-1">
+<span>ACTIVE CAPABILITY LEASES</span>
+<span class="material-symbols-outlined text-[14px] text-tertiary">lock_open</span>
+</div>
+<div class="space-y-1.5 text-label-sm font-label-sm">
+<div class="flex items-center justify-between text-[10px]">
+<span class="text-on-surface-variant">L3 Raw PTY Write</span>
+<span class="text-tertiary">yana-core (12m left)</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1 rounded overflow-hidden">
+<div class="bg-tertiary h-full w-[65%]"></div>
+</div>
+<div class="flex items-center justify-between text-[10px] pt-1">
+<span class="text-on-surface-variant">BPF Net Egress Intercept</span>
+<span class="text-secondary">Strict Enforced</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1 rounded overflow-hidden">
+<div class="bg-secondary h-full w-full"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick Session Spawn Drawer -->
+<div class="p-2 border-t border-outline-variant bg-surface-container flex items-center space-x-1 shrink-0">
+<button class="flex-1 py-1 bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant text-on-surface text-label-sm font-label-sm rounded flex items-center justify-center space-x-1">
+<span class="material-symbols-outlined text-[13px]">add_box</span>
+<span>Spawn Human PTY</span>
+</button>
+<button class="py-1 px-2 bg-primary/10 hover:bg-primary/20 border border-primary/30 text-primary text-label-sm font-label-sm rounded flex items-center justify-center space-x-1" title="Sandbox Agent Shell">
+<span class="material-symbols-outlined text-[13px]">shield</span>
+<span>Agent</span>
+</button>
+</div>
+</div>
+<!-- CENTER AREA: 4-WAY TERMINAL GRID / MULTIPLEXER (2x2 Grid) -->
+<main class="flex-1 grid grid-cols-2 grid-rows-2 gap-[1px] bg-outline-variant/60 overflow-hidden relative">
+<!-- PANE 1 (Top Left): Human Interactive Shell (zsh /dev/ttys004) -->
+<section class="bg-surface flex flex-col overflow-hidden relative">
+<!-- Pane Tab Bar -->
+<div class="h-7 bg-surface-container px-space-md flex items-center justify-between border-b border-outline-variant shrink-0">
+<div class="flex items-center space-x-2">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="text-headline-sm font-headline-sm text-on-surface font-mono">zsh: human-operator (TTY /dev/ttys004)</span>
+<span class="text-label-sm font-label-sm text-outline border border-outline-variant px-1 rounded text-[9px]">INTERACTIVE</span>
+</div>
+<div class="flex items-center space-x-1">
+<button class="text-on-surface-variant hover:text-on-surface p-0.5" title="Clear Buffer"><span class="material-symbols-outlined text-[14px]">cleaning_services</span></button>
+<button class="text-on-surface-variant hover:text-on-surface p-0.5" title="Maximize Pane"><span class="material-symbols-outlined text-[14px]">open_in_full</span></button>
+<button class="text-on-surface-variant hover:text-error p-0.5" title="Close Session"><span class="material-symbols-outlined text-[14px]">close</span></button>
+</div>
+</div>
+<!-- Terminal Output Surface -->
+<div class="flex-1 bg-surface-container-lowest p-2.5 font-code-md text-code-md custom-scrollbar overflow-y-auto space-y-1.5 leading-relaxed">
+<div class="text-outline text-code-sm">Last login: Fri Oct 24 14:02:11 on ttys004 — Yana Subsystem v2.4 initialized</div>
+<div class="text-on-surface-variant flex items-center space-x-1">
+<span class="text-tertiary font-bold">operator@yana-workstation</span>
+<span class="text-outline">:</span>
+<span class="text-primary">~/workspaces/yana-ai</span>
+<span class="text-secondary font-bold">(feat/pty-mux)</span>
+<span class="text-on-surface">$</span>
+<span class="text-on-surface font-medium ml-1">git status -s</span>
+</div>
+<div class="pl-2 space-y-0.5 text-code-sm">
+<div class="text-tertiary">M  crates/yana-pty/src/multiplexer.rs</div>
+<div class="text-tertiary">M  crates/yana-governance/src/gates.rs</div>
+<div class="text-error">?? crates/yana-bpf/filters/egress.bpf.c</div>
+</div>
+<div class="text-on-surface-variant flex items-center space-x-1 pt-1">
+<span class="text-tertiary font-bold">operator@yana-workstation</span>
+<span class="text-outline">:</span>
+<span class="text-primary">~/workspaces/yana-ai</span>
+<span class="text-secondary font-bold">(feat/pty-mux)</span>
+<span class="text-on-surface">$</span>
+<span class="text-on-surface font-medium ml-1">cargo check --all-targets</span>
+</div>
+<div class="text-outline text-code-sm pl-2">
+<div><span class="text-secondary">    Checking</span> yana-core v2.4.0 (/workspace/crates/yana-core)</div>
+<div><span class="text-secondary">    Checking</span> yana-pty v2.4.0 (/workspace/crates/yana-pty)</div>
+<div class="text-tertiary"><span class="font-bold">    Finished</span> `dev` profile [unoptimized + debuginfo] in 1.42s</div>
+</div>
+<div class="text-on-surface-variant flex items-center space-x-1 pt-1">
+<span class="text-tertiary font-bold">operator@yana-workstation</span>
+<span class="text-outline">:</span>
+<span class="text-primary">~/workspaces/yana-ai</span>
+<span class="text-secondary font-bold">(feat/pty-mux)</span>
+<span class="text-on-surface">$</span>
+<span class="text-on-surface font-medium ml-1">./scripts/verify-gvisor-tiers.sh --strict</span>
+</div>
+<div class="text-code-sm pl-2 text-on-surface-variant">
+<div>[OK] Kernel namespace isolations active (PID, Mount, Net)</div>
+<div>[OK] gVisor runsc runtime version release-2026-03-12 verified</div>
+<div class="text-tertiary">[PASS] ActionGate socket /run/yana/actiongate.sock responding (4μs)</div>
+</div>
+<!-- Active Prompt Line with blinking caret -->
+<div class="text-on-surface-variant flex items-center space-x-1 pt-1">
+<span class="text-tertiary font-bold">operator@yana-workstation</span>
+<span class="text-outline">:</span>
+<span class="text-primary">~/workspaces/yana-ai</span>
+<span class="text-secondary font-bold">(feat/pty-mux)</span>
+<span class="text-on-surface">$</span>
+<span class="w-2 h-4 bg-primary inline-block ml-1 animate-pulse"></span>
+</div>
+</div>
+</section>
+<!-- PANE 2 (Top Right): Agent Test Execution Stream (cargo test --lib) -->
+<section class="bg-surface flex flex-col overflow-hidden relative">
+<!-- Pane Tab Bar -->
+<div class="h-7 bg-surface-container px-space-md flex items-center justify-between border-b border-outline-variant shrink-0">
+<div class="flex items-center space-x-2">
+<span class="w-2 h-2 rounded-full bg-secondary pulse-agent"></span>
+<span class="text-headline-sm font-headline-sm text-on-surface font-mono">agent-exec: cargo test --lib (PID 91042 · gVisor L2)</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="text-label-sm font-label-sm text-secondary bg-surface-container-high px-1.5 py-0.5 rounded">420 tps</span>
+<span class="text-label-sm font-label-sm text-outline">00:01:24.4</span>
+<button class="text-on-surface-variant hover:text-error p-0.5" title="Kill Session"><span class="material-symbols-outlined text-[14px]">cancel</span></button>
+</div>
+</div>
+<!-- Terminal Output Surface -->
+<div class="flex-1 bg-surface-container-lowest p-2.5 font-code-md text-code-md custom-scrollbar overflow-y-auto space-y-1 leading-relaxed">
+<div class="text-secondary text-code-sm font-semibold">=== [AGENT RUNNER: yana-core-architect] TARGET: cargo test --lib --workspace ===</div>
+<div class="text-outline text-code-sm">Running unittests src/lib.rs (target/debug/deps/yana_core-33fba01)</div>
+<div class="space-y-0.5 text-code-sm pt-1">
+<div class="flex items-center justify-between">
+<span class="text-on-surface">test engine::tokio_bounded_channels ...</span>
+<span class="text-tertiary font-bold">[ok]</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-on-surface">test governance::action_gate_enforcement ...</span>
+<span class="text-tertiary font-bold">[ok]</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-on-surface">test pty::pseudo_terminal_ringbuffer_alloc ...</span>
+<span class="text-tertiary font-bold">[ok]</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-on-surface">test pty::ansi_escape_sanitizer_fast_path ...</span>
+<span class="text-tertiary font-bold">[ok]</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-on-surface">test isolation::gvisor_syscall_table_filter ...</span>
+<span class="text-tertiary font-bold">[ok]</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-on-surface">test bpf::egress_packet_drop_telemetry ...</span>
+<span class="text-tertiary font-bold">[ok]</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-on-surface">test runtime::metal_mps_context_allocation ...</span>
+<span class="text-tertiary font-bold">[ok]</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-on-surface">test leases::lease_timebox_expiration_cleanup ...</span>
+<span class="text-tertiary font-bold">[ok]</span>
+</div>
+</div>
+<div class="pt-2 border-t border-outline-variant/40 text-code-sm">
+<div class="text-tertiary font-semibold">test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out</div>
+<div class="text-outline text-[11px] mt-0.5">Finished in 0.84s (wall clock) · PTY Read Buffer Latency 0.12ms</div>
+</div>
+<div class="p-2 rounded bg-surface-container border border-outline-variant mt-2">
+<div class="flex items-center space-x-1.5 text-secondary text-label-sm font-label-sm font-semibold">
+<span class="material-symbols-outlined text-[13px]">psychology</span>
+<span>AUTONOMOUS AGENT REASONING TRACE [CLAUDE-3.7-SONNET]</span>
+</div>
+<p class="text-on-surface-variant text-[11px] font-code-sm mt-1">
+              "Unit tests verified. Next step in DAG requires verifying network egress rules with eBPF filter injection before committing candidate patch to git tree."
+            </p>
+</div>
+</div>
+</section>
+<!-- PANE 3 (Bottom Left): Daemon Trace Log (yana-rt v2.4 Tokio Event Loop) -->
+<section class="bg-surface flex flex-col overflow-hidden relative">
+<!-- Pane Tab Bar -->
+<div class="h-7 bg-surface-container px-space-md flex items-center justify-between border-b border-outline-variant shrink-0">
+<div class="flex items-center space-x-2">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="text-headline-sm font-headline-sm text-on-surface font-mono">daemon: yana-rt v2.4 Tokio Event Loop</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="text-label-sm font-label-sm text-primary">Workers: 4/4</span>
+<span class="text-label-sm font-label-sm text-tertiary">Tick: 0.4ms</span>
+<button class="text-on-surface-variant hover:text-on-surface p-0.5"><span class="material-symbols-outlined text-[14px]">pause</span></button>
+</div>
+</div>
+<!-- Terminal Output Surface -->
+<div class="flex-1 bg-surface-container-lowest p-2.5 font-code-md text-code-md custom-scrollbar overflow-y-auto space-y-1 leading-relaxed">
+<!-- Worker Thread Telemetry Header -->
+<div class="grid grid-cols-4 gap-1 p-1.5 bg-surface-container rounded border border-outline-variant mb-1 font-label-sm text-[10px]">
+<div class="flex flex-col">
+<span class="text-outline">Worker #0</span>
+<span class="text-tertiary">3.2% [142 tasks]</span>
+</div>
+<div class="flex flex-col">
+<span class="text-outline">Worker #1</span>
+<span class="text-tertiary">1.8% [98 tasks]</span>
+</div>
+<div class="flex flex-col">
+<span class="text-outline">Worker #2</span>
+<span class="text-secondary">6.4% [210 tasks]</span>
+</div>
+<div class="flex flex-col">
+<span class="text-outline">Worker #3</span>
+<span class="text-tertiary">2.1% [115 tasks]</span>
+</div>
+</div>
+<!-- Event Log Rows -->
+<div class="space-y-0.5 text-code-sm">
+<div class="text-outline flex space-x-2">
+<span class="text-outline">14:04:18.102</span>
+<span class="text-secondary">[RPC-DISPATCH]</span>
+<span class="text-on-surface">methods/terminal.spawn_pty -&gt; success fd=19</span>
+</div>
+<div class="text-outline flex space-x-2">
+<span class="text-outline">14:04:18.330</span>
+<span class="text-primary">[MPS-ALLOC]</span>
+<span class="text-on-surface">Apple Metal GPU Context initialized (Heap: 1,024MB unified)</span>
+</div>
+<div class="text-outline flex space-x-2">
+<span class="text-outline">14:04:18.614</span>
+<span class="text-tertiary">[LEASE-MGR]</span>
+<span class="text-on-surface">Granted 15m lease 'L3_TERMINAL_WRITE' to Agent-91042</span>
+</div>
+<div class="text-outline flex space-x-2">
+<span class="text-outline">14:04:19.002</span>
+<span class="text-secondary">[RPC-DISPATCH]</span>
+<span class="text-on-surface">methods/governance.poll_queue -&gt; 1 pending approval</span>
+</div>
+<div class="text-outline flex space-x-2">
+<span class="text-outline">14:04:19.450</span>
+<span class="text-[#f59e0b]">[GATE-WARN]</span>
+<span class="text-[#f59e0b]">Intervention triggered: mutate system parameter intercepted</span>
+</div>
+<div class="text-outline flex space-x-2">
+<span class="text-outline">14:04:20.001</span>
+<span class="text-outline">[GC-CADENCE]</span>
+<span class="text-on-surface-variant">Cleaned 32 expired telemetry ringbuffers in 12μs</span>
+</div>
+</div>
+</div>
+</section>
+<!-- PANE 4 (Bottom Right): Kernel Intercept & Egress Monitor (bpf-guard) -->
+<section class="bg-surface flex flex-col overflow-hidden relative">
+<!-- Pane Tab Bar -->
+<div class="h-7 bg-surface-container px-space-md flex items-center justify-between border-b border-outline-variant shrink-0">
+<div class="flex items-center space-x-2">
+<span class="w-2 h-2 rounded-full bg-[#10b981]"></span>
+<span class="text-headline-sm font-headline-sm text-on-surface font-mono">bpf-guard: Kernel Intercept &amp; Egress Monitor</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="text-label-sm font-label-sm text-tertiary bg-tertiary/10 border border-tertiary/30 px-1 rounded">AIRGAP ENFORCED</span>
+<button class="text-on-surface-variant hover:text-on-surface p-0.5"><span class="material-symbols-outlined text-[14px]">tune</span></button>
+</div>
+</div>
+<!-- Terminal Output Surface -->
+<div class="flex-1 bg-surface-container-lowest p-2.5 font-code-md text-code-md custom-scrollbar overflow-y-auto space-y-1.5 leading-relaxed">
+<div class="text-outline text-code-sm">eBPF Socket Filter attached to cgroupv2 /sys/fs/cgroup/yana-agent-sandboxes</div>
+<!-- Intercept Matrix Table -->
+<div class="space-y-1 text-code-sm pt-1">
+<!-- Intercept item 1 -->
+<div class="p-1 rounded bg-surface-container flex items-center justify-between text-[11px]">
+<div class="flex items-center space-x-2 truncate">
+<span class="text-error font-bold">[BLOCKED]</span>
+<span class="text-on-surface">connect(AF_INET, 142.250.190.46:443)</span>
+</div>
+<span class="text-label-sm font-label-sm text-error bg-error/10 px-1 rounded">TELEMETRY DROP</span>
+</div>
+<!-- Intercept item 2 -->
+<div class="p-1 rounded bg-surface-container flex items-center justify-between text-[11px]">
+<div class="flex items-center space-x-2 truncate">
+<span class="text-tertiary font-bold">[ALLOWED]</span>
+<span class="text-on-surface">connect(AF_UNIX, /run/yana/actiongate.sock)</span>
+</div>
+<span class="text-label-sm font-label-sm text-tertiary bg-tertiary/10 px-1 rounded">LOCAL IPC</span>
+</div>
+<!-- Intercept item 3 -->
+<div class="p-1 rounded bg-surface-container flex items-center justify-between text-[11px]">
+<div class="flex items-center space-x-2 truncate">
+<span class="text-[#f59e0b] font-bold">[GATE-HELD]</span>
+<span class="text-on-surface">sys_sysctl(net.inet.ip.forwarding)</span>
+</div>
+<span class="text-label-sm font-label-sm text-[#f59e0b] bg-[#f59e0b]/10 px-1 rounded">PENDING APPROVAL</span>
+</div>
+<!-- Intercept item 4 -->
+<div class="p-1 rounded bg-surface-container flex items-center justify-between text-[11px]">
+<div class="flex items-center space-x-2 truncate">
+<span class="text-tertiary font-bold">[ALLOWED]</span>
+<span class="text-on-surface">read(/workspace/Cargo.lock)</span>
+</div>
+<span class="text-label-sm font-label-sm text-tertiary bg-tertiary/10 px-1 rounded">FS-SANDBOX</span>
+</div>
+</div>
+<div class="mt-2 p-1.5 bg-surface-container rounded border border-outline-variant text-[11px] text-on-surface-variant flex items-center justify-between">
+<span>Airgap Egress Policy: <strong>ZERO_OUTBOUND_SOCKETS</strong></span>
+<span class="text-tertiary font-bold">14 Packets Dropped</span>
+</div>
+</div>
+</section>
+</main>
+<!-- RIGHT PANE: Terminal Inspector & ActionGate Terminal Lease Control -->
+<aside class="w-80 bg-surface-container-low border-l border-outline-variant flex flex-col shrink-0 select-none">
+<!-- Section Header -->
+<div class="h-7 px-space-md bg-surface-container flex items-center justify-between border-b border-outline-variant shrink-0">
+<div class="flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-[15px] text-secondary">policy</span>
+<span class="text-headline-sm font-headline-sm text-on-surface">ActionGate Lease Control</span>
+</div>
+<span class="text-label-sm font-label-sm text-tertiary bg-tertiary/10 border border-tertiary/30 px-1 rounded">L4-GUARD</span>
+</div>
+<div class="flex-1 overflow-y-auto custom-scrollbar p-space-md space-y-3.5">
+<!-- REAL-TIME INTERVENTION WIDGET (Mandatory Human-in-the-Loop Gate) -->
+<div class="p-2.5 rounded bg-surface-container border border-[#f59e0b]/40 relative overflow-hidden">
+<div class="flex items-center space-x-1.5 mb-1.5">
+<span class="material-symbols-outlined text-[16px] text-[#f59e0b] animate-pulse">warning</span>
+<span class="text-headline-sm font-headline-sm text-on-surface font-semibold">INTERVENTION REQUIRED</span>
+</div>
+<p class="text-[11px] font-code-sm text-on-surface-variant mb-2 leading-relaxed">
+            Autonomous agent <code class="text-secondary font-bold">yana-core-architect</code> submitted a privileged terminal syscall requiring operator clearance.
+          </p>
+<!-- Intercepted Command Box -->
+<div class="p-2 rounded bg-surface-container-lowest border border-outline-variant mb-2.5 font-code-sm text-code-sm text-error break-all">
+            sudo sysctl -w net.inet.ip.forwarding=0
+          </div>
+<div class="space-y-1 text-label-sm font-label-sm text-on-surface-variant mb-2.5">
+<div class="flex justify-between">
+<span>Risk Tier:</span>
+<span class="text-[#f59e0b] font-bold">Tier 3 (Kernel State Mutation)</span>
+</div>
+<div class="flex justify-between">
+<span>Origin PTY:</span>
+<span class="text-on-surface">/dev/pts/2 (gVisor L2)</span>
+</div>
+<div class="flex justify-between">
+<span>Timeout:</span>
+<span class="text-tertiary">04:38 remaining</span>
+</div>
+</div>
+<!-- Action Gate Decision Triggers -->
+<div class="grid grid-cols-2 gap-2">
+<!-- Deny / Kill Button -->
+<button class="h-[26px] bg-[#ef4444]/10 hover:bg-[#ef4444]/20 border border-[#ef4444] text-[#ef4444] text-label-sm font-label-sm font-semibold rounded flex items-center justify-center space-x-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">block</span>
+<span>Kill Session</span>
+</button>
+<!-- Approve Button -->
+<button class="h-[26px] bg-[#10b981]/15 hover:bg-[#10b981]/25 border border-[#10b981] text-[#10b981] text-label-sm font-label-sm font-semibold rounded flex items-center justify-center space-x-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+<span>Approve Exec</span>
+</button>
+</div>
+</div>
+<!-- Terminal Process Inspector -->
+<div class="p-2.5 rounded bg-surface-container border border-outline-variant">
+<div class="text-label-sm font-label-sm text-outline font-semibold mb-2 tracking-wider">
+            SELECTED PTY PROCESS INSPECTOR
+          </div>
+<div class="space-y-1.5 text-label-sm font-label-sm">
+<div class="flex justify-between py-0.5 border-b border-outline-variant/30">
+<span class="text-on-surface-variant">Process Name:</span>
+<span class="font-code-sm text-on-surface">yana-core-architect</span>
+</div>
+<div class="flex justify-between py-0.5 border-b border-outline-variant/30">
+<span class="text-on-surface-variant">PID / PPID:</span>
+<span class="font-code-sm text-on-surface">91042 / 87010</span>
+</div>
+<div class="flex justify-between py-0.5 border-b border-outline-variant/30">
+<span class="text-on-surface-variant">Isolation Mode:</span>
+<span class="text-tertiary font-medium">gVisor MicroVM (L2)</span>
+</div>
+<div class="flex justify-between py-0.5 border-b border-outline-variant/30">
+<span class="text-on-surface-variant">Working Directory:</span>
+<span class="font-code-sm text-outline truncate max-w-[130px]" title="/workspace/crates/yana-core">/crates/yana-core</span>
+</div>
+<div class="flex justify-between py-0.5 border-b border-outline-variant/30">
+<span class="text-on-surface-variant">Term Capability:</span>
+<span class="font-code-sm text-secondary">xterm-256color + UTF8</span>
+</div>
+<div class="flex justify-between py-0.5">
+<span class="text-on-surface-variant">TTY Node:</span>
+<span class="font-code-sm text-outline">/dev/pts/2</span>
+</div>
+</div>
+</div>
+<!-- Terminal Hardware & Buffer Settings -->
+<div class="p-2.5 rounded bg-surface-container border border-outline-variant">
+<div class="text-label-sm font-label-sm text-outline font-semibold mb-2 tracking-wider">
+            TERMINAL EMULATION SETTINGS
+          </div>
+<div class="space-y-2 text-label-sm font-label-sm">
+<div>
+<div class="flex justify-between text-on-surface-variant mb-1">
+<span>Scrollback Buffer</span>
+<span class="text-on-surface font-code-sm">100,000 lines</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1.5 rounded overflow-hidden">
+<div class="bg-primary h-full w-[45%]"></div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="text-on-surface-variant">Font Family:</span>
+<span class="text-on-surface font-code-sm bg-surface-container-high px-1.5 py-0.5 rounded">JetBrains Mono 12px</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-on-surface-variant">GPU Acceleration:</span>
+<span class="text-tertiary font-code-sm flex items-center space-x-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span>Apple Metal GPU PTY</span>
+</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-on-surface-variant">ANSI 24-bit TrueColor:</span>
+<span class="text-on-surface font-code-sm">ENABLED</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Quick Status -->
+<div class="p-2 border-t border-outline-variant bg-surface-container flex items-center justify-between text-label-sm font-label-sm shrink-0">
+<span class="text-outline">Terminal Health:</span>
+<span class="text-tertiary flex items-center space-x-1 font-semibold">
+<span class="material-symbols-outlined text-[13px]">verified</span>
+<span>Nominal (0 drops)</span>
+</span>
+</div>
+</aside>
+</div>
+<!-- Bottom IDE Status Bar -->
+<footer class="h-6 bg-surface-container-low border-t border-outline-variant flex items-center justify-between px-space-md text-label-sm font-label-sm text-on-surface-variant shrink-0 z-50 select-none">
+<!-- Left Status Segment -->
+<div class="flex items-center space-x-3">
+<!-- Git Branch -->
+<div class="flex items-center space-x-1 text-on-surface hover:text-primary cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-tertiary">commit</span>
+<span>feat/pty-mux</span>
+<span class="text-outline">*</span>
+</div>
+<div class="h-3 w-px bg-outline-variant"></div>
+<!-- Sync status -->
+<div class="flex items-center space-x-1 hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px]">sync</span>
+<span>0↓ 1↑</span>
+</div>
+<div class="h-3 w-px bg-outline-variant"></div>
+<!-- ActionGate Enforce Mode -->
+<div class="flex items-center space-x-1 text-tertiary bg-tertiary/10 px-1 rounded">
+<span class="material-symbols-outlined text-[12px]">shield_with_heart</span>
+<span>ActionGate: L4-ENFORCED</span>
+</div>
+</div>
+<!-- Right Status Segment -->
+<div class="flex items-center space-x-3">
+<!-- PTY Active Count -->
+<div class="flex items-center space-x-1 text-on-surface">
+<span class="material-symbols-outlined text-[13px] text-secondary">grid_view</span>
+<span>PTY Count: <strong class="text-secondary">4 active</strong></span>
+</div>
+<div class="h-3 w-px bg-outline-variant"></div>
+<!-- Terminal Latency -->
+<div class="flex items-center space-x-1">
+<span class="material-symbols-outlined text-[13px] text-tertiary">speed</span>
+<span>Latency: <strong class="text-on-surface">0.8ms</strong></span>
+</div>
+<div class="h-3 w-px bg-outline-variant"></div>
+<!-- Tokio Worker Health -->
+<div class="flex items-center space-x-1">
+<span class="material-symbols-outlined text-[13px] text-primary">hub</span>
+<span>Tokio Workers: <strong class="text-tertiary">4/4 healthy</strong></span>
+</div>
+<div class="h-3 w-px bg-outline-variant"></div>
+<!-- Encoding & Bell -->
+<div class="flex items-center space-x-1 text-outline">
+<span>UTF-8</span>
+</div>
+<div class="flex items-center space-x-1 text-outline hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[13px]">notifications</span>
+</div>
+</div>
+</footer>
+<!-- Light Vanilla JS for Micro-Interactions -->
+<script>
+    // Tab and pane active state toggle handlers
+    document.addEventListener('DOMContentLoaded', () => {
+      const ptyPanes = document.querySelectorAll('main > section');
+      ptyPanes.forEach(pane => {
+        pane.addEventListener('click', () => {
+          ptyPanes.forEach(p => p.classList.remove('ring-1', 'ring-primary'));
+          pane.classList.add('ring-1', 'ring-primary');
+        });
+      });
+    });
+  </script>
+<div id="snapdom-sandbox" data-snapdom-sandbox="true" aria-hidden="true" style="position: absolute; left: -9999px; top: -9999px; width: 0px; height: 0px; overflow: hidden;"></div></body></html>

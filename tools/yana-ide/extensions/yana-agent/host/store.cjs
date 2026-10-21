@@ -1,0 +1,339 @@
+const fs = require("node:fs");
+const path = require("node:path");
+const crypto = require("node:crypto");
+const { profileInput } = require("./studio-runtime.cjs");
+const { CANVAS_PART_KINDS } = require("./canvas-ai.cjs");
+const {
+  defaultMixtureOfAgents,
+  defaultTitleModel,
+  isValidMoAConfig,
+  isValidTitleModelConfig,
+} = require("./model-orchestration.cjs");
+
+const DEFAULT_LIQUID_GLASS = {
+  transparency: 0.9,
+  frost: 0.18,
+  tintHue: 0.63,
+  tintSaturation: 0.52,
+  tintBrightness: 0.92,
+  tintStrength: 0.16,
+  highlight: 0.74,
+  edgeOpacity: 0.52,
+  shadowOpacity: 0.34,
+  shadowRadius: 28,
+  glowStrength: 0.24,
+  rippleOpacity: 0.22,
+  rippleAmplitude: 4,
+  rippleSpeed: 0.58,
+  parallaxDepth: 11,
+  animatedRipples: true,
+  pointerParallax: true,
+  ambientGlow: true,
+  respectAccessibility: true,
+};
+
+const DEFAULT_PREFERENCES = {
+  locale: "vi",
+  theme: "light",
+  glassOpacity: 0,
+  glassBlur: 18,
+  liquidGlass: DEFAULT_LIQUID_GLASS,
+};
+
+function preferencesWithDefaults(preferences) {
+  if (preferences === undefined) return { ...DEFAULT_PREFERENCES };
+  if (
+    !preferences ||
+    typeof preferences !== "object" ||
+    Array.isArray(preferences)
+  )
+    return preferences;
+  return { ...DEFAULT_PREFERENCES, ...preferences };
+}
+
+// Liquid Glass -- a separate, richer material system from the
+// glassOpacity/glassBlur "Độ tương phản giao diện" fields above. Bounds
+// mirror renderer/Settings.tsx's slider min/max so a stored value always
+// round-trips through the UI without clamping surprises. rippleSpeed
+// allows 0 (below the 0.1 slider floor) because the "solid, minimal
+// effects" preset stores rippleSpeed: 0 while ripples are disabled --
+// the slider itself is hidden whenever animatedRipples is false, so 0
+// is never reachable through the UI but must still be a legal saved value.
+function isValidLiquidGlass(value) {
+  const num = (input, low, high) =>
+    typeof input === "number" && Number.isFinite(input) && input >= low && input <= high;
+  const bool = (input) => typeof input === "boolean";
+  return (
+    value &&
+    typeof value === "object" &&
+    num(value.transparency, 0, 0.96) &&
+    num(value.frost, 0, 1) &&
+    num(value.tintHue, 0, 1) &&
+    num(value.tintSaturation, 0, 1) &&
+    num(value.tintBrightness, 0, 1) &&
+    num(value.tintStrength, 0, 0.55) &&
+    num(value.highlight, 0, 1) &&
+    num(value.edgeOpacity, 0, 1) &&
+    num(value.shadowOpacity, 0, 0.75) &&
+    num(value.shadowRadius, 0, 54) &&
+    num(value.glowStrength, 0, 0.65) &&
+    num(value.rippleOpacity, 0, 0.55) &&
+    num(value.rippleAmplitude, 0, 14) &&
+    num(value.rippleSpeed, 0, 1.6) &&
+    num(value.parallaxDepth, 0, 24) &&
+    bool(value.animatedRipples) &&
+    bool(value.pointerParallax) &&
+    bool(value.ambientGlow) &&
+    bool(value.respectAccessibility)
+  );
+}
+
+function validateState(value) {
+  const text = (input) => typeof input === "string";
+  const tokenCount = (input) => Number.isSafeInteger(input) && input >= 0;
+  const boundedText = (input, limit = 2000) =>
+    text(input) && Buffer.byteLength(input, "utf8") <= limit;
+  const finite = (input, low, high) =>
+    Number.isFinite(input) && input >= low && input <= high;
+  const canvasPart = (part) =>
+    part &&
+    boundedText(part.id, 200) &&
+    CANVAS_PART_KINDS.includes(part.kind) &&
+    boundedText(part.label) &&
+    finite(part.x, 0, 4000) &&
+    finite(part.y, 0, 4000) &&
+    finite(part.width, 20, 2000) &&
+    finite(part.height, 8, 2000) &&
+    (part.hidden === undefined || typeof part.hidden === "boolean") &&
+    (part.locked === undefined || typeof part.locked === "boolean") &&
+    (part.opacity === undefined || finite(part.opacity, 0, 1)) &&
+    (part.fill === undefined || /^#[0-9a-f]{6}$/i.test(part.fill)) &&
+    (part.radius === undefined || finite(part.radius, 0, 999));
+  const canvasScreen = (screen) =>
+    screen &&
+    boundedText(screen.id, 200) &&
+    boundedText(screen.name, 200) &&
+    ["phone", "desktop"].includes(screen.device) &&
+    /^#[0-9a-f]{6}$/i.test(screen.background) &&
+    Array.isArray(screen.parts) &&
+    screen.parts.length <= 300 &&
+    screen.parts.every(canvasPart);
+  const canvasDocument = (document) =>
+    document &&
+    document.version === 1 &&
+    boundedText(document.name, 200) &&
+    document.theme &&
+    /^#[0-9a-f]{6}$/i.test(document.theme.accent) &&
+    /^#[0-9a-f]{6}$/i.test(document.theme.surface) &&
+    /^#[0-9a-f]{6}$/i.test(document.theme.foreground) &&
+    ["compact", "rounded", "pill"].includes(document.theme.shape) &&
+    ["system", "serif", "mono"].includes(document.theme.font) &&
+    ["standard", "expressive", "reduced"].includes(document.theme.motion) &&
+    Array.isArray(document.screens) &&
+    document.screens.length >= 1 &&
+    document.screens.length <= 20 &&
+    document.screens.every(canvasScreen);
+  const usage = (input) =>
+    input === undefined ||
+    (input && tokenCount(input.input) && tokenCount(input.output));
+  const usageHistory = (input) =>
+    input === undefined ||
+    (Array.isArray(input) &&
+      input.length <= 2000 &&
+      input.every(
+        (record) =>
+          record &&
+          tokenCount(record.input) &&
+          tokenCount(record.output) &&
+          text(record.provider) &&
+          text(record.model) &&
+          text(record.recordedAt),
+      ));
+  const continuity = (input) =>
+    input === undefined ||
+    (input &&
+      ["ok", "unavailable"].includes(input.status) &&
+      (input.sharingEnabled === undefined ||
+        typeof input.sharingEnabled === "boolean") &&
+      (input.runId === undefined || boundedText(input.runId, 200)) &&
+      (input.error === undefined || boundedText(input.error, 4000)) &&
+      (input.estimatedTokens === undefined ||
+        tokenCount(input.estimatedTokens)) &&
+      (input.candidateCount === undefined ||
+        tokenCount(input.candidateCount)) &&
+      Array.isArray(input.sources) &&
+      input.sources.length <= 20 &&
+      input.sources.every(
+        (source) =>
+          source &&
+          ["decision", "open_loop", "memory", "conversation"].includes(
+            source.kind,
+          ) &&
+          boundedText(source.id, 300) &&
+          boundedText(source.label, 1000) &&
+          boundedText(source.content, 64 * 1024) &&
+          boundedText(source.source, 2000) &&
+          boundedText(source.conversationId, 300) &&
+          Number.isFinite(source.score) &&
+          boundedText(source.reason, 2000),
+      ));
+  if (
+    value?.schema !== 1 ||
+    !Array.isArray(value.projects) ||
+    value.projects.length > 20 ||
+    !Array.isArray(value.chats) ||
+    value.chats.length > 100
+  )
+    throw new Error("Invalid workspace schema");
+  if (
+    !value.designs ||
+    Array.isArray(value.designs) ||
+    Object.keys(value.designs).length > 20 ||
+    !Object.entries(value.designs).every(
+      ([root, document]) => path.isAbsolute(root) && canvasDocument(document),
+    )
+  )
+    throw new Error("Invalid design canvas state");
+  if (
+    !value.projects.every(
+      (project) =>
+        project &&
+        text(project.name) &&
+        text(project.root) &&
+        path.isAbsolute(project.root),
+    )
+  )
+    throw new Error("Invalid saved project");
+  if (
+    !value.chats.every(
+      (chat) =>
+        chat &&
+        text(chat.id) &&
+        text(chat.root) &&
+        text(chat.title) &&
+        Array.isArray(chat.messages) &&
+        chat.messages.every(
+          (message) =>
+            ["user", "assistant"].includes(message?.role) &&
+            text(message.content) &&
+            (message.userInput === undefined || text(message.userInput)),
+        ) &&
+        Array.isArray(chat.events) &&
+        chat.events.every((event) => event && text(event.type)) &&
+        typeof chat.running === "boolean" &&
+        (chat.titleGenerated === undefined ||
+          typeof chat.titleGenerated === "boolean") &&
+        usage(chat.usage) &&
+        usageHistory(chat.usageHistory) &&
+        continuity(chat.continuity),
+    )
+  )
+    throw new Error("Invalid saved conversation");
+  profileInput(value.profile);
+  if (
+    !value.preferences ||
+    !["vi", "ko", "en"].includes(value.preferences.locale) ||
+    !["light", "dark"].includes(value.preferences.theme) ||
+    !Number.isSafeInteger(value.preferences.glassOpacity) ||
+    value.preferences.glassOpacity < 0 ||
+    value.preferences.glassOpacity > 100 ||
+    !Number.isSafeInteger(value.preferences.glassBlur) ||
+    value.preferences.glassBlur < 0 ||
+    value.preferences.glassBlur > 32 ||
+    !isValidLiquidGlass(value.preferences.liquidGlass)
+  )
+    throw new Error("Invalid interface preferences");
+  if (typeof value.onboardingCompleted !== "boolean")
+    throw new Error("Invalid onboarding state");
+  if (
+    !value.layout ||
+    !["sidebar", "inspector", "dock"].every(
+      (name) =>
+        Number.isFinite(value.layout[name]) &&
+        value.layout[name] >= 100 &&
+        value.layout[name] <= 1000,
+    )
+  )
+    throw new Error("Invalid saved layout");
+  if (
+    !text(value.runtime) ||
+    (value.runtime && !path.isAbsolute(value.runtime))
+  )
+    throw new Error("Invalid runtime path");
+  if (!isValidMoAConfig(value.mixtureOfAgents))
+    throw new Error("Invalid Mixture of Agents configuration");
+  if (!isValidTitleModelConfig(value.titleModel))
+    throw new Error("Invalid title model configuration");
+  if (value.encryptedKey !== undefined && !text(value.encryptedKey))
+    throw new Error("Invalid encrypted credential");
+}
+
+class Store {
+  constructor(directory) {
+    fs.mkdirSync(directory, { recursive: true, mode: 0o700 });
+    this.file = path.join(directory, "workspace-v1.json");
+    this.value = {
+      schema: 1,
+      projects: [],
+      chats: [],
+      profile: { provider: "ollama", model: "", baseUrl: "" },
+      preferences: { ...DEFAULT_PREFERENCES },
+      onboardingCompleted: false,
+      layout: { sidebar: 250, inspector: 330, dock: 280 },
+      designs: {},
+      runtime: "",
+      mixtureOfAgents: defaultMixtureOfAgents(),
+      titleModel: defaultTitleModel(),
+    };
+    this.warning = "";
+    if (fs.existsSync(this.file)) {
+      try {
+        if (fs.statSync(this.file).size > 12 * 1024 * 1024)
+          throw new Error("state is too large");
+        const parsed = JSON.parse(fs.readFileSync(this.file, "utf8"));
+        const next = {
+          ...this.value,
+          ...parsed,
+          preferences: preferencesWithDefaults(parsed.preferences),
+        };
+        validateState(next);
+        this.value = next;
+      } catch (error) {
+        const recovery = `${this.file}.recovery-${Date.now()}`;
+        fs.copyFileSync(this.file, recovery, fs.constants.COPYFILE_EXCL);
+        this.warning = `Saved unreadable state for recovery: ${path.basename(recovery)} (${error.message})`;
+      }
+    }
+  }
+  save(patch) {
+    const next = {
+      ...this.value,
+      ...patch,
+      preferences:
+        patch.preferences === undefined
+          ? this.value.preferences
+          : preferencesWithDefaults(patch.preferences),
+      schema: 1,
+    };
+    validateState(next);
+    const payload = JSON.stringify(next);
+    if (Buffer.byteLength(payload) > 10 * 1024 * 1024)
+      throw new Error("Conversation storage limit reached (10 MiB)");
+    const temp = `${this.file}.${crypto.randomUUID()}.tmp`;
+    let descriptor;
+    try {
+      descriptor = fs.openSync(temp, "wx", 0o600);
+      fs.writeFileSync(descriptor, payload, "utf8");
+      fs.fsyncSync(descriptor);
+      fs.closeSync(descriptor);
+      descriptor = undefined;
+      fs.renameSync(temp, this.file);
+      this.value = next;
+    } finally {
+      if (descriptor !== undefined) fs.closeSync(descriptor);
+      if (fs.existsSync(temp)) fs.unlinkSync(temp);
+    }
+    return this.value;
+  }
+}
+module.exports = { Store, DEFAULT_LIQUID_GLASS, isValidLiquidGlass };

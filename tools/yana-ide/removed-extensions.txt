@@ -1,0 +1,13 @@
+copilot
+microsoft-authentication
+tunnel-forwarding
+theme-abyss
+theme-defaults
+theme-kimbie-dark
+theme-monokai
+theme-monokai-dimmed
+theme-quietlight
+theme-red
+theme-solarized-dark
+theme-solarized-light
+theme-tomorrow-night-blue

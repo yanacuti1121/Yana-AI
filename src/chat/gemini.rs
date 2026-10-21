@@ -67,6 +67,7 @@ impl ChatProvider for GeminiProvider {
             "contents": build_gemini_messages(messages),
             "generationConfig": { "maxOutputTokens": 2048 },
         });
+        super::gen_options::apply_gemini(&mut body["generationConfig"], super::gen_options::active());
         if let Some(system) = system.filter(|value| !value.is_empty()) {
             body["systemInstruction"] = serde_json::json!({
                 "parts": [{ "text": system }]

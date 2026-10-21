@@ -89,6 +89,13 @@ const CAPABILITIES = Object.freeze([
     "High",
     "HumanApprovalPerCall",
   ],
+  [
+    "browser.fetch",
+    "Fetch and extract text content from an HTTP/HTTPS URL via an installed browser; read-only.",
+    "ReadOnly",
+    "Medium",
+    "None",
+  ],
 ]);
 
 const EXTERNAL_TOOLS = Object.freeze([

@@ -386,7 +386,7 @@ export function ModelManager({
           </div>
         )}
         {modelsSynced && (
-          <div className="live-model-list compact" aria-label="Model dùng được">
+          <div className="live-model-list compact" aria-label={t("usableModels")}>
             {models.map((model) => (
               <button
                 type="button"

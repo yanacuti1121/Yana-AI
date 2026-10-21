@@ -1,1 +1,228 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Support & Contact — Yana</title><meta name="description" content="Yana support guidance and official contact channels."><link rel="icon" href="yana-mark.svg"><link rel="stylesheet" href="assets/ecosystem-pages.css?v=20260926a"><link rel="stylesheet" href="assets/sakura-site.css?v=20260926a"><link rel="stylesheet" href="assets/yana-white.css?v=20260930g"></head><body class="sakura-site"><div class="yana-opening yana-opening--inner" aria-label="Yana"><div class="opening-center"><div class="opening-mark"><img src="yana-mark.svg" alt="" width="58" height="58"></div><div class="opening-word" aria-hidden="true"><span>Y</span><span>a</span><span>n</span><span>a</span></div><p class="opening-caption">AI works. You hold authority.</p></div><button class="opening-skip" type="button">Skip intro <span aria-hidden="true">↗</span></button></div><a class="skip-link" href="#main">Skip to content</a><nav class="site-nav"></nav><main id="main"><section class="chapter narrow"><div class="chapter-header"><p class="eyebrow">SUPPORT & CONTACT</p><h1>One place to get help.</h1><p class="lead">Include the product name, version, operating system, reproduction steps and a screenshot when useful. Never send passwords, tokens, API keys or sensitive data.</p></div><div class="support-guide"><article><h2>Technical issues</h2><p>Prefer GitHub Issues so a problem can be tracked, reproduced and updated publicly.</p></article><article><h2>Direct support</h2><p>Use email or phone for matters that should not be posted publicly.</p></article><article><h2>Wheelbot</h2><p>Include firmware, board, GPIO mapping and ESP-IDF logs when reporting hardware issues.</p></article></div><div class="contact-list"><a class="contact-item" href="mailto:phamlongh230@gmail.com"><small>Email</small><strong>phamlongh230@gmail.com</strong><b>Send email ↗</b></a><a class="contact-item" href="tel:+821063158995"><small>Phone · South Korea</small><strong>010-6315-8995</strong><b>Call ↗</b></a><a class="contact-item" href="https://github.com/yanacuti1121/Yana-AI/issues"><small>Yana AI issues</small><strong>GitHub Issues</strong><b>Create issue ↗</b></a><a class="contact-item" href="https://github.com/yanacuti1121/yana-wheelbot/issues"><small>Wheelbot issues</small><strong>GitHub Issues</strong><b>Create issue ↗</b></a><a class="contact-item" href="https://www.facebook.com/vutam1810"><small>Facebook</small><strong>facebook.com/vutam1810</strong><b>Open ↗</b></a><a class="contact-item" href="https://www.tiktok.com/@.yana018?is_from_webapp=1&amp;sender_device=pc"><small>TikTok</small><strong>@.yana018</strong><b>Open ↗</b></a><a class="contact-item" href="https://vutam.link/"><small>Introduction</small><strong>vutam.link</strong><b>Open ↗</b></a></div></section></main><footer class="site-footer"></footer><script src="assets/ecosystem-pages.js?v=20260928b"></script><script src="assets/sakura-site.js?v=20261001a"></script><script src="assets/yana-motion.js?v=20260929b"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Support & Official Contact Channels — Yana</title>
+  <link rel="icon" type="image/svg+xml" href="yana-mark.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site26.css">
+  <link rel="stylesheet" href="assets/studio26.css">
+  <style>
+    .support-hero {
+      text-align: center;
+      padding: 120px 24px 30px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .contact-bento {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      max-width: 1040px;
+      margin: 40px auto 80px;
+      padding: 0 24px;
+    }
+    .contact-card {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: 24px;
+      padding: 28px;
+      display: flex;
+      align-items: flex-start;
+      gap: 18px;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: 0 4px 20px -2px rgba(0,0,0,0.03);
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .contact-card:hover {
+      transform: translateY(-4px);
+      border-color: #2563eb;
+      box-shadow: 0 16px 36px -8px rgba(37,99,235,0.12);
+    }
+    .contact-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: #eff6ff;
+      color: #2563eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 20px;
+    }
+    .contact-meta small {
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .contact-meta strong {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 700;
+      color: #0f172a;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .contact-meta p {
+      font-size: 13.5px;
+      color: #64748b;
+      margin: 0;
+      line-height: 1.5;
+    }
+    .studio26-nav {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      width: calc(100% - 40px);
+      max-width: 1040px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      border-radius: 9999px;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 17px;
+      color: #0f172a;
+      text-decoration: none;
+    }
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .nav-menu a {
+      text-decoration: none;
+      color: #475569;
+      font-size: 14px;
+      font-weight: 600;
+      transition: color 0.15s;
+    }
+    .nav-menu a:hover {
+      color: #2563eb;
+    }
+  </style>
+</head>
+<body class="sakura-site home-page">
+  <div class="site26-bg-canvas" aria-hidden="true"></div>
+
+  <nav class="studio26-nav">
+    <a href="index.html" class="brand-link">
+      <img src="assets/yana-rabbit-app-icon.png" alt="Yana Logo" width="30" height="30">
+      <span>Yana <small style="font-weight:400;color:#64748b;">Support</small></span>
+    </a>
+    <div class="nav-menu">
+      <a href="index.html">Trang chủ</a>
+      <a href="studio.html">Studio IDE</a>
+      <a href="wheelbot.html">Wheelbot</a>
+      <a href="updates.html">Updates</a>
+      <a href="support.html" style="color:#2563eb;">Support</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="support.html" style="font-size:12px;font-weight:700;color:#64748b;border:1px solid #cbd5e1;padding:4px 12px;border-radius:9999px;text-decoration:none;">Tiếng Việt ↗</a>
+      <a href="download.html" class="btn-spring-2026 btn-spring-primary" style="padding:8px 18px;font-size:13.5px;">Get Studio</a>
+    </div>
+  </nav>
+
+  <main>
+    <section class="support-hero">
+      <div class="floating-hero-pill">
+        <span>💬 Kênh liên hệ xác minh</span>
+        <span style="opacity: 0.4;">·</span>
+        <span style="color: #059669;">Trực tiếp từ tác giả</span>
+      </div>
+      <h1 class="studio-hero-2026" style="padding:0;margin:16px 0 20px;">Single Place.<br><span class="text-rainbow-2026">Get Support & Connect.</span></h1>
+      <p class="lead-text" style="margin:0 auto 20px;">All feedback, technical assistance requests, and contributions to Yana AI & Yana Studio are received directly through the verified channels below.</p>
+    </section>
+
+    <!-- Bento Grid Contact Directory 3D Depth -->
+    <section class="contact-bento perspective-container-2026">
+      
+      <!-- Email -->
+      <a href="mailto:phamlongh230@gmail.com" class="contact-card has-glow-2026 card-3d-interactive">
+        <div class="contact-icon" style="background:#eff6ff;color:#2563eb;">📧</div>
+        <div class="contact-meta">
+          <small>Direct Email</small>
+          <strong>phamlongh230@gmail.com</strong>
+          <p>For security disclosures, technical collaborations or private inquiries.</p>
+        </div>
+      </a>
+
+      <!-- Phone -->
+      <a href="tel:+821063158995" class="contact-card has-glow-2026 card-3d-interactive">
+        <div class="contact-icon" style="background:#ecfdf5;color:#059669;">📱</div>
+        <div class="contact-meta">
+          <small>Telephone · South Korea</small>
+          <strong>010-6315-8995</strong>
+          <p>Urgent inquiries or direct communication during business hours.</p>
+        </div>
+      </a>
+
+      <!-- GitHub Issues Yana-AI -->
+      <a href="https://github.com/yanacuti1121/Yana-AI/issues" target="_blank" rel="noopener" class="contact-card has-glow-2026 card-3d-interactive">
+        <div class="contact-icon" style="background:#f1f5f9;color:#0f172a;">🐛</div>
+        <div class="contact-meta">
+          <small>Open Source · Issues</small>
+          <strong>GitHub Issues (Yana-AI)</strong>
+          <p>Bug reporting, feature proposals and public commit tracking.</p>
+        </div>
+      </a>
+
+      <!-- GitHub Issues Wheelbot -->
+      <a href="https://github.com/yanacuti1121/yana-wheelbot/issues" target="_blank" rel="noopener" class="contact-card has-glow-2026 card-3d-interactive">
+        <div class="contact-icon" style="background:#fef3c7;color:#d97706;">🤖</div>
+        <div class="contact-meta">
+          <small>Hardware · Firmware</small>
+          <strong>GitHub Issues (Wheelbot)</strong>
+          <p>Discussions regarding ESP32-S3 schematics, Bambu Studio 3D files and firmware.</p>
+        </div>
+      </a>
+
+      <!-- Facebook Cá Nhân -->
+      <a href="https://www.facebook.com/vutam1810" target="_blank" rel="noopener" class="contact-card has-glow-2026 card-3d-interactive">
+        <div class="contact-icon" style="background:#eff6ff;color:#1877f2;">👤</div>
+        <div class="contact-meta">
+          <small>Social Media</small>
+          <strong>facebook.com/vutam1810</strong>
+          <p>Personal profile of Vu Van Tam — sharing daily engineering logs.</p>
+        </div>
+      </a>
+
+      <!-- TikTok -->
+      <a href="https://www.tiktok.com/@.yana018" target="_blank" rel="noopener" class="contact-card has-glow-2026 card-3d-interactive">
+        <div class="contact-icon" style="background:#fdf2f8;color:#db2777;">🎬</div>
+        <div class="contact-meta">
+          <small>Short-form Video</small>
+          <strong>TikTok @.yana018</strong>
+          <p>Real demonstration videos showcasing new features and Yana Cockpit screen.</p>
+        </div>
+      </a>
+
+    </section>
+  </main>
+
+  <footer style="text-align:center;padding:40px;color:#64748b;font-size:14px;border-top:1px solid #e2e8f0;background:#f8fafc;">
+    <p>© 2026 Yana AI. Built by Vu Van Tam. AI executes · You hold the authority.</p>
+  </footer>
+
+  <script src="assets/site26.js"></script>
+</body>
+</html>

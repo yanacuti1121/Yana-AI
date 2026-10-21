@@ -1,0 +1,97 @@
+/* Design Canvas: màu lấy từ theme đang bật (biến --vscode-*), giá trị dự phòng là Yana Dark. */
+:root {
+	--y-bg: var(--vscode-editor-background, #12151c);
+	--y-side: var(--vscode-sideBar-background, #161a22);
+	--y-inner: var(--vscode-input-background, #0c0e12);
+	--y-border: var(--vscode-sideBar-border, #1e222b);
+	--y-border-strong: var(--vscode-input-border, #252a36);
+	--y-text: var(--vscode-foreground, #e2e2e8);
+	--y-muted: var(--vscode-descriptionForeground, #94a3b8);
+	--y-high: var(--vscode-button-secondaryBackground, #1c212c);
+	--y-high-hover: var(--vscode-button-secondaryHoverBackground, #252a36);
+	--y-button: var(--vscode-button-background, #3461d6);
+	--y-button-hover: var(--vscode-button-hoverBackground, #3d6ae0);
+	--y-on-button: var(--vscode-button-foreground, #ffffff);
+	--y-accent: var(--vscode-textLink-foreground, #4f80ff);
+	--y-bad: var(--vscode-errorForeground, #ef4444);
+	--y-sans: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif);
+	--y-mono: var(--vscode-editor-font-family, ui-monospace, Menlo, monospace);
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--y-bg); color: var(--y-text); font: 13px/1.5 var(--y-sans); }
+button, input, select, textarea { font: inherit; color: inherit; }
+#app { display: grid; grid-template-columns: minmax(280px, 340px) 1fr; height: 100vh; }
+
+.side { background: var(--y-side); border-right: 1px solid var(--y-border); padding: 14px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.title { font-size: 15px; margin: 0 0 4px; font-weight: 600; letter-spacing: -0.01em; }
+.label { font-size: 12px; color: var(--y-muted); font-weight: 600; margin-top: 4px; }
+.model-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; }
+select, input[type=text], textarea { background: var(--y-inner); border: 1px solid var(--y-border-strong); border-radius: 4px; padding: 6px 8px; min-width: 0; }
+select:focus, input:focus, textarea:focus { outline: 1px solid var(--y-accent); outline-offset: 0; border-color: var(--y-accent); }
+textarea.prompt { resize: vertical; min-height: 80px; }
+.chat { flex: 1; min-height: 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--y-border); border-radius: 4px; padding: 8px; background: var(--y-inner); }
+.chat-item { display: grid; gap: 2px; font-size: 12px; }
+.chat-mode { font-family: var(--y-mono); font-size: 12px; color: var(--y-accent); }
+.muted { color: var(--y-muted); }
+.small { font-size: 12px; }
+.status { font-size: 12px; color: var(--y-muted); min-height: 18px; }
+.row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+.btn { background: var(--y-high); border: 1px solid var(--y-border-strong); border-radius: 4px; padding: 5px 10px; cursor: pointer; white-space: nowrap; }
+.btn:hover:not(:disabled) { background: var(--y-high-hover); }
+.btn.primary { background: var(--y-button); border-color: var(--y-button); color: var(--y-on-button); }
+.btn.primary:hover:not(:disabled) { background: var(--y-button-hover); }
+.btn.danger:hover:not(:disabled) { border-color: var(--y-bad); color: var(--y-bad); }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn:focus-visible { outline: 1px solid var(--y-accent); outline-offset: 1px; }
+.segmented { display: inline-flex; gap: 4px; }
+.segmented .btn.active { border-color: var(--y-accent); color: var(--y-accent); }
+
+.main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.screens { display: flex; gap: 4px; padding: 8px 12px 0; overflow-x: auto; border-bottom: 1px solid var(--y-border); }
+.tab { background: transparent; border: 1px solid transparent; border-bottom: 0; border-radius: 4px 4px 0 0; padding: 6px 12px; cursor: pointer; color: var(--y-muted); white-space: nowrap; }
+.tab.active { background: var(--y-side); border-color: var(--y-border); color: var(--y-text); }
+.tab.ghost { color: var(--y-accent); }
+.toolbar { display: flex; gap: 6px; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--y-border); min-height: 42px; flex-wrap: wrap; }
+.toolbar .muted { margin-right: auto; }
+.rename { width: 240px; }
+.stage { flex: 1; min-height: 0; overflow: auto; padding: 16px; display: flex; justify-content: center; align-items: flex-start; }
+.empty { max-width: 420px; margin-top: 15vh; text-align: center; color: var(--y-muted); border: 1px dashed var(--y-border-strong); border-radius: 6px; padding: 24px; }
+.frame-wrap { overflow: hidden; border: 1px solid var(--y-border-strong); border-radius: 6px; background: var(--y-inner); }
+.frame { border: 0; transform-origin: 0 0; background: var(--vscode-editor-background, #12151c); display: block; }
+[hidden] { display: none !important; }
+
+/* Phần bổ sung theo thiết kế Stitch "Design Canvas in Code-OSS editor tab". */
+.title-row { display: flex; align-items: center; gap: 8px; }
+.emblem { width: 22px; height: 22px; flex: none; }
+.sandbox { font-size: 12px; color: var(--y-muted); border: 1px solid var(--y-border-strong); border-radius: 4px; padding: 8px 10px; background: var(--y-inner); }
+.sandbox strong { color: var(--y-text); }
+.label-row { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+.badge { font-family: var(--y-mono); font-size: 12px; padding: 0 6px; border-radius: 4px; border: 1px solid var(--y-border-strong); }
+.badge.ok { color: var(--vscode-testing-iconPassed, #10b981); border-color: color-mix(in srgb, var(--vscode-testing-iconPassed, #10b981) 40%, transparent); }
+.badge.warn { color: var(--vscode-editorWarning-foreground, #f59e0b); border-color: color-mix(in srgb, var(--vscode-editorWarning-foreground, #f59e0b) 40%, transparent); }
+.chat-head { display: flex; justify-content: space-between; align-items: center; }
+.tag { font-family: var(--y-mono); font-size: 12px; padding: 0 6px; border-radius: 3px; border: 1px solid currentColor; }
+.tag.new { color: var(--y-accent); }
+.tag.variant { color: var(--vscode-charts-green, #10b981); }
+.tag.refine { color: var(--vscode-editorWarning-foreground, #f59e0b); }
+.chat-item { border-bottom: 1px solid var(--y-border); padding-bottom: 6px; }
+.chat-item.live { font-family: var(--y-mono); color: var(--y-accent); border: 1px solid var(--y-accent); border-radius: 4px; padding: 6px 8px; }
+.grow { flex: 1; }
+.live-bar { display: flex; gap: 8px; align-items: center; padding: 6px 12px; border-bottom: 1px solid var(--y-border); font-size: 12px; }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--y-accent); flex: none; }
+.stage.compare { justify-content: flex-start; gap: 12px; }
+.column { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.column-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; color: var(--y-muted); }
+
+/* ===== Làm mềm giao diện (2026-10-12): bo góc lớn hơn, nút tối thiểu 30px ===== */
+.btn { min-height: 30px; border-radius: 8px; padding: 0 12px; }
+select, input[type=text], textarea { border-radius: 8px; min-height: 32px; padding: 6px 10px; }
+textarea.prompt { border-radius: 10px; }
+.sandbox, .chat, .empty { border-radius: 10px; }
+.chat-item.live { border-radius: 8px; }
+.tag, .badge { border-radius: 999px; padding: 1px 8px; }
+.tab { border-radius: 8px 8px 0 0; padding: 7px 14px; }
+.frame-wrap { border-radius: 10px; }
+.model-row { gap: 8px; }

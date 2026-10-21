@@ -13,6 +13,10 @@ from pathlib import Path, PureWindowsPath
 from unittest import mock
 
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import giamthi_test_support  # noqa: E402,F401  (silences desktop notifications)
+
+
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "core/scripts/giamthi_service.py"
 SPEC = importlib.util.spec_from_file_location("giamthi_service", SCRIPT)
@@ -179,7 +183,9 @@ class GiamthiServiceTests(unittest.TestCase):
         subprocess.run(["git", "-C", str(target), "config", "user.email", "test@yana.local"], check=True)
         subprocess.run(["git", "-C", str(target), "config", "user.name", "Yana Test"], check=True)
         (target / "README.md").write_text("fixture\n", encoding="utf-8")
-        subprocess.run(["git", "-C", str(target), "add", "README.md"], check=True)
+        # .claude/scripts is a security-sensitive path (it holds this watcher),
+        # so a reviewed install has it committed before the supervisor runs.
+        subprocess.run(["git", "-C", str(target), "add", "README.md", ".claude/scripts"], check=True)
         subprocess.run(["git", "-C", str(target), "commit", "-qm", "fixture"], check=True)
         return target
 

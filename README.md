@@ -59,12 +59,13 @@ Timings are local measurements from 2026-10-20; the method is under [Performance
 
 ## Quick start
 
-**Desktop app.** Download Yana Studio from the
+**Desktop app.** Download Yana Studio (v1.7.0) from the
 [latest release](https://github.com/yanacuti1121/Yana-AI/releases/latest) or
 [yana.vutam.link](https://yana.vutam.link).
 
 | Platform | Installer |
 | --- | --- |
+| macOS, Apple Silicon | `.dmg` or `.zip` |
 | macOS, Apple Silicon | `.dmg` or `.zip` |
 
 **Command line.** Govern the agent you already use:
@@ -109,12 +110,13 @@ Skills teach an agent how to work. Only a capability can grant permission to act
 
 | Component | What it does | Status |
 | --- | --- | --- |
-| **[Yana Studio](tools/yana-studio)** | Desktop workspace: files, editor, terminals, chat, tasks and a design canvas for a real project. | ![Live, partial parity](https://img.shields.io/badge/live-partial_parity-2e8b75) |
+| **[Yana Studio](tools/yana-studio)** | Desktop workspace: files, editor, terminals, chat, tasks and a design canvas for a real project (v1.7.0). | ![Live, partial parity](https://img.shields.io/badge/live-partial_parity-2e8b75) |
+| **[Yana IDE](tools/yana-ide)** | Deeply customized VS Code agent workspace with Yana agent cockpit and office tools. | ![Live](https://img.shields.io/badge/-live-2e8b75) |
 | **[Runtime `yana-rt`](src)** | Rust engine with one turn loop and one authority contract for every client and every provider. | ![Live](https://img.shields.io/badge/-live-2e8b75) |
 | **[Governance](core)** | Capability manifests, human approval, hash-chained audit log, core-lock integrity. | ![Live](https://img.shields.io/badge/-live-2e8b75) |
 | **[Giám Thị](#giám-thị)** | Watcher outside any AI session that halts every later tool call when it finds drift. | ![Live, opt-in](https://img.shields.io/badge/live-opt--in-2e8b75) |
 | **[Harness adapters](adapters)** | Claude Code, Codex, Cursor and Antigravity. Enforcement strength differs per host. | ![Live, varies by host](https://img.shields.io/badge/live-varies_by_host-2e8b75) |
-| **[Knowledge layer](core/skills)** | Agents, skills, commands and rules that teach agents how to work. They grant no permissions. | ![Live](https://img.shields.io/badge/-live-2e8b75) |
+| **[Knowledge layer](core/skills)** | 60 agents, 2,027 skills, commands and rules that teach agents how to work. They grant no permissions. | ![Live](https://img.shields.io/badge/-live-2e8b75) |
 | **[Yana OS](src/os)** | Local management plane: agent identity, autonomy levels, quotas, health, quarantine. | ![In development](https://img.shields.io/badge/-in_development-d97706) |
 | **[Yana Desktop / Web](tools/yana-web)** | Earlier Electron shell and web UI. Studio is a separate rebuild, not a reskin. | ![Maintained separately](https://img.shields.io/badge/-maintained_separately-64748b) |
 | **[Yana Wheelbot](https://github.com/yanacuti1121/yana-wheelbot)** | Robotics platform on ESP32-S3, in its own repository. | ![Experimental](https://img.shields.io/badge/-experimental-dc2626) |
@@ -128,14 +130,14 @@ feature-complete. `Experimental` means opt-in and not independently verified.
 core/
 ├── hooks/    # 66 PreToolUse / PostToolUse / Stop hooks (63 shell, 3 JavaScript)
 ├── rules/    # 71 rules, most are guidance the agent applies; hooks enforce a subset
-├── agents/   # 100 specialist agents
-├── skills/   # 2,026 skills
+├── agents/   # 60 specialist agents
+├── skills/   # 2,027 skills
 ├── commands/ # 170 Claude Code slash commands
 └── config/
     └── core-lock.json    # SHA-256 manifest — 287 core files pinned
 ```
 
-## Yana Studio
+## Yana Studio (v1.7.0)
 
 <p align="center">
   <img src="docs/studio-screen-1.png" alt="Yana Studio workspace with chat, project inspector and governance status" width="900">

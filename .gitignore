@@ -78,6 +78,7 @@ artifacts/release-gate/
 # Added by cargo
 
 /target
+/target-*/
 
 # Yana AI — only ignore runtime/generated dirs, NOT source dirs
 # .yana-ai/schemas, context-packs, policies, templates are source — do not ignore
@@ -135,3 +136,9 @@ docs-dist/
 docs/*.zip
 !docs/files.zip
 src/*.zip
+
+# Exclude local scratch / nested projects
+turbo-fieldfare/
+untitled.yana-canvas.json
+.planning/**/*.png
+.yana-ai/project-memory.md

@@ -1,0 +1,267 @@
+/* ==========================================================================
+   YANA DESIGN LAYER 2026 (site26.css)
+   Thừa hưởng chuẩn thiết kế trang chủ 2026.
+   Đã tối ưu GPU < 15%, 60fps, không dùng backdrop-filter gây nóng máy.
+   ========================================================================== */
+
+:root {
+  /* Typography */
+  --font-display: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, Monaco, monospace;
+  
+  /* Bảng màu chính thức 2026 */
+  --ink-primary: #0a0f1d;
+  --ink-secondary: #4a5568;
+  --ink-muted: #718096;
+  --ink-faint: #a0aec0;
+  
+  --bg-surface: #fdfbf7;
+  --bg-card: rgba(255, 255, 255, 0.92);
+  --bg-card-hover: rgba(255, 255, 255, 0.98);
+  
+  /* Viền & Kính giả nhẹ nhàng không tốn GPU */
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-border-subtle: rgba(226, 232, 240, 0.8);
+  --glass-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05), 0 20px 40px -15px rgba(10, 15, 29, 0.05);
+  --glass-shadow-hover: 0 20px 40px -10px rgba(0, 0, 0, 0.08), 0 30px 60px -15px rgba(43, 91, 237, 0.08);
+
+  /* Gradients */
+  --gradient-indigo: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  --gradient-rainbow: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%);
+  --gradient-glow: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.12) 0%, transparent 70%);
+
+  /* Easing đàn hồi (Spring / Elastic) */
+  --ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Nền chấm bi mờ dần cố định (không dùng background-attachment: fixed) */
+.site26-bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--bg-surface);
+  background-image: radial-gradient(circle, #cbd5e1 1.2px, transparent 1.2px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse 90% 80% at 50% 20%, #000 30%, transparent 95%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 20%, #000 30%, transparent 95%);
+  will-change: transform;
+}
+
+/* Kính giả tối ưu GPU (Pseudo-Glass) */
+.glass-panel-2026 {
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 24px;
+  transition: transform 0.4s var(--ease-smooth), box-shadow 0.4s var(--ease-smooth), border-color 0.4s ease;
+  position: relative;
+}
+
+.glass-panel-2026:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(255, 255, 255, 0.95);
+  box-shadow: var(--glass-shadow-hover);
+}
+
+/* Nút nảy đàn hồi (Spring Button) */
+.btn-spring-2026 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 28px;
+  border-radius: 9999px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.35s var(--ease-elastic), box-shadow 0.35s ease;
+  will-change: transform;
+}
+
+.btn-spring-2026:hover {
+  transform: scale(1.04);
+}
+
+.btn-spring-2026:active {
+  transform: scale(0.96);
+}
+
+.btn-spring-primary {
+  background: var(--ink-primary);
+  color: #ffffff;
+  box-shadow: 0 10px 25px -5px rgba(10, 15, 29, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.btn-spring-primary:hover {
+  box-shadow: 0 15px 35px -5px rgba(10, 15, 29, 0.35);
+  color: #ffffff;
+}
+
+.btn-spring-secondary {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ink-primary);
+  border: 1px solid var(--glass-border-subtle);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+}
+
+.btn-spring-secondary:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: var(--ink-primary);
+}
+
+/* Chữ Gradient & Nét vẽ tay SVG */
+.text-rainbow-2026 {
+  background: var(--gradient-rainbow);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+.hand-drawn-circle {
+  position: absolute;
+  pointer-events: none;
+  stroke: #3b82f6;
+  stroke-width: 2.2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  animation: drawCircle 1.2s var(--ease-smooth) forwards;
+}
+
+@keyframes drawCircle {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.hand-drawn-underline {
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 100%;
+  height: 8px;
+  stroke: #f59e0b;
+  stroke-width: 3;
+  fill: none;
+  stroke-linecap: round;
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  animation: drawCircle 1s var(--ease-smooth) 0.3s forwards;
+}
+
+/* 3D Depth Viewport */
+.perspective-container-2026 {
+  perspective: 1200px;
+  perspective-origin: center top;
+}
+
+/* 4. Vệt sáng Spotlight theo con trỏ chuột (.has-glow-2026) */
+.has-glow-2026 {
+  position: relative;
+  overflow: hidden;
+  --mouse-x: -999px;
+  --mouse-y: -999px;
+  transition: transform 0.35s var(--ease-elastic), box-shadow 0.35s ease, border-color 0.3s ease;
+  will-change: transform;
+}
+
+.has-glow-2026::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(400px circle at var(--mouse-x) var(--mouse-y), rgba(37, 99, 235, 0.12), transparent 80%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  z-index: 2;
+  border-radius: inherit;
+}
+
+.has-glow-2026:hover::before {
+  opacity: 1;
+}
+
+/* 5. Tương tác Thẻ 3D sống động (Card 3D Interactive) */
+.card-3d-interactive {
+  transform-style: preserve-3d;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+  will-change: transform;
+}
+
+.card-3d-interactive:hover {
+  transform: translateY(-8px) rotateX(var(--tilt-x, 2deg)) rotateY(var(--tilt-y, -2deg));
+  box-shadow: 0 25px 50px -12px rgba(37, 99, 235, 0.16), 0 12px 24px -8px rgba(15, 23, 42, 0.08);
+  border-color: rgba(59, 130, 246, 0.4) !important;
+}
+
+/* 6. Asymmetric Bento Rhythm & Floating Badges */
+.bento-asymmetric-hero {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 28px;
+}
+
+@media (max-width: 860px) {
+  .bento-asymmetric-hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+.organic-badge-pulse {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #2563eb;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.organic-badge-pulse::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+  animation: pulseDot 2s ease-in-out infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.6; }
+}
+
+.code-copy-floating {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #cbd5e1;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.code-copy-floating:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+

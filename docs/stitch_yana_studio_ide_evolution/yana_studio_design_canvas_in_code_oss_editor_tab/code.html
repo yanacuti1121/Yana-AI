@@ -1,0 +1,978 @@
+<!DOCTYPE html><html lang="en" class="dark"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yana Studio — Design Canvas (Code-OSS 1.141)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Phosphor Icons for precise, dense IDE iconography -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/thin/style.css"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/light/style.css"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/bold/style.css"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/duotone/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            base: '#0c0e12',
+            editor: '#12151c',
+            panel: '#161a22',
+            overlay: '#1c212c',
+            'border-subtle': '#1e222b',
+            'border-focus': '#252a36',
+            accent: '#4f80ff',
+            'accent-btn': '#3461d6',
+            cyan: '#00d2c4',
+            allow: '#10b981',
+            approval: '#f59e0b',
+            deny: '#ef4444',
+            text: '#e2e2e8',
+            muted: '#94a3b8'
+          },
+          fontFamily: {
+            sans: ['Geist', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['Geist Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Precise VS Code native density */
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-size: 13px;
+      line-height: 1.4;
+      background-color: #0c0e12;
+      color: #e2e2e8;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #252a36;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #373e4f;
+    }
+    .tree-row {
+      height: 22px;
+      line-height: 22px;
+    }
+    .tree-row:hover {
+      background-color: #1c212c;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col font-sans">
+
+  <!-- ========================================================
+       1. VS CODE NATIVE TITLE BAR / COMMAND CENTER (h-9: 35px)
+  ======================================================== -->
+  <header class="h-[35px] bg-[#0c0e12] border-b border-[#1e222b] flex items-center justify-between px-3 select-none flex-shrink-0 z-40">
+    <!-- Left: App Identity & Window Navigation -->
+    <div class="flex items-center space-x-3">
+      <!-- VS Code / Yana Icon -->
+      <div class="flex items-center space-x-2 text-text font-medium text-xs">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="text-accent">
+          <path d="M18.5 3H5.5C4.11929 3 3 4.11929 3 5.5V18.5C3 19.8807 4.11929 21 5.5 21H18.5C19.8807 21 21 19.8807 21 18.5V5.5C21 4.11929 19.8807 3 18.5 3Z" stroke="currentColor" stroke-width="1.8"></path>
+          <path d="M7 16L12 8L17 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M9.5 12.5H14.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+        </svg>
+        <span class="tracking-tight font-semibold text-text">Code-OSS</span>
+        <span class="text-[11px] text-muted font-mono font-normal">v1.141 (Yana Runtime)</span>
+      </div>
+
+      <!-- Menubar items -->
+      <div class="hidden xl:flex items-center space-x-3 text-xs text-muted pl-2">
+        <span class="hover:text-text cursor-pointer transition-colors">File</span>
+        <span class="hover:text-text cursor-pointer transition-colors">Edit</span>
+        <span class="hover:text-text cursor-pointer transition-colors">Selection</span>
+        <span class="hover:text-text cursor-pointer transition-colors">View</span>
+        <span class="hover:text-text cursor-pointer transition-colors">Go</span>
+        <span class="hover:text-text cursor-pointer transition-colors">Run</span>
+        <span class="hover:text-text cursor-pointer transition-colors">Terminal</span>
+        <span class="hover:text-text cursor-pointer transition-colors">Help</span>
+      </div>
+    </div>
+
+    <!-- Center: VS Code Command Center (Search / Palette) -->
+    <div class="flex items-center justify-center flex-1 max-w-[480px] mx-4">
+      <div class="w-full h-[24px] bg-[#12151c] hover:bg-[#161a22] border border-[#1e222b] hover:border-[#252a36] rounded px-3 flex items-center justify-between text-xs text-muted cursor-pointer transition-all">
+        <div class="flex items-center space-x-2 truncate">
+          <i class="ph ph-magnifying-glass text-[13px] text-muted"></i>
+          <span class="font-mono text-[11px] text-text">yana-ai</span>
+          <span class="text-[11px] text-muted">onboarding.yana-canvas.json</span>
+        </div>
+        <div class="flex items-center space-x-1 font-mono text-[10px] text-muted bg-[#1c212c] px-1.5 py-0.2 rounded border border-[#252a36]">
+          <span>⌘P</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Window Layout Controls -->
+    <div class="flex items-center space-x-2 text-muted">
+      <!-- Layout toggle buttons -->
+      <button class="p-1 hover:text-text hover:bg-[#1c212c] rounded" title="Toggle Primary Side Bar (⌘B)"><i class="ph ph-sidebar-simple text-[14px]"></i></button>
+      <button class="p-1 hover:text-text hover:bg-[#1c212c] rounded" title="Toggle Bottom Panel (⌘J)"><i class="ph ph-browsers text-[14px]"></i></button>
+      <button class="p-1 text-accent hover:bg-[#1c212c] rounded" title="Toggle Secondary Side Bar (Yana Chat Panel)"><i class="ph ph-sidebar text-[14px]"></i></button>
+      <span class="w-px h-3.5 bg-[#1e222b] mx-1"></span>
+      <span class="flex items-center space-x-1 text-[11px] font-mono text-cyan bg-cyan/10 border border-cyan/20 px-2 py-0.5 rounded">
+        <span class="w-1.5 h-1.5 rounded-full bg-cyan inline-block animate-pulse"></span>
+        <span>SUPERVISED</span>
+      </span>
+    </div>
+  </header>
+
+  <!-- ========================================================
+       2. MAIN WORKSPACE AREA (ACTIVITY BAR + PRIMARY SIDEBAR + EDITOR TABS + SECONDARY SIDEBAR)
+  ======================================================== -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- 2.1 ACTIVITY BAR (Left 48px) -->
+    <aside class="w-[48px] bg-[#0c0e12] border-r border-[#1e222b] flex flex-col justify-between items-center py-2 flex-shrink-0 z-30 select-none">
+      <!-- Top views -->
+      <div class="flex flex-col items-center space-y-1 w-full">
+        <!-- Explorer (Standard VS Code) -->
+        <button class="w-full h-10 flex items-center justify-center text-muted hover:text-text relative group" title="Explorer (⇧⌘E)">
+          <i class="ph ph-files text-xl"></i>
+        </button>
+
+        <!-- Search -->
+        <button class="w-full h-10 flex items-center justify-center text-muted hover:text-text relative group" title="Search (⇧⌘F)">
+          <i class="ph ph-magnifying-glass text-xl"></i>
+        </button>
+
+        <!-- Source Control -->
+        <button class="w-full h-10 flex items-center justify-center text-muted hover:text-text relative group" title="Source Control (⌃⇧G)">
+          <i class="ph ph-git-branch text-xl"></i>
+        </button>
+
+        <!-- Yana Autonomous Control Plane (ACTIVE) -->
+        <button class="w-full h-10 flex items-center justify-center text-accent bg-[#161a22] relative group border-l-2 border-accent" title="Yana Control Plane &amp; Runtime">
+          <i class="ph-bold ph-cpu text-xl"></i>
+          <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-cyan"></span>
+        </button>
+
+        <!-- Extensions -->
+        <button class="w-full h-10 flex items-center justify-center text-muted hover:text-text relative group" title="Extensions (⇧⌘X)">
+          <i class="ph ph-squares-four text-xl"></i>
+        </button>
+      </div>
+
+      <!-- Bottom views -->
+      <div class="flex flex-col items-center space-y-1 w-full">
+        <button class="w-full h-10 flex items-center justify-center text-muted hover:text-text" title="Accounts">
+          <i class="ph ph-user-circle text-xl"></i>
+        </button>
+        <button class="w-full h-10 flex items-center justify-center text-muted hover:text-text" title="Settings (⌘,)">
+          <i class="ph ph-gear text-xl"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- 2.2 PRIMARY SIDE BAR: YANA ACTIVITY BAR NATIVE TREE VIEWS (260px) -->
+    <aside class="w-[260px] bg-[#161a22] border-r border-[#1e222b] flex flex-col flex-shrink-0 z-20 text-xs select-none">
+      <!-- Title Header -->
+      <div class="h-[35px] border-b border-[#1e222b] flex items-center justify-between px-3 text-muted uppercase text-[11px] font-semibold tracking-wider">
+        <span>YANA CONTROL PLANE</span>
+        <div class="flex items-center space-x-1">
+          <button class="hover:text-text p-1"><i class="ph ph-dots-three text-sm"></i></button>
+        </div>
+      </div>
+
+      <!-- Native VS Code Tree Container (7 Sections from Brief) -->
+      <div class="flex-1 overflow-y-auto font-mono text-[12px]">
+        
+        <!-- Section 1: Conversations -->
+        <div class="border-b border-[#1e222b]/50">
+          <div class="tree-row flex items-center justify-between px-2 text-text font-semibold hover:bg-[#1c212c] cursor-pointer">
+            <div class="flex items-center space-x-1 truncate">
+              <i class="ph ph-caret-down text-[10px]"></i>
+              <span class="font-sans text-[11px] uppercase tracking-wider text-muted">Conversations</span>
+            </div>
+            <div class="flex items-center space-x-1 text-muted">
+              <button title="New Conversation" class="hover:text-text"><i class="ph ph-plus text-[11px]"></i></button>
+            </div>
+          </div>
+          <!-- Item rows (22px) -->
+          <div class="tree-row flex items-center justify-between px-4 text-text hover:bg-[#1c212c] cursor-pointer">
+            <span class="truncate font-sans text-xs">design-onboarding-flow</span>
+            <span class="text-[10px] text-muted font-mono flex-shrink-0">3t · Today</span>
+          </div>
+          <div class="tree-row flex items-center justify-between px-4 text-muted hover:bg-[#1c212c] cursor-pointer">
+            <span class="truncate font-sans text-xs">feat/refactor-tokio-channel</span>
+            <span class="text-[10px] text-muted font-mono flex-shrink-0">12t · Oct 11</span>
+          </div>
+        </div>
+
+        <!-- Section 2: Models & Runtime -->
+        <div class="border-b border-[#1e222b]/50">
+          <div class="tree-row flex items-center justify-between px-2 text-text font-semibold hover:bg-[#1c212c] cursor-pointer">
+            <div class="flex items-center space-x-1 truncate">
+              <i class="ph ph-caret-down text-[10px]"></i>
+              <span class="font-sans text-[11px] uppercase tracking-wider text-muted">Models &amp; Runtime</span>
+            </div>
+            <span class="text-[10px] font-mono text-allow">ACTIVE</span>
+          </div>
+          <!-- Active model row -->
+          <div class="tree-row flex items-center justify-between px-4 text-accent hover:bg-[#1c212c] cursor-pointer">
+            <div class="flex items-center space-x-1.5 truncate">
+              <span class="w-1.5 h-1.5 rounded-full bg-allow"></span>
+              <span class="font-sans text-xs">Claude · claude-3-7-sonnet</span>
+            </div>
+            <span class="text-[10px] font-mono text-muted">active</span>
+          </div>
+          <!-- Local AI Group -->
+          <div class="tree-row flex items-center justify-between px-4 text-muted hover:bg-[#1c212c] cursor-pointer">
+            <div class="flex items-center space-x-1 truncate font-sans text-[11px]">
+              <i class="ph ph-caret-right text-[10px]"></i>
+              <span>Local AI (Ollama, LM Studio)</span>
+            </div>
+            <span class="text-[10px] font-mono text-cyan">14 ms</span>
+          </div>
+          <!-- Cloud Group (13 providers) -->
+          <div class="tree-row flex items-center justify-between px-4 text-muted hover:bg-[#1c212c] cursor-pointer">
+            <div class="flex items-center space-x-1 truncate font-sans text-[11px]">
+              <i class="ph ph-caret-right text-[10px]"></i>
+              <span>Cloud (13 providers)</span>
+            </div>
+            <span class="text-[10px] font-mono text-allow">key ✓</span>
+          </div>
+        </div>
+
+        <!-- Section 3: Project -->
+        <div class="border-b border-[#1e222b]/50">
+          <div class="tree-row flex items-center justify-between px-2 text-text font-semibold hover:bg-[#1c212c] cursor-pointer">
+            <div class="flex items-center space-x-1 truncate">
+              <i class="ph ph-caret-down text-[10px]"></i>
+              <span class="font-sans text-[11px] uppercase tracking-wider text-muted">Project</span>
+            </div>
+          </div>
+          <div class="tree-row flex items-center justify-between px-4 text-muted hover:bg-[#1c212c] cursor-pointer">
+            <span class="truncate font-sans text-xs">Project Memory</span>
+            <span class="text-[10px] font-mono text-muted">1.4 KB</span>
+          </div>
+          <div class="tree-row flex items-center justify-between px-4 text-muted hover:bg-[#1c212c] cursor-pointer">
+            <span class="truncate font-sans text-xs">Pinned commands</span>
+            <span class="text-[10px] font-mono text-muted">3 / 9</span>
+          </div>
+        </div>
+
+        <!-- Section 4: Tasks -->
+        <div class="border-b border-[#1e222b]/50">
+          <div class="tree-row flex items-center justify-between px-2 text-text font-semibold hover:bg-[#1c212c] cursor-pointer">
+            <div class="flex items-center space-x-1 truncate">
+              <i class="ph ph-caret-down text-[10px]"></i>
+              <span class="font-sans text-[11px] uppercase tracking-wider text-muted">Tasks</span>
+            </div>
+            <span class="text-[10px] font-mono text-muted">1 in progress</span>
+          </div>
+          <div class="tree-row flex items-center space-x-2 px-4 text-muted hover:bg-[#1c212c] cursor-pointer">
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan"></span>
+            <span class="truncate font-sans text-xs">In progress: Design Onboarding Canvas</span>
+          </div>
+          <div class="tree-row flex items-center space-x-2 px-4 text-muted hover:bg-[#1c212c] cursor-pointer">
+            <span class="w-1.5 h-1.5 rounded-full bg-muted"></span>
+            <span class="truncate font-sans text-xs">Open: Task dependency graph</span>
+          </div>
+        </div>
+
+        <!-- Section 5: Governance -->
+        <div class="border-b border-[#1e222b]/50">
+          <div class="tree-row flex items-center justify-between px-2 text-text font-semibold hover:bg-[#1c212c] cursor-pointer">
+            <div class="flex items-center space-x-1 truncate">
+              <i class="ph ph-caret-down text-[10px]"></i>
+              <span class="font-sans text-[11px] uppercase tracking-wider text-muted">Governance</span>
+            </div>
+            <span class="text-[10px] font-mono text-approval bg-approval/10 px-1.5 rounded">1 PENDING</span>
+          </div>
+          <div class="tree-row flex items-center justify-between px-4 text-approval hover:bg-[#1c212c] cursor-pointer">
+            <span class="truncate font-sans text-xs">Pending approval</span>
+            <span class="text-[10px] font-mono">Gate L3</span>
+          </div>
+          <div class="tree-row flex items-center justify-between px-4 text-muted hover:bg-[#1c212c] cursor-pointer">
+            <span class="truncate font-sans text-xs">Capability leases</span>
+            <span class="text-[10px] font-mono">2 active</span>
+          </div>
+          <div class="tree-row flex items-center justify-between px-4 text-muted hover:bg-[#1c212c] cursor-pointer">
+            <span class="truncate font-sans text-xs">Audit log</span>
+            <span class="text-[10px] font-mono text-allow">498✓ 2✕</span>
+          </div>
+        </div>
+
+        <!-- Section 6: Tools -->
+        <div class="border-b border-[#1e222b]/50">
+          <div class="tree-row flex items-center justify-between px-2 text-text font-semibold hover:bg-[#1c212c] cursor-pointer">
+            <div class="flex items-center space-x-1 truncate">
+              <i class="ph ph-caret-down text-[10px]"></i>
+              <span class="font-sans text-[11px] uppercase tracking-wider text-muted">Tools</span>
+            </div>
+          </div>
+          <div class="tree-row flex items-center space-x-2 px-4 text-muted hover:bg-[#1c212c] cursor-pointer font-sans">
+            <i class="ph ph-shield-check text-muted"></i>
+            <span>Doctor · Scan · Blast radius map</span>
+          </div>
+        </div>
+
+        <!-- Section 7: System (Collapsed) -->
+        <div>
+          <div class="tree-row flex items-center justify-between px-2 text-muted hover:bg-[#1c212c] cursor-pointer">
+            <div class="flex items-center space-x-1 truncate">
+              <i class="ph ph-caret-right text-[10px]"></i>
+              <span class="font-sans text-[11px] uppercase tracking-wider text-muted">System (12 capabilities, PATH)</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- 2.3 CENTRAL EDITOR AREA (YANA DESIGN CANVAS TAB: .yana-canvas.json) -->
+    <main class="flex-1 flex flex-col min-w-0 bg-[#12151c] overflow-hidden">
+      
+      <!-- Editor Tabs Bar (Native VS Code style) -->
+      <div class="h-[35px] bg-[#0c0e12] border-b border-[#1e222b] flex items-center justify-between px-2 flex-shrink-0">
+        <div class="flex items-center h-full space-x-0.5 overflow-x-auto">
+          <!-- Active Tab: onboarding.yana-canvas.json -->
+          <div class="h-full bg-[#12151c] border-t-2 border-accent border-r border-[#1e222b] px-3 flex items-center space-x-2 text-xs text-text cursor-pointer select-none">
+            <i class="ph-bold ph-bezier-curve text-accent text-sm"></i>
+            <span class="font-mono text-xs">onboarding.yana-canvas.json</span>
+            <!-- Unsaved dot indicator as specified -->
+            <span class="w-2 h-2 rounded-full bg-text hover:bg-muted ml-1" title="Unsaved changes"></span>
+            <button class="hover:bg-[#1c212c] rounded p-0.5 ml-1 text-muted hover:text-text"><i class="ph ph-x text-[10px]"></i></button>
+          </div>
+
+          <!-- Inactive Tab 2: runtime_orchestrator.rs -->
+          <div class="h-full bg-[#0c0e12] hover:bg-[#12151c]/60 border-r border-[#1e222b] px-3 flex items-center space-x-2 text-xs text-muted cursor-pointer select-none">
+            <i class="ph ph-code text-orange-400 text-sm"></i>
+            <span class="font-mono text-xs">runtime_orchestrator.rs</span>
+            <button class="opacity-0 hover:opacity-100 hover:bg-[#1c212c] rounded p-0.5 ml-1 text-muted"><i class="ph ph-x text-[10px]"></i></button>
+          </div>
+
+          <!-- Inactive Tab 3: settings.json -->
+          <div class="h-full bg-[#0c0e12] hover:bg-[#12151c]/60 border-r border-[#1e222b] px-3 flex items-center space-x-2 text-xs text-muted cursor-pointer select-none">
+            <i class="ph ph-file-text text-yellow-400 text-sm"></i>
+            <span class="font-mono text-xs">settings.json</span>
+            <button class="opacity-0 hover:opacity-100 hover:bg-[#1c212c] rounded p-0.5 ml-1 text-muted"><i class="ph ph-x text-[10px]"></i></button>
+          </div>
+        </div>
+
+        <!-- Breadcrumb / Tab Actions -->
+        <div class="flex items-center space-x-2 text-muted text-xs">
+          <span class="font-mono text-[11px] text-muted hidden md:inline">design/onboarding.yana-canvas.json</span>
+          <button class="p-1 hover:text-text hover:bg-[#1c212c] rounded" title="Split Editor Right"><i class="ph ph-columns text-sm"></i></button>
+          <button class="p-1 hover:text-text hover:bg-[#1c212c] rounded" title="More Actions"><i class="ph ph-dots-three-vertical text-sm"></i></button>
+        </div>
+      </div>
+
+      <!-- Canvas Editor Body: Split Layout (Left Column 320px + Right Stage Area) -->
+      <div class="flex-1 flex overflow-hidden">
+        
+        <!-- ========================================================
+             LEFT COLUMN (~320px): THE CONVERSATION WITH DESIGN AI
+        ======================================================== -->
+        <section class="w-[320px] bg-[#161a22] border-r border-[#1e222b] flex flex-col flex-shrink-0 z-10 text-xs">
+          
+          <!-- Canvas Top Configuration Bar: Model Picker & Security Enclave -->
+          <div class="p-3 border-b border-[#1e222b] space-y-2.5 bg-[#12151c]/40">
+            <!-- Security Boundary Reassurance Notice (Mandatory from spec) -->
+            <div class="flex items-start space-x-2 p-2 rounded bg-[#0c0e12] border border-[#1e222b] text-[11px] text-muted">
+              <i class="ph-bold ph-shield-check text-cyan text-sm flex-shrink-0 mt-0.5"></i>
+              <div>
+                <span class="text-text font-medium">Isolated Design Sandbox:</span>
+                <span class="text-muted">Runs in an isolated empty folder. Cannot read or write project files until explicit export.</span>
+              </div>
+            </div>
+
+            <!-- Model Picker (Dedicated for this Canvas file) -->
+            <div class="space-y-1">
+              <div class="flex justify-between items-center text-[11px]">
+                <span class="text-muted font-medium">Design AI Model</span>
+                <span class="font-mono text-[10px] text-allow flex items-center space-x-1">
+                  <i class="ph-bold ph-key"></i>
+                  <span>Keychain Verified</span>
+                </span>
+              </div>
+              <div class="grid grid-cols-5 gap-1.5">
+                <select class="col-span-3 bg-[#0c0e12] border border-[#1e222b] hover:border-[#252a36] text-text rounded px-2 py-1 text-xs font-mono focus:outline-none focus:border-accent">
+                  <option>Claude (Anthropic)</option>
+                  <option>OpenAI (GPT-4o / o1)</option>
+                  <option>Gemini 1.5 Pro</option>
+                  <option>Groq (Llama-3.3)</option>
+                  <option>DeepSeek-V3</option>
+                  <option>Ollama (Local Engine)</option>
+                  <option>TurboFieldfare (Local)</option>
+                </select>
+                <div class="col-span-2 flex items-center bg-[#0c0e12] border border-[#1e222b] rounded px-2 py-1 text-[11px] font-mono text-cyan truncate" title="claude-3-7-sonnet">
+                  claude-3.7
+                </div>
+              </div>
+            </div>
+
+            <!-- Device Form Factor Toggle: Desktop (1280px) vs Phone (390px) -->
+            <div class="flex items-center justify-between pt-1">
+              <span class="text-[11px] text-muted font-medium">Viewport Target</span>
+              <div class="flex bg-[#0c0e12] p-0.5 rounded border border-[#1e222b]">
+                <button class="px-2 py-0.5 text-[11px] rounded bg-[#1c212c] text-text font-medium flex items-center space-x-1 border border-[#252a36]">
+                  <i class="ph ph-desktop"></i>
+                  <span>Desktop (1280px)</span>
+                </button>
+                <button class="px-2 py-0.5 text-[11px] rounded text-muted hover:text-text flex items-center space-x-1">
+                  <i class="ph ph-device-mobile"></i>
+                  <span>Phone (390px)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat History of Design Requests (Tagged New / Variant / Refine) -->
+          <div class="flex-1 overflow-y-auto p-3 space-y-3">
+            
+            <!-- Message 1 (New Screen) -->
+            <div class="space-y-1">
+              <div class="flex items-center justify-between text-[10px] text-muted font-mono">
+                <div class="flex items-center space-x-1.5">
+                  <span class="bg-accent/20 text-accent font-semibold px-1 rounded uppercase">New</span>
+                  <span>14:02:11</span>
+                </div>
+                <span class="text-text font-sans">Operator</span>
+              </div>
+              <div class="bg-[#12151c] border border-[#1e222b] rounded p-2.5 text-xs text-text leading-relaxed">
+                "Create a developer onboarding welcome launcher with recent repositories, model latency benchmarks, and a quick-start template picker."
+              </div>
+            </div>
+
+            <!-- Message 2 (Variant Generated) -->
+            <div class="space-y-1">
+              <div class="flex items-center justify-between text-[10px] text-muted font-mono">
+                <div class="flex items-center space-x-1.5">
+                  <span class="bg-cyan/20 text-cyan font-semibold px-1 rounded uppercase">Variant</span>
+                  <span>14:04:45</span>
+                </div>
+                <span class="text-text font-sans">Operator</span>
+              </div>
+              <div class="bg-[#12151c] border border-[#1e222b] rounded p-2.5 text-xs text-text leading-relaxed">
+                "Create Variant 2: more compact layout with two-column split, showing system hardware stats on the left and project templates on the right."
+              </div>
+            </div>
+
+            <!-- Active Turn / Live Generation Card (Moment 2: Live Generation from spec) -->
+            <div class="space-y-1.5 border border-accent/40 bg-accent/5 rounded-lg p-2.5">
+              <div class="flex items-center justify-between text-[10px] font-mono">
+                <span class="bg-approval/20 text-approval font-semibold px-1.5 py-0.2 rounded uppercase flex items-center space-x-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-approval animate-pulse"></span>
+                  <span>Refine (Screen 1)</span>
+                </span>
+                <span class="text-cyan">Claude 3.7 Sonnet</span>
+              </div>
+
+              <!-- Intent prompt text -->
+              <div class="text-xs text-text font-medium">
+                "Add a verified Tree-sitter AST guard badge in the top-right header and highlight the 41-provider catalog status."
+              </div>
+
+              <!-- Live Progress & Streaming Metrics (Calm motion, no heavy shimmering) -->
+              <div class="pt-2 border-t border-[#1e222b] space-y-1.5 text-[11px] font-mono">
+                <div class="flex justify-between items-center text-muted">
+                  <span class="flex items-center space-x-1 text-text">
+                    <i class="ph-bold ph-pencil-simple text-accent"></i>
+                    <span>Writing HTML &amp; CSS…</span>
+                  </span>
+                  <span class="text-cyan">18.4 KB received</span>
+                </div>
+                <!-- Subtle progress hairline (heat-conscious, calm) -->
+                <div class="h-1 w-full bg-[#0c0e12] rounded-full overflow-hidden">
+                  <div class="h-full bg-accent rounded-full transition-all duration-300" style="width: 74%"></div>
+                </div>
+                <div class="flex justify-between items-center text-[10px] text-muted">
+                  <span>DOM Nodes: 142 · Static</span>
+                  <span class="text-allow">Isolated Sandbox OK</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom: Status Line, Prompt Composer & Primary Action Button -->
+          <div class="p-3 border-t border-[#1e222b] bg-[#12151c] space-y-2">
+            
+            <!-- Status Line as specified in Design Brief -->
+            <div class="flex items-center justify-between text-[11px] font-mono text-muted">
+              <span class="flex items-center space-x-1 text-text">
+                <span class="w-1.5 h-1.5 rounded-full bg-allow inline-block"></span>
+                <span>Active: Screen 1 selected</span>
+              </span>
+              <span class="text-[10px] text-muted">Single-model mode</span>
+            </div>
+
+            <!-- Prompt Box with Contextual Hint -->
+            <div class="relative">
+              <textarea rows="3" placeholder="Describe changes to Screen 1, or type a new screen intent…" class="w-full bg-[#0c0e12] border border-[#1e222b] focus:border-accent rounded p-2 text-xs text-text placeholder-muted resize-none focus:outline-none font-sans"></textarea>
+            </div>
+
+            <!-- Action Buttons: Refine Screen vs Stop -->
+            <div class="flex items-center space-x-2">
+              <!-- Stop Button (User can step in at any time) -->
+              <button class="px-2.5 py-1.5 bg-[#1c212c] hover:bg-deny/20 hover:text-deny border border-[#1e222b] text-muted text-xs font-medium rounded flex items-center space-x-1 transition-colors" title="Stop live generation at current state">
+                <i class="ph-bold ph-stop text-sm"></i>
+                <span>Stop ■</span>
+              </button>
+
+              <!-- Main Button: Changes dynamically (Generate vs Refine) -->
+              <button class="flex-1 py-1.5 bg-accent hover:bg-accent-btn text-white text-xs font-semibold rounded flex items-center justify-center space-x-1.5 shadow-sm transition-all" title="Refine selected screen with instructions">
+                <i class="ph-bold ph-sparkle text-sm"></i>
+                <span>Refine Screen 1 (⌘↵)</span>
+              </button>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- ========================================================
+             RIGHT AREA: THE STAGE & SCREENS WITH LIVE PROGRESSION
+        ======================================================== -->
+        <section class="flex-1 flex flex-col min-w-0 bg-[#0c0e12] overflow-hidden">
+          
+          <!-- Screen Tabs & Multi-Variant Toolbar -->
+          <div class="h-[40px] bg-[#161a22] border-b border-[#1e222b] flex items-center justify-between px-3 flex-shrink-0 select-none">
+            
+            <!-- Screen Tabs List (Screen 1, Variant 2, Compare + New Screen) -->
+            <div class="flex items-center space-x-1.5">
+              <!-- Screen 1 (Active) -->
+              <button class="px-3 py-1 bg-[#12151c] text-text border border-[#252a36] rounded text-xs font-medium flex items-center space-x-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-accent"></span>
+                <span>Screen 1: Welcome Hub</span>
+                <span class="text-[10px] text-muted font-mono">1280px</span>
+              </button>
+
+              <!-- Variant 2 (Alternative) -->
+              <button class="px-3 py-1 bg-[#0c0e12] hover:bg-[#1c212c] text-muted hover:text-text border border-[#1e222b] rounded text-xs font-medium flex items-center space-x-2 transition-colors">
+                <span class="w-1.5 h-1.5 rounded-full bg-muted"></span>
+                <span>Variant 2: Split Stats</span>
+                <span class="text-[10px] text-muted font-mono">1280px</span>
+              </button>
+
+              <!-- Compare Side-by-Side View Toggle (Moment 5 in spec) -->
+              <button class="px-2.5 py-1 bg-[#0c0e12] hover:bg-[#1c212c] text-cyan hover:text-cyan/80 border border-cyan/30 rounded text-xs font-medium flex items-center space-x-1 transition-colors" title="Compare variants side-by-side">
+                <i class="ph ph-split-vertical"></i>
+                <span>Compare</span>
+              </button>
+
+              <!-- + New Screen Button -->
+              <button class="p-1 text-muted hover:text-text hover:bg-[#1c212c] rounded border border-dashed border-[#1e222b] ml-1" title="Create new screen from scratch">
+                <i class="ph ph-plus text-xs"></i>
+              </button>
+            </div>
+
+            <!-- Toolbar for Selected Screen (Moment 3 & 7 from spec) -->
+            <div class="flex items-center space-x-2">
+              <!-- Live State Pill -->
+              <div class="flex items-center space-x-1.5 text-[11px] font-mono text-muted bg-[#12151c] px-2 py-0.5 rounded border border-[#1e222b]">
+                <span class="w-1.5 h-1.5 rounded-full bg-allow"></span>
+                <span>Streaming 18.4 KB</span>
+                <span class="text-[#1e222b]">|</span>
+                <span class="text-text">Refining…</span>
+              </div>
+
+              <!-- Another Variant Action -->
+              <button class="px-2.5 py-1 bg-[#12151c] hover:bg-[#1c212c] text-text border border-[#1e222b] rounded text-xs font-medium flex items-center space-x-1 transition-colors">
+                <i class="ph ph-copy"></i>
+                <span>Another Variant</span>
+              </button>
+
+              <!-- Export HTML Button (Explicit Human Choice as required by security rule) -->
+              <button class="px-2.5 py-1 bg-[#12151c] hover:bg-accent hover:text-white text-text border border-[#1e222b] hover:border-accent rounded text-xs font-medium flex items-center space-x-1.5 transition-colors" title="Export clean, isolated HTML into project directory">
+                <i class="ph ph-export"></i>
+                <span>Export HTML</span>
+              </button>
+
+              <!-- Delete Screen -->
+              <button class="p-1 text-muted hover:text-deny hover:bg-deny/10 rounded" title="Delete this screen">
+                <i class="ph ph-trash text-sm"></i>
+              </button>
+            </div>
+
+          </div>
+
+          <!-- THE STAGE (Canvas Infinite Board / Fitted Screen Preview Frame) -->
+          <div class="flex-1 bg-[#0c0e12] p-4 flex items-center justify-center overflow-auto relative">
+            
+            <!-- Grid background pattern -->
+            <div class="absolute inset-0 bg-[radial-gradient(#1e222b_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none opacity-40"></div>
+
+            <!-- Fitted Screen Frame (1280px Scale-to-Fit Desktop Container) -->
+            <div class="relative w-full max-w-[1040px] h-[640px] bg-[#12151c] rounded-lg border-2 border-accent/60 shadow-2xl flex flex-col overflow-hidden z-10 transition-all">
+              
+              <!-- Frame Header Bar (Simulated Preview Chrome) -->
+              <div class="h-7 bg-[#161a22] border-b border-[#1e222b] px-3 flex items-center justify-between text-xs text-muted select-none flex-shrink-0">
+                <div class="flex items-center space-x-2">
+                  <div class="flex space-x-1.5">
+                    <div class="w-2.5 h-2.5 rounded-full bg-[#1e222b]"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-[#1e222b]"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-[#1e222b]"></div>
+                  </div>
+                  <span class="font-mono text-[11px] text-text pl-2">Screen 1 — Welcome &amp; Launcher Hub Preview (Isolated HTML)</span>
+                </div>
+                <div class="flex items-center space-x-3 text-[10px] font-mono">
+                  <span class="text-allow flex items-center space-x-1">
+                    <i class="ph-bold ph-check-circle"></i>
+                    <span>No Scripts / Pure CSS</span>
+                  </span>
+                  <span>100% Fit</span>
+                </div>
+              </div>
+
+              <!-- PREVIEW STAGE BODY: REAL RENDERED DESIGN (LIVE GENERATING PREVIEW) -->
+              <div class="flex-1 bg-[#111317] p-6 text-text overflow-y-auto space-y-6">
+                
+                <!-- Live Writing Overlay Indicator (Calm, non-distracting badge) -->
+                <div class="flex justify-between items-center pb-2 border-b border-[#1e222b]">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 rounded-full bg-cyan inline-block animate-ping"></span>
+                    <span class="text-xs font-mono text-cyan font-semibold">LIVE WRITING PREVIEW (Claude 3.7 Sonnet)</span>
+                  </div>
+                  <div class="text-[11px] font-mono text-muted">
+                    Tokens: <span class="text-text">4,820</span> · Refreshed 200ms ago
+                  </div>
+                </div>
+
+                <!-- Hero Section of Generated Screen -->
+                <div class="grid grid-cols-12 gap-6 items-start">
+                  
+                  <!-- Left: Welcome & Recent Workspaces -->
+                  <div class="col-span-8 space-y-5">
+                    
+                    <div>
+                      <div class="flex items-center space-x-2 mb-1">
+                        <span class="text-[10px] uppercase font-mono font-bold tracking-wider text-accent bg-accent/10 px-2 py-0.5 rounded border border-accent/20">
+                          CODE-OSS 1.141 RUNTIME
+                        </span>
+                        <span class="text-[10px] uppercase font-mono text-allow bg-allow/10 px-2 py-0.5 rounded border border-allow/20">
+                          Deterministic Guard Active
+                        </span>
+                      </div>
+                      <h1 class="text-2xl font-bold text-text tracking-tight">Yana Studio Launcher</h1>
+                      <p class="text-xs text-muted mt-1">Autonomous orchestration workspace with human-governed execution boundaries.</p>
+                    </div>
+
+                    <!-- Quick Action Cards -->
+                    <div class="grid grid-cols-3 gap-3">
+                      <div class="p-3 bg-[#161a22] border border-[#1e222b] hover:border-accent rounded-lg cursor-pointer transition-all">
+                        <i class="ph ph-folder-open text-xl text-accent mb-2"></i>
+                        <div class="font-semibold text-xs text-text">Open Folder</div>
+                        <div class="text-[10px] text-muted mt-0.5">Attach local git repository</div>
+                      </div>
+                      <div class="p-3 bg-[#161a22] border border-[#1e222b] hover:border-accent rounded-lg cursor-pointer transition-all">
+                        <i class="ph ph-git-fork text-xl text-cyan mb-2"></i>
+                        <div class="font-semibold text-xs text-text">Clone Repo</div>
+                        <div class="text-[10px] text-muted mt-0.5">GitHub / GitLab HTTPS URL</div>
+                      </div>
+                      <div class="p-3 bg-[#161a22] border border-accent/40 bg-accent/5 rounded-lg cursor-pointer transition-all">
+                        <i class="ph-bold ph-bezier-curve text-xl text-accent mb-2"></i>
+                        <div class="font-semibold text-xs text-text">New Design Canvas</div>
+                        <div class="text-[10px] text-muted mt-0.5">Create .yana-canvas.json</div>
+                      </div>
+                    </div>
+
+                    <!-- Recent Workspaces List -->
+                    <div class="space-y-2">
+                      <div class="flex justify-between items-center text-xs text-muted font-medium">
+                        <span>Recent Workspaces</span>
+                        <span class="text-[11px] text-accent hover:underline cursor-pointer">View All (4)</span>
+                      </div>
+                      <div class="space-y-1.5 font-mono text-xs">
+                        <div class="p-2.5 bg-[#161a22] border border-[#1e222b] rounded flex items-center justify-between hover:bg-[#1c212c] cursor-pointer">
+                          <div class="flex items-center space-x-2">
+                            <i class="ph ph-folder text-accent"></i>
+                            <span class="font-medium text-text">yanacuti1121/Yana-AI</span>
+                            <span class="text-[10px] text-muted">~/projects/Yana-AI</span>
+                          </div>
+                          <span class="text-[10px] text-muted">2h ago · main*</span>
+                        </div>
+                        <div class="p-2.5 bg-[#161a22] border border-[#1e222b] rounded flex items-center justify-between hover:bg-[#1c212c] cursor-pointer">
+                          <div class="flex items-center space-x-2">
+                            <i class="ph ph-folder text-muted"></i>
+                            <span class="font-medium text-text">tokio-channel-buffer</span>
+                            <span class="text-[10px] text-muted">~/work/tokio-core</span>
+                          </div>
+                          <span class="text-[10px] text-muted">Yesterday · cargo-test</span>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <!-- Right: Model Providers Status & AST Invariants Widget -->
+                  <div class="col-span-4 space-y-4">
+                    
+                    <!-- Runtime Engine Status -->
+                    <div class="p-3.5 bg-[#161a22] border border-[#1e222b] rounded-lg space-y-3 font-mono">
+                      <div class="flex justify-between items-center text-xs">
+                        <span class="text-text font-bold flex items-center space-x-1.5">
+                          <i class="ph-bold ph-cpu text-accent"></i>
+                          <span>yana-rt (Daemon)</span>
+                        </span>
+                        <span class="text-[10px] text-allow bg-allow/10 px-1.5 rounded">v1.5.0 OK</span>
+                      </div>
+                      
+                      <div class="space-y-1.5 text-[11px] text-muted border-t border-[#1e222b] pt-2">
+                        <div class="flex justify-between">
+                          <span>Local Metal MPS:</span>
+                          <span class="text-text">Connected (12ms)</span>
+                        </div>
+                        <div class="flex justify-between">
+                          <span>Active Provider:</span>
+                          <span class="text-cyan">Claude 3.7 Sonnet</span>
+                        </div>
+                        <div class="flex justify-between">
+                          <span>Security Boundary:</span>
+                          <span class="text-approval">Gate L3 Enforced</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Quick Starter Templates -->
+                    <div class="p-3.5 bg-[#161a22] border border-[#1e222b] rounded-lg space-y-2.5">
+                      <div class="text-xs font-semibold text-text">Recommended Starter</div>
+                      <div class="p-2 rounded bg-[#12151c] border border-[#1e222b] space-y-1">
+                        <div class="font-medium text-xs text-text flex items-center justify-between">
+                          <span>Rust Daemon + Agent Copilot</span>
+                          <span class="text-[10px] text-accent font-mono">CLI + IDE</span>
+                        </div>
+                        <p class="text-[11px] text-muted">Includes pre-configured Tree-sitter AST validation gates and Tokio supervisor.</p>
+                      </div>
+                      <button class="w-full py-1 text-center bg-[#1c212c] hover:bg-[#252a36] text-text rounded text-xs font-medium border border-[#1e222b] transition-colors">
+                        Browse 12 Templates
+                      </button>
+                    </div>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+              <!-- Frame Footer Status Info -->
+              <div class="h-6 bg-[#161a22] border-t border-[#1e222b] px-3 flex items-center justify-between text-[10px] text-muted font-mono select-none flex-shrink-0">
+                <span>Viewport: Desktop 1280x800 · Scaled to Fit (1040x640)</span>
+                <span class="text-allow">Render Status: Progressive Streaming Clean</span>
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+      </div>
+
+    </main>
+
+    <!-- ========================================================
+         2.4 SECONDARY SIDE BAR: YANA AI CHAT PANEL (Right 340px)
+    ======================================================== -->
+    <aside class="w-[340px] bg-[#161a22] border-l border-[#1e222b] flex flex-col flex-shrink-0 z-20 text-xs select-none">
+      
+      <!-- Panel Header -->
+      <div class="h-[35px] border-b border-[#1e222b] flex items-center justify-between px-3">
+        <div class="flex items-center space-x-2">
+          <i class="ph-bold ph-robot text-accent text-sm"></i>
+          <span class="font-semibold text-text text-xs tracking-tight">YANA AI</span>
+          <span class="text-[10px] font-mono text-cyan bg-cyan/10 border border-cyan/20 px-1.5 py-0.2 rounded">RUNTIME v1.5.0</span>
+        </div>
+        <div class="flex items-center space-x-1 text-muted">
+          <button class="hover:text-text p-1" title="History"><i class="ph ph-clock-counter-clockwise"></i></button>
+          <button class="hover:text-text p-1" title="New Conversation"><i class="ph ph-plus"></i></button>
+          <button class="hover:text-text p-1" title="Yana Settings"><i class="ph ph-gear"></i></button>
+        </div>
+      </div>
+
+      <!-- Status Row -->
+      <div class="px-3 py-1.5 bg-[#12151c] border-b border-[#1e222b] flex items-center justify-between text-[11px] font-mono">
+        <div class="flex items-center space-x-1.5 text-allow">
+          <span class="w-1.5 h-1.5 rounded-full bg-allow"></span>
+          <span>CONNECTED · LOCAL RUNTIME</span>
+        </div>
+        <span class="text-muted truncate max-w-[100px]">yana-ai</span>
+      </div>
+
+      <!-- Model & Key Row -->
+      <div class="px-3 py-1.5 border-b border-[#1e222b] flex items-center justify-between">
+        <div class="flex items-center space-x-1 text-xs text-text font-mono">
+          <span class="text-muted">Model:</span>
+          <span class="font-semibold text-accent">claude-sonnet-5</span>
+        </div>
+        <span class="text-[10px] font-mono text-allow bg-allow/10 px-1.5 py-0.2 rounded border border-allow/20">KEY ✓</span>
+      </div>
+
+      <!-- Mode Row: Supervised (active), Auto & Plan-Only disabled with reason -->
+      <div class="px-3 py-1.5 border-b border-[#1e222b] flex items-center space-x-1 text-[11px]">
+        <button class="px-2 py-0.5 rounded bg-accent text-white font-medium">Supervised</button>
+        <button class="px-2 py-0.5 rounded text-muted opacity-50 cursor-not-allowed" title="this mode is not in the runtime yet">Auto (L1)</button>
+        <button class="px-2 py-0.5 rounded text-muted opacity-50 cursor-not-allowed" title="this mode is not in the runtime yet">Plan-Only</button>
+      </div>
+
+      <!-- Feed Container: Per-Turn Conversation Cards -->
+      <div class="flex-1 overflow-y-auto p-3 space-y-3 font-sans">
+        
+        <!-- Turn Card 1: Operator Intent -->
+        <div class="space-y-1">
+          <div class="flex items-center justify-between text-[10px] text-muted font-mono">
+            <span class="font-semibold text-text">Operator (Anh)</span>
+            <span>14:02:11</span>
+          </div>
+          <div class="p-2.5 rounded bg-[#12151c] border border-[#1e222b] text-text text-xs leading-relaxed">
+            Refactor the Tokio channel buffer and run <code class="font-mono text-cyan bg-[#1c212c] px-1 rounded">cargo test --lib</code>
+          </div>
+        </div>
+
+        <!-- Agent Trace Card -->
+        <div class="space-y-1 font-mono text-[11px]">
+          <div class="flex items-center space-x-1 text-muted text-[10px]">
+            <i class="ph ph-git-commit"></i>
+            <span>TOOL CALL TRACE</span>
+          </div>
+          <div class="p-2 rounded bg-[#0c0e12] border border-[#1e222b] space-y-1">
+            <div class="flex items-center justify-between text-muted">
+              <span class="text-text">read_file('src/orchestrator/channel.rs')</span>
+              <span class="text-allow bg-allow/10 px-1 rounded text-[9px]">OK</span>
+            </div>
+            <div class="flex items-center justify-between text-muted">
+              <span class="text-text">ast_diff('replace mpsc::channel(32)')</span>
+              <span class="text-allow bg-allow/10 px-1 rounded text-[9px]">OK</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reply Rendered as Markdown -->
+        <div class="p-2.5 rounded bg-[#12151c] border border-[#1e222b] text-xs text-text space-y-1.5 leading-relaxed">
+          <p>I have inspected the Tokio bounded channel. To prevent memory saturation under high-fanout agent runs, buffer size is increased from 32 to 1024.</p>
+          <div class="text-[11px] text-muted font-mono bg-[#0c0e12] p-1.5 rounded border border-[#1e222b]">
+            // Channel invariant verified via Tree-sitter
+          </div>
+        </div>
+
+        <!-- Core Human Approval Gate Card (Amber #f59e0b) -->
+        <div class="p-3 rounded-lg bg-approval/5 border border-approval/40 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="flex items-center space-x-1.5 text-approval font-bold text-xs uppercase tracking-wide">
+              <i class="ph-bold ph-warning text-sm"></i>
+              <span>Human Approval Required</span>
+            </span>
+            <span class="text-[10px] font-mono text-approval bg-approval/20 px-1.5 py-0.2 rounded">Gate L3</span>
+          </div>
+
+          <div class="text-xs text-text">
+            The agent requests execution lease for terminal command:
+          </div>
+
+          <!-- Command summary box -->
+          <div class="p-2 rounded bg-[#0c0e12] border border-[#1e222b] font-mono text-xs text-cyan flex items-center justify-between">
+            <span>$ cargo test --lib -- --nocapture</span>
+            <span class="text-[10px] text-muted">run_command</span>
+          </div>
+
+          <div class="text-[11px] text-muted">
+            Reason: Policy requires explicit human sign-off before spawning un-sandboxed host test runner.
+          </div>
+
+          <!-- Approve / Deny Buttons -->
+          <div class="flex items-center space-x-2 pt-1">
+            <button class="flex-1 py-1.5 bg-allow hover:bg-emerald-600 text-[#0c0e12] text-xs font-semibold rounded flex items-center justify-center space-x-1 shadow-sm transition-colors">
+              <i class="ph-bold ph-check"></i>
+              <span>Approve &amp; Run</span>
+            </button>
+            <button class="px-3 py-1.5 bg-[#1c212c] hover:bg-deny/20 hover:text-deny border border-[#1e222b] text-muted text-xs font-medium rounded transition-colors">
+              Deny
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Composer Area -->
+      <div class="p-3 border-t border-[#1e222b] bg-[#12151c] space-y-2">
+        <div class="relative">
+          <textarea rows="2" placeholder="Ask Yana, execute task, @mention files… (⌘↵ to send)" class="w-full bg-[#0c0e12] border border-[#1e222b] focus:border-accent rounded p-2 text-xs text-text placeholder-muted resize-none focus:outline-none font-sans"></textarea>
+        </div>
+        <div class="flex justify-between items-center text-[10px] text-muted font-mono">
+          <div class="flex items-center space-x-2">
+            <i class="ph ph-paperclip cursor-pointer hover:text-text"></i>
+            <i class="ph ph-brackets-curly cursor-pointer hover:text-text"></i>
+            <i class="ph ph-shield-check text-allow" title="ActionGate L3 Active"></i>
+          </div>
+          <button class="px-2.5 py-1 bg-accent hover:bg-accent-btn text-white text-xs font-medium rounded flex items-center space-x-1 transition-colors">
+            <span>Send ⌘↵</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Footer: Mode & Real Token Count -->
+      <div class="h-6 bg-[#0c0e12] border-t border-[#1e222b] px-3 flex items-center justify-between text-[10px] text-muted font-mono flex-shrink-0">
+        <span class="text-cyan">Mode: Supervised</span>
+        <span>Tokens: 1,240 in · 310 out</span>
+      </div>
+
+    </aside>
+
+  </div>
+
+  <!-- ========================================================
+       3. VS CODE STATUS BAR (BOTTOM: 22px)
+  ======================================================== -->
+  <footer class="h-[22px] bg-[#0c0e12] border-t border-[#1e222b] flex items-center justify-between px-2 text-[11px] font-mono text-muted select-none flex-shrink-0 z-40">
+    <!-- Left side items from spec 4.3 -->
+    <div class="flex items-center space-x-3">
+      <!-- Git branch -->
+      <div class="flex items-center space-x-1 text-text hover:bg-[#1c212c] px-1 rounded cursor-pointer">
+        <i class="ph ph-git-branch text-xs"></i>
+        <span>main*</span>
+      </div>
+
+      <!-- Yana Runtime item (opens settings) -->
+      <div class="flex items-center space-x-1 text-accent hover:bg-[#1c212c] px-1 rounded cursor-pointer" title="Yana Runtime v1.5.0 (Click to open Settings)">
+        <i class="ph-bold ph-cpu text-xs"></i>
+        <span class="font-semibold">Yana Runtime v1.5.0</span>
+      </div>
+
+      <!-- Policy state -->
+      <div class="hidden md:flex items-center space-x-1 text-muted">
+        <span>Policy:</span>
+        <span class="text-text font-medium">SUPERVISED [ALLOW: read · REQUIRE: run]</span>
+      </div>
+
+      <!-- Audit summary -->
+      <div class="flex items-center space-x-1 text-allow">
+        <i class="ph ph-shield-check text-xs"></i>
+        <span>Audit 500✓ 0✕</span>
+      </div>
+    </div>
+
+    <!-- Right side items -->
+    <div class="flex items-center space-x-3">
+      <span class="hover:bg-[#1c212c] px-1 rounded cursor-pointer">Spaces: 2</span>
+      <span class="hover:bg-[#1c212c] px-1 rounded cursor-pointer">UTF-8</span>
+      <span class="hover:bg-[#1c212c] px-1 rounded cursor-pointer">JSON</span>
+      <span class="flex items-center space-x-1 text-text hover:bg-[#1c212c] px-1 rounded cursor-pointer">
+        <i class="ph ph-bell text-xs"></i>
+      </span>
+    </div>
+  </footer>
+
+
+
+</body></html>

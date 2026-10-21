@@ -1,0 +1,873 @@
+<!DOCTYPE html><html class="dark" lang="en" style="width: 1280px; height: 1217px; overflow: hidden; position: relative;"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>YANA STUDIO — Autonomous Model Orchestration &amp; Swarm Matrix</title>
+<!-- Google Fonts: Geist Sans & JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&amp;family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-dim": "#080a0e",
+            "surface-container-lowest": "#0a0c10",
+            "surface-container-low": "#101319",
+            "surface": "#11141a",
+            "surface-container": "#161b24",
+            "surface-container-high": "#1d232e",
+            "surface-container-highest": "#262e3d",
+            "outline-subtle": "#1c2331",
+            "outline-variant": "#242c3d",
+            "outline": "#434f68",
+            "on-surface": "#e2e6f0",
+            "on-surface-variant": "#94a1b8",
+            "on-surface-muted": "#62708c",
+            "primary": "#4f80ff",
+            "primary-container": "#2046b3",
+            "on-primary": "#ffffff",
+            "secondary": "#00d2c4",
+            "secondary-container": "#004743",
+            "tertiary": "#4edea3",
+            "amber-accent": "#f59e0b",
+            "amber-dim": "rgba(245, 158, 11, 0.12)"
+          },
+          fontFamily: {
+            sans: ["Geist", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"]
+          },
+          boxShadow: {
+            'glow-cyan': '0 0 24px -4px rgba(0, 210, 196, 0.25)',
+            'glow-blue': '0 0 24px -4px rgba(79, 128, 255, 0.25)',
+            'glow-amber': '0 0 24px -4px rgba(245, 158, 11, 0.25)',
+            'card-inset': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.05)'
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    /* Ultra-sleek hairline scrollbars */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0a0c10;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1f2736;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #2f3b52;
+    }
+    .material-symbols-outlined {
+      font-size: 16px;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    /* Flow Connector Grid dots */
+    .bg-grid-dots {
+      background-image: radial-gradient(#202838 1px, transparent 1px);
+      background-size: 16px 16px;
+    }
+    /* Cyber hairline gradients */
+    .border-glow-line {
+      position: relative;
+    }
+    .border-glow-line::after {
+      content: '';
+      position: absolute;
+      top: -1px; left: 15%; right: 15%; height: 1px;
+      background: linear-gradient(90deg, transparent, #00d2c4, transparent);
+    }
+  </style>
+</head>
+<body class="bg-[#0a0c10] text-[#e2e6f0] antialiased select-none overflow-hidden h-screen w-screen flex flex-col font-sans text-xs">
+<!-- ========================================================================= -->
+<!-- KHỐI 1: MODERN WINDOW CHROME & ORCHESTRATION HEADER (CYBERNETIC 2026 DOCK) -->
+<!-- ========================================================================= -->
+<header class="h-[38px] bg-[#0c0f14] border-b border-[#242c3d] flex items-center justify-between px-3 shrink-0 z-50">
+<!-- Left: Traffic Lights & Studio Brand -->
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1.5 pr-1">
+<span class="w-3 h-3 rounded-full bg-[#ff5f56]/90 hover:opacity-80 transition cursor-pointer"></span>
+<span class="w-3 h-3 rounded-full bg-[#ffbd2e]/90 hover:opacity-80 transition cursor-pointer"></span>
+<span class="w-3 h-3 rounded-full bg-[#27c93f]/90 hover:opacity-80 transition cursor-pointer"></span>
+</div>
+<div class="h-4 w-px bg-[#242c3d]"></div>
+<div class="flex items-center gap-2">
+<span class="font-mono font-bold tracking-wider text-white text-[13px] flex items-center gap-1.5">
+<span class="inline-block w-2 h-2 rounded-[2px] bg-[#4f80ff] shadow-[0_0_8px_#4f80ff]"></span>
+          YANA<span class="text-[#00d2c4]">.STUDIO</span>
+</span>
+<!-- Daemon Status Capsule -->
+<div class="px-2 py-0.5 rounded-full bg-[#00d2c4]/10 border border-[#00d2c4]/30 text-[#00d2c4] font-mono text-[10px] flex items-center gap-1.5 font-medium shadow-[0_0_10px_rgba(0,210,196,0.15)]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#00d2c4] animate-pulse"></span>
+          DAEMON ACTIVE <span class="text-[#62708c]">·</span> v2.6.4-prod
+        </div>
+</div>
+<!-- Quick Surface Switcher Pills -->
+<nav class="hidden lg:flex items-center bg-[#10141c] p-0.5 rounded-md border border-[#242c3d] ml-2">
+<button class="px-2.5 py-0.5 rounded text-[#94a1b8] hover:text-white transition font-mono text-[11px] flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">code_blocks</span>Code
+        </button>
+<button class="px-2.5 py-0.5 rounded text-[#94a1b8] hover:text-white transition font-mono text-[11px] flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">grid_view</span>Canvas
+        </button>
+<button class="px-2.5 py-0.5 rounded bg-[#1f2738] text-white shadow font-mono text-[11px] flex items-center gap-1 font-semibold text-[#00d2c4]">
+<span class="material-symbols-outlined text-[13px] text-[#00d2c4]">hub</span>Orchestrator
+        </button>
+<button class="px-2.5 py-0.5 rounded text-[#94a1b8] hover:text-white transition font-mono text-[11px] flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">account_tree</span>Swarm Matrix
+        </button>
+</nav>
+</div>
+<!-- Center: Linear-style Command Search / Omni-bar -->
+<div class="flex items-center justify-center flex-1 max-w-lg mx-3">
+<div class="w-full flex items-center bg-[#10141c] hover:bg-[#151a24] border border-[#242c3d] hover:border-[#434f68] rounded-md px-3 py-1 text-[#94a1b8] cursor-pointer transition shadow-inner group">
+<span class="material-symbols-outlined text-[#62708c] group-hover:text-[#00d2c4] mr-2 text-[14px]">terminal</span>
+<span class="font-mono text-[11px] flex-1 text-center truncate text-[#94a1b8]">
+          yana://matrix/preset/<span class="text-white font-medium">ast-invariant-swarm.v4</span>
+</span>
+<div class="flex items-center gap-1 text-[10px] font-mono text-[#62708c]">
+<kbd class="px-1.5 py-0.2 rounded bg-[#1c2331] text-[#94a1b8] border border-[#2c374d]">⌘K</kbd>
+</div>
+</div>
+</div>
+<!-- Right: Cluster Health & Operator Action -->
+<div class="flex items-center gap-2">
+<!-- Consensus & Quorum Capsule -->
+<div class="hidden xl:flex items-center gap-2 px-2.5 py-0.5 rounded bg-[#121620] border border-[#242c3d] font-mono text-[10px]">
+<span class="text-[#62708c]">CONSENSUS:</span>
+<span class="text-[#4edea3] font-semibold">99.8%</span>
+<span class="w-1.5 h-1.5 rounded-full bg-[#4edea3]"></span>
+</div>
+<div class="h-4 w-px bg-[#242c3d]"></div>
+<button class="px-2.5 py-1 rounded bg-[#4f80ff]/15 hover:bg-[#4f80ff]/25 text-[#4f80ff] border border-[#4f80ff]/40 font-mono text-[11px] font-semibold flex items-center gap-1.5 transition">
+<span class="material-symbols-outlined text-[14px]">rocket_launch</span>
+<span>Hot Reload</span>
+</button>
+<button class="p-1 rounded hover:bg-[#1a212d] text-[#94a1b8] hover:text-white transition" title="Layout Settings">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+</button>
+<div class="w-6 h-6 rounded-full bg-gradient-to-tr from-[#00d2c4] to-[#4f80ff] p-[1px] cursor-pointer">
+<div class="w-full h-full rounded-full bg-[#0c0f14] flex items-center justify-center font-mono text-[10px] font-bold text-white">
+          AN
+        </div>
+</div>
+</div>
+</header>
+<!-- ========================================================================= -->
+<!-- MAIN WORKSPACE ROW (LEFT ACTIVITY BAR + DOCK + MAIN CORE + RIGHT COPILOT) -->
+<!-- ========================================================================= -->
+<div class="flex-1 flex overflow-hidden">
+<!-- 1. SLEEK SLIM ACTIVITY BAR (44px, Obsidian Cyber Style) -->
+<aside class="w-11 bg-[#090b0f] border-r border-[#202736] flex flex-col justify-between items-center py-2.5 shrink-0 z-40">
+<div class="flex flex-col items-center w-full gap-1.5">
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-[#62708c] hover:text-white hover:bg-[#161c27] transition" title="Project Files">
+<span class="material-symbols-outlined text-[18px]">folder_open</span>
+</button>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-[#62708c] hover:text-white hover:bg-[#161c27] transition" title="Search Index">
+<span class="material-symbols-outlined text-[18px]">search</span>
+</button>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-[#62708c] hover:text-white hover:bg-[#161c27] transition" title="Git AST Diff">
+<span class="material-symbols-outlined text-[18px]">alt_route</span>
+</button>
+<div class="w-5 my-1.5 border-t border-[#202736]"></div>
+<!-- Active Matrix App Icon -->
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-[#00d2c4] bg-[#00d2c4]/10 border border-[#00d2c4]/30 shadow-[0_0_12px_rgba(0,210,196,0.2)] transition relative" title="Yana Swarm Matrix">
+<span class="material-symbols-outlined text-[18px]">hub</span>
+<span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#00d2c4]"></span>
+</button>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-[#62708c] hover:text-white hover:bg-[#161c27] transition" title="Policy &amp; ActionGates">
+<span class="material-symbols-outlined text-[18px]">shield</span>
+</button>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-[#62708c] hover:text-white hover:bg-[#161c27] transition" title="Live Telemetry">
+<span class="material-symbols-outlined text-[18px]">insights</span>
+</button>
+</div>
+<div class="flex flex-col items-center w-full gap-1.5">
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-[#62708c] hover:text-white hover:bg-[#161c27] transition" title="Doctor Diagnostics">
+<span class="material-symbols-outlined text-[18px]">health_and_safety</span>
+</button>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-[#62708c] hover:text-white hover:bg-[#161c27] transition" title="Settings">
+<span class="material-symbols-outlined text-[18px]">settings</span>
+</button>
+</div>
+</aside>
+<!-- 2. HIGH-TECH SECONDARY NAV DRAWER / CONTROL TREE (210px) -->
+<aside class="w-52 bg-[#0d1016] border-r border-[#202736] flex flex-col shrink-0 overflow-y-auto text-xs font-sans">
+<div class="h-9 px-3 flex items-center justify-between border-b border-[#202736] uppercase tracking-wider text-[#62708c] font-mono text-[10px] font-bold">
+<span class="flex items-center gap-1.5 text-[#94a1b8]">
+<span class="w-1.5 h-1.5 rounded-sm bg-[#4f80ff]"></span>
+          CONTROL PLANE
+        </span>
+<button class="hover:text-white"><span class="material-symbols-outlined text-[14px]">tune</span></button>
+</div>
+<div class="p-2 space-y-4">
+<!-- Section: Active Clusters -->
+<div>
+<div class="flex items-center justify-between text-[10px] font-mono text-[#62708c] px-1 pb-1">
+<span>SWARM TOPOLOGIES</span>
+<span class="text-[#00d2c4] font-semibold">4 ACTIVE</span>
+</div>
+<div class="space-y-0.5 font-mono text-[11px]">
+<div class="flex items-center justify-between px-2 py-1.5 rounded bg-[#161d28] border border-[#00d2c4]/30 text-white cursor-pointer shadow-[0_0_8px_rgba(0,210,196,0.1)]">
+<span class="flex items-center gap-1.5 truncate">
+<span class="w-1.5 h-1.5 rounded-full bg-[#00d2c4]"></span>
+                ast-invariant-swarm
+              </span>
+<span class="text-[9px] text-[#00d2c4] px-1 bg-[#00d2c4]/15 rounded">LIVE</span>
+</div>
+<div class="flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#131720] text-[#94a1b8] hover:text-white cursor-pointer transition">
+<span class="flex items-center gap-1.5 truncate">
+<span class="w-1.5 h-1.5 rounded-full bg-[#4f80ff]"></span>
+                fast-patch-pipeline
+              </span>
+<span class="text-[9px] text-[#62708c]">42ms</span>
+</div>
+<div class="flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#131720] text-[#94a1b8] hover:text-white cursor-pointer transition">
+<span class="flex items-center gap-1.5 truncate">
+<span class="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></span>
+                security-redteam-eval
+              </span>
+<span class="text-[9px] text-[#62708c]">L2</span>
+</div>
+</div>
+</div>
+<!-- Section: Runtime Providers Telemetry -->
+<div>
+<div class="flex items-center justify-between text-[10px] font-mono text-[#62708c] px-1 pb-1">
+<span>ENGINES &amp; HARNESS</span>
+<span class="text-[#4edea3]">READY</span>
+</div>
+<div class="p-2 rounded bg-[#11151e] border border-[#1e2533] space-y-1.5 font-mono text-[10px]">
+<div class="flex items-center justify-between text-[#94a1b8]">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[12px] text-[#4edea3]">memory</span>
+                Apple Metal (M3 Max)
+              </span>
+<span class="text-[#4edea3]">48 GB</span>
+</div>
+<div class="flex items-center justify-between text-[#94a1b8]">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[12px] text-[#00d2c4]">bolt</span>
+                Groq LPUs (Cloud)
+              </span>
+<span class="text-white">18ms</span>
+</div>
+<div class="flex items-center justify-between text-[#94a1b8]">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[12px] text-[#4f80ff]">cloud</span>
+                Anthropic Direct
+              </span>
+<span class="text-[#4edea3]">TLS 1.3</span>
+</div>
+</div>
+</div>
+<!-- Section: ActionGate Watcher -->
+<div>
+<div class="flex items-center justify-between text-[10px] font-mono text-[#62708c] px-1 pb-1">
+<span>ACTIONGATES &amp; AUDIT</span>
+<span class="text-[#f59e0b] font-bold">1 WAIT</span>
+</div>
+<div class="p-2 rounded bg-[#f59e0b]/5 border border-[#f59e0b]/25 space-y-1 font-mono text-[10px]">
+<div class="flex items-center justify-between text-[#f59e0b] font-semibold">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">gavel</span>
+                L3 Lease Approval
+              </span>
+<span class="animate-pulse">●</span>
+</div>
+<div class="text-[#94a1b8] text-[9px] truncate">cargo test --lib --nocapture</div>
+<div class="text-[#62708c] text-[9px]">Lease expires in 04:32</div>
+</div>
+</div>
+</div>
+<!-- Footer Quick Status -->
+<div class="mt-auto p-2 border-t border-[#1e2533] font-mono text-[10px] text-[#62708c] flex items-center justify-between">
+<span>PID: 88402</span>
+<span class="text-[#00d2c4]">SOCK CONNECTED</span>
+</div>
+</aside>
+<!-- ========================================================================= -->
+<!-- KHỐI 2: TRUNG TÂM (CORE ORCHESTRATION MATRIX - HOÀN TOÀN MỚI) -->
+<!-- ========================================================================= -->
+<main class="flex-1 bg-[#0b0e13] flex flex-col overflow-hidden min-w-0 relative">
+<!-- Matrix Top Tab Header -->
+<div class="h-9 bg-[#0e1117] border-b border-[#202736] flex items-center justify-between px-3 shrink-0">
+<div class="flex items-center gap-2">
+<div class="h-full py-1.5 px-3 bg-[#131720] border-b-2 border-[#00d2c4] text-white font-mono text-[11px] font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-[#00d2c4] text-[14px]">account_tree</span>
+<span>orchestration-matrix.live</span>
+<span class="w-1.5 h-1.5 rounded-full bg-[#00d2c4] animate-ping"></span>
+</div>
+<div class="py-1.5 px-2 text-[#62708c] hover:text-white font-mono text-[11px] flex items-center gap-1.5 cursor-pointer">
+<span class="material-symbols-outlined text-[13px]">data_object</span>
+<span>topology_manifest.yaml</span>
+</div>
+</div>
+<div class="flex items-center gap-3 font-mono text-[11px] text-[#62708c]">
+<span class="flex items-center gap-1">
+<span class="text-[#94a1b8]">TTFT p95:</span>
+<span class="text-[#00d2c4] font-semibold">184ms</span>
+</span>
+<span class="h-3 w-px bg-[#242c3d]"></span>
+<span class="flex items-center gap-1">
+<span class="text-[#94a1b8]">Gates Active:</span>
+<span class="text-[#4edea3] font-semibold">4 / 4</span>
+</span>
+<span class="h-3 w-px bg-[#242c3d]"></span>
+<button class="px-2 py-0.5 rounded bg-[#181f2b] hover:bg-[#20293a] text-white border border-[#2b3548] flex items-center gap-1 text-[10px]">
+<span class="material-symbols-outlined text-[12px] text-[#4f80ff]">play_circle</span> Re-evaluate Swarm
+          </button>
+</div>
+</div>
+<!-- Matrix Canvas Area (Scrollable Visual Flow + Topology Matrix) -->
+<div class="flex-1 overflow-y-auto p-5 space-y-6 bg-grid-dots">
+<!-- TITLE HERO: Autonomous Model Orchestration & Swarm Matrix -->
+<div class="relative rounded-xl p-5 bg-gradient-to-r from-[#111622] via-[#0f141f] to-[#0c1017] border border-[#222b3b] shadow-card-inset overflow-hidden">
+<div class="absolute -right-10 -top-10 w-64 h-64 bg-[#00d2c4]/5 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute -left-10 -bottom-10 w-64 h-64 bg-[#4f80ff]/5 rounded-full blur-3xl pointer-events-none"></div>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+<div>
+<div class="flex items-center gap-2 mb-1.5">
+<span class="px-2 py-0.5 rounded bg-[#4f80ff]/10 border border-[#4f80ff]/30 text-[#4f80ff] font-mono text-[10px] font-semibold tracking-wider uppercase">
+                  CYBERNETIC COCKPIT 2026
+                </span>
+<span class="px-2 py-0.5 rounded bg-[#00d2c4]/10 border border-[#00d2c4]/30 text-[#00d2c4] font-mono text-[10px] font-semibold tracking-wider uppercase">
+                  STRICT AST INVARIANTS
+                </span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                Autonomous Model Orchestration &amp; Swarm Matrix
+              </h1>
+<p class="text-[#94a1b8] text-xs mt-1 max-w-2xl leading-relaxed">
+                Parallelized multi-candidate fanout synthesis pipeline governed by runtime assertion guards, tree-sitter AST validation, and deterministic consensus.
+              </p>
+</div>
+<!-- Live HUD Metric Badges -->
+<div class="flex items-center gap-2 font-mono text-xs">
+<div class="px-3 py-2 rounded-lg bg-[#141a24] border border-[#252f42] text-center min-w-[90px]">
+<div class="text-[10px] text-[#62708c]">TTFT (p95)</div>
+<div class="text-sm font-bold text-[#00d2c4]">184 ms</div>
+</div>
+<div class="px-3 py-2 rounded-lg bg-[#141a24] border border-[#252f42] text-center min-w-[90px]">
+<div class="text-[10px] text-[#62708c]">ZERO REGRESSION</div>
+<div class="text-sm font-bold text-[#4edea3]">100% PASS</div>
+</div>
+<div class="px-3 py-2 rounded-lg bg-[#141a24] border border-[#252f42] text-center min-w-[90px]">
+<div class="text-[10px] text-[#62708c]">CONSENSUS</div>
+<div class="text-sm font-bold text-[#4f80ff]">99.8%</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ============================================================= -->
+<!-- VISUAL FLOW CANVAS & NODE PIPELINE (THE 4 CORE CYBER NODES) -->
+<!-- ============================================================= -->
+<div>
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-[#00d2c4]"></span>
+<span class="font-mono text-xs font-bold text-white uppercase tracking-wider">Live Pipeline Topology &amp; Consensus Flow</span>
+</div>
+<div class="font-mono text-[11px] text-[#62708c] flex items-center gap-1.5">
+<span>Interactive Pipeline Engine</span>
+<span class="material-symbols-outlined text-[13px] text-[#00d2c4]">lock_open</span>
+<span class="text-white">Deterministic Mode</span>
+</div>
+</div>
+<!-- 4-Node Responsive Pipeline Cards -->
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-3 relative">
+<!-- NODE 1: Ingestion & Intent Classification -->
+<div class="rounded-xl bg-[#10141c] border border-[#232b3b] hover:border-[#4f80ff]/50 transition shadow-lg p-3.5 flex flex-col justify-between group relative">
+<div class="absolute -top-2.5 left-3 px-2 py-0.5 rounded bg-[#192231] border border-[#2e3d55] text-[#4f80ff] font-mono text-[9px] font-bold tracking-widest uppercase">
+                NODE 01 // INGESTION
+              </div>
+<div class="pt-1.5 space-y-2.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-lg bg-[#4f80ff]/10 text-[#4f80ff] flex items-center justify-center border border-[#4f80ff]/20">
+<span class="material-symbols-outlined text-[15px]">input</span>
+</div>
+<div>
+<div class="font-mono text-[11px] font-bold text-white">Intent Classifier</div>
+<div class="text-[10px] text-[#62708c] font-mono">Dynamic Token Split</div>
+</div>
+</div>
+<span class="w-2 h-2 rounded-full bg-[#4edea3]"></span>
+</div>
+<div class="p-2 rounded-lg bg-[#0b0e14] border border-[#1b2230] space-y-1.5 font-mono text-[10px]">
+<div class="flex items-center justify-between text-[#94a1b8]">
+<span>Micro-model:</span>
+<span class="text-white font-medium">Groq LPU 18ms</span>
+</div>
+<div class="flex items-center justify-between text-[#94a1b8]">
+<span>Auto-Titling:</span>
+<span class="text-[#4edea3]">Active (Turn 2)</span>
+</div>
+<div class="flex items-center justify-between text-[#94a1b8]">
+<span>Entropy Routing:</span>
+<span class="text-[#00d2c4]">AST Mutation</span>
+</div>
+</div>
+<div class="text-[10px] text-[#94a1b8] leading-tight">
+                  Tách turn intent tự động và tạo slug ngữ nghĩa mà không tốn context model lõi.
+                </div>
+</div>
+<div class="mt-3 pt-2 border-t border-[#1b2230] flex items-center justify-between font-mono text-[9px] text-[#62708c]">
+<span>LATENCY: 18ms</span>
+<span class="text-[#4f80ff] flex items-center gap-0.5">DISPATCH <span class="material-symbols-outlined text-[11px]">arrow_forward</span></span>
+</div>
+</div>
+<!-- NODE 2: Swarm Fanout Layer -->
+<div class="rounded-xl bg-[#10141c] border border-[#232b3b] hover:border-[#00d2c4]/50 transition shadow-lg p-3.5 flex flex-col justify-between group relative">
+<div class="absolute -top-2.5 left-3 px-2 py-0.5 rounded bg-[#122324] border border-[#00d2c4]/40 text-[#00d2c4] font-mono text-[9px] font-bold tracking-widest uppercase">
+                NODE 02 // SWARM FANOUT
+              </div>
+<div class="pt-1.5 space-y-2.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-lg bg-[#00d2c4]/10 text-[#00d2c4] flex items-center justify-center border border-[#00d2c4]/20">
+<span class="material-symbols-outlined text-[15px]">call_split</span>
+</div>
+<div>
+<div class="font-mono text-[11px] font-bold text-white">Parallel Fanout</div>
+<div class="text-[10px] text-[#62708c] font-mono">3 Model Benchmark</div>
+</div>
+</div>
+<span class="px-1.5 py-0.2 rounded bg-[#00d2c4]/15 text-[#00d2c4] font-mono text-[9px]">3X CONCURRENT</span>
+</div>
+<!-- 3 Fanout Models -->
+<div class="space-y-1 font-mono text-[10px]">
+<div class="p-1.5 rounded bg-[#0b0e14] border border-[#1b2230] flex items-center justify-between text-white">
+<span class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-[#4f80ff]"></span>
+                      Claude 3.7 Sonnet
+                    </span>
+<span class="text-[#4edea3]">T=0.2 (Logic)</span>
+</div>
+<div class="p-1.5 rounded bg-[#0b0e14] border border-[#1b2230] flex items-center justify-between text-white">
+<span class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-[#00d2c4]"></span>
+                      DeepSeek-V3
+                    </span>
+<span class="text-[#00d2c4]">T=0.1 (AST Code)</span>
+</div>
+<div class="p-1.5 rounded bg-[#0b0e14] border border-[#1b2230] flex items-center justify-between text-white">
+<span class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-[#94a1b8]"></span>
+                      Gemini 1.5 Pro
+                    </span>
+<span class="text-[#94a1b8]">T=0.3 (1M Ctx)</span>
+</div>
+</div>
+</div>
+<div class="mt-3 pt-2 border-t border-[#1b2230] flex items-center justify-between font-mono text-[9px] text-[#62708c]">
+<span>TOKENS: 4.8k agg</span>
+<span class="text-[#00d2c4] flex items-center gap-0.5">FANOUT OK <span class="material-symbols-outlined text-[11px]">arrow_forward</span></span>
+</div>
+</div>
+<!-- NODE 3: Truth Gate & Tree-sitter Invariant Filter -->
+<div class="rounded-xl bg-[#10141c] border border-[#f59e0b]/30 hover:border-[#f59e0b]/60 transition shadow-lg p-3.5 flex flex-col justify-between group relative">
+<div class="absolute -top-2.5 left-3 px-2 py-0.5 rounded bg-[#271d0e] border border-[#f59e0b]/50 text-[#f59e0b] font-mono text-[9px] font-bold tracking-widest uppercase">
+                NODE 03 // TRUTH GATE
+              </div>
+<div class="pt-1.5 space-y-2.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-lg bg-[#f59e0b]/10 text-[#f59e0b] flex items-center justify-center border border-[#f59e0b]/20">
+<span class="material-symbols-outlined text-[15px]">verified_user</span>
+</div>
+<div>
+<div class="font-mono text-[11px] font-bold text-white">Invariant Filter</div>
+<div class="text-[10px] text-[#62708c] font-mono">Tree-sitter AST Gate</div>
+</div>
+</div>
+<span class="px-1.5 py-0.2 rounded bg-[#4edea3]/10 text-[#4edea3] font-mono text-[9px]">ZERO REGRESSION</span>
+</div>
+<div class="p-2 rounded-lg bg-[#0b0e14] border border-[#1b2230] space-y-1 font-mono text-[10px]">
+<div class="flex items-center gap-1.5 text-[#4edea3]">
+<span class="material-symbols-outlined text-[12px]">check_circle</span>
+<span>Syntax parse pass (0 err)</span>
+</div>
+<div class="flex items-center gap-1.5 text-[#4edea3]">
+<span class="material-symbols-outlined text-[12px]">check_circle</span>
+<span>AST diff matrix compliant</span>
+</div>
+<div class="flex items-center gap-1.5 text-[#f59e0b]">
+<span class="material-symbols-outlined text-[12px]">gavel</span>
+<span>ActionGate lease tagged</span>
+</div>
+</div>
+<div class="text-[10px] text-[#94a1b8] leading-tight">
+                  Ngăn chặn hallucination bằng compiler thật &amp; cấu trúc AST bất biến.
+                </div>
+</div>
+<div class="mt-3 pt-2 border-t border-[#1b2230] flex items-center justify-between font-mono text-[9px] text-[#62708c]">
+<span>VALIDATION: 100%</span>
+<span class="text-[#f59e0b] flex items-center gap-0.5">GUARD PASS <span class="material-symbols-outlined text-[11px]">arrow_forward</span></span>
+</div>
+</div>
+<!-- NODE 4: Synthesis Aggregator & Deterministic Output -->
+<div class="rounded-xl bg-[#10141c] border border-[#232b3b] hover:border-[#4edea3]/50 transition shadow-lg p-3.5 flex flex-col justify-between group relative">
+<div class="absolute -top-2.5 left-3 px-2 py-0.5 rounded bg-[#10241b] border border-[#4edea3]/40 text-[#4edea3] font-mono text-[9px] font-bold tracking-widest uppercase">
+                NODE 04 // SYNTHESIS
+              </div>
+<div class="pt-1.5 space-y-2.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-lg bg-[#4edea3]/10 text-[#4edea3] flex items-center justify-center border border-[#4edea3]/20">
+<span class="material-symbols-outlined text-[15px]">merge</span>
+</div>
+<div>
+<div class="font-mono text-[11px] font-bold text-white">Aggregator Model</div>
+<div class="text-[10px] text-[#62708c] font-mono">Consensus Quorum</div>
+</div>
+</div>
+<span class="w-2 h-2 rounded-full bg-[#4edea3]"></span>
+</div>
+<div class="p-2 rounded-lg bg-[#0b0e14] border border-[#1b2230] space-y-1.5 font-mono text-[10px]">
+<div class="flex items-center justify-between text-white font-medium">
+<span class="text-[#4edea3]">Primary:</span>
+<span>Claude 3.7 Sonnet</span>
+</div>
+<div class="flex items-center justify-between text-[#94a1b8]">
+<span>Fallback:</span>
+<span>GPT-4o (Hot Standby)</span>
+</div>
+<div class="flex items-center justify-between text-[#94a1b8]">
+<span>Output format:</span>
+<span class="text-[#00d2c4]">Unified AST Patch</span>
+</div>
+</div>
+<div class="text-[10px] text-[#94a1b8] leading-tight">
+                  Tổng hợp payload đồng thuận cao nhất và xuất thẳng vào IPC socket của IDE.
+                </div>
+</div>
+<div class="mt-3 pt-2 border-t border-[#1b2230] flex items-center justify-between font-mono text-[9px] text-[#62708c]">
+<span>CONFIDENCE: 99.8%</span>
+<span class="text-[#4edea3] flex items-center gap-0.5">READY <span class="material-symbols-outlined text-[11px]">done_all</span></span>
+</div>
+</div>
+</div>
+</div>
+<!-- ============================================================= -->
+<!-- DYNAMIC PROVIDER CATALOG & LATENCY TOPOLOGY (MATRIX TABLE) -->
+<!-- ============================================================= -->
+<div class="rounded-xl bg-[#10141c] border border-[#232b3b] p-4 space-y-3.5">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#1f2736] pb-3">
+<div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#00d2c4] text-[18px]">dns</span>
+<h3 class="font-mono text-xs font-bold text-white tracking-wide uppercase">
+                  Dynamic Provider Catalog &amp; Latency Topology (41 Providers)
+                </h3>
+</div>
+<p class="text-[#94a1b8] text-[11px] mt-0.5">
+                Multi-cluster harness phân tán: Tự động switch route khi phát hiện jitter hoặc token rate limiting.
+              </p>
+</div>
+<!-- Filter Cluster Pills -->
+<div class="flex items-center gap-1 bg-[#0b0e14] p-1 rounded-lg border border-[#1e2533] font-mono text-[10px]">
+<button class="px-2 py-0.5 rounded bg-[#1d2535] text-white font-medium">All (41)</button>
+<button class="px-2 py-0.5 rounded text-[#94a1b8] hover:text-white">Local MPS</button>
+<button class="px-2 py-0.5 rounded text-[#94a1b8] hover:text-white">Ultra LPU</button>
+<button class="px-2 py-0.5 rounded text-[#94a1b8] hover:text-white">Cloud Heavy</button>
+<button class="px-2 py-0.5 rounded text-[#94a1b8] hover:text-white">GPU Mesh</button>
+</div>
+</div>
+<!-- Provider Matrix Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2.5">
+<!-- Card 1: Apple Metal MPS -->
+<div class="p-3 rounded-lg bg-[#0c1017] border border-[#1d2535] hover:border-[#00d2c4]/40 transition space-y-2">
+<div class="flex items-center justify-between">
+<span class="px-1.5 py-0.5 rounded bg-[#00d2c4]/10 text-[#00d2c4] font-mono text-[9px] font-bold">LOCAL METAL</span>
+<span class="text-[#4edea3] font-mono text-[10px] font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-[#4edea3]"></span> 12 ms
+                </span>
+</div>
+<div>
+<div class="font-mono text-[11px] font-bold text-white">Ollama · Llama-3.3-70B-Q4</div>
+<div class="text-[10px] text-[#62708c] font-mono">Apple M3 Max Unified (48GB)</div>
+</div>
+<!-- Mini Sparkline SVG -->
+<div class="h-6 w-full flex items-end gap-1 pt-1 opacity-80">
+<div class="w-1/6 bg-[#00d2c4] h-[40%] rounded-t-sm"></div>
+<div class="w-1/6 bg-[#00d2c4] h-[60%] rounded-t-sm"></div>
+<div class="w-1/6 bg-[#00d2c4] h-[30%] rounded-t-sm"></div>
+<div class="w-1/6 bg-[#00d2c4] h-[45%] rounded-t-sm"></div>
+<div class="w-1/6 bg-[#00d2c4] h-[35%] rounded-t-sm"></div>
+<div class="w-1/6 bg-[#00d2c4] h-[25%] rounded-t-sm"></div>
+</div>
+<div class="flex items-center justify-between pt-1 border-t border-[#18202d] text-[10px] font-mono text-[#94a1b8]">
+<span>Cost: $0.00 / 1M</span>
+<button class="text-[#00d2c4] hover:underline">Ping</button>
+</div>
+</div>
+<!-- Card 2: Ultra-fast LPU -->
+<div class="p-3 rounded-lg bg-[#0c1017] border border-[#1d2535] hover:border-[#4f80ff]/40 transition space-y-2">
+<div class="flex items-center justify-between">
+<span class="px-1.5 py-0.5 rounded bg-[#4f80ff]/10 text-[#4f80ff] font-mono text-[9px] font-bold">ULTRA-FAST LPU</span>
+<span class="text-[#4edea3] font-mono text-[10px] font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-[#4edea3]"></span> 18 ms
+                </span>
+</div>
+<div>
+<div class="font-mono text-[11px] font-bold text-white">Groq · Llama-3.1-8B-Instant</div>
+<div class="text-[10px] text-[#62708c] font-mono">Hardware LPUs (820 tok/sec)</div>
+</div>
+<div class="h-6 w-full flex items-end gap-1 pt-1 opacity-80">
+<div class="w-1/6 bg-[#4f80ff] h-[20%] rounded-t-sm"></div>
+<div class="w-1/6 bg-[#4f80ff] h-[25%] rounded-t-sm"></div>
+<div class="w-1/6 bg-[#4f80ff] h-[15%] rounded-t-sm"></div>
+<div class="w-1/6 bg-[#4f80ff] h-[30%] rounded-t-sm"></div>
+<div class="w-1/6 bg-[#4f80ff] h-[18%] rounded-t-sm"></div>
+<div class="w-1/6 bg-[#4f80ff] h-[20%] rounded-t-sm"></div>
+</div>
+<div class="flex items-center justify-between pt-1 border-t border-[#18202d] text-[10px] font-mono text-[#94a1b8]">
+<span>Cost: $0.05 / 1M</span>
+<button class="text-[#4f80ff] hover:underline">Ping</button>
+</div>
+</div>
+<!-- Card 3: Cloud Heavyweight -->
+<div class="p-3 rounded-lg bg-[#0c1017] border border-[#1d2535] hover:border-[#4edea3]/40 transition space-y-2">
+<div class="flex items-center justify-between">
+<span class="px-1.5 py-0.5 rounded bg-[#4edea3]/10 text-[#4edea3] font-mono text-[9px] font-bold">HEAVYWEIGHT CLOUD</span>
+<span class="text-[#4edea3] font-mono text-[10px] font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-[#4edea3]"></span> 310 ms
+                </span>
+</div>
+<div>
+<div class="font-mono text-[11px] font-bold text-white">Claude · claude-3-7-sonnet</div>
+<div class="text-[10px] text-[#62708c] font-mono">Anthropic AWS Bedrock / Direct</div>
+</div>
+<div class="h-6 w-full flex items-end gap-1 pt-1 opacity-80">
+<div class="w-1/6 bg-[#4edea3] h-[70%] rounded-t-sm"></div>
+<div class="w-1/6 bg-[#4edea3] h-[85%] rounded-t-sm"></div>
+<div class="w-1/6 bg-[#4edea3] h-[65%] rounded-t-sm"></div>
+<div class="w-1/6 bg-[#4edea3] h-[75%] rounded-t-sm"></div>
+<div class="w-1/6 bg-[#4edea3] h-[60%] rounded-t-sm"></div>
+<div class="w-1/6 bg-[#4edea3] h-[70%] rounded-t-sm"></div>
+</div>
+<div class="flex items-center justify-between pt-1 border-t border-[#18202d] text-[10px] font-mono text-[#94a1b8]">
+<span>Keychain: ACTIVE ✓</span>
+<button class="text-[#4edea3] hover:underline">Ping</button>
+</div>
+</div>
+<!-- Card 4: Decentralized GPU Cluster -->
+<div class="p-3 rounded-lg bg-[#0c1017] border border-[#1d2535] hover:border-[#f59e0b]/40 transition space-y-2">
+<div class="flex items-center justify-between">
+<span class="px-1.5 py-0.5 rounded bg-[#f59e0b]/10 text-[#f59e0b] font-mono text-[9px] font-bold">MESH GPU CLUSTER</span>
+<span class="text-[#f59e0b] font-mono text-[10px] font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></span> 142 ms
+                </span>
+</div>
+<div>
+<div class="font-mono text-[11px] font-bold text-white">DeepSeek-V3 · 671B MoE</div>
+<div class="text-[10px] text-[#62708c] font-mono">Tokyo-Cluster H100 Node #04</div>
+</div>
+<div class="h-6 w-full flex items-end gap-1 pt-1 opacity-80">
+<div class="w-1/6 bg-[#f59e0b] h-[50%] rounded-t-sm"></div>
+<div class="w-1/6 bg-[#f59e0b] h-[45%] rounded-t-sm"></div>
+<div class="w-1/6 bg-[#f59e0b] h-[65%] rounded-t-sm"></div>
+<div class="w-1/6 bg-[#f59e0b] h-[40%] rounded-t-sm"></div>
+<div class="w-1/6 bg-[#f59e0b] h-[55%] rounded-t-sm"></div>
+<div class="w-1/6 bg-[#f59e0b] h-[48%] rounded-t-sm"></div>
+</div>
+<div class="flex items-center justify-between pt-1 border-t border-[#18202d] text-[10px] font-mono text-[#94a1b8]">
+<span>Cost: $0.14 / 1M</span>
+<button class="text-[#f59e0b] hover:underline">Ping</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- ========================================================================= -->
+<!-- KHỐI 3: PHẢI (YANA AI GOVERNED COPILOT & HUMAN APPROVAL ACTION DECK) -->
+<!-- ========================================================================= -->
+<aside class="w-96 bg-[#0c0f15] border-l border-[#202736] flex flex-col shrink-0 overflow-hidden text-xs">
+<!-- Action Deck Header -->
+<div class="h-9 px-3 bg-[#0f131a] border-b border-[#202736] flex items-center justify-between shrink-0">
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded bg-gradient-to-tr from-[#00d2c4] to-[#4f80ff] flex items-center justify-center text-white font-bold text-[11px] shadow-sm">
+            Y
+          </div>
+<span class="font-mono text-[11px] font-bold text-white tracking-wider">ACTION DECK</span>
+<span class="px-1.5 py-0.2 rounded bg-[#00d2c4]/10 text-[#00d2c4] font-mono text-[9px] border border-[#00d2c4]/30">L3 GOVERNED</span>
+</div>
+<div class="flex items-center gap-1 text-[#62708c]">
+<button class="p-1 hover:text-white hover:bg-[#1b2331] rounded transition" title="Clear Context"><span class="material-symbols-outlined text-[14px]">refresh</span></button>
+<button class="p-1 hover:text-white hover:bg-[#1b2331] rounded transition" title="Audit History"><span class="material-symbols-outlined text-[14px]">history</span></button>
+<button class="p-1 hover:text-white hover:bg-[#1b2331] rounded transition" title="Dock Options"><span class="material-symbols-outlined text-[14px]">more_vert</span></button>
+</div>
+</div>
+<!-- Copilot Context & Telemetry Bar -->
+<div class="px-3 py-2 bg-[#090c10] border-b border-[#1d2535] flex items-center justify-between font-mono text-[10px]">
+<div class="flex items-center gap-1.5 text-[#4edea3]">
+<span class="w-2 h-2 rounded-full bg-[#4edea3] animate-pulse"></span>
+<span>SECURE ENCLAVE ACTIVE</span>
+</div>
+<div class="text-[#62708c]">
+          MEM: <span class="text-white">1.4 MB / 128 MB</span>
+</div>
+</div>
+<!-- Chat Feed & Security Cards Area -->
+<div class="flex-1 overflow-y-auto p-3 space-y-3.5">
+<!-- Turn 1: Operator Prompt -->
+<div class="space-y-1">
+<div class="flex items-center justify-between font-mono text-[10px] text-[#62708c]">
+<span class="flex items-center gap-1.5 text-white font-medium">
+<span class="w-3.5 h-3.5 rounded-full bg-[#1e2738] flex items-center justify-center text-[9px] text-[#4f80ff]">A</span>
+              Operator (Anh)
+            </span>
+<span>14:02:11</span>
+</div>
+<div class="p-2.5 rounded-lg bg-[#121620] border border-[#20293b] text-[#e2e6f0] font-sans leading-relaxed text-[11px]">
+            Refactor the Tokio channel buffer and run <code class="font-mono text-[#00d2c4] bg-[#090c10] px-1 py-0.5 rounded">cargo test --lib</code>
+</div>
+</div>
+<!-- Tool Call Execution Trace Trace -->
+<div class="rounded-lg bg-[#0a0d13] border border-[#1d2536] p-2 space-y-1.5 font-mono text-[10px]">
+<div class="flex items-center justify-between text-[#62708c] pb-1 border-b border-[#161d2a]">
+<span class="flex items-center gap-1 text-[#94a1b8]">
+<span class="material-symbols-outlined text-[12px] text-[#4edea3]">check_circle</span>
+              TOOL CALL TRACE (L1 &amp; L2 AUTO-GRANTED)
+            </span>
+<span class="text-[9px]">204ms</span>
+</div>
+<div class="flex items-center justify-between text-[#4edea3]">
+<span>✓ read_file('src/orchestrator/channel.rs')</span>
+<span class="text-[9px] text-[#62708c]">0ms</span>
+</div>
+<div class="flex items-center justify-between text-[#4edea3]">
+<span>✓ ast_diff('replace mpsc::channel(32) with (1024)')</span>
+<span class="text-[9px] text-[#62708c]">18ms</span>
+</div>
+</div>
+<!-- ============================================================= -->
+<!-- HUMAN APPROVAL GATE HIGH-TECH CARD (ActionGate L3 Security Card) -->
+<!-- ============================================================= -->
+<div class="rounded-xl bg-gradient-to-b from-[#18150c] to-[#120f09] border border-[#f59e0b]/40 shadow-glow-amber p-3 space-y-2.5 relative">
+<!-- Security Badge Header -->
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded bg-[#f59e0b]/20 text-[#f59e0b] border border-[#f59e0b]/40 font-mono text-[9px] font-bold tracking-wider uppercase flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">security</span>
+              HUMAN APPROVAL REQUIRED (L3 GATE)
+            </span>
+<span class="font-mono text-[10px] text-[#f59e0b]/70 font-semibold">TOKEN #AG-9912</span>
+</div>
+<!-- Socket Boundary Target Details -->
+<div class="space-y-1.5 text-[11px]">
+<div class="flex items-center justify-between text-[#94a1b8] font-mono text-[10px]">
+<span>BOUNDARY TARGET:</span>
+<span class="text-white">/var/run/yana/daemon.sock</span>
+</div>
+<!-- Visual AST / Shell Code Diff Snippet -->
+<div class="rounded-md bg-[#080a0e] border border-[#2b2413] p-2 font-mono text-[10px] text-[#e2e6f0] space-y-1 overflow-x-auto">
+<div class="text-[#62708c]">// Host Exec Capability Requested:</div>
+<div class="flex items-center gap-1 text-[#f59e0b] font-semibold">
+<span class="text-[#e2e6f0]">$</span> cargo test --lib -- --nocapture
+              </div>
+<div class="text-[9px] text-[#4edea3] pt-0.5 border-t border-[#1e190e]">
+                + Invariant: channel_depth: 32 -&gt; 1024 (TOKIO_PULL_SAFE)
+              </div>
+</div>
+<p class="text-[10px] text-[#f59e0b]/80 leading-normal italic">
+              Verification Policy: L3 host binary execution requires physical operator cryptographic confirmation.
+            </p>
+</div>
+<!-- Action Gate Decision Buttons -->
+<div class="grid grid-cols-2 gap-2 pt-1">
+<button class="py-1.5 px-2 rounded-lg bg-gradient-to-r from-[#f59e0b] to-[#d97706] hover:brightness-110 text-black font-mono font-bold text-[10px] flex items-center justify-center gap-1 transition shadow">
+<span class="material-symbols-outlined text-[13px]">verified</span>
+<span>Sign ECDSA &amp; Exec</span>
+</button>
+<button class="py-1.5 px-2 rounded-lg bg-[#1f1910] hover:bg-red-500/20 text-red-400 border border-red-500/30 font-mono font-bold text-[10px] flex items-center justify-center gap-1 transition">
+<span class="material-symbols-outlined text-[13px]">block</span>
+<span>Deny &amp; Terminate</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Quick Model Switcher Pill Bar & Token Health -->
+<div class="px-3 py-1.5 bg-[#090c10] border-t border-[#1d2535] flex items-center justify-between font-mono text-[10px]">
+<div class="flex items-center gap-1">
+<span class="text-[#62708c]">ROUTING:</span>
+<span class="px-1.5 py-0.5 rounded bg-[#18202d] text-[#00d2c4] font-medium border border-[#253246] flex items-center gap-1 cursor-pointer">
+            claude-3.7-sonnet <span class="material-symbols-outlined text-[11px]">unfold_more</span>
+</span>
+</div>
+<div class="flex items-center gap-2 text-[#62708c]">
+<span>BUDGET: <strong class="text-white">92%</strong></span>
+<span class="w-1.5 h-1.5 rounded-full bg-[#4edea3]"></span>
+</div>
+</div>
+<!-- Interactive Prompt Composer -->
+<div class="p-3 bg-[#0d1016] border-t border-[#202736] space-y-2 shrink-0">
+<div class="bg-[#121620] border border-[#242c3d] focus-within:border-[#00d2c4] rounded-lg transition shadow-inner">
+<textarea class="w-full bg-transparent border-0 resize-none font-sans text-xs text-white placeholder-[#62708c] p-2.5 focus:ring-0 leading-relaxed outline-none" placeholder="Ask Yana, dispatch swarm task, @mention invariant rules..." rows="2"></textarea>
+<div class="flex items-center justify-between px-2.5 pb-2 pt-1 border-t border-[#1a2230]">
+<div class="flex items-center gap-1 text-[#62708c]">
+<button class="p-1 hover:text-white hover:bg-[#1a2230] rounded transition" title="Attach Context AST"><span class="material-symbols-outlined text-[14px]">attach_file</span></button>
+<button class="p-1 hover:text-white hover:bg-[#1a2230] rounded transition" title="Mention Symbol (@)"><span class="material-symbols-outlined text-[14px]">alternate_email</span></button>
+<button class="p-1 hover:text-white hover:bg-[#1a2230] rounded transition" title="Terminal Output Injection"><span class="material-symbols-outlined text-[14px]">terminal</span></button>
+<button class="p-1 hover:text-white hover:bg-[#1a2230] rounded transition" title="Lock Invariant Guard"><span class="material-symbols-outlined text-[14px] text-[#00d2c4]">shield</span></button>
+</div>
+<button class="px-3 py-1 rounded bg-[#00d2c4] hover:bg-[#00ebd9] text-black font-mono font-bold text-[11px] flex items-center gap-1 transition shadow-[0_0_12px_rgba(0,210,196,0.3)]">
+<span>Dispatch</span>
+<span class="material-symbols-outlined text-[13px]">arrow_upward</span>
+</button>
+</div>
+</div>
+<div class="flex items-center justify-between text-[9px] font-mono text-[#62708c] px-1">
+<span>IPC SOCKET: /var/run/yana.sock</span>
+<span>PRESS ⌘↵ TO RUN PIPELINE</span>
+</div>
+</div>
+</aside>
+</div>
+<!-- ========================================================================= -->
+<!-- BOTTOM STATUS BAR (HAIRLINE OBSIDIAN 2026 DEPLOY STATUS) -->
+<!-- ========================================================================= -->
+<footer class="h-6 bg-[#080a0e] border-t border-[#1d2433] flex items-center justify-between px-3 font-mono text-[10px] text-[#62708c] shrink-0 z-50">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1 text-[#e2e6f0] hover:text-[#00d2c4] cursor-pointer">
+<span class="material-symbols-outlined text-[13px] text-[#00d2c4]">fork_right</span>
+<span>feat/swarm-matrix-v4*</span>
+</div>
+<div class="flex items-center gap-1 text-[#4edea3]">
+<span class="material-symbols-outlined text-[12px]">sync</span>
+<span>YANA-RT v2.6.4</span>
+</div>
+<div class="hidden md:flex items-center gap-1 text-[#f59e0b]">
+<span class="material-symbols-outlined text-[12px]">security</span>
+<span>ActionGate: L3 Supervised (1 pending)</span>
+</div>
+<div class="hidden lg:flex items-center gap-1 text-[#94a1b8]">
+<span>Audit Logs: <strong class="text-[#4edea3]">512 Allow</strong> / <strong class="text-red-400">0 Deny</strong></span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-[#94a1b8]">Tree-sitter: Rust + TS + Py</span>
+<span class="h-3 w-px bg-[#242c3d]"></span>
+<span class="text-white font-medium">UTF-8</span>
+<span class="h-3 w-px bg-[#242c3d]"></span>
+<span class="text-[#00d2c4]">Deterministic Active</span>
+<div class="flex items-center text-white hover:text-[#00d2c4] cursor-pointer">
+<span class="material-symbols-outlined text-[13px]">notifications</span>
+</div>
+</div>
+</footer>
+<div id="snapdom-sandbox" data-snapdom-sandbox="true" aria-hidden="true" style="position: absolute; left: -9999px; top: -9999px; width: 0px; height: 0px; overflow: hidden;"></div></body></html>

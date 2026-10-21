@@ -67,5 +67,7 @@ def test_package_paths_match_real_pyproject():
     import tomllib
     real = tomllib.loads((_SCRIPT.parents[1] / "pyproject.toml").read_text(encoding="utf-8"))
     paths = drift.package_paths(real)
-    for expected in ("src/yana_ai", "bin", "core", "gates", "scanner", "pyproject.toml"):
+    # The wheel force-includes granular core/ subpaths (core/hooks, core/rules, etc.) rather than root core/
+    for expected in ("src/yana_ai", "bin", "gates", "scanner", "pyproject.toml"):
         assert expected in paths
+    assert any(p.startswith("core/") for p in paths)

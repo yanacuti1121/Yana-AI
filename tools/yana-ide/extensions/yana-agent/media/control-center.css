@@ -1,0 +1,46 @@
+/* Yana Control Center. Màu theo theme đang bật của IDE. */
+:root {
+	--bg: var(--vscode-editor-background, #12151c);
+	--fg: var(--vscode-foreground, #d7dde8);
+	--muted: var(--vscode-descriptionForeground, #9aa4b5);
+	--card: var(--vscode-editorWidget-background, #1b202a);
+	--border: var(--vscode-panel-border, #2a3140);
+	--accent: var(--vscode-button-background, #3461d6);
+	--ok: var(--vscode-testing-iconPassed, #3fb27f);
+	--bad: var(--vscode-errorForeground, #f2665e);
+	--warn: var(--vscode-editorWarning-foreground, #d9a441);
+}
+* { box-sizing: border-box; }
+body { margin: 0; padding: 0 24px 56px; background: var(--bg); color: var(--fg); font-family: var(--vscode-font-family, system-ui, sans-serif); font-size: 14px; line-height: 1.55; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--vscode-focusBorder, #4f80ff); outline-offset: 2px; }
+
+.page { max-width: 860px; margin: 0 auto; padding-top: 28px; }
+.head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+h1 { font-size: 26px; letter-spacing: -0.02em; margin: 0; }
+h2 { font-size: 16px; margin: 0 0 4px; font-weight: 600; }
+.lead { color: var(--muted); margin: 8px 0 24px; max-width: 70ch; }
+
+.group { margin: 0 0 26px; }
+.row { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.row-text { min-width: 0; }
+.row-label { font-weight: 600; }
+.row-detail { color: var(--muted); font-size: 13px; max-width: 56ch; overflow-wrap: anywhere; }
+.row-value { display: flex; align-items: center; gap: 8px; justify-content: flex-end; text-align: right; max-width: 52%; }
+.value-text { overflow-wrap: anywhere; }
+
+.badge { padding: 1px 10px; border: 1px solid var(--border); border-radius: 999px; font-size: 12px; white-space: nowrap; color: var(--muted); }
+.badge.ok { color: var(--ok); border-color: var(--ok); }
+.badge.bad { color: var(--bad); border-color: var(--bad); }
+.badge.warn { color: var(--warn); border-color: var(--warn); }
+
+.btn { padding: 6px 12px; min-height: 32px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); }
+.btn:hover:not(:disabled) { border-color: var(--accent); }
+.btn:disabled { opacity: 0.6; cursor: progress; }
+
+.verify-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 12px; }
+.verify-note { width: 100%; margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; }
+.verify-note.ok { color: var(--ok); }
+.verify-note.bad { color: var(--bad); }
+
+@media (max-width: 560px) { .row { flex-direction: column; } .row-value { max-width: 100%; justify-content: flex-start; text-align: left; } }

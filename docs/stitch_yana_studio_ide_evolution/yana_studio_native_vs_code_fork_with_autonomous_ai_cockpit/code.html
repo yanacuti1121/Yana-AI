@@ -1,0 +1,644 @@
+<!DOCTYPE html><html class="h-full select-none bg-[#111317]" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Yana Studio — VS Code Native Fork with Autonomous Copilot Cockpit</title>
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<!-- Tailwind Configuration -->
+<script data-purpose="tailwind-config">
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            vscode: {
+              titlebar: '#1a1c20',
+              activitybar: '#111317',
+              sidebar: '#16181d',
+              editor: '#131519',
+              cockpit: '#14161a',
+              terminal: '#0f1115',
+              statusbar: '#0c0e12',
+              border: '#27292e',
+              borderHover: '#3b3e45',
+              accent: '#4f80ff',
+              accentHover: '#3d6ee8',
+              badge: '#1e2430',
+              muted: '#71747d',
+              text: '#cccccc',
+              textBright: '#e5e7eb',
+              keyword: '#c678dd',
+              function: '#61afef',
+              variable: '#e06c75',
+              string: '#98c379',
+              comment: '#5c6370',
+              type: '#e5c07b',
+              number: '#d19a66',
+            }
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+            mono: ['Geist Mono', 'SF Mono', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'monospace'],
+          }
+        }
+      }
+    };
+  </script>
+<!-- Custom Scrollbar & Layout Rules -->
+<style data-purpose="editor-styling">
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #27292e;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3b3e45;
+    }
+    .editor-line:hover {
+      background-color: rgba(255, 255, 255, 0.02);
+    }
+    .tab-active {
+      background-color: #131519 !important;
+      border-top: 1.5px solid #4f80ff !important;
+      color: #ffffff !important;
+    }
+  </style>
+</head>
+<body class="h-full m-0 p-0 flex flex-col font-sans text-vscode-text overflow-hidden antialiased text-xs">
+<!-- BEGIN: Titlebar -->
+<header class="h-9 min-h-[36px] bg-vscode-titlebar border-b border-vscode-border flex items-center justify-between px-3 select-none z-50">
+<!-- Left: macOS Window Controls & Standard Menus -->
+<div class="flex items-center space-x-3.5">
+<!-- Traffic Lights -->
+<div class="flex items-center space-x-2 mr-1">
+<span class="w-3 h-3 rounded-full bg-[#ff5f56] inline-block hover:opacity-80 cursor-pointer"></span>
+<span class="w-3 h-3 rounded-full bg-[#ffbd2e] inline-block hover:opacity-80 cursor-pointer"></span>
+<span class="w-3 h-3 rounded-full bg-[#27c93f] inline-block hover:opacity-80 cursor-pointer"></span>
+</div>
+<!-- Navigation Arrows -->
+<div class="flex items-center space-x-1 text-vscode-muted">
+<button class="p-1 hover:text-vscode-text hover:bg-[#252830] rounded" title="Back (Alt+Left)"><i class="w-3.5 h-3.5" data-lucide="chevron-left"></i></button>
+<button class="p-1 hover:text-vscode-text hover:bg-[#252830] rounded" title="Forward (Alt+Right)"><i class="w-3.5 h-3.5" data-lucide="chevron-right"></i></button>
+</div>
+<!-- Native Menus -->
+<nav class="hidden lg:flex items-center space-x-1 text-vscode-text text-[11.5px]">
+<button class="px-2 py-0.5 hover:bg-[#252830] rounded hover:text-vscode-textBright">File</button>
+<button class="px-2 py-0.5 hover:bg-[#252830] rounded hover:text-vscode-textBright">Edit</button>
+<button class="px-2 py-0.5 hover:bg-[#252830] rounded hover:text-vscode-textBright">Selection</button>
+<button class="px-2 py-0.5 hover:bg-[#252830] rounded hover:text-vscode-textBright">View</button>
+<button class="px-2 py-0.5 hover:bg-[#252830] rounded hover:text-vscode-textBright">Go</button>
+<button class="px-2 py-0.5 hover:bg-[#252830] rounded hover:text-vscode-textBright">Run</button>
+<button class="px-2 py-0.5 hover:bg-[#252830] rounded hover:text-vscode-textBright">Terminal</button>
+<button class="px-2 py-0.5 hover:bg-[#252830] rounded hover:text-vscode-textBright">Help</button>
+</nav>
+</div>
+<!-- Center: Command Palette -->
+<div class="flex-1 max-w-[400px] mx-4">
+<div class="h-6 bg-[#111317] border border-vscode-border hover:border-vscode-borderHover rounded-md px-2.5 flex items-center justify-between text-vscode-muted hover:text-vscode-text cursor-pointer transition-colors shadow-inner">
+<div class="flex items-center space-x-2 truncate">
+<i class="w-3.5 h-3.5 flex-shrink-0" data-lucide="search"></i>
+<span class="truncate text-[11px] font-mono">yanacuti1121/Yana-AI</span>
+</div>
+<kbd class="text-[10px] bg-[#1a1d24] border border-[#2d313b] px-1 rounded text-vscode-muted font-mono">⌘P</kbd>
+</div>
+</div>
+<!-- Right: Status Pill & Controls -->
+<div class="flex items-center space-x-2 text-vscode-muted">
+<!-- Yana Status Badge -->
+<div class="hidden sm:flex items-center space-x-1.5 px-2 py-0.5 bg-[#141d2e] border border-[#233554] rounded text-[11px] text-[#70a5ff]">
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+<span class="font-medium">yana-rt v1.5.0</span>
+</div>
+<!-- Layout controls -->
+<div class="flex items-center space-x-1 pl-1">
+<button class="p-1 hover:text-vscode-text hover:bg-[#252830] rounded" title="Toggle Primary Sidebar"><i class="w-3.5 h-3.5" data-lucide="panel-left"></i></button>
+<button class="p-1 hover:text-vscode-text hover:bg-[#252830] rounded" title="Toggle Bottom Panel"><i class="w-3.5 h-3.5" data-lucide="panel-bottom"></i></button>
+<button class="p-1 text-vscode-accent bg-[#19233c] rounded" title="Toggle Yana Cockpit"><i class="w-3.5 h-3.5" data-lucide="panel-right"></i></button>
+<button class="p-1 hover:text-vscode-text hover:bg-[#252830] rounded ml-1" title="Settings"><i class="w-3.5 h-3.5" data-lucide="settings"></i></button>
+</div>
+</div>
+</header>
+<!-- END: Titlebar -->
+<!-- BEGIN: Main Workspace Body -->
+<div class="flex-1 flex overflow-hidden">
+<!-- BEGIN: Left Activity Bar -->
+<aside class="w-12 min-w-[48px] bg-vscode-activitybar border-r border-vscode-border flex flex-col justify-between items-center py-2 z-40 select-none">
+<!-- Top Primary Icons -->
+<div class="flex flex-col items-center space-y-3 w-full">
+<!-- Active Explorer -->
+<button class="w-full flex justify-center items-center py-2 text-vscode-textBright border-l-2 border-vscode-accent relative group" title="Explorer (⌘⇧E)">
+<i class="w-5 h-5" data-lucide="files"></i>
+</button>
+<!-- Search -->
+<button class="w-full flex justify-center items-center py-2 text-vscode-muted hover:text-vscode-text border-l-2 border-transparent hover:border-vscode-border" title="Search (⌘⇧F)">
+<i class="w-5 h-5" data-lucide="search"></i>
+</button>
+<!-- Source Control with Badge -->
+<button class="w-full flex justify-center items-center py-2 text-vscode-muted hover:text-vscode-text border-l-2 border-transparent relative" title="Source Control (⌃⇧G)">
+<i class="w-5 h-5" data-lucide="git-branch"></i>
+<span class="absolute top-1 right-2 bg-vscode-accent text-white font-mono text-[9px] font-bold px-1 rounded-full min-w-[14px] text-center">13</span>
+</button>
+<!-- Run & Debug -->
+<button class="w-full flex justify-center items-center py-2 text-vscode-muted hover:text-vscode-text border-l-2 border-transparent" title="Run and Debug (⌘⇧D)">
+<i class="w-5 h-5" data-lucide="play-circle"></i>
+</button>
+<!-- Extensions -->
+<button class="w-full flex justify-center items-center py-2 text-vscode-muted hover:text-vscode-text border-l-2 border-transparent" title="Extensions (⌘⇧X)">
+<i class="w-5 h-5" data-lucide="layout-grid"></i>
+</button>
+<!-- Yana Custom AI Agent Icon -->
+<button class="w-full flex justify-center items-center py-2 text-vscode-accent bg-[#19233c]/40 border-l-2 border-vscode-accent" title="Yana Autonomous Agents (Active)">
+<i class="w-5 h-5 text-vscode-accent" data-lucide="bot"></i>
+</button>
+</div>
+<!-- Bottom Settings & Account -->
+<div class="flex flex-col items-center space-y-2 w-full">
+<button class="w-full flex justify-center items-center py-2 text-vscode-muted hover:text-vscode-text" title="Accounts">
+<i class="w-5 h-5" data-lucide="user-circle"></i>
+</button>
+<button class="w-full flex justify-center items-center py-2 text-vscode-muted hover:text-vscode-text" title="Manage &amp; Settings">
+<i class="w-5 h-5" data-lucide="sliders"></i>
+</button>
+</div>
+</aside>
+<!-- END: Left Activity Bar -->
+<!-- BEGIN: Primary Sidebar (File Explorer & Memory) -->
+<div class="w-64 min-w-[256px] max-w-[280px] bg-vscode-sidebar border-r border-vscode-border flex flex-col select-none overflow-hidden">
+<!-- Explorer Header -->
+<div class="h-8 px-3 flex items-center justify-between text-vscode-muted text-[11px] font-semibold tracking-wider uppercase border-b border-vscode-border/50">
+<span class="truncate">EXPLORER: YANA-AI</span>
+<div class="flex items-center space-x-1">
+<button class="p-1 hover:text-vscode-text hover:bg-[#23262e] rounded" title="New File"><i class="w-3.5 h-3.5" data-lucide="file-plus"></i></button>
+<button class="p-1 hover:text-vscode-text hover:bg-[#23262e] rounded" title="New Folder"><i class="w-3.5 h-3.5" data-lucide="folder-plus"></i></button>
+<button class="p-1 hover:text-vscode-text hover:bg-[#23262e] rounded" title="Refresh Explorer"><i class="w-3.5 h-3.5" data-lucide="rotate-cw"></i></button>
+<button class="p-1 hover:text-vscode-text hover:bg-[#23262e] rounded" title="Collapse Folders"><i class="w-3.5 h-3.5" data-lucide="chevrons-down-up"></i></button>
+</div>
+</div>
+<!-- File Tree Container -->
+<div class="flex-1 overflow-y-auto py-1 text-[11.5px] font-mono leading-relaxed">
+<!-- Root Project Accordion -->
+<div class="px-2 py-0.5 flex items-center text-vscode-textBright font-semibold hover:bg-[#1a1d24] cursor-pointer">
+<i class="w-3.5 h-3.5 mr-1 text-vscode-muted" data-lucide="chevron-down"></i>
+<span class="tracking-wide">Yana-AI</span>
+</div>
+<!-- Folders List -->
+<div class="space-y-0.5 pl-3">
+<div class="flex items-center py-0.5 px-2 text-vscode-muted hover:text-vscode-text hover:bg-[#1a1d24] rounded-sm cursor-pointer">
+<i class="w-3 h-3 mr-1.5 text-zinc-500" data-lucide="chevron-right"></i>
+<i class="w-3.5 h-3.5 mr-1.5 text-blue-400" data-lucide="folder"></i>
+<span>.agent</span>
+</div>
+<div class="flex items-center py-0.5 px-2 text-vscode-muted hover:text-vscode-text hover:bg-[#1a1d24] rounded-sm cursor-pointer">
+<i class="w-3 h-3 mr-1.5 text-zinc-500" data-lucide="chevron-right"></i>
+<i class="w-3.5 h-3.5 mr-1.5 text-blue-400" data-lucide="folder"></i>
+<span>.github</span>
+</div>
+<div class="flex items-center py-0.5 px-2 text-vscode-muted hover:text-vscode-text hover:bg-[#1a1d24] rounded-sm cursor-pointer">
+<i class="w-3 h-3 mr-1.5 text-zinc-500" data-lucide="chevron-right"></i>
+<i class="w-3.5 h-3.5 mr-1.5 text-blue-400" data-lucide="folder"></i>
+<span>core</span>
+</div>
+<div class="flex items-center py-0.5 px-2 text-vscode-muted hover:text-vscode-text hover:bg-[#1a1d24] rounded-sm cursor-pointer">
+<i class="w-3 h-3 mr-1.5 text-zinc-500" data-lucide="chevron-right"></i>
+<i class="w-3.5 h-3.5 mr-1.5 text-amber-400" data-lucide="folder"></i>
+<span>gates</span>
+</div>
+<!-- Active Tree Branch: src/runtime -->
+<div>
+<div class="flex items-center py-0.5 px-2 text-vscode-text hover:bg-[#1a1d24] rounded-sm cursor-pointer">
+<i class="w-3 h-3 mr-1.5 text-vscode-muted" data-lucide="chevron-down"></i>
+<i class="w-3.5 h-3.5 mr-1.5 text-blue-400" data-lucide="folder-open"></i>
+<span>src</span>
+</div>
+<div class="pl-4 space-y-0.5">
+<div class="flex items-center py-0.5 px-2 text-vscode-text hover:bg-[#1a1d24] rounded-sm cursor-pointer">
+<i class="w-3 h-3 mr-1.5 text-vscode-muted" data-lucide="chevron-down"></i>
+<i class="w-3.5 h-3.5 mr-1.5 text-blue-400" data-lucide="folder-open"></i>
+<span>runtime</span>
+</div>
+<div class="pl-4 space-y-0.5">
+<!-- Highlighted File -->
+<div class="flex items-center py-0.5 px-2 bg-[#202738] text-white rounded-sm cursor-pointer border-l-2 border-vscode-accent">
+<i class="w-3.5 h-3.5 mr-1.5 text-sky-400" data-lucide="file-code"></i>
+<span class="truncate">runtime_orchestrator.ts</span>
+<span class="ml-auto text-[10px] text-amber-400 font-bold">M</span>
+</div>
+<div class="flex items-center py-0.5 px-2 text-vscode-muted hover:text-vscode-text hover:bg-[#1a1d24] rounded-sm cursor-pointer">
+<i class="w-3.5 h-3.5 mr-1.5 text-amber-300" data-lucide="file-text"></i>
+<span>governance_policy.json</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center py-0.5 px-2 text-vscode-muted hover:text-vscode-text hover:bg-[#1a1d24] rounded-sm cursor-pointer">
+<i class="w-3 h-3 mr-1.5 text-zinc-500" data-lucide="chevron-right"></i>
+<i class="w-3.5 h-3.5 mr-1.5 text-orange-400" data-lucide="folder"></i>
+<span>crates/rust-daemon</span>
+</div>
+<div class="flex items-center py-0.5 px-2 text-vscode-muted hover:text-vscode-text hover:bg-[#1a1d24] rounded-sm cursor-pointer">
+<i class="w-3 h-3 mr-1.5 text-zinc-500" data-lucide="chevron-right"></i>
+<i class="w-3.5 h-3.5 mr-1.5 text-purple-400" data-lucide="folder"></i>
+<span>memory</span>
+</div>
+<div class="flex items-center py-0.5 px-2 text-vscode-muted hover:text-vscode-text hover:bg-[#1a1d24] rounded-sm cursor-pointer">
+<i class="w-3.5 h-3.5 mr-1.5 ml-4 text-emerald-400" data-lucide="file"></i>
+<span>action_gate.md</span>
+</div>
+</div>
+<!-- Yana Copilot Memory Section -->
+<div class="mt-6 pt-3 border-t border-vscode-border">
+<div class="px-3 pb-1 flex items-center justify-between text-vscode-muted text-[10px] uppercase font-bold tracking-wider">
+<span>YANA COPILOT SESSIONS</span>
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+</div>
+<div class="space-y-1 px-2 mt-1">
+<div class="p-2 bg-[#101217] border border-vscode-border rounded hover:border-vscode-borderHover cursor-pointer">
+<div class="flex items-center justify-between text-vscode-textBright text-[11px] font-medium">
+<span class="truncate">Project Memory v2</span>
+<span class="text-[9px] text-vscode-muted">2m ago</span>
+</div>
+<p class="text-[10px] text-vscode-muted truncate mt-0.5">TruthGate: Validated 18 tool rules</p>
+</div>
+<div class="p-2 bg-[#101217] border border-vscode-border rounded hover:border-vscode-borderHover cursor-pointer">
+<div class="flex items-center justify-between text-vscode-textBright text-[11px] font-medium">
+<span class="truncate">Daemon Health Audit</span>
+<span class="text-[9px] text-emerald-400">PASS</span>
+</div>
+<p class="text-[10px] text-vscode-muted truncate mt-0.5">Ollama local endpoint responsive</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- END: Primary Sidebar -->
+<!-- BEGIN: Center Code Editor & Bottom Dock -->
+<main class="flex-1 flex flex-col bg-vscode-editor min-w-0 overflow-hidden relative">
+<!-- Editor Tab Bar -->
+<div class="h-9 bg-[#111317] border-b border-vscode-border flex items-center justify-between select-none">
+<div class="flex items-center h-full overflow-x-auto">
+<!-- Active Tab -->
+<div class="tab-active flex items-center space-x-2 px-3 h-full bg-vscode-editor border-r border-vscode-border text-white text-[12px] font-medium cursor-pointer">
+<i class="w-4 h-4 text-sky-400" data-lucide="file-code"></i>
+<span>runtime_orchestrator.ts</span>
+<span class="w-2 h-2 rounded-full bg-white ml-1"></span>
+<button class="p-0.5 hover:bg-[#252830] rounded-sm text-vscode-muted hover:text-white ml-1"><i class="w-3 h-3" data-lucide="x"></i></button>
+</div>
+<!-- Inactive Tab 1 -->
+<div class="flex items-center space-x-2 px-3 h-full border-r border-vscode-border text-vscode-muted hover:text-vscode-text text-[12px] cursor-pointer bg-[#14161a]">
+<i class="w-3.5 h-3.5 text-amber-300" data-lucide="file-text"></i>
+<span>governance_policy.json</span>
+<button class="p-0.5 hover:bg-[#252830] rounded-sm text-vscode-muted hover:text-white ml-1"><i class="w-3 h-3" data-lucide="x"></i></button>
+</div>
+<!-- Inactive Tab 2 -->
+<div class="flex items-center space-x-2 px-3 h-full border-r border-vscode-border text-vscode-muted hover:text-vscode-text text-[12px] cursor-pointer bg-[#14161a]">
+<i class="w-3.5 h-3.5 text-orange-400" data-lucide="shield-check"></i>
+<span>agent_sandbox.rs</span>
+<button class="p-0.5 hover:bg-[#252830] rounded-sm text-vscode-muted hover:text-white ml-1"><i class="w-3 h-3" data-lucide="x"></i></button>
+</div>
+</div>
+<!-- Editor Action Icons -->
+<div class="flex items-center space-x-2 px-2 text-vscode-muted">
+<button class="p-1 hover:text-vscode-text hover:bg-[#252830] rounded" title="Split Editor Right"><i class="w-3.5 h-3.5" data-lucide="split-square-vertical"></i></button>
+<button class="p-1 hover:text-vscode-text hover:bg-[#252830] rounded" title="More Actions..."><i class="w-3.5 h-3.5" data-lucide="more-horizontal"></i></button>
+</div>
+</div>
+<!-- Breadcrumbs Bar -->
+<div class="h-6 px-4 bg-vscode-editor flex items-center space-x-1.5 text-[11px] text-vscode-muted border-b border-vscode-border/40 select-none">
+<span class="hover:text-vscode-text cursor-pointer">Yana-AI</span>
+<i class="w-3 h-3" data-lucide="chevron-right"></i>
+<span class="hover:text-vscode-text cursor-pointer">src</span>
+<i class="w-3 h-3" data-lucide="chevron-right"></i>
+<span class="hover:text-vscode-text cursor-pointer">runtime</span>
+<i class="w-3 h-3" data-lucide="chevron-right"></i>
+<span class="text-vscode-textBright font-medium">runtime_orchestrator.ts</span>
+</div>
+<!-- Real Code Area with Line Numbers -->
+<div class="flex-1 overflow-auto font-mono text-[12px] leading-5 flex relative">
+<!-- Line Numbers Column -->
+<div class="w-11 py-2 bg-vscode-editor text-right pr-3 select-none text-[#4a4f5a] border-r border-vscode-border/30">
+<div>1</div><div>2</div><div>3</div><div>4</div><div>5</div>
+<div>6</div><div>7</div><div>8</div><div>9</div><div>10</div>
+<div>11</div><div>12</div><div>13</div><div>14</div><div>15</div>
+<div>16</div><div>17</div><div>18</div><div>19</div><div>20</div>
+<div>21</div><div>22</div><div>23</div><div>24</div><div>25</div>
+<div>26</div><div>27</div><div>28</div><div>29</div><div>30</div>
+<div>31</div><div>32</div><div>33</div><div>34</div><div>35</div>
+</div>
+<!-- Code Content -->
+<div class="flex-1 py-2 px-4 whitespace-pre text-[#abb2bf] overflow-x-auto relative">
+<span class="text-vscode-keyword">import</span> { <span class="text-vscode-type">TruthGate</span>, <span class="text-vscode-type">ActionGate</span> } <span class="text-vscode-keyword">from</span> <span class="text-vscode-string">'@yana/governance'</span>;
+<span class="text-vscode-keyword">import</span> { <span class="text-vscode-type">MoAEngine</span>, <span class="text-vscode-type">AgentSession</span> } <span class="text-vscode-keyword">from</span> <span class="text-vscode-string">'@yana/core-runtime'</span>;
+
+<span class="text-vscode-comment">/**
+ * Yana Autonomous Runtime Orchestrator - Supervised L3 Execution Gate
+ * Strict zero-trust audit verification before filesystem dispatch
+ */</span>
+<span class="text-vscode-keyword">export class</span> <span class="text-vscode-type">RuntimeOrchestrator</span> {
+  <span class="text-vscode-keyword">private</span> <span class="text-vscode-variable">truthGate</span>: <span class="text-vscode-type">TruthGate</span>;
+  <span class="text-vscode-keyword">private</span> <span class="text-vscode-variable">engine</span>: <span class="text-vscode-type">MoAEngine</span>;
+
+  <span class="text-vscode-keyword">constructor</span>(<span class="text-vscode-variable">config</span>: <span class="text-vscode-type">EngineConfig</span>) {
+    <span class="text-vscode-variable">this</span>.<span class="text-vscode-variable">truthGate</span> = <span class="text-vscode-keyword">new</span> <span class="text-vscode-type">TruthGate</span>({ policy: <span class="text-vscode-string">'strict-l3'</span>, autoRevoke: <span class="text-vscode-number">true</span> });
+    <span class="text-vscode-variable">this</span>.<span class="text-vscode-variable">engine</span> = <span class="text-vscode-keyword">new</span> <span class="text-vscode-type">MoAEngine</span>(config.cluster);
+  }
+
+  <span class="text-vscode-keyword">public async</span> <span class="text-vscode-function">dispatchTask</span>(<span class="text-vscode-variable">instruction</span>: <span class="text-vscode-type">string</span>): <span class="text-vscode-type">Promise&lt;AgentResult&gt;</span> {
+    <span class="text-vscode-keyword">const</span> <span class="text-vscode-variable">decision</span> = <span class="text-vscode-keyword">await</span> <span class="text-vscode-variable">this</span>.<span class="text-vscode-variable">truthGate</span>.<span class="text-vscode-function">evaluate</span>(instruction);
+    
+    <span class="text-vscode-keyword">if</span> (!decision.allowed) {
+      <span class="text-vscode-keyword">throw new</span> <span class="text-vscode-type">GateRejectionError</span>(<span class="text-vscode-string">`ActionGate blocked dispatch: ${decision.reason}`</span>);
+    }
+
+    <span class="text-vscode-comment">// Execute multi-agent synthetic consensus stream</span>
+<span class="text-vscode-keyword">return await</span> <span class="text-vscode-variable">this</span>.<span class="text-vscode-variable">engine</span>.<span class="text-vscode-function">executeAutonomousCycle</span>({
+      task: instruction,
+      sandbox: <span class="text-vscode-string">'crates/rust-daemon'</span>,
+      requireHumanApproval: <span class="text-vscode-number">true</span>
+    });
+  }
+}
+
+          <!-- Floating Inline AI Suggestion / Diff Preview -->
+<div class="mt-4 p-3 bg-[#172033] border border-[#2b4c80] rounded-md shadow-xl max-w-xl">
+<div class="flex items-center justify-between pb-2 border-b border-[#2b4c80]/50 mb-2">
+<div class="flex items-center space-x-2 text-sky-400 font-sans text-[11px] font-semibold">
+<i class="w-3.5 h-3.5" data-lucide="sparkles"></i>
+<span>Yana Copilot Suggestion (MoA Consensus)</span>
+</div>
+<div class="flex items-center space-x-1.5 font-sans">
+<span class="px-1.5 py-0.5 bg-[#20365e] rounded text-[10px] text-sky-200">Tab Accept</span>
+<span class="px-1.5 py-0.5 bg-[#1a2335] text-vscode-muted rounded text-[10px]">Esc Reject</span>
+</div>
+</div>
+<div class="font-mono text-[11.5px] text-emerald-300 bg-[#0e1626] p-2 rounded">
+              + <span class="text-vscode-keyword">await</span> <span class="text-vscode-variable">this</span>.<span class="text-vscode-variable">truthGate</span>.<span class="text-vscode-function">auditLogTrail</span>(<span class="text-vscode-string">'bash_dispatch'</span>, decision.context);
+            </div>
+</div>
+</div>
+</div>
+<!-- BEGIN: Integrated Bottom Dock (Terminal & Logs) -->
+<div class="h-44 min-h-[140px] bg-vscode-terminal border-t border-vscode-border flex flex-col select-none">
+<!-- Panel Tabs Bar -->
+<div class="h-8 px-3 bg-[#111317] border-b border-vscode-border flex items-center justify-between text-vscode-muted text-[11px]">
+<div class="flex items-center space-x-4">
+<button class="hover:text-vscode-text">PROBLEMS <span class="bg-[#27292e] text-white px-1.5 py-0.2 rounded-full text-[10px]">0</span></button>
+<button class="hover:text-vscode-text">OUTPUT</button>
+<button class="hover:text-vscode-text">DEBUG CONSOLE</button>
+<!-- Active Tab -->
+<button class="text-vscode-textBright font-medium border-b-2 border-vscode-accent pb-1 pt-1.5 flex items-center space-x-1.5">
+<i class="w-3.5 h-3.5 text-emerald-400" data-lucide="terminal"></i>
+<span>TERMINAL</span>
+</button>
+<button class="hover:text-vscode-text flex items-center space-x-1">
+<span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+<span>YANA RUNTIME LOGS</span>
+</button>
+<button class="hover:text-vscode-text">AUDIT TRAIL <span class="text-emerald-400 font-mono">(500 allow)</span></button>
+</div>
+<!-- Terminal Controls -->
+<div class="flex items-center space-x-2">
+<div class="flex items-center space-x-1 text-[11px] text-vscode-text font-mono bg-[#161920] px-2 py-0.5 rounded border border-vscode-border">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+<span>1: zsh</span>
+</div>
+<button class="p-1 hover:text-vscode-text hover:bg-[#252830] rounded"><i class="w-3.5 h-3.5" data-lucide="plus"></i></button>
+<button class="p-1 hover:text-vscode-text hover:bg-[#252830] rounded"><i class="w-3.5 h-3.5" data-lucide="trash-2"></i></button>
+<button class="p-1 hover:text-vscode-text hover:bg-[#252830] rounded"><i class="w-3.5 h-3.5" data-lucide="chevron-down"></i></button>
+<button class="p-1 hover:text-vscode-text hover:bg-[#252830] rounded"><i class="w-3.5 h-3.5" data-lucide="x"></i></button>
+</div>
+</div>
+<!-- Terminal Output Area -->
+<div class="flex-1 p-3 font-mono text-[12px] text-zinc-300 overflow-y-auto leading-relaxed select-text bg-[#0d0f13]">
+<div class="flex items-center space-x-2 text-zinc-400">
+<span class="text-emerald-400 font-semibold">vutam@MacBook-cua-yana</span>
+<span class="text-blue-400 font-semibold">Yana-AI</span>
+<span class="text-zinc-500">%</span>
+<span>source .venv/bin/activate</span>
+</div>
+<div class="text-zinc-500 text-[11px] mt-0.5">
+            (.venv) vutam@MacBook-cua-yana Yana-AI % yana-rt doctor --status active
+          </div>
+<div class="text-emerald-400 text-[11px] mt-1 space-y-0.5">
+<div>[✓] Local Rust Daemon: healthy (pid 4182, socket /var/run/yana-rt.sock)</div>
+<div>[✓] Apple Silicon MPS Accelerator: active (M-Max unified 64GB)</div>
+<div>[✓] ActionGate truth policy: strict-l3 enforced. System write lease: LOCKED</div>
+</div>
+<div class="flex items-center space-x-1 mt-1 text-zinc-300">
+<span class="text-emerald-400 font-semibold">(.venv) vutam@MacBook-cua-yana</span>
+<span class="text-blue-400 font-semibold">Yana-AI</span>
+<span class="text-zinc-500">%</span>
+<span class="w-2 h-4 bg-zinc-300 animate-pulse inline-block ml-1"></span>
+</div>
+</div>
+</div>
+<!-- END: Integrated Bottom Dock -->
+</main>
+<!-- END: Center Code Editor -->
+<!-- BEGIN: Right Panel — Yana AI Autonomous Copilot Cockpit -->
+<aside class="w-[370px] min-w-[360px] bg-vscode-cockpit border-l border-vscode-border flex flex-col justify-between overflow-hidden z-30 select-none">
+<!-- Top Header & Badges -->
+<div class="p-3 border-b border-vscode-border bg-[#121418]">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-2">
+<div class="w-6 h-6 rounded bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-md">
+<i class="w-4 h-4 text-white" data-lucide="bot"></i>
+</div>
+<div>
+<span class="font-bold text-white text-[13px] tracking-wide">YANA AI</span>
+<span class="ml-1 text-[10px] text-vscode-muted font-mono">v1.5.0</span>
+</div>
+</div>
+<div class="flex items-center space-x-1.5">
+<span class="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-medium rounded-full flex items-center space-x-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+<span>MoA Active</span>
+</span>
+<button class="p-1 hover:text-vscode-text text-vscode-muted hover:bg-[#252830] rounded"><i class="w-3.5 h-3.5" data-lucide="history"></i></button>
+<button class="p-1 hover:text-vscode-text text-vscode-muted hover:bg-[#252830] rounded"><i class="w-3.5 h-3.5" data-lucide="settings"></i></button>
+</div>
+</div>
+<!-- Connection and Model Selection -->
+<div class="mt-2.5 pt-2 border-t border-vscode-border/60 flex items-center justify-between">
+<div class="flex items-center space-x-1.5 text-[11px] text-vscode-muted">
+<span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+<span class="text-zinc-300 font-medium truncate">CONNECTED · LOCAL</span>
+</div>
+<!-- Model Switcher Pill -->
+<div class="flex items-center space-x-1 bg-[#1a1d24] border border-vscode-border px-2 py-0.5 rounded text-[11px] text-vscode-text cursor-pointer hover:border-vscode-borderHover font-mono">
+<i class="w-3 h-3 text-amber-400" data-lucide="zap"></i>
+<span>ollama:default (200k)</span>
+<i class="w-3 h-3 text-vscode-muted" data-lucide="chevron-down"></i>
+</div>
+</div>
+<!-- Autonomy Level Segmented Control -->
+<div class="mt-3">
+<div class="flex items-center justify-between mb-1.5 text-[10px] uppercase font-bold text-vscode-muted">
+<span>AUTONOMY MODE</span>
+<span class="text-vscode-accent font-mono tracking-tight">GATE: L3 CONTROLLED</span>
+</div>
+<div class="grid grid-cols-3 gap-1 bg-[#0d0f13] p-1 rounded-md border border-vscode-border">
+<button class="py-1 text-center text-vscode-muted hover:text-zinc-200 text-[11px] font-medium rounded">Auto (L1)</button>
+<button class="py-1 text-center bg-vscode-accent text-white text-[11px] font-semibold rounded shadow-sm">Supervised (L3)</button>
+<button class="py-1 text-center text-vscode-muted hover:text-zinc-200 text-[11px] font-medium rounded">Plan-Only</button>
+</div>
+</div>
+<!-- Context Badges -->
+<div class="mt-2.5 flex items-center space-x-1.5 overflow-x-auto text-[10.5px]">
+<span class="text-vscode-muted font-bold text-[9px] uppercase tracking-wider">CONTEXT:</span>
+<span class="px-2 py-0.5 bg-[#1b202a] text-zinc-300 border border-vscode-border rounded flex items-center space-x-1">
+<i class="w-3 h-3 text-blue-400" data-lucide="file"></i>
+<span>workspace files</span>
+</span>
+<span class="px-2 py-0.5 bg-[#1b202a] text-zinc-300 border border-vscode-border rounded flex items-center space-x-1">
+<i class="w-3 h-3 text-amber-400" data-lucide="shield"></i>
+<span>action_gate.md</span>
+</span>
+</div>
+</div>
+<!-- Autonomous Cockpit Stream & Scratchpad -->
+<div class="flex-1 overflow-y-auto p-3 space-y-3 font-sans">
+<!-- Status Banner -->
+<div class="p-3 bg-gradient-to-br from-[#121927] to-[#151c2d] border border-[#233554] rounded-lg">
+<div class="flex items-center space-x-2 text-sky-400 font-semibold text-[11.5px] mb-1">
+<i class="w-4 h-4 text-sky-400" data-lucide="activity"></i>
+<span>Autonomous Runtime Cockpit</span>
+</div>
+<p class="text-[11px] text-zinc-300 leading-relaxed">
+            Yana điều phối các tác vụ AI, tuân thủ nghiêm ngặt ranh giới Truth Gate &amp; Action Gate. Mọi thao tác ghi hệ thống đều cần anh phê duyệt.
+          </p>
+</div>
+<!-- Agent Execution Step 1 (Collapsible Thought) -->
+<div class="border border-vscode-border rounded-lg bg-[#111317] overflow-hidden text-[11.5px]">
+<div class="p-2.5 flex items-center justify-between bg-[#161920] cursor-pointer hover:bg-[#1a1d26]">
+<div class="flex items-center space-x-2 truncate">
+<i class="w-3.5 h-3.5 text-emerald-400" data-lucide="check-circle"></i>
+<span class="font-medium text-zinc-200">Analyzing workspace diff against rust-daemon</span>
+</div>
+<span class="text-[10px] text-vscode-muted font-mono">1.2s</span>
+</div>
+<div class="p-2.5 text-[11px] text-vscode-muted font-mono border-t border-vscode-border/50 bg-[#0d0f13]">
+            Verified 14 export declarations. No capability lease violations detected under current policy.
+          </div>
+</div>
+<!-- Agent Execution Step 2 (Pending System Mutation) -->
+<div class="border border-[#3b4c6e] rounded-lg bg-[#10141f] p-3 text-[11.5px]">
+<div class="flex items-center justify-between pb-2 border-b border-vscode-border">
+<div class="flex items-center space-x-2">
+<span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+<span class="font-semibold text-white">Pending Patch Approval</span>
+</div>
+<span class="text-[10px] font-mono text-amber-300 bg-amber-950/60 border border-amber-800/80 px-1.5 py-0.5 rounded">ActionGate L3</span>
+</div>
+<p class="mt-2 text-zinc-300 text-[11px]">
+            Modified 2 files in <code class="text-sky-300 bg-[#162035] px-1 py-0.5 rounded">crates/rust-daemon/src/governance.rs</code>
+</p>
+<div class="mt-3 flex items-center space-x-2">
+<button class="flex-1 py-1.5 px-3 bg-vscode-accent hover:bg-vscode-accentHover text-white font-medium text-[11px] rounded transition flex items-center justify-center space-x-1.5 shadow-sm">
+<i class="w-3.5 h-3.5" data-lucide="check"></i>
+<span>Approve &amp; Run</span>
+</button>
+<button class="py-1.5 px-3 bg-[#202533] hover:bg-[#2a3042] text-zinc-300 text-[11px] rounded border border-vscode-border">
+              Diff view
+            </button>
+</div>
+</div>
+</div>
+<!-- Bottom Chat Composer Area -->
+<div class="p-3 bg-[#111317] border-t border-vscode-border">
+<!-- Textarea Card -->
+<div class="bg-[#171a21] border border-vscode-border focus-within:border-vscode-accent rounded-lg p-2.5 transition-colors shadow-inner">
+<textarea class="w-full bg-transparent border-0 p-0 text-[12px] text-zinc-200 placeholder-vscode-muted focus:ring-0 resize-none font-sans" placeholder="Ask Yana, execute task, @mention files... (⌘L)" rows="3"></textarea>
+<!-- Composer Actions Toolbar -->
+<div class="flex items-center justify-between pt-2 border-t border-vscode-border/50 mt-1">
+<div class="flex items-center space-x-1.5">
+<button class="px-2 py-0.5 bg-[#202530] hover:bg-[#282e3b] text-vscode-muted hover:text-zinc-200 rounded text-[10.5px] font-mono flex items-center space-x-1">
+<span>@</span>
+<span>Files</span>
+</button>
+<button class="px-2 py-0.5 bg-[#202530] hover:bg-[#282e3b] text-vscode-muted hover:text-zinc-200 rounded text-[10.5px] font-mono flex items-center space-x-1">
+<span>/</span>
+<span>Commands</span>
+</button>
+</div>
+<div class="flex items-center space-x-1.5">
+<button class="p-1 hover:text-white text-vscode-muted rounded" title="Voice Input"><i class="w-3.5 h-3.5" data-lucide="mic"></i></button>
+<button class="w-7 h-7 bg-vscode-accent hover:bg-vscode-accentHover text-white rounded flex items-center justify-center transition shadow">
+<i class="w-4 h-4" data-lucide="arrow-up"></i>
+</button>
+</div>
+</div>
+</div>
+<!-- Cockpit Footer Specs -->
+<div class="mt-2 flex items-center justify-between text-[10px] text-vscode-muted font-mono">
+<span>Runtime: yana-rt stdio</span>
+<span class="flex items-center space-x-1 text-emerald-400">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+<span>Metal MPS 21k tok</span>
+</span>
+</div>
+</div>
+</aside>
+<!-- END: Right Panel -->
+</div>
+<!-- END: Main Workspace Body -->
+<!-- BEGIN: Bottom Status Bar -->
+<footer class="h-6 min-h-[24px] bg-vscode-statusbar border-t border-vscode-border flex items-center justify-between px-3 select-none text-[11px] font-mono text-vscode-muted z-50">
+<!-- Left Section -->
+<div class="flex items-center space-x-3 truncate">
+<!-- Remote / Git Indicator -->
+<div class="flex items-center space-x-1 px-1.5 py-0.5 bg-vscode-accent/20 text-sky-300 rounded font-semibold cursor-pointer hover:bg-vscode-accent/30">
+<i class="w-3 h-3" data-lucide="git-branch"></i>
+<span>feat/yana-ide-vscode-base*</span>
+</div>
+<!-- Sync Status -->
+<div class="flex items-center space-x-1 cursor-pointer hover:text-vscode-text" title="Synchronize Changes">
+<i class="w-3 h-3" data-lucide="refresh-cw"></i>
+<span>3↓ 0↑</span>
+</div>
+<!-- Errors & Warnings -->
+<div class="flex items-center space-x-2 cursor-pointer hover:text-vscode-text">
+<span class="flex items-center space-x-0.5 text-zinc-400"><i class="w-3 h-3 text-sky-400 mr-0.5" data-lucide="x-circle"></i>0</span>
+<span class="flex items-center space-x-0.5 text-zinc-400"><i class="w-3 h-3 text-amber-400 mr-0.5" data-lucide="alert-triangle"></i>0</span>
+</div>
+<!-- Yana Runtime Engine -->
+<div class="hidden md:flex items-center space-x-1.5 text-zinc-300 pl-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+<span>Yana Runtime v1.5.0</span>
+</div>
+<!-- Policy Indicator -->
+<div class="hidden lg:flex items-center space-x-1 text-[10.5px] text-zinc-400">
+<span class="text-zinc-500">|</span>
+<span>Policy: <strong class="text-zinc-200">SUPERVISED</strong> [ALLOW: read · REQUIRE: run]</span>
+</div>
+</div>
+<!-- Right Section -->
+<div class="flex items-center space-x-3 text-zinc-400">
+<!-- Audit Count -->
+<div class="hidden sm:flex items-center space-x-1 text-emerald-400 font-medium">
+<i class="w-3 h-3" data-lucide="shield-check"></i>
+<span>Audit 500✓ 0✗</span>
+</div>
+<span class="hidden md:inline cursor-pointer hover:text-vscode-text">Ln 22, Col 4</span>
+<span class="hidden sm:inline cursor-pointer hover:text-vscode-text">Spaces: 2</span>
+<span class="cursor-pointer hover:text-vscode-text">UTF-8</span>
+<span class="cursor-pointer hover:text-vscode-text">TypeScript</span>
+<!-- Copilot Status -->
+<div class="flex items-center space-x-1 text-vscode-accent cursor-pointer hover:opacity-80">
+<i class="w-3.5 h-3.5" data-lucide="bot"></i>
+</div>
+</div>
+</footer>
+<!-- END: Bottom Status Bar -->
+<!-- Icon Hydration Script -->
+<script data-purpose="icon-initializer">
+    lucide.createIcons();
+  </script>
+</body></html>
