@@ -14,24 +14,24 @@ pub struct RuleSet {
     pub source_file:         String,
 }
 
-fn yaml_to_json(val: serde_yml::Value) -> serde_json::Value {
+fn yaml_to_json(val: noyalib::Value) -> serde_json::Value {
     match val {
-        serde_yml::Value::Null             => serde_json::Value::Null,
-        serde_yml::Value::Bool(b)          => serde_json::Value::Bool(b),
-        serde_yml::Value::Number(n) => {
+        noyalib::Value::Null             => serde_json::Value::Null,
+        noyalib::Value::Bool(b)          => serde_json::Value::Bool(b),
+        noyalib::Value::Number(n) => {
             if let Some(i) = n.as_i64() { serde_json::json!(i) }
             else { serde_json::json!(n.as_f64()) }
         }
-        serde_yml::Value::String(s)        => serde_json::Value::String(s),
-        serde_yml::Value::Sequence(seq)    => serde_json::Value::Array(seq.into_iter().map(yaml_to_json).collect()),
-        serde_yml::Value::Mapping(map)     => {
+        noyalib::Value::String(s)        => serde_json::Value::String(s),
+        noyalib::Value::Sequence(seq)    => serde_json::Value::Array(seq.into_iter().map(yaml_to_json).collect()),
+        noyalib::Value::Mapping(map)     => {
             let mut obj = serde_json::Map::new();
             for (k, v) in map {
                 obj.insert(k, yaml_to_json(v));
             }
             serde_json::Value::Object(obj)
         }
-        serde_yml::Value::Tagged(t)        => yaml_to_json(t.value().clone()),
+        noyalib::Value::Tagged(t)        => yaml_to_json(t.value().clone()),
     }
 }
 
@@ -72,7 +72,7 @@ pub fn load_scanner_rules(scanner_dir: &str) -> Vec<RuleSet> {
         let content = match fs::read_to_string(path) {
             Ok(c) => c, Err(_) => continue,
         };
-        let yaml_val: serde_yml::Value = match serde_yml::from_str(&content) {
+        let yaml_val: noyalib::Value = match noyalib::from_str(&content) {
             Ok(v) => v, Err(e) => {
                 eprintln!("[warn] Could not parse {}: {e}", path.display()); continue;
             }

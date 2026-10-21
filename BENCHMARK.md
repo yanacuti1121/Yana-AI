@@ -1,6 +1,67 @@
 # Benchmarks
 
-> All numbers below were measured directly on this machine and this repo
+Snapshots are listed newest first. Each one was measured fresh; none is
+carried forward from an earlier one.
+
+## 2026-10-20 snapshot
+
+**Machine:** Apple M4 MacBook Air, 16 GB RAM, macOS 27.2.
+**Build:** `yana-rt` 1.5.1, `cargo build --release --bin yana-rt` at
+commit `986093f5` (origin/main), binary 18.2 MiB.
+**Repo state:** 100 agents, 2,026 skills, 66 hooks, 71 rules, 170
+commands, 134 scripts, 16,192 tracked files.
+**Method:** wall clock with `time.perf_counter()` around each subprocess,
+mean of 3 runs (100 for startup, 50 for hooks), peak RSS from
+`/usr/bin/time -l`. Python column is the `core/scripts/*.py` file each
+Rust command replaces, run with `python3 -I`.
+
+| Path | Rust | Python | Ratio | Output parity |
+| --- | ---: | ---: | --- | --- |
+| `yana-rt --version` startup | 4.16 ms | | | |
+| `doctor run` vs `doctor.py .` | 143 ms | 415 ms | Rust 2.9x | 16 checks each: 11 ok, 1 warn, 4 info |
+| `ci check .` vs `ci_check.py .` | 5.8 ms | 33 ms | Rust 5.7x | 5 warnings each |
+| `scan core/skills` vs `audit_scanner.py core/skills` | 0.55 s | 8.47 s | Rust 15.5x | 1,791 vs 1,795 files, same top finding (SE004 x3); score 40 vs 0 |
+| `scan .` vs `audit_scanner.py .` (defaults) | 0.36 s | 6.14 s | not comparable | Rust 620 files, no findings; Python 1,643 files, 9 critical SE002 |
+| `giamthi-halt-check.sh` (clear state) | 5.4 ms | | | |
+| `guard destructive` (allowed command) | 4.9 ms | | | |
+
+| Peak RSS | Rust | Python |
+| --- | ---: | ---: |
+| `scan core/skills` | 17.7 MiB | 26.5 MiB |
+| `scan .` (defaults) | 22.4 MiB | 29.4 MiB |
+
+**Open items from this snapshot:**
+
+- Full-repo scan scope differs by default (Rust excludes the skill deep-scan
+  surface unless `--include-skills`; with it Rust covers 6,744 files). Align
+  the default scope and finding set before quoting a full-repo ratio.
+- Scores differ on `core/skills` (40 vs 0) with the same top finding, so the
+  scoring formula is not yet equivalent.
+- `guard token-budget` was not timed: in a fresh worktree it exits 1 with
+  "flock-v1 protocol marker missing", so a timing would measure the error
+  path only.
+
+## 2026-08-26 snapshot
+
+Published in the README at commit `8cdce32c`. Apple M4 MacBook Air, 16 GB,
+macOS 27 beta, release build.
+
+| Path | Rust | Python | Reading then |
+| --- | ---: | ---: | --- |
+| Startup | 4.21 ms | | |
+| `doctor` | 255 ms | 365 ms | Rust 10 checks vs Python 16 |
+| `ci check` | 414 ms | 40 ms | Rust 0 findings vs Python 3 warnings |
+| `scan core/skills` | 4.45 s | 8.89 s | Rust 2.0x |
+| Default full-repo `scan` | 14.61 s | 7.90 s | Python 1.85x |
+| HALT hook | 3.80 ms | | |
+| Token-budget guard | 3.48 ms | | |
+
+Binary about 14 MiB; peak RSS 15.3 vs 25.3 MiB (skills scan), 23.0 vs
+34.1 MiB (full scan).
+
+## 2026-07-23 snapshot
+
+> All numbers in this section were measured directly on this machine and this repo
 > on 2026-07-23, not carried forward from older claims. Methodology,
 > hardware, and repo state are stated explicitly because these numbers
 > drift — see "Why this file exists" for a concrete example of what

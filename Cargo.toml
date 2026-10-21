@@ -48,7 +48,7 @@ crate-type = ["cdylib", "rlib"]
 default = ["cli"]
 cli = [
   "clap", "uuid", "chrono", "shell-words", "glob", "walkdir",
-  "anyhow", "unicode-normalization", "liteparse", "ureq", "serde_yml", "sha2",
+  "anyhow", "unicode-normalization", "liteparse", "ureq", "noyalib", "sha2",
   "ratatui", "crossterm", "url", "unicode-width",
   "tree-sitter", "tree-sitter-rust", "tree-sitter-typescript",
   "tree-sitter-javascript", "tree-sitter-python", "tree-sitter-go",
@@ -106,7 +106,10 @@ anyhow               = { version = "1",              optional = true }
 unicode-normalization = { version = "0.1",           optional = true }
 liteparse  = { version = "2", default-features = false, optional = true }
 ureq       = { version = "3", features = ["json"],   optional = true }
-serde_yml  = { version = "0.0.13",                   optional = true }
+# YAML. Replaces serde_yml 0.0.13, an unmaintained shim pinned to noyalib
+# 0.0.5 (RUSTSEC-2026-0333: resource budgets not enforced on typed
+# deserialization, fixed in 0.0.53).
+noyalib    = { version = "0.0.58",                   optional = true }
 sha2       = { version = "0.10",                     optional = true }
 libc       = { version = "0.2",                      optional = true }
 url        = { version = "2",                        optional = true }
@@ -160,7 +163,7 @@ portable-pty = { version = "0.9", optional = true }
 # WASM
 wasm-bindgen = { version = "0.2", optional = true }
 js-sys       = { version = "0.3", optional = true }
-zip = { version = "8.6.0", default-features = false, features = ["deflate"] }
+zip = { version = "9.0.5", default-features = false, features = ["deflate"] }
 
 [dev-dependencies]
 tempfile = "3"
