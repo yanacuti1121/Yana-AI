@@ -20,6 +20,20 @@
 		return node;
 	}
 
+	function sanitizeMediaSrc(src) {
+		if (typeof src !== 'string') return '';
+		const trimmed = src.trim();
+		// Allow safe base64 images
+		if (/^data:image\/(png|jpe?g|gif|webp|svg\+xml);base64,[A-Za-z0-9+/=]+$/i.test(trimmed)) {
+			return trimmed;
+		}
+		// Allow https or vscode-resource URLs
+		if (/^(https:|vscode-webview-resource:|vscode-resource:)\/\//i.test(trimmed)) {
+			return trimmed;
+		}
+		return '';
+	}
+
 	// ----- khung cố định -----
 	const header = el('div', 'header');
 	const brand = el('div', 'brand');
@@ -468,7 +482,7 @@
 			if (item.isImage) {
 				const chip = el('div', 'attachment-chip');
 				const thumb = el('img', 'attachment-thumb');
-				thumb.src = item.url || `data:${item.mimeType};base64,${item.data}`;
+				thumb.src = sanitizeMediaSrc(item.url || `data:${item.mimeType};base64,${item.data}`);
 				thumb.alt = item.name || 'image';
 				const removeBtn = el('button', 'attachment-remove', '×');
 				removeBtn.title = 'Remove';
@@ -723,7 +737,7 @@
 			const gallery = el('div', 'intent-images');
 			for (const img of images) {
 				const thumb = el('img', 'intent-thumb');
-				thumb.src = `data:${img.mimeType};base64,${img.data}`;
+				thumb.src = sanitizeMediaSrc(`data:${img.mimeType};base64,${img.data}`);
 				thumb.alt = 'attachment';
 				gallery.append(thumb);
 			}

@@ -403,14 +403,19 @@
 			}
 			if (data.payload?.workspaces) updateWorkspaces(data.payload.workspaces);
 			if (data.tab === current || data.tab === 'local') {
-				const renderer = window.YanaSettingsTabs[data.tab];
-				if (data.payload?.error && data.tab !== 'local') {
-					body.replaceChildren(notice(`Could not load data: ${data.payload.error}`, true));
-					return;
-				}
-				if (data.tab === 'local') window.YanaSettingsTabs.renderLocal?.(data.payload);
-				else if (typeof renderer === 'function') {
-					body.replaceChildren(...[].concat(renderer(data.payload)));
+				if (data.tab === 'local') {
+					if (typeof window.YanaSettingsTabs?.renderLocal === 'function') {
+						window.YanaSettingsTabs.renderLocal(data.payload);
+					}
+				} else if (TAB_KEYS.includes(data.tab) && Object.prototype.hasOwnProperty.call(window.YanaSettingsTabs || {}, data.tab)) {
+					const renderer = window.YanaSettingsTabs[data.tab];
+					if (data.payload?.error) {
+						body.replaceChildren(notice(`Could not load data: ${data.payload.error}`, true));
+						return;
+					}
+					if (typeof renderer === 'function') {
+						body.replaceChildren(...[].concat(renderer(data.payload)));
+					}
 				}
 			}
 		}
