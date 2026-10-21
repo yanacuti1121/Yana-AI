@@ -81,7 +81,7 @@
     "wrangler": "^4.147.0"
   },
   "dependencies": {
-    "acorn": "^8.18.0",
+    "acorn": "^8.19.0",
     "clsx": "^2.1.1",
     "framer-motion": "^14.3.0",
     "lucide-react": "^1.58.0",
