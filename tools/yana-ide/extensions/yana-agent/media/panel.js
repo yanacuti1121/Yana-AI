@@ -482,7 +482,10 @@
 			if (item.isImage) {
 				const chip = el('div', 'attachment-chip');
 				const thumb = el('img', 'attachment-thumb');
-				thumb.src = sanitizeMediaSrc(item.url || `data:${item.mimeType};base64,${item.data}`);
+				const safeSrc = sanitizeMediaSrc(item.url || `data:${item.mimeType};base64,${item.data}`);
+				if (safeSrc) {
+					thumb.setAttribute('src', safeSrc);
+				}
 				thumb.alt = item.name || 'image';
 				const removeBtn = el('button', 'attachment-remove', '×');
 				removeBtn.title = 'Remove';
@@ -737,7 +740,10 @@
 			const gallery = el('div', 'intent-images');
 			for (const img of images) {
 				const thumb = el('img', 'intent-thumb');
-				thumb.src = sanitizeMediaSrc(`data:${img.mimeType};base64,${img.data}`);
+				const safeSrc = sanitizeMediaSrc(`data:${img.mimeType};base64,${img.data}`);
+				if (safeSrc) {
+					thumb.setAttribute('src', safeSrc);
+				}
 				thumb.alt = 'attachment';
 				gallery.append(thumb);
 			}
