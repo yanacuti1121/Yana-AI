@@ -1,0 +1,198 @@
+/*
+ * Top bar redone in the page's new voice (owner 19/10/2026): a floating rounded glass bar,
+ * rounded heavy type, a few plain links, one dark call to action. The site's own nav script
+ * still builds the markup and the mega menus; this only restyles it.
+ * "Cập nhật" and "Mã nguồn" leave the desktop bar (they stay in the mobile menu and footer).
+ */
+body.home-page .site-nav.site-nav {
+  position: sticky;
+  top: 12px;
+  display: grid !important;
+  grid-template-columns: auto 1fr auto !important;
+  column-gap: 28px;
+  width: min(1320px, 100% - 32px);
+  min-height: 62px;
+  margin: 12px auto 0;
+  padding: 0 10px 0 22px;
+  border: 0 !important;
+  border-radius: 22px !important;
+  font-family: var(--sans);
+}
+body.home-page .site-nav .brand { gap: 10px; font: 800 1.2rem var(--sans); letter-spacing: -.02em; color: #17181c }
+body.home-page .site-nav .brand-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  object-fit: contain;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: yanaLogoBreathe 3.6s ease-in-out infinite;
+}
+
+body.home-page .site-nav .brand:hover .brand-mark {
+  transform: scale(1.12) rotate(-4deg);
+}
+
+@keyframes yanaLogoBreathe {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.25));
+  }
+  50% {
+    transform: scale(1.08);
+    filter: drop-shadow(0 4px 16px rgba(59, 130, 246, 0.65)) drop-shadow(0 0 10px rgba(0, 240, 255, 0.45));
+  }
+}
+
+body.home-page .site-nav .nav-links { justify-content: center; gap: 6px }
+body.home-page .site-nav .global-nav-group > summary,
+body.home-page .site-nav .nav-about {
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: #3a404c;
+  font: 700 .95rem var(--sans);
+  letter-spacing: 0;
+  transition: background-color .2s ease, color .2s ease;
+}
+body.home-page .site-nav .global-nav-group > summary:hover,
+body.home-page .site-nav .global-nav-group[open] > summary,
+body.home-page .site-nav .nav-about:hover { background: rgba(23, 24, 28, .06); color: #17181c }
+body.home-page .site-nav .global-nav-group > summary::before { display: none }
+
+body.home-page .site-nav .nav-actions { gap: 6px }
+body.home-page .site-nav :is(.nav-action--updates, .nav-action--source) { display: none !important }
+body.home-page .site-nav .nav-search-trigger {
+  min-height: 38px; padding: 0 12px; border: 0; border-radius: 999px;
+  background: rgba(23, 24, 28, .05); color: #5d6573; font: 600 .85rem var(--sans);
+}
+body.home-page .site-nav :is(.nav-docs, .nav-language-menu > summary, .nav-action--download) {
+  padding: 8px 12px; border-radius: 999px; color: #3a404c; font: 700 .9rem var(--sans);
+}
+body.home-page .site-nav :is(.nav-docs, .nav-action--download):hover { background: rgba(23, 24, 28, .06) }
+body.home-page .site-nav .nav-start {
+  min-height: 42px; padding: 0 18px; border-radius: 999px;
+  background: #17181c !important; color: #fff !important;
+  font: 800 .95rem var(--sans);
+  box-shadow: 0 8px 18px -10px rgba(23, 24, 28, .7);
+  transition: transform .25s cubic-bezier(.2, .9, .3, 1.3);
+}
+body.home-page .site-nav .nav-start:hover { transform: translateY(-1px) scale(1.03) }
+
+/* Mega menus hang from the floating bar as rounded glass cards. */
+body.home-page .site-nav .global-mega-panel {
+  border-radius: 24px;
+  border: 0;
+  background: rgba(255, 255, 255, .86);
+  -webkit-backdrop-filter: blur(18px) saturate(1.6);
+  backdrop-filter: blur(18px) saturate(1.6);
+  box-shadow: inset 0 1px 0 #fff, 0 30px 60px -24px rgba(20, 30, 50, .35);
+  font-family: var(--sans);
+}
+
+/* Enough frost that page text under the bar does not show through and read as clutter. */
+body.home-page .site-nav.lg { background: rgba(255, 255, 255, .92) !important }
+
+/* ==========================================================================
+   FORCE 2-COLUMN MEGA PANEL FOR ALL VIEWPORTS > 900PX (NO SQUISHING)
+   ========================================================================== */
+@media (min-width: 901px) {
+  body.sakura-site .site-nav .global-mega-panel,
+  .site-nav .global-mega-panel {
+    position: absolute !important;
+    top: calc(100% + 10px) !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    z-index: 9999 !important;
+    display: grid !important;
+    grid-template-columns: 240px minmax(560px, 680px) !important;
+    gap: 36px !important;
+    width: max-content !important;
+    max-width: 96vw !important;
+    padding: 32px 36px !important;
+    border: 1px solid rgba(119, 149, 181, 0.25) !important;
+    border-radius: 24px !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    backdrop-filter: blur(24px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(160%) !important;
+    box-shadow: 0 30px 80px rgba(20, 35, 60, 0.16) !important;
+    animation: yana-nav-open 0.25s cubic-bezier(0.18, 0.85, 0.28, 1) both !important;
+  }
+
+  body.sakura-site .site-nav .global-mega-intro,
+  .site-nav .global-mega-intro {
+    display: block !important;
+  }
+
+  body.sakura-site .site-nav .global-mega-intro small,
+  .site-nav .global-mega-intro small {
+    display: block !important;
+    color: #6a87a7 !important;
+    font: 700 0.72rem var(--mono) !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+  }
+
+  body.sakura-site .site-nav .global-mega-intro h3,
+  .site-nav .global-mega-intro h3 {
+    display: block !important;
+    margin: 8px 0 0 !important;
+    color: #1e2b38 !important;
+    font: 800 1.35rem var(--sans) !important;
+    letter-spacing: -0.035em !important;
+    line-height: 1.25 !important;
+  }
+
+  body.sakura-site .site-nav .global-mega-column,
+  .site-nav .global-mega-column {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(250px, 1fr)) !important;
+    gap: 12px 20px !important;
+  }
+
+  body.sakura-site .site-nav .global-mega-link,
+  .site-nav .global-mega-link {
+    display: grid !important;
+    grid-template-columns: 28px 1fr !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 8px 12px !important;
+    border-radius: 12px !important;
+    text-decoration: none !important;
+    transition: background 0.18s ease, transform 0.18s ease !important;
+  }
+
+  body.sakura-site .site-nav .global-mega-link:hover,
+  .site-nav .global-mega-link:hover {
+    background: rgba(213, 228, 244, 0.45) !important;
+    transform: translateX(3px) !important;
+  }
+
+  body.sakura-site .site-nav .global-mega-link strong,
+  .site-nav .global-mega-link strong {
+    display: block !important;
+    color: #24364a !important;
+    font: 700 0.88rem var(--sans) !important;
+    line-height: 1.25 !important;
+  }
+
+  body.sakura-site .site-nav .global-mega-link small,
+  .site-nav .global-mega-link small {
+    display: block !important;
+    margin-top: 3px !important;
+    color: #788696 !important;
+    font: 500 0.74rem var(--sans) !important;
+    line-height: 1.35 !important;
+  }
+
+  body.sakura-site .site-nav .nav-link-icon,
+  .site-nav .nav-link-icon {
+    display: grid !important;
+    place-items: center !important;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 8px !important;
+    color: #436a93 !important;
+    background: #eaf1f9 !important;
+    font-size: 0.95rem !important;
+  }
+}
