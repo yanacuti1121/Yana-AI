@@ -394,8 +394,13 @@
 		} else if (data?.type === 'refresh') {
 			load(current);
 		} else if (data?.type === 'result') {
-			pending.get(data.requestId)?.(data);
-			pending.delete(data.requestId);
+			if (typeof data.requestId === 'number' && pending.has(data.requestId)) {
+				const cb = pending.get(data.requestId);
+				pending.delete(data.requestId);
+				if (typeof cb === 'function') {
+					cb(data);
+				}
+			}
 		} else if (data?.type === 'data') {
 			if (data.payload?.currentLanguage && data.payload.currentLanguage !== currentLang) {
 				currentLang = data.payload.currentLanguage;

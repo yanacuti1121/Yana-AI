@@ -147,11 +147,11 @@ for target in targets:
     content = body_m.group(1) if body_m else src_html
     
     # Remove header, nav, footer, script, style from original content
-    content = re.sub(r"<header\b[^>]*>.*?</header\s*>", "", content, flags=re.I | re.DOTALL)
-    content = re.sub(r"<nav\b[^>]*>.*?</nav\s*>", "", content, flags=re.I | re.DOTALL)
-    content = re.sub(r"<footer\b[^>]*>.*?</footer>\s*>", "", content, flags=re.I | re.DOTALL)
-    content = re.sub(r"<script\b[^>]*>.*?</script\s*>", "", content, flags=re.I | re.DOTALL)
-    content = re.sub(r"<style\b[^>]*>.*?</style\s*>", "", content, flags=re.I | re.DOTALL)
+    content = re.sub(r"<header\b[^>]*>.*?</header[^>]*>", "", content, flags=re.I | re.DOTALL)
+    content = re.sub(r"<nav\b[^>]*>.*?</nav[^>]*>", "", content, flags=re.I | re.DOTALL)
+    content = re.sub(r"<footer\b[^>]*>.*?</footer>[^>]*>", "", content, flags=re.I | re.DOTALL)
+    content = re.sub(r"<script\b[^>]*>.*?</script[^>]*>", "", content, flags=re.I | re.DOTALL)
+    content = re.sub(r"<style\b[^>]*>.*?</style[^>]*>", "", content, flags=re.I | re.DOTALL)
 
     # Extract h1
     h1_m = re.search(r"<h1[^>]*>(.*?)</h1>", content, re.I | re.DOTALL)
