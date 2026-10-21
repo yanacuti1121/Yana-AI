@@ -1,6 +1,6 @@
-# Installing Yana Desktop on macOS
+# Installing Yana Studio on macOS
 
-Yana Desktop for macOS is currently distributed **ad-hoc signed but not
+Yana Studio for macOS is currently distributed **ad-hoc signed but not
 notarized by Apple**. The project does not yet have an Apple Developer
 Program membership (a paid, yearly subscription), which is required to get
 a "Developer ID Application" certificate and submit builds for Apple's
@@ -19,7 +19,7 @@ unnotarized app.
 macOS Gatekeeper checks two things before it lets an app run without
 asking: whether the app is signed with a trusted **Developer ID**, and
 whether Apple has **notarized** that specific build (an automated malware
-scan Apple runs on request). Yana Desktop is signed (ad-hoc — see
+scan Apple runs on request). Yana Studio is signed (ad-hoc — see
 [What "ad-hoc signed" means](#what-ad-hoc-signed-means) below) but not
 notarized, so Gatekeeper shows a warning instead of blocking the app
 outright or opening it silently.
@@ -29,9 +29,9 @@ outright or opening it silently.
 This is the fastest official method and only needs to be done once per
 version you download.
 
-1. Open **Finder** and go to wherever you saved `Yana AI.app` (if you
-   downloaded the `.dmg`, drag `Yana AI` into `Applications` first).
-2. **Right-click** (or **Control-click**) `Yana AI.app` and choose **Open**
+1. Open **Finder** and go to wherever you saved `Yana Studio.app` (if you
+   downloaded the `.dmg`, drag `Yana Studio` into `Applications` first).
+2. **Right-click** (or **Control-click**) `Yana Studio.app` and choose **Open**
    from the menu — do not just double-click it.
 3. macOS shows a dialog saying it cannot verify the developer. Click
    **Open** in that dialog.
@@ -41,17 +41,17 @@ version you download.
 ## How to open it — Method 2: System Settings → Privacy & Security
 
 If you already double-clicked the app and macOS refused to open it
-("Yana AI can't be opened because Apple cannot check it for malicious
+("Yana Studio can't be opened because Apple cannot check it for malicious
 software" / "the developer cannot be verified"), use this instead:
 
 1. Open **System Settings** → **Privacy & Security**.
 2. Scroll down to the **Security** section. You'll see a line like
-   *"Yana AI" was blocked from use because it is not from an identified
+   *"Yana Studio" was blocked from use because it is not from an identified
    developer.*
 3. Click **Open Anyway**.
 4. macOS may ask you to confirm once more (and, depending on your macOS
    version, to authenticate with Touch ID or your password) — confirm.
-5. Open `Yana AI.app` again; it now launches normally.
+5. Open `Yana Studio.app` again; it now launches normally.
 
 ## What NOT to do
 
@@ -81,7 +81,7 @@ your download wasn't corrupted or tampered with in transit, run in
 Terminal:
 
 ```bash
-shasum -a 256 ~/Downloads/Yana-AI-*.dmg
+shasum -a 256 ~/Downloads/Yana-Studio-*.dmg
 ```
 
 ...and compare the result against the checksum published on the
@@ -97,7 +97,6 @@ will be signed with a real Developer ID, have Hardened Runtime enabled,
 and be submitted to Apple for notarization + stapling. At that point
 Gatekeeper will open the app with no warning at all, and this page (and
 the note in the main [README](../README.md)) will be updated to say so.
-The build pipeline (`tools/yana-desktop/package.json`'s `build.mac`
-config + `tools/yana-desktop/scripts/after-sign-mac.js`) is already
-structured so that switch is a configuration change, not a rewrite — see
-the comments at the top of `after-sign-mac.js`.
+The build pipeline (`tools/yana-studio/package.json`'s `build.mac`
+config + `tools/yana-studio/scripts/after-sign-mac.cjs`) is already
+structured so that switch is a configuration change, not a rewrite.

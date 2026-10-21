@@ -51,11 +51,12 @@ capability can grant permission to act.
 
 | Component | What it does | Where | Status |
 | --- | --- | --- | --- |
-| **Yana Studio** | Desktop workspace for working with AI on a real project. | [`tools/yana-studio`](tools/yana-studio) | Live |
+| **Yana Studio** | Desktop workspace for working with AI on a real project (v1.7.0). | [`tools/yana-studio`](tools/yana-studio) | Live |
+| **Yana IDE** | Deeply customized VS Code agent workspace with Yana agent cockpit and office tools. | [`tools/yana-ide`](tools/yana-ide) | Live |
 | **Runtime (`yana-rt`)** | Rust engine: one turn loop and one authority contract for local and cloud models, 19 providers. | [`src/`](src) | Live |
 | **Governance** | Capability manifests, human approval, hash-chained audit log, core-lock integrity, and Giám Thị, an independent watcher that can halt every session. | [`core/`](core) | Live |
 | **Harness adapters** | Claude Code, Codex, Cursor and Antigravity, governed through generated hooks, rules and gates. Enforcement strength differs per host. | [`adapters/`](adapters) | Live, varies by host |
-| **Knowledge layer** | 100 agents and 2,026 skills that teach agents how to work. They grant no permissions. | [`core/agents`](core/agents), [`core/skills`](core/skills) | Live |
+| **Knowledge layer** | 60 agents and 2,027 skills that teach agents how to work. They grant no permissions. | [`core/agents`](core/agents), [`core/skills`](core/skills) | Live |
 | **Yana OS** | Local management plane: agent identity, autonomy levels, quotas, health, quarantine. | [`src/os`](src/os) | In development |
 | **Yana Wheelbot** | Robotics platform on ESP32-S3, in its own repository. | [`yana-wheelbot`](https://github.com/yanacuti1121/yana-wheelbot) | Experimental |
 
@@ -68,13 +69,17 @@ not feature-complete. `Experimental` means opt-in and not independently verified
 core/
 ├── hooks/    # 66 PreToolUse / PostToolUse / Stop hooks
 ├── rules/    # 71 enforced rules
-├── agents/   # 100 specialist agents
-├── skills/   # 2,026 skills
+├── agents/   # 60 specialist agents
+├── skills/   # 2,027 skills
 └── config/
     └── core-lock.json    # SHA-256 manifest — 287 core files pinned
 ```
 
-## Yana Studio
+## Yana Studio (v1.7.0)
+
+<p align="center">
+  <img src="docs/studio-screen-1.png" alt="Yana Studio workspace with chat, project inspector and governance status" width="900">
+</p>
 
 One window for the things you switch between when working with AI on a project:
 
@@ -90,8 +95,6 @@ or [yana.vutam.link](https://yana.vutam.link).
 | Platform | Installer |
 | --- | --- |
 | macOS, Apple Silicon | `.dmg` or `.zip` |
-| Windows | `.exe`, x64 or ARM64 |
-| Linux | `.deb` or `.AppImage` |
 
 Each release lists its own assets, so check that your platform is there, and verify
 against `SHA256SUMS` when provided. The macOS build is ad-hoc signed and **not
