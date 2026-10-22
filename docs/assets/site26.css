@@ -265,3 +265,35 @@
   color: #ffffff;
 }
 
+
+/* Global button text contrast & anchor reset for 2026 buttons */
+a.btn-spring-2026.btn-spring-primary,
+button.btn-spring-2026.btn-spring-primary,
+.btn-spring-primary {
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+
+a.btn-spring-2026.btn-spring-primary *,
+.btn-spring-primary * {
+  color: #ffffff !important;
+}
+
+a.btn-spring-2026.btn-spring-primary:hover,
+button.btn-spring-2026.btn-spring-primary:hover,
+.btn-spring-primary:hover {
+  color: #ffffff !important;
+}
+
+a.btn-spring-2026.btn-spring-secondary,
+button.btn-spring-2026.btn-spring-secondary,
+.btn-spring-secondary {
+  color: #0f172a !important;
+  text-decoration: none !important;
+}
+
+a.btn-spring-2026.btn-spring-secondary:hover,
+button.btn-spring-2026.btn-spring-secondary:hover,
+.btn-spring-secondary:hover {
+  color: #0f172a !important;
+}
