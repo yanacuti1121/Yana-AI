@@ -1,0 +1,94 @@
+/*
+ * Hero ribbon (19/10/2026): two rows running in opposite directions without pause.
+ * The top row is the request path itself (AI đề xuất → … → Ghi vào audit), in large type that
+ * alternates filled and outlined; the bottom row lists the surfaces, small and quiet.
+ * yana-motion-2026.js speeds both up with scroll velocity (always forwards),
+ * and leans them a little (--mq-skew) while the page moves fast; then they settle.
+ * Transform only, so the motion stays on the compositor.
+ */
+.home-page .hero-ribbon {
+  position: relative;
+  z-index: 2;
+  grid-column: 1 / -1;
+  width: 100vw;
+  margin: clamp(28px, 4vw, 56px) calc(50% - 50vw) 0;
+  padding-block: clamp(10px, 1.4vw, 18px);
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.home-page .hero-ribbon-row {
+  display: flex;
+  width: max-content;
+  transform: skewX(var(--mq-skew, 0deg));
+  transition: transform .4s ease-out;
+}
+.home-page .hero-ribbon-row ul {
+  display: flex;
+  flex: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.home-page .hero-ribbon-row--flow ul { animation: m-marquee 56s linear infinite }
+.home-page .hero-ribbon-row--surfaces ul { animation: m-marquee 40s linear infinite reverse }
+
+.home-page .hero-ribbon-row--flow li {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  color: #1d1d1f;
+  font: 650 clamp(2rem, 5vw, 4.4rem)/1.05 var(--display, var(--sans));
+  letter-spacing: -.035em;
+}
+/* Every other step is drawn in outline, so the row reads as a rhythm rather than a block. */
+.home-page .hero-ribbon-row--flow li:nth-child(even) {
+  color: transparent;
+  -webkit-text-stroke: 1.2px #1d1d1f;
+}
+.home-page .hero-ribbon-row--flow li::after {
+  content: "→";
+  margin-inline: clamp(18px, 2.6vw, 40px);
+  -webkit-text-stroke: 0;
+  background: linear-gradient(135deg, #4f80ff, #38bdf8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 400;
+}
+
+.home-page .hero-ribbon-row--surfaces { margin-top: clamp(6px, 1vw, 12px) }
+.home-page .hero-ribbon-row--surfaces li {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  color: #6e7b8c;
+  font: 500 clamp(.72rem, 1vw, .86rem) var(--mono);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.home-page .hero-ribbon-row--surfaces li::after {
+  content: "";
+  width: 5px;
+  height: 5px;
+  margin-inline: clamp(16px, 2vw, 28px);
+  border-radius: 50%;
+  background: #9fb4cc;
+}
+
+/* The studio ticker leans with scroll speed too. */
+.home-page .studio-marquee ul { transform: skewX(var(--mq-skew, 0deg)); transition: transform .4s ease-out }
+
+/* Hero buttons: "Khám phá Yana" drops its metal plate for the liquid glass of the page. */
+.home-page .yana-intro .liquid-stage--explore .liquid-plate { display: none }
+.home-page .yana-intro :is(.discovery-entry, .liquid-button--explore) {
+  translate: var(--mag-x, 0) var(--mag-y, 0);
+  transition: translate .5s cubic-bezier(.2, .9, .3, 1.2), box-shadow .35s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-page .hero-ribbon-row ul { animation: none }
+  .home-page .hero-ribbon-row ul + ul { display: none }
+  .home-page .hero-ribbon { overflow-x: auto }
+}

@@ -213,6 +213,8 @@
   }
 
   function sharedNavigation() {
+    // Yana 2026: do not overwrite sakura-site nav
+    if (document.body.classList.contains("home-page") || document.querySelector(".site-nav")) return;
     const nav = document.querySelector(".site-nav");
     if (!nav) return;
 

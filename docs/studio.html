@@ -1,29 +1,757 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Yana Studio — Workspace AI có kiểm soát</title><meta name="description" content="Yana Studio kết hợp chat, code, terminal, Git, context và quyền hạn trong một workspace trực quan."><link rel="canonical" href="https://yana.vutam.link/studio.html"><link rel="alternate" hreflang="vi" href="https://yana.vutam.link/studio.html"><link rel="alternate" hreflang="en" href="https://yana.vutam.link/studio-en.html"><link rel="alternate" hreflang="ko" href="https://yana.vutam.link/studio-ko.html"><link rel="icon" href="yana-mark.svg"><link rel="stylesheet" href="assets/ecosystem-pages.css?v=20260926a"><link rel="stylesheet" href="assets/sakura-site.css?v=20260926a"><link rel="stylesheet" href="assets/yana-white.css?v=20260930g"></head><body class="sakura-site"><div class="yana-opening yana-opening--inner" aria-label="Yana"><div class="opening-center"><div class="opening-mark"><img src="yana-mark.svg" alt="" width="58" height="58"></div><div class="opening-word" aria-hidden="true"><span>Y</span><span>a</span><span>n</span><span>a</span></div><p class="opening-caption">AI làm việc. Bạn giữ quyền.</p></div><button class="opening-skip" type="button">Bỏ qua <span aria-hidden="true">↗</span></button></div>
-<nav class="site-nav"></nav>
-<main><section class="hero"><div class="hero-inner"><p class="eyebrow">YANA STUDIO 1.6.2</p><h1>Một workspace.<br>Toàn bộ vòng lặp AI.</h1><p class="hero-copy">Từ mục tiêu tới code, terminal, review và evidence — mọi thao tác nằm trong một mặt bàn rõ ràng, không giấu quyền hạn sau ô chat.</p><div class="hero-actions"><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="download.html"><span class="lbl">Tải Yana Studio</span></a></div><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="#workflow"><span class="lbl">Xem cách hoạt động</span></a></div></div><div class="hero-stage"><div class="window-bar"><i></i><i></i><i></i></div><div class="studio-shell"><aside class="shell-side"><b>ACTIVITY BAR</b><span class="active">Tệp & Dự án</span><span>Tìm kiếm</span><span>Quản lý Git</span><span>Tiện ích mở rộng</span><span>Yana Cockpit</span></aside><div class="shell-main"><div><div class="agent-card"><strong>Monaco Editor · runtime.js</strong><br>VS Code core · Cây thư mục dự án · LSP &amp; Highlight</div><div class="agent-card"><strong>Yana Agent Cockpit · Sẵn sàng</strong><br>Chế độ Act &amp; Careful Reviewer · Giám sát phiên làm việc</div></div><div class="composer">Trao đổi với Yana Agent (Act / Careful Reviewer)…<br><small>+ VS Code Editor · Terminal · ActionGate Supervised</small></div></div><aside class="shell-inspector"><b>AGENT COCKPIT</b><span>TRẠNG THÁI<br><strong>● Sẵn sàng v1.5.1</strong></span><span>CHẾ ĐỘ<br><strong>Act &amp; Reviewer</strong></span><span>POLICY<br><strong>SUPERVISED</strong></span><span>AUDIT LOG<br><strong>500✓ 0✕</strong></span></aside></div></div></div></section>
-<section class="section screenshot-showcase"><div class="section-head"><p class="eyebrow">ẢNH THẬT TỪ ỨNG DỤNG</p><h2>Không phải mockup — đây là Yana Studio đang chạy.</h2><p>Ảnh chụp retina 3000×2000 trực tiếp từ ứng dụng Yana Studio thực tế, hiển thị trình soạn thảo mã VS Code core và trung tâm điều khiển Yana Home.</p></div>
-  <div class="screenshot-stack">
-    <img src="studio-screen-1.png" alt="Yana Yana Studio — Giao diện soạn thảo mã VS Code với runtime.js và Yana Agent Cockpit" class="shot shot-a" width="1500" height="1000" loading="lazy">
-    <img src="studio-screen-2.png" alt="Yana Yana Studio — Trung tâm điều khiển Yana Home với chuyển đổi ngôn ngữ và Cockpit giám sát" class="shot shot-b" width="1500" height="1000" loading="lazy">
-  </div>
-</section>
-<section class="section" id="workflow"><div class="product-grid"><article class="product-card"><div><p class="eyebrow">WORKSPACE</p><h3>VS Code core và Terminal thật</h3><p>Nền tảng VS Code (Monaco Editor, LSP), quản lý file dạng cây, PTY nhiều tab, chia lưới, tìm kiếm và scrollback tốc độ cao.</p></div><div class="product-art"><code>workspace/
-├── extensions/yana-agent
-│   ├── runtime.js
-│   └── panel.js
-└── terminal  3 sessions</code></div></article><article class="product-card"><div><p class="eyebrow">AGENT COCKPIT</p><h3>Hai chế độ: Act &amp; Reviewer</h3><p>Chế độ Act thực thi giải quyết bài toán và Careful Reviewer phản biện kỹ lưỡng trước khi ghi code. Context, turn tracking và policy rõ ràng.</p></div><div class="product-art"><code>YANA COCKPIT
-● Sẵn sàng v1.5.1
-Mode: Act / Careful Reviewer
-Policy: SUPERVISED
-Turns: 0 / 25</code></div></article><article class="product-card"><div><p class="eyebrow">GOVERNANCE</p><h3>ActionGate &amp; Audit Log</h3><p>Mọi hành động chạy lệnh shell, sửa file hay git commit đều được rà soát qua ActionGate và ghi nhận vào Audit Log ngay trên Status Bar.</p></div><div class="product-art"><code>STATUS BAR
-Yana Runtime v1.5.1
-Policy: SUPERVISED
-Audit: 500✓ 0✕
-[ActionGate: Kiểm soát thực thi]</code></div></article></div></section>
-<section class="section feature"><div class="feature-copy"><p class="eyebrow">MODEL PLANE</p><h2>Chọn provider, thấy đúng model.</h2><p>Catalog chính thức tách theo provider cloud và local để UI không đoán tên model. Đổi model không làm thay đổi authority của runtime.</p></div><div class="feature-visual"><div class="visual-window"><div class="visual-row"><strong>OpenAI</strong><span>available models</span></div><div class="visual-row"><strong>Anthropic</strong><span>available models</span></div><div class="visual-row"><strong>Groq</strong><span>available models</span></div><div class="visual-row"><strong>Ollama</strong><span>local models</span></div></div></div></section>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Yana Studio · IDE Đa Agent Có Kiểm Soát 2026</title>
+  <meta name="description" content="Yana Studio được xây dựng trên nền tảng Code-OSS (VS Code), nhưng với triết lý hoàn toàn khác biệt so với Cursor: AI hoạt động dưới sự giám sát và phê duyệt minh bạch của bạn.">
 
-<section class="section studio-journey" id="journey"><div class="studio-journey-head"><p class="eyebrow">MỘT QUY TRÌNH RÕ RÀNG</p><h2>Từ mục tiêu đến kết quả.<br><span>Bước nào cũng nhìn thấy.</span></h2><p>Studio đặt project, model, công việc và quyết định của anh trong cùng một không gian. Mỗi bước có chỗ riêng, nên anh biết điều gì đang diễn ra trước khi cho phép tiếp tục.</p></div><ol class="studio-journey-steps"><li><span>01 / PROJECT</span><h3>Mở thư mục thật</h3><p>Chọn project trên máy. Studio giữ đường dẫn tới thư mục, không sao chép repository vào một nơi khác.</p></li><li><span>02 / MODEL</span><h3>Chọn trí tuệ</h3><p>Xem model cloud hoặc local từ catalog của runtime. Thay model không tự thay đổi quyền thực thi.</p></li><li><span>03 / WORK</span><h3>Làm việc có ngữ cảnh</h3><p>Trao đổi với Yana, mở tệp trong editor, xem Git và dùng terminal của chính anh trên cùng một mặt bàn.</p></li><li><span>04 / REVIEW</span><h3>Giữ quyền quyết định</h3><p>Khi AI cần năng lực có kiểm soát, Studio hiển thị yêu cầu để anh xem và quyết định theo ranh giới của runtime.</p></li></ol></section>
-<section class="studio-boundary"><div class="studio-boundary-inner"><div class="studio-boundary-copy"><p class="eyebrow">QUYỀN HẠN CÓ RANH GIỚI</p><h2>Terminal của anh.<br>Hành động của AI.<br><span>Hai đường riêng biệt.</span></h2><p>Anh có thể làm việc trực tiếp trong terminal. Yana đi qua runtime và lớp kiểm soát năng lực. Nội dung AI tạo ra không tự động biến thành lệnh shell.</p><a href="governance.html">Hiểu cách Yana kiểm soát hành động <span aria-hidden="true">↗</span></a></div><div class="studio-boundary-map" aria-label="Terminal của người dùng và hành động AI đi qua hai đường khác nhau"><div class="studio-boundary-lane"><small>ĐƯỜNG CỦA ANH</small><strong>Terminal</strong><span>Lệnh do anh nhập → shell của anh</span></div><div class="studio-boundary-divider" aria-hidden="true"><span></span></div><div class="studio-boundary-lane"><small>ĐƯỜNG CỦA YANA</small><strong>Runtime</strong><span>Đề xuất → kiểm tra quyền → thực thi có kiểm soát</span></div></div></div></section>
-<section class="section studio-status"><div class="studio-status-head"><p class="eyebrow">TRẠNG THÁI HIỆN TẠI</p><h2>Đang dùng được gì?<br><span>Điều gì còn đang xây?</span></h2><p>Trang giới thiệu phản ánh chính xác bản Yana Yana Studio đang hoạt động thực tế trên máy người dùng.</p></div><div class="studio-status-grid"><article><span class="studio-status-kicker">ĐÃ HOÀN THIỆN TRONG BẢN 1.6.2</span><h3>Workspace hiện đại &amp; Agent Cockpit</h3><ul><li>Nhân VS Code core hoàn chỉnh với Monaco Editor, LSP, quản lý dự án và tệp tin đa tab.</li><li>Yana Agent Cockpit tích hợp: chế độ Act (thực thi) &amp; Careful Reviewer (kiểm thử/phản biện).</li><li>Thanh trạng thái giám sát: Hiển thị Policy (SUPERVISED), trạng thái Runtime và Audit Counter (500✓ 0✕).</li><li>Cơ chế cập nhật độc lập: Tách biệt bộ cài Desktop Yana Studio và gói lõi yana-rt, cho phép nâng cấp runtime tức thì mà không cần cài lại toàn bộ app.</li><li>Terminal thật với tab, chia lưới, scrollback và giám sát quyền thực thi.</li></ul></article><article><span class="studio-status-kicker">ĐANG PHÁT TRIỂN TIẾP THEO</span><h3>Những tính năng kế tiếp</h3><ul><li>Design Canvas trực quan đang được tối ưu hoá mượt mà hơn.</li><li>Giao diện quản lý quyền hạn đa tầng mở rộng cho enterprise.</li><li>Tự động hoá đồng bộ cấu hình workspace đa thiết bị.</li><li>Mở rộng thêm các provider LLM local và custom endpoints.</li></ul></article></div><p class="studio-status-note">Bản phát hành đã được kiểm tra trên macOS (Apple Silicon), Windows và Linux. Khả năng thực thi và model tuân theo chính sách quản trị của Yana Runtime.</p></section>
-<section class="quote-band"><p class="eyebrow">DESIGN CANVAS</p><h2>Thiết kế trực quan là một capability của Studio.</h2><p>Canvas đang ở trạng thái thử nghiệm; hướng đi là Design → Code → Run → Inspect, không phải một editor rời rạc.</p><div class="hero-actions"><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="runtime.html"><span class="lbl">Xem runtime đứng phía sau</span></a></div></div></section></main>
-<footer class="site-footer"><div class="footer-inner"><div><a class="brand" href="index.html"><img src="yana-mark.svg" alt=""><span>Yana</span></a><p>Hệ điều hành cá nhân cho công việc AI có kiểm soát.</p></div><div class="footer-links"><strong>Sản phẩm</strong><a href="studio.html">Studio</a><a href="runtime.html">Runtime</a><a href="wheelbot.html">Wheelbot</a></div><div class="footer-links"><strong>Nguồn</strong><a href="https://github.com/yanacuti1121/Yana-AI">GitHub</a><a href="https://gitlab.com/yana-ai-group/Yana-AI-project">GitLab mirror</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ROADMAP.md">Roadmap</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/SECURITY.md">Security</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ACKNOWLEDGEMENTS.md">Acknowledgements</a></div><div class="footer-links"><strong>Liên hệ</strong><a href="mailto:phamlongh230@gmail.com">phamlongh230@gmail.com</a><a href="https://yana.vutam.link">yana.vutam.link</a><a href="https://github.com/yanacuti1121/Yana-AI">yanacuti1121/Yana-AI</a></div></div><div class="footer-ack"><strong>Acknowledgements</strong><p>Yana AI is built on top of ideas, patterns, and tooling from the open-source community, including projects licensed under Apache 2.0, MIT, and other permissive licenses. All third-party sources are used in compliance with their respective licenses. This project has no intent to copy, misrepresent, or infringe upon the intellectual property of any individual or organization. Where specific projects have directly influenced design decisions, they are credited in the relevant source files and rule documentation.</p></div><div class="footer-bottom">© 2026 Yana AI · Apache 2.0</div></footer><script src="assets/ecosystem-pages.js?v=20260928b"></script><script src="assets/sakura-site.js?v=20261001a"></script><script src="assets/yana-motion.js?v=20260929b"></script></body></html>
+  <!-- Google Fonts: Plus Jakarta Sans, JetBrains Mono & Caveat (Handwritten) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Core 2026 Design System (Site26 + Studio26) -->
+  <link rel="stylesheet" href="assets/ecosystem-pages.css?v=20260926a">
+  <link rel="stylesheet" href="assets/sakura-site.css?v=20260926a">
+  <link rel="stylesheet" href="assets/yana-white.css?v=20261003ko">
+  <link rel="stylesheet" href="assets/yana-home-upgrade.css?v=20260930c">
+  <link rel="stylesheet" href="assets/yana-nav.css">
+  <link rel="stylesheet" href="assets/site26.css">
+  <link rel="stylesheet" href="assets/studio26.css">
+</head>
+<body class="sakura-site home-page">
+
+  <!-- Nền Canvas Chấm Bi Mờ Rìa (Cố định, GPU < 2%) -->
+  <div class="site26-bg-canvas" aria-hidden="true"></div>
+
+  <!-- Thanh Menu Nổi Bo Tròn 2026 với LOGO MỚI CHÍNH THỨC -->
+    <nav class="site-nav"></nav>
+
+  <main>
+    <!-- 1. Hero Section Studio (Sống động, Nét vẽ tay & Badge lơ lửng) -->
+    <section class="studio-hero-2026">
+      <div class="floating-hero-pill">
+        <span>✨ Bản IDE Code-OSS Native 2026</span>
+        <span style="opacity: 0.4;">·</span>
+        <span style="color: #059669;">100% Private</span>
+      </div>
+      
+      <h1>
+        Mặt bàn làm việc của AI.<br>
+        <span class="text-rainbow-2026" style="position: relative;">
+          Quyền quyết định của bạn.
+          <svg class="hand-drawn-underline" viewBox="0 0 200 8" preserveAspectRatio="none">
+            <path d="M2,5 C50,2 150,7 198,4" />
+          </svg>
+        </span>
+        <span class="hand-note-tag">← không ai thay thế bạn!</span>
+      </h1>
+
+      <p class="lead-text">
+        Kế thừa trọn vẹn sức mạnh và extension của <strong>VS Code</strong>. 
+        Khác với Cursor hay Windsurf, ở đây <strong>bạn luôn làm chủ</strong>: AI không được phép âm thầm chạy lệnh nguy hiểm hay đè file khi chưa có cái gật đầu của bạn.
+      </p>
+
+      <div style="display: flex; gap: 16px; justify-content: center; align-items: center; margin-bottom: 36px; flex-wrap: wrap;">
+        <a href="#horizontal-showcase" class="btn-spring-2026 btn-spring-primary">
+          Khám phá không gian làm việc (Trượt ngang) →
+        </a>
+        <a href="#comparison" class="btn-spring-2026 btn-spring-secondary">
+          So sánh trực diện với Cursor
+        </a>
+      </div>
+
+      <!-- Tab Switcher tương tác chọn video demo -->
+      <div class="studio-tab-bar" id="explore">
+        <button class="studio-tab-btn active" data-studio-tab="tab-work">🎥 Toàn Cảnh IDE & AI</button>
+        <button class="studio-tab-btn" data-studio-tab="tab-terminal">💻 Terminal & Runtime</button>
+        <button class="studio-tab-btn" data-studio-tab="tab-audit">🛡️ Kiểm Soát & Audit</button>
+      </div>
+
+      <!-- Khung Apple iMac M4 Chuẩn Tỷ Lệ 2000:1702 -->
+      <div class="imac-showcase-wrapper" id="imac-demo">
+        <div class="studio-imac-device">
+          
+          <!-- Màn hình bên trong: Nằm lọt khớp 100% trong bezel Apple -->
+          <div class="studio-imac-screen">
+            <div id="tab-work" class="studio-tab-panel active">
+              <video 
+                src="/videos/work-screen.mp4" 
+                poster="assets/work-screen-poster.jpg" 
+                autoplay 
+                muted 
+                loop 
+                playsinline 
+                preload="metadata"
+                aria-label="Quay màn hình Yana Studio: Yana xin chạy lệnh rm, chờ bạn duyệt, rồi ghi vào audit">
+              </video>
+            </div>
+
+            <div id="tab-terminal" class="studio-tab-panel">
+              <video 
+                src="/videos/screen-terminal.mp4" 
+                poster="assets/terminal-poster.jpg" 
+                muted 
+                loop 
+                playsinline 
+                preload="none"
+                aria-label="Phiên terminal minh hoạ: yana-rt chat, Yana đọc file, xin chạy lệnh rm và chờ duyệt">
+              </video>
+            </div>
+
+            <div id="tab-audit" class="studio-tab-panel">
+              <video 
+                src="/videos/screen-capabilities-scrub.mp4" 
+                muted 
+                loop 
+                playsinline 
+                preload="none"
+                aria-label="Kiểm soát quyền hạn và audit log trong Yana Studio">
+              </video>
+            </div>
+          </div>
+
+          <!-- Lớp Bezel Apple iMac M4 Blue: Đè lên trên để viền máy và camera hiển thị sắc nét -->
+          <img class="studio-imac-bezel" src="assets/apple-imac-m4-blue.png" alt="Apple iMac M4 Display Frame" width="2000" height="1702" loading="eager">
+
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Dải Marquee 2 hàng chuyển động ngược chiều sống động (OneNotch/Framer Ticker) -->
+    <div class="studio-dual-marquee" aria-hidden="true">
+      <div class="marquee-line marquee-line-forward">
+        <div class="marquee-chip">⚡ Code-OSS Native Fork</div>
+        <div class="marquee-chip">🍎 Apple Silicon M-Series</div>
+        <div class="marquee-chip">🛡️ Zero Silent Execution</div>
+        <div class="marquee-chip">🟢 read_file: Được phép</div>
+        <div class="marquee-chip">🟠 run_command: Chờ bạn bấm duyệt</div>
+        <div class="marquee-chip">🔴 write_file: Chờ bạn bấm duyệt</div>
+        <div class="marquee-chip">🔗 Audit Chain Hash Log</div>
+        <div class="marquee-chip">🦙 Ollama Local Models trên máy</div>
+        <div class="marquee-chip">⚡ Code-OSS Native Fork</div>
+        <div class="marquee-chip">🍎 Apple Silicon M-Series</div>
+        <div class="marquee-chip">🛡️ Zero Silent Execution</div>
+        <div class="marquee-chip">🟢 read_file: Được phép</div>
+        <div class="marquee-chip">🟠 run_command: Chờ bạn bấm duyệt</div>
+        <div class="marquee-chip">🔴 write_file: Chờ bạn bấm duyệt</div>
+      </div>
+
+      <div class="marquee-line marquee-line-reverse">
+        <div class="marquee-chip">✨ Claude 3.7 Sonnet &amp; Opus</div>
+        <div class="marquee-chip">🧠 DeepSeek Reasoner</div>
+        <div class="marquee-chip">🌐 Tiếng Việt · English · 한국어</div>
+        <div class="marquee-chip">🔒 100% Local-First Privacy</div>
+        <div class="marquee-chip">📋 Interactive Diff Review</div>
+        <div class="marquee-chip">🎨 Visual Canvas Capability</div>
+        <div class="marquee-chip">✨ Claude 3.7 Sonnet &amp; Opus</div>
+        <div class="marquee-chip">🧠 DeepSeek Reasoner</div>
+        <div class="marquee-chip">🌐 Tiếng Việt · English · 한국어</div>
+        <div class="marquee-chip">🔒 100% Local-First Privacy</div>
+        <div class="marquee-chip">📋 Interactive Diff Review</div>
+      </div>
+    </div>
+
+    <!-- 3. KHÚC CHUYỂN ĐỘNG TRƯỢT NGANG: ẢNH APP YANA STUDIO THẬT TRÊN MACBOOK PRO KHÔNG BỊ CẮT -->
+    <section class="studio-horizontal-section" id="horizontal-showcase">
+      <div class="studio-horizontal-sticky">
+        <div class="studio-horizontal-header">
+          <p class="studio26-eyebrow">CHUYỂN ĐỘNG THEO CUỘN (SCROLL-DRIVEN)</p>
+          <h2 style="font-family: var(--font-display); font-size: clamp(26px, 3.2vw, 38px); font-weight: 800; color: var(--ink-primary); margin: 0;">
+            Giao diện Yana Studio IDE thực tế trên MacBook Pro Apple Silicon
+          </h2>
+        </div>
+
+        <div class="studio-horizontal-track">
+          
+          <!-- Thẻ 1: Màn hình Welcome Yana Studio thật do chính anh chụp -->
+          <div class="glass-panel-2026 horiz-card has-glow-2026">
+            <div>
+              <span class="horiz-card-tag">✨ MÀN HÌNH CHÍNH · LOCAL-FIRST AI AGENT OS</span>
+              <h3>Welcome to Yana Studio · 100% Private</h3>
+              <p>Màn hình chào mừng thực tế: Thiết kế Visual Canvas, bảng Yana Capabilities, quản lý Task board, kết nối Runtime nội bộ và trợ lý AI Supervised.</p>
+            </div>
+            
+            <div class="studio-macbook-device">
+              <div class="studio-macbook-screen">
+                <img src="assets/yana-studio-app-tam-welcome.png" alt="Ảnh app thật Welcome to Yana Studio trên MacBook Pro" loading="eager">
+              </div>
+              <img class="studio-macbook-bezel" src="assets/apple-macbook-pro-14-silver.png" alt="Apple MacBook Pro Bezel" width="1930" height="1270" loading="lazy">
+            </div>
+          </div>
+
+          <!-- Thẻ 2: Màn hình Cài đặt Models & Usage thật do chính anh chụp -->
+          <div class="glass-panel-2026 horiz-card has-glow-2026">
+            <div>
+              <span class="horiz-card-tag">🛡️ CẤU HÌNH &amp; GIÁM SÁT · 41 PROVIDERS</span>
+              <h3>Models &amp; Usage · Token Telemetry Thực Tế</h3>
+              <p>Màn hình cài đặt thực tế: Quản lý quota và token telemetry từ active provider, kết nối trực tiếp với Ollama (On-device), LM Studio và binary <code>yana-rt</code>.</p>
+            </div>
+            
+            <div class="studio-macbook-device">
+              <div class="studio-macbook-screen">
+                <img src="assets/yana-studio-app-tam-settings.png" alt="Ảnh app thật Yana Settings Models & Usage trên MacBook Pro" loading="lazy">
+              </div>
+              <img class="studio-macbook-bezel" src="assets/apple-macbook-pro-14-silver.png" alt="Apple MacBook Pro Bezel" width="1930" height="1270" loading="lazy">
+            </div>
+          </div>
+
+          <!-- Thẻ 3: Tự do chọn Model không lo lộ dữ liệu -->
+          <div class="glass-panel-2026 horiz-card has-glow-2026" style="width: clamp(360px, 40vw, 500px);">
+            <div>
+              <span class="horiz-card-tag">🦙 ĐA DẠNG NỀN TẢNG TRÍ TUỆ</span>
+              <h3>Chạy Offline hoặc Kết Nối Cloud</h3>
+              <p>Lựa chọn linh hoạt giữa việc giữ 100% mã nguồn trên máy cá nhân với mô hình cục bộ hoặc mở rộng với các mô hình suy luận hàng đầu.</p>
+            </div>
+            <div class="horiz-preview-box">
+              <span style="color: #a78bfa;">• Ollama Local:</span> Llama 3.2, Qwen 2.5, DeepSeek R1<br>
+              <span style="color: #38bdf8;">• Anthropic:</span> Claude 3.7 Sonnet &amp; Opus<br>
+              <span style="color: #34d399;">• OpenAI:</span> GPT-4o / o1 Architecture<br>
+              <span style="color: #f59e0b;">• Quản trị ranh giới:</span> <code>yana-rt 1.5.1</code>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. BẢNG SO SÁNH TRỰC TIẾP: Yana Studio vs Cursor / Copilot -->
+    <section class="studio26-section" id="comparison">
+      <div class="studio26-head">
+        <p class="studio26-eyebrow">SO SÁNH BẢN CHẤT</p>
+        <h2>Cùng nền tảng VS Code.<br><span class="text-rainbow-2026">Khác biệt hoàn toàn về triết lý an toàn.</span></h2>
+        <p>Cursor tập trung vào việc tạo code tự động càng nhanh càng tốt. Yana Studio thiết kế cho các kỹ sư và doanh nghiệp cần sự chính xác, an toàn tuyệt đối và có bằng chứng audit minh bạch.</p>
+      </div>
+
+      <div class="glass-panel-2026" style="padding: 36px 30px; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-family: var(--font-body); font-size: 15px;">
+          <thead>
+            <tr style="border-bottom: 2px solid #e2e8f0;">
+              <th style="padding: 16px 20px; font-family: var(--font-display); font-size: 16px; color: var(--ink-primary); width: 25%;">Tiêu chí</th>
+              <th style="padding: 16px 20px; font-family: var(--font-display); font-size: 16px; color: var(--ink-muted); width: 37%;">Cursor / AI IDE thông thường</th>
+              <th style="padding: 16px 20px; font-family: var(--font-display); font-size: 16px; color: #2563eb; width: 38%; background: rgba(37, 99, 235, 0.04); border-radius: 12px 12px 0 0;">✨ Yana Studio (Code-OSS + Runtime)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 18px 20px; font-weight: 700; color: var(--ink-primary);">Nền tảng lõi</td>
+              <td style="padding: 18px 20px; color: var(--ink-secondary);">Fork từ VS Code</td>
+              <td style="padding: 18px 20px; color: var(--ink-primary); background: rgba(37, 99, 235, 0.04); font-weight: 600;">Fork trực tiếp từ Code-OSS (VS Code chuẩn)</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 18px 20px; font-weight: 700; color: var(--ink-primary);">Quyền thực thi lệnh shell</td>
+              <td style="padding: 18px 20px; color: #ef4444;">AI có thể tự sinh và chạy lệnh ẩn trong nền</td>
+              <td style="padding: 18px 20px; color: #059669; background: rgba(37, 99, 235, 0.04); font-weight: 600;">Chặn mọi lệnh phá hoại (rm, drop db). Bắt buộc người dùng bấm Approve.</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 18px 20px; font-weight: 700; color: var(--ink-primary);">Kiểm soát tệp tin (File I/O)</td>
+              <td style="padding: 18px 20px; color: var(--ink-secondary);">AI tự động apply diff trực tiếp vào code</td>
+              <td style="padding: 18px 20px; color: var(--ink-primary); background: rgba(37, 99, 235, 0.04); font-weight: 600;">Xem trước diff rõ ràng, phân định ranh giới read vs write</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 18px 20px; font-weight: 700; color: var(--ink-primary);">Bảo mật &amp; Quyền riêng tư</td>
+              <td style="padding: 18px 20px; color: var(--ink-secondary);">Phụ thuộc máy chủ proxy của nhà cung cấp</td>
+              <td style="padding: 18px 20px; color: var(--ink-primary); background: rgba(37, 99, 235, 0.04); font-weight: 600;">Hỗ trợ chạy Offline 100% với Ollama trên máy của bạn</td>
+            </tr>
+            <tr>
+              <td style="padding: 18px 20px; font-weight: 700; color: var(--ink-primary);">Vết tích kiểm toán (Audit)</td>
+              <td style="padding: 18px 20px; color: var(--ink-muted);">Chỉ có lịch sử chat thông thường</td>
+              <td style="padding: 18px 20px; color: #2563eb; background: rgba(37, 99, 235, 0.04); border-radius: 0 0 12px 12px; font-weight: 600;">Audit Chain Hash Log: từng hành động đều được mã hóa bằng chứng</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 5. Lộ Trình 4 Bước Hành Trình (Journey Steps) -->
+    <section class="studio26-section">
+      <div class="studio26-head">
+        <p class="studio26-eyebrow">MỘT QUY TRÌNH RÕ RÀNG</p>
+        <h2>Từ mục tiêu đến kết quả.<br><span class="text-rainbow-2026">Bước nào bạn cũng nhìn thấy.</span></h2>
+        <p>Studio đặt project, model, công việc và quyết định của bạn trong cùng một không gian. Mỗi bước có chỗ riêng để bạn luôn nắm thế chủ động.</p>
+      </div>
+
+      <div class="journey-steps-grid">
+        <div class="glass-panel-2026 journey-step-card">
+          <span class="journey-step-num">BƯỚC 01 / PROJECT</span>
+          <h3>Mở thư mục thật</h3>
+          <p>Chọn project trên máy của bạn. Studio giữ đường dẫn trực tiếp tới thư mục, tuyệt đối không nhân bản repository sang nơi khác.</p>
+        </div>
+
+        <div class="glass-panel-2026 journey-step-card">
+          <span class="journey-step-num">BƯỚC 02 / MODEL</span>
+          <h3>Chọn trí tuệ</h3>
+          <p>Xem model cloud hoặc local từ catalog của runtime. Thay đổi model không tự ý thay đổi quyền thực thi bên dưới.</p>
+        </div>
+
+        <div class="glass-panel-2026 journey-step-card">
+          <span class="journey-step-num">BƯỚC 03 / WORK</span>
+          <h3>Làm việc có ngữ cảnh</h3>
+          <p>Trao đổi với Yana, mở tệp trong editor, theo dõi Git status và dùng terminal của chính bạn trên cùng một mặt bàn.</p>
+        </div>
+
+        <div class="glass-panel-2026 journey-step-card">
+          <span class="journey-step-num">BƯỚC 04 / REVIEW</span>
+          <h3>Giữ quyền quyết định</h3>
+          <p>Khi AI cần can thiệp file hoặc chạy lệnh hệ thống, Studio hiển thị yêu cầu để bạn xem xét và bấm duyệt.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Ranh Giới Quyền Hạn (Two Separate Lanes) -->
+    <section class="studio26-section">
+      <div class="glass-panel-2026 boundary-box">
+        <div class="boundary-copy">
+          <p class="studio26-eyebrow">QUYỀN HẠN CÓ RANH GIỚI</p>
+          <h2>Terminal của bạn.<br>Hành động của AI.<br><span class="text-rainbow-2026">Hai đường riêng biệt.</span></h2>
+          <p>Bạn có thể làm việc trực tiếp trong terminal shell cá nhân. Yana đi qua runtime và lớp kiểm soát năng lực. Nội dung AI tạo ra không bao giờ tự động biến thành lệnh shell.</p>
+          <a href="governance.html" class="btn-spring-2026 btn-spring-secondary">
+            Tìm hiểu Cổng Sự Thật & Hành Động ↗
+          </a>
+        </div>
+
+        <div class="boundary-lanes">
+          <div class="boundary-lane-item">
+            <small>ĐƯỜNG CỦA BẠN (OPERATOR LANE)</small>
+            <strong>Terminal Trực Tiếp</strong>
+            <span>Lệnh do bạn gõ trực tiếp → shell của bạn (toàn quyền kiểm soát)</span>
+          </div>
+
+          <div class="boundary-lane-item" style="border-left: 4px solid #3b82f6;">
+            <small>ĐƯỜNG CỦA YANA (SUPERVISED AGENT LANE)</small>
+            <strong>Yana Runtime &amp; Gates</strong>
+            <span>Đề xuất → Kiểm tra ranh giới → Chờ bạn phê duyệt → Ghi vết Audit</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. Bảng Trạng Thái Minh Bạch (Đã có vs Đang xây) -->
+    <section class="studio26-section">
+      <div class="studio26-head">
+        <p class="studio26-eyebrow">TRẠNG THÁI HIỆN TẠI</p>
+        <h2>Đang dùng được gì?<br><span class="text-rainbow-2026">Điều gì còn đang xây?</span></h2>
+        <p>Báo cáo trung thực theo đúng tài liệu bàn giao, minh bạch với người dùng về tiến độ thực tế của sản phẩm.</p>
+      </div>
+
+      <div class="status-grid">
+        <div class="glass-panel-2026 status-card">
+          <span class="status-tag ready">ĐÃ CÓ TRONG BẢN PHÁT TRIỂN</span>
+          <h3>Một workspace thật</h3>
+          <ul>
+            <li>Project và tệp tại chỗ, editor bảo vệ khi file đổi bên ngoài.</li>
+            <li>Terminal thật với tab, chia lưới, tìm kiếm và scrollback.</li>
+            <li>Chat qua Yana runtime, lịch sử hội thoại và nút dừng tức thì.</li>
+            <li>Git status, worktree và diff ở chế độ xem an toàn.</li>
+            <li>Hỗ trợ Ollama local models và API model cloud.</li>
+          </ul>
+        </div>
+
+        <div class="glass-panel-2026 status-card">
+          <span class="status-tag building">ĐANG HOÀN THIỆN</span>
+          <h3>Những lớp tiếp theo</h3>
+          <ul>
+            <li>Thiết kế Visual Canvas vẫn ở trạng thái thử nghiệm.</li>
+            <li>Màn quản trị quyền hạn và bằng chứng chi tiết hơn đang được phát triển.</li>
+            <li>Bộ cài ký số macOS, Linux, Windows chưa đóng gói hoàn tất.</li>
+            <li>Chưa có đồng bộ đám mây (ưu tiên bảo mật dữ liệu cục bộ).</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- 7.5. ĐIỀU KHOẢN PHÁP LÝ & MINH BẠCH BẢN QUYỀN (Legal Terms & Transparency) -->
+    <section class="studio-legal-section" id="legal">
+      <div class="legal-section-header">
+        <span class="tag-badge">🛡️ MINH BẠCH &amp; ĐIỀU KHOẢN PHÁP LÝ</span>
+        <h2>Rõ ràng về nguồn gốc.<br><span class="text-rainbow-2026">Bảo vệ quyền lợi tối đa cho bạn.</span></h2>
+        <p>Yana AI cam kết tuân thủ nghiêm ngặt chuẩn mực sở hữu trí tuệ quốc tế, bảo vệ mã nguồn của khách hàng và tôn trọng quyền tác giả của cộng đồng mã nguồn mở.</p>
+      </div>
+
+      <div class="legal-cards-grid">
+        <!-- Card 1: Bản quyền Code-OSS -->
+        <div class="glass-panel-2026 legal-card">
+          <div class="legal-card-header">
+            <div class="legal-card-icon">
+              <img src="assets/mac-icons/icon-mac-visual-studio-code.png" alt="VS Code Open Source">
+            </div>
+            <div>
+              <h3>Mã Nguồn Mở Code-OSS &amp; MIT</h3>
+              <small style="color: #64748b; font-family: var(--font-mono); font-size: 11px;">Microsoft Open Source Attribution</small>
+            </div>
+          </div>
+          <p>Yana Studio được xây dựng trên nền tảng dự án mã nguồn mở <strong>Code-OSS</strong> do Microsoft khởi xướng và phát hành theo <strong>Giấy phép MIT</strong>.</p>
+          <ul>
+            <li>Yana Studio là sản phẩm độc lập, không trực thuộc, không được tài trợ hay xác nhận chính thức bởi Microsoft Corporation.</li>
+            <li>"Visual Studio Code" và biểu trưng liên quan là thương hiệu đã đăng ký của Microsoft Corporation.</li>
+            <li>Mọi bản quyền upstream của cộng đồng đóng góp được tôn trọng nguyên vẹn.</li>
+          </ul>
+        </div>
+
+        <!-- Card 2: Bảo mật & Không rò rỉ mã nguồn -->
+        <div class="glass-panel-2026 legal-card">
+          <div class="legal-card-header">
+            <div class="legal-card-icon">
+              <img src="assets/mac-icons/icon-mac-system-settings.png" alt="Privacy & Security">
+            </div>
+            <div>
+              <h3>Bảo Vệ Dữ Liệu &amp; Zero-Cloud Leak</h3>
+              <small style="color: #64748b; font-family: var(--font-mono); font-size: 11px;">Chính sách Quyền riêng tư Tuyệt đối</small>
+            </div>
+          </div>
+          <p>Mã nguồn dự án và bí mật kinh doanh của bạn là tài sản tối thượng. Yana Studio thiết kế theo mô hình <strong>Local-First</strong>.</p>
+          <ul>
+            <li>100% dữ liệu không rời khỏi máy khi chạy mô hình cục bộ qua Ollama hoặc Apple Silicon Metal.</li>
+            <li>Không thu thập telemetry ẩn danh trái phép, không lưu trữ code của bạn trên máy chủ bên ngoài.</li>
+            <li>Bảo mật theo tiêu chuẩn cách ly tiến trình máy tính cá nhân.</li>
+          </ul>
+        </div>
+
+        <!-- Card 3: Trách nhiệm AI & Giám sát con người -->
+        <div class="glass-panel-2026 legal-card">
+          <div class="legal-card-header">
+            <div class="legal-card-icon">
+              <img src="assets/mac-icons/icon-mac-terminal.png" alt="Human-in-the-Loop">
+            </div>
+            <div>
+              <h3>Trách Nhiệm AI &amp; Quyền Tác Giả Code</h3>
+              <small style="color: #64748b; font-family: var(--font-mono); font-size: 11px;">Human-in-the-Loop Governance</small>
+            </div>
+          </div>
+          <p>Yana AI chỉ đóng vai trò trợ lý hỗ trợ kỹ thuật; <strong>quyền quyết định thực thi luôn thuộc về bạn</strong>.</p>
+          <ul>
+            <li>Mọi can thiệp phá huỷ (`rm`, `drop database`, sửa file quan trọng) đều qua Cổng Hành Động (Action Gate) chờ bạn bấm Duyệt.</li>
+            <li>Bạn và khách hàng của bạn sở hữu toàn bộ 100% bản quyền sở hữu trí tuệ đối với code được tạo ra.</li>
+            <li>Không ràng buộc bất kỳ điều khoản cấp phép nào làm hạn chế mục đích thương mại của bạn.</li>
+          </ul>
+        </div>
+
+        <!-- Card 4: Nhãn hiệu Apple & macOS Ecosystem -->
+        <div class="glass-panel-2026 legal-card">
+          <div class="legal-card-header">
+            <div class="legal-card-icon">
+              <img src="assets/mac-icons/icon-mac-finder.png" alt="macOS Compatibility">
+            </div>
+            <div>
+              <h3>Tương Thích macOS &amp; Thương Hiệu Apple</h3>
+              <small style="color: #64748b; font-family: var(--font-mono); font-size: 11px;">Apple Inc. Trademark Disclaimer</small>
+            </div>
+          </div>
+          <p>Yana Studio tối ưu hoá trải nghiệm trực tiếp cho hệ điều hành macOS và vi xử lý Apple Silicon.</p>
+          <ul>
+            <li>macOS, MacBook Pro, iMac, Apple Silicon (M1/M2/M3/M4) là các thương hiệu đã đăng ký của Apple Inc. tại Hoa Kỳ và các quốc gia khác.</li>
+            <li>Yana AI là dự án phần mềm độc lập nhằm mang đến trải nghiệm IDE có kiểm soát tốt nhất trên macOS.</li>
+            <li>Mọi biểu tượng ứng dụng macOS xuất hiện nhằm mục đích minh hoạ khả năng tương thích công cụ của nhà phát triển.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="legal-cta-bar">
+        <span>Cần tìm hiểu chi tiết các cam kết bảo hành, miễn trừ trách nhiệm và giấy phép phân phối?</span>
+        <button type="button" class="btn-spring-2026 btn-spring-secondary" id="btn-open-legal-modal" style="padding: 10px 24px; font-size: 14px;">
+          📜 Xem Toàn Văn Điều Khoản Sử Dụng (EULA) ↗
+        </button>
+      </div>
+    </section>
+
+    <!-- 8. ĐOẠN KẾT: HỆ THỐNG CÁC ỨNG DỤNG MACOS QUAY QUANH LÕI YANA AI -->
+    <section class="studio-closing-2026">
+      <!-- Cụm Lõi Trung Tâm & 3 Vòng Quỹ Đạo Đồng Tâm -->
+      <div class="orbital-center-anchor">
+        <!-- Logo Lõi Con Thỏ Cyberpunk Xanh Neon Phát Sáng Hào Quang -->
+        <div class="studio-closing-emblem">
+          <img src="assets/yana-rabbit-app-icon.png" alt="Yana Studio Core Emblem">
+        </div>
+
+        <!-- 3 Vòng Quỹ Đạo Xoay Quanh Lõi -->
+        <div class="orbital-system" aria-hidden="true">
+          <!-- Vòng 1: Cốt lõi phát triển (Bán kính 150px) -->
+          <div class="orbit-ring orbit-ring--1">
+            <div class="orbit-ring-track">
+              <div class="orbit-node" style="--angle: 0deg; --radius: 150px; --node-size: 44px;" title="macOS Finder">
+                <span class="orbit-tooltip">Finder</span>
+                <div class="orbit-node-inner">
+                  <img src="assets/mac-icons/icon-mac-finder.png" alt="Finder">
+                </div>
+              </div>
+              <div class="orbit-node" style="--angle: 90deg; --radius: 150px; --node-size: 44px;" title="Terminal (zsh)">
+                <span class="orbit-tooltip">Terminal</span>
+                <div class="orbit-node-inner">
+                  <img src="assets/mac-icons/icon-mac-terminal.png" alt="Terminal">
+                </div>
+              </div>
+              <div class="orbit-node" style="--angle: 180deg; --radius: 150px; --node-size: 44px;" title="Visual Studio Code">
+                <span class="orbit-tooltip">VS Code</span>
+                <div class="orbit-node-inner">
+                  <img src="assets/mac-icons/icon-mac-visual-studio-code.png" alt="VS Code">
+                </div>
+              </div>
+              <div class="orbit-node" style="--angle: 270deg; --radius: 150px; --node-size: 44px;" title="Xcode Beta">
+                <span class="orbit-tooltip">Xcode</span>
+                <div class="orbit-node-inner">
+                  <img src="assets/mac-icons/icon-mac-xcode-beta.png" alt="Xcode">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vòng 2: AI Engines & DevOps (Bán kính 260px) -->
+          <div class="orbit-ring orbit-ring--2">
+            <div class="orbit-ring-track">
+              <div class="orbit-node" style="--angle: 30deg; --radius: 260px; --node-size: 40px;" title="Claude AI">
+                <span class="orbit-tooltip">Claude AI</span>
+                <div class="orbit-node-inner">
+                  <img src="assets/mac-icons/icon-mac-claude.png" alt="Claude">
+                </div>
+              </div>
+              <div class="orbit-node" style="--angle: 90deg; --radius: 260px; --node-size: 40px;" title="Google Gemini">
+                <span class="orbit-tooltip">Gemini AI</span>
+                <div class="orbit-node-inner">
+                  <img src="assets/mac-icons/icon-mac-gemini.png" alt="Gemini">
+                </div>
+              </div>
+              <div class="orbit-node" style="--angle: 150deg; --radius: 260px; --node-size: 40px;" title="ChatGPT">
+                <span class="orbit-tooltip">ChatGPT</span>
+                <div class="orbit-node-inner">
+                  <img src="assets/mac-icons/icon-mac-chatgpt.png" alt="ChatGPT">
+                </div>
+              </div>
+              <div class="orbit-node" style="--angle: 210deg; --radius: 260px; --node-size: 40px;" title="Docker Desktop">
+                <span class="orbit-tooltip">Docker</span>
+                <div class="orbit-node-inner">
+                  <img src="assets/mac-icons/icon-mac-docker.png" alt="Docker">
+                </div>
+              </div>
+              <div class="orbit-node" style="--angle: 270deg; --radius: 260px; --node-size: 40px;" title="Warp AI Terminal">
+                <span class="orbit-tooltip">Warp Terminal</span>
+                <div class="orbit-node-inner">
+                  <img src="assets/mac-icons/icon-mac-warp.png" alt="Warp">
+                </div>
+              </div>
+              <div class="orbit-node" style="--angle: 330deg; --radius: 260px; --node-size: 40px;" title="Figma Design">
+                <span class="orbit-tooltip">Figma</span>
+                <div class="orbit-node-inner">
+                  <img src="assets/mac-icons/icon-mac-figma.png" alt="Figma">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vòng 3: Trình duyệt & Năng suất (Bán kính 380px) -->
+          <div class="orbit-ring orbit-ring--3">
+            <div class="orbit-ring-track">
+              <div class="orbit-node" style="--angle: 0deg; --radius: 380px; --node-size: 34px;" title="Safari">
+                <span class="orbit-tooltip">Safari</span>
+                <div class="orbit-node-inner">
+                  <img src="assets/mac-icons/icon-mac-safari.png" alt="Safari">
+                </div>
+              </div>
+              <div class="orbit-node" style="--angle: 45deg; --radius: 380px; --node-size: 34px;" title="Google Chrome">
+                <span class="orbit-tooltip">Chrome</span>
+                <div class="orbit-node-inner">
+                  <img src="assets/mac-icons/icon-mac-google-chrome.png" alt="Chrome">
+                </div>
+              </div>
+              <div class="orbit-node" style="--angle: 90deg; --radius: 380px; --node-size: 34px;" title="Ghostty">
+                <span class="orbit-tooltip">Ghostty</span>
+                <div class="orbit-node-inner">
+                  <img src="assets/mac-icons/icon-mac-ghostty.png" alt="Ghostty">
+                </div>
+              </div>
+              <div class="orbit-node" style="--angle: 135deg; --radius: 380px; --node-size: 34px;" title="Cursor AI">
+                <span class="orbit-tooltip">Cursor</span>
+                <div class="orbit-node-inner">
+                  <img src="assets/mac-icons/icon-mac-cursor.png" alt="Cursor">
+                </div>
+              </div>
+              <div class="orbit-node" style="--angle: 180deg; --radius: 380px; --node-size: 34px;" title="Obsidian">
+                <span class="orbit-tooltip">Obsidian</span>
+                <div class="orbit-node-inner">
+                  <img src="assets/mac-icons/icon-mac-obsidian.png" alt="Obsidian">
+                </div>
+              </div>
+              <div class="orbit-node" style="--angle: 225deg; --radius: 380px; --node-size: 34px;" title="Discord">
+                <span class="orbit-tooltip">Discord</span>
+                <div class="orbit-node-inner">
+                  <img src="assets/mac-icons/icon-mac-discord.png" alt="Discord">
+                </div>
+              </div>
+              <div class="orbit-node" style="--angle: 270deg; --radius: 380px; --node-size: 34px;" title="Telegram">
+                <span class="orbit-tooltip">Telegram</span>
+                <div class="orbit-node-inner">
+                  <img src="assets/mac-icons/icon-mac-telegram.png" alt="Telegram">
+                </div>
+              </div>
+              <div class="orbit-node" style="--angle: 315deg; --radius: 380px; --node-size: 34px;" title="Zalo">
+                <span class="orbit-tooltip">Zalo</span>
+                <div class="orbit-node-inner">
+                  <img src="assets/mac-icons/icon-mac-zalo.png" alt="Zalo">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="studio-closing-shell">
+        <h2>
+          Sẵn sàng trải nghiệm<br>
+          <span class="text-rainbow-2026">Yana Studio trên Mac?</span>
+        </h2>
+
+        <p>
+          Không gian IDE local-first an toàn, minh bạch và trao trọn quyền quyết định cho bạn.
+        </p>
+
+        <div class="studio-closing-actions">
+          <a href="runtime.html" class="btn-spring-2026 btn-spring-primary" style="padding: 16px 36px; font-size: 16px;">
+            Khám phá Kiến trúc Runtime ↗
+          </a>
+          <a href="index.html" class="btn-spring-2026 btn-spring-secondary" style="padding: 16px 32px; font-size: 16px;">
+            ← Về Trang Chủ Yana
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 9. Chân Trang Chuẩn Đầy Đủ (Footer) với LOGO MỚI CHÍNH THỨC -->
+  <footer class="studio26-footer">
+    <div class="footer-main-grid">
+      <div class="footer-col">
+        <a href="index.html" class="brand-link" style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-weight: 700; color: var(--ink-primary); text-decoration: none;">
+          <img src="assets/yana-rabbit-app-icon.png" alt="Yana Official Logo" style="width: 28px; height: 28px; border-radius: 7px; object-fit: cover; box-shadow: 0 2px 8px rgba(37,99,235,0.3);">
+          <span>Yana AI</span>
+        </a>
+        <p style="font-family: var(--font-body); font-size: 14px; color: var(--ink-secondary); line-height: 1.6;">
+          Hệ điều hành cá nhân cho công việc AI có kiểm soát. Tối ưu cho các kỹ sư trên nền tảng Apple Silicon.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Sản phẩm &amp; Tài nguyên</h4>
+        <a href="studio.html">Yana Studio</a>
+        <a href="wheelbot.html">Yana Wheelbot</a>
+        <a href="download.html">Tải Studio &amp; CLI</a>
+        <a href="updates.html">Cập nhật (Changelog)</a>
+        <a href="support.html">Hỗ trợ &amp; Liên hệ</a>
+        <a href="legal-notices.html">Bản quyền &amp; Pháp lý</a>
+      </div>
+
+      <div class="footer-col">
+        <h4>Tài liệu Kỹ thuật (Docs)</h4>
+        <a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ARCHITECTURE.md" target="_blank" rel="noreferrer">ARCHITECTURE.md ↗</a>
+        <a href="https://github.com/yanacuti1121/Yana-AI/blob/main/PHILOSOPHY.md" target="_blank" rel="noreferrer">PHILOSOPHY.md ↗</a>
+        <a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ROADMAP.md" target="_blank" rel="noreferrer">ROADMAP.md ↗</a>
+        <a href="https://github.com/yanacuti1121/Yana-AI/blob/main/CURRENT-MILESTONE.md" target="_blank" rel="noreferrer">CURRENT-MILESTONE.md ↗</a>
+        <a href="https://github.com/yanacuti1121/Yana-AI/blob/main/CHANGELOG.md" target="_blank" rel="noreferrer">CHANGELOG.md ↗</a>
+        <a href="https://github.com/yanacuti1121/Yana-AI/blob/main/BENCHMARK.md" target="_blank" rel="noreferrer">BENCHMARK.md ↗</a>
+      </div>
+
+      <div class="footer-col">
+        <h4>Quản trị &amp; Đóng góp</h4>
+        <a href="https://github.com/yanacuti1121/Yana-AI/blob/main/CONTRIBUTING.md" target="_blank" rel="noreferrer">CONTRIBUTING.md ↗</a>
+        <a href="https://github.com/yanacuti1121/Yana-AI/blob/main/SECURITY.md" target="_blank" rel="noreferrer">SECURITY.md ↗</a>
+        <a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ACKNOWLEDGEMENTS.md" target="_blank" rel="noreferrer">ACKNOWLEDGEMENTS.md ↗</a>
+        <a href="https://github.com/yanacuti1121/Yana-AI/blob/main/docs/history/LINEAGE.md" target="_blank" rel="noreferrer">LINEAGE.md ↗</a>
+        <a href="https://github.com/yanacuti1121/Yana-AI" target="_blank" rel="noreferrer">GitHub Repo ↗</a>
+        <a href="mailto:phamlongh230@gmail.com">phamlongh230@gmail.com</a>
+      </div>
+    </div>
+
+    <div class="footer-legal-notice">
+      <strong>Acknowledgements:</strong> Yana Studio được xây dựng trên nền tảng Code-OSS (Visual Studio Code mã nguồn mở) theo giấy phép MIT. Yana AI phát triển tuân thủ đầy đủ bản quyền mã nguồn mở. Tất cả quyền sở hữu trí tuệ của bên thứ ba được tôn trọng và ghi nhận minh bạch. © 2026 Yana AI · Giấy phép Apache 2.0.
+    </div>
+  </footer>
+
+  <!-- Script tương tác 2026 -->
+  <script src="assets/site26.js?v=20261020k"></script>
+
+  <!-- MODAL ĐIỀU KHOẢN PHÁP LÝ & THỎA THUẬN NGƯỜI DÙNG TOÀN VĂN (EULA) -->
+  <div class="legal-modal-backdrop" id="legal-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="legal-modal-content">
+      <div class="legal-modal-header">
+        <h3 id="modal-title">Điều Khoản Dịch Vụ, Bản Quyền &amp; Thỏa Thuận Người Dùng</h3>
+        <button type="button" class="btn-close-modal" id="btn-close-modal" aria-label="Đóng hộp thoại">✕</button>
+      </div>
+      <div class="legal-modal-body">
+        <p style="color: #64748b; font-size: 13px;">Phiên bản 1.6 · Có hiệu lực từ ngày 20 tháng 10 năm 2026 · Áp dụng cho Yana Studio và hệ sinh thái Yana AI.</p>
+
+        <h4>1. Căn Cứ Pháp Lý &amp; Bản Quyền Mã Nguồn Mở Code-OSS</h4>
+        <p>Yana Studio là một môi trường phát triển tích hợp (IDE) độc lập được phát triển dựa trên mã nguồn mở <strong>Code-OSS</strong> do Microsoft Corporation khởi xướng theo <strong>Giấy phép MIT</strong>. Mã nguồn Code-OSS được sử dụng, sửa đổi và phân phối tuân thủ đầy đủ các điều kiện của Giấy phép MIT. Yana AI không đại diện, không được tài trợ, không liên kết đối tác chính thức hoặc được xác nhận bởi Microsoft Corporation. Thương hiệu "Visual Studio Code" và logo VS Code thuộc quyền sở hữu của Microsoft Corporation.</p>
+
+        <h4>2. Cam Kết Quyền Riêng Tư &amp; Bảo Mật Dữ Liệu Mã Nguồn (Zero-Data Exfiltration)</h4>
+        <p>Yana Studio được thiết kế với kiến trúc bảo mật ưu tiên cục bộ (Local-First Architecture):</p>
+        <p>• Khi bạn kết nối với mô hình AI cục bộ (Ollama, Apple Silicon Metal Local LLMs), 100% dữ liệu tệp tin, prompt, git diff và lịch sử lệnh không bao giờ được truyền tải ra khỏi thiết bị của bạn.</p>
+        <p>• Khi sử dụng các mô hình đám mây qua API do người dùng tự cung cấp khoá (Bring Your Own Key - BYOK), dữ liệu chỉ được gửi trực tiếp đến điểm cuối API của nhà cung cấp mà bạn đã chỉ định.</p>
+        <p>• Yana Studio không thu thập telemetry bí mật, không ghi nhận mã nguồn của khách hàng và không chia sẻ cho bất kỳ bên thứ ba nào.</p>
+
+        <h4>3. Nguyên Tắc Giám Sát Con Người &amp; Miễn Trừ Trách Nhiệm Thực Thi (Human-in-the-Loop)</h4>
+        <p>Yana Studio tích hợp cơ chế Cổng Hành Động (Action Gate) với 6 cấp độ rủi ro (L0 đến L5). Mọi tác vụ có nguy cơ làm thay đổi hệ thống bao gồm: chạy lệnh shell nguy hiểm, ghi đè tệp tin cấu hình, xóa dữ liệu hoặc đẩy mã nguồn lên môi trường từ xa đều bắt buộc phải có sự xác nhận chủ động từ bạn.</p>
+        <p>Yana AI từ chối mọi trách nhiệm đối với các tổn thất phát sinh do người dùng tự ý phê duyệt các lệnh có tính chất phá hoại mà hệ thống đã đưa ra cảnh báo.</p>
+
+        <h4>4. Quyền Sở Hữu Trí Tuệ Đối Với Mã Nguồn Được Sinh Ra</h4>
+        <p>Bạn và khách hàng của bạn nắm giữ <strong>100% quyền sở hữu trí tuệ, quyền tác giả và quyền khai thác thương mại</strong> đối với tất cả các đoạn mã nguồn, tệp tin và sản phẩm được tạo ra hoặc chỉnh sửa thông qua Yana Studio. Yana AI không yêu cầu bất kỳ quyền cấp phép hoặc hoa hồng nào đối với các sản phẩm do bạn tạo ra.</p>
+
+        <h4>5. Tuyên Bố Thương Hiệu macOS &amp; Thiết Bị Phần Cứng Apple</h4>
+        <p>Apple, macOS, MacBook Pro, iMac, Apple Silicon (M1, M2, M3, M4) là các nhãn hiệu đã được đăng ký của Apple Inc. tại Hoa Kỳ và các quốc gia khác. Yana Studio được tối ưu hoá kỹ thuật để khai thác năng lực phần cứng của Apple Silicon, nhưng là một phần mềm độc lập và không có mối liên hệ thương mại với Apple Inc.</p>
+
+        <h4>6. Chuỗi Bằng Chứng Kiểm Toán Bất Biến (Audit Chain Hash Log)</h4>
+        <p>Yana Studio lưu trữ lịch sử các phiên duyệt lệnh bằng hàm băm mật mã SHA-256 cục bộ trên máy của bạn. Bản ghi này đóng vai trò làm bằng chứng kỹ thuật minh bạch cho quy trình tuân thủ an toàn thông tin (Compliance Audit) của doanh nghiệp.</p>
+
+        <h4>7. Giới Hạn Bảo Hành &amp; Điều Kiện Sử Dụng Phần Mềm</h4>
+        <p>Phần mềm được cung cấp trên nguyên tắc "NGUYÊN TRẠNG" (AS IS), không có bảo đảm dù rõ ràng hay ngụ ý dưới bất kỳ hình thức nào. Nhóm phát triển Yana AI liên tục cập nhật các bản vá an toàn và cải tiến chất lượng qua kho lưu trữ mã nguồn mở chính thức.</p>
+      </div>
+      <div class="legal-modal-footer">
+        <button type="button" class="btn-spring-2026 btn-spring-primary" id="btn-modal-agree" style="padding: 10px 24px; font-size: 14px;">
+          Tôi đã hiểu &amp; Đồng ý
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Xử lý mở/đóng Modal Điều khoản Pháp lý
+    const legalModal = document.getElementById("legal-modal");
+    const btnOpenModal = document.getElementById("btn-open-legal-modal");
+    const btnCloseModal = document.getElementById("btn-close-modal");
+    const btnModalAgree = document.getElementById("btn-modal-agree");
+
+    function openLegalModal() {
+      if (legalModal) {
+        legalModal.classList.add("open");
+        document.body.style.overflow = "hidden";
+      }
+    }
+
+    function closeLegalModal() {
+      if (legalModal) {
+        legalModal.classList.remove("open");
+        document.body.style.overflow = "";
+      }
+    }
+
+    if (btnOpenModal) btnOpenModal.addEventListener("click", openLegalModal);
+    if (btnCloseModal) btnCloseModal.addEventListener("click", closeLegalModal);
+    if (btnModalAgree) btnModalAgree.addEventListener("click", closeLegalModal);
+
+    // Đóng khi click ngoài hộp thoại
+    if (legalModal) {
+      legalModal.addEventListener("click", (e) => {
+        if (e.target === legalModal) closeLegalModal();
+      });
+    }
+
+    // Đóng khi nhấn phím Escape
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && legalModal && legalModal.classList.contains("open")) {
+        closeLegalModal();
+      }
+    });
+  </script>
+
+  <script src="assets/sakura-site.js"></script>
+</body>
+</html>

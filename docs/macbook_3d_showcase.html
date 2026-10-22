@@ -1,170 +1,51 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Yana AI — MacBook Pro M5 3D Interactive Showcase</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
-<style>
-  :root {
-    --bg-dark: #07070a;
-    --card-surface: #0f1016;
-    --accent-cyan: #38bdf8;
-    --accent-indigo: #818cf8;
-    --accent-emerald: #34d399;
-  }
-  body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    background: radial-gradient(circle at 50% 30%, #151624 0%, #08080c 60%, #030305 100%);
-    color: #f1f5f9;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-  .mono { font-family: 'JetBrains Mono', monospace; }
-  .display { font-family: 'Space Grotesk', sans-serif; }
-
-  /* 3D Stage & Interactive Perspective */
-  .stage-viewport {
-    perspective: 2000px;
-    transform-style: preserve-3d;
-  }
-  .macbook-rig {
-    transform-style: preserve-3d;
-    transition: transform 0.15s cubic-bezier(0.2, 0, 0.2, 1);
-    transform: rotateX(12deg) rotateY(-18deg) rotateZ(0deg);
-  }
-
-  /* MacBook Screen Assembly */
-  .mac-lid {
-    width: 640px;
-    height: 415px;
-    border-radius: 20px 20px 4px 4px;
-    background: #000;
-    border: 10px solid #1c1d22;
-    border-bottom: 14px solid #1a1b20;
-    box-shadow: 
-      0 0 0 1px rgba(255,255,255,0.12),
-      0 25px 60px -15px rgba(0,0,0,0.85),
-      0 0 80px rgba(56, 189, 248, 0.15);
-    position: relative;
-    transform-origin: bottom center;
-    transform: translateZ(4px);
-    overflow: hidden;
-  }
-
-  /* Screen Bezel Notch */
-  .mac-notch {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 110px;
-    height: 13px;
-    background: #1c1d22;
-    border-radius: 0 0 10px 10px;
-    z-index: 50;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-  .mac-camera {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: #0f172a;
-    box-shadow: inset 0 0 2px #38bdf8;
-  }
-  .mac-sensor {
-    width: 3px;
-    height: 3px;
-    border-radius: 50%;
-    background: #1e293b;
-  }
-
-  /* MacBook Keyboard Base */
-  .mac-base {
-    width: 680px;
-    height: 22px;
-    margin: -4px auto 0;
-    background: linear-gradient(180deg, #32333b 0%, #1c1d23 45%, #0e0f13 100%);
-    border-radius: 0 0 22px 22px;
-    box-shadow: 
-      0 1px 0 rgba(255,255,255,0.15) inset,
-      0 40px 70px -15px rgba(0,0,0,0.9);
-    position: relative;
-    display: flex;
-    justify-content: center;
-  }
-  .mac-notch-thumb {
-    width: 70px;
-    height: 4px;
-    background: #121318;
-    border-radius: 0 0 6px 6px;
-    box-shadow: 0 1px 0 rgba(255,255,255,0.06);
-  }
-
-  /* Ground Shadow & Ambient Light */
-  .ground-shadow {
-    position: absolute;
-    bottom: -60px;
-    left: 50%;
-    transform: translateX(-50%) rotateX(90deg);
-    width: 800px;
-    height: 350px;
-    background: radial-gradient(ellipse at center, rgba(0,0,0,0.85) 0%, rgba(56, 189, 248, 0.08) 40%, transparent 70%);
-    pointer-events: none;
-    filter: blur(10px);
-  }
-
-  /* Studio Glow Nodes */
-  .pulse-glow {
-    animation: glowPulse 3s ease-in-out infinite;
-  }
-  @keyframes glowPulse {
-    0%, 100% { opacity: 0.8; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.03); }
-  }
-
-  /* Custom Scrollbar for Terminal */
-  ::-webkit-scrollbar { width: 4px; height: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yana AI — MacBook Pro M5 3D Interactive Showcase — Yana AI 2026</title>
+  <meta name="description" content="Tài liệu kỹ thuật và hướng dẫn thuộc hệ sinh thái Yana AI 2026.">
+  <link rel="icon" type="image/svg+xml" href="yana-mark.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site26.css">
+  <link rel="stylesheet" href="assets/studio26.css">
 </head>
-<body class="flex flex-col items-center justify-between min-h-screen p-6 select-none">
-
-  <!-- TOP HEADER -->
-  <header class="w-full max-w-6xl flex items-center justify-between py-4 px-6 border-b border-white/5 backdrop-blur-md bg-white/[0.02] rounded-2xl">
-    <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-        <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-        </svg>
+<body class="site26-body page-article">
+  <header class="site26-nav-wrap">
+    <nav class="site26-nav" aria-label="Điều hướng chính">
+      <a href="index.html" class="nav-brand" aria-label="Yana AI Trang chủ">
+        <img src="assets/yana-rabbit-app-icon.png" alt="Yana Logo" class="brand-logo" width="32" height="32">
+        <span class="brand-text">Yana <span class="brand-sub">AI 2026</span></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="studio.html">Studio IDE</a></li>
+        <li><a href="runtime.html">Runtime</a></li>
+        <li><a href="wheelbot.html">WheelBot</a></li>
+        <li><a href="governance.html">Giám Thị OS</a></li>
+        <li><a href="agents-skills.html">Agents & Skills</a></li>
+        <li><a href="commands.html">Lệnh (170)</a></li>
+        <li><a href="evidence.html">Truth Gate</a></li>
+        <li><a href="download.html">Tải về</a></li>
+      </ul>
+      <div class="nav-cta">
+        <a href="download.html" class="btn-nav-primary">Tải Yana Studio</a>
       </div>
-      <div>
-        <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-2">
-          Yana Studio <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono">v1.6.2 M5</span>
-        </h1>
-        <p class="text-xs text-slate-400">Personal Agent Operating System • 3D Interactive Cockpit</p>
-      </div>
-    </div>
-
-    <!-- Quick Controls -->
-    <div class="flex items-center gap-3">
-      <div class="flex items-center gap-2 text-xs text-slate-400 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-        <span>Rê chuột để xoay 3D</span>
-      </div>
-      <button onclick="resetAngle()" class="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-slate-200 transition font-medium">
-        Góc chuẩn (115°)
-      </button>
-      <button onclick="toggleSideView()" class="text-xs px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30 transition font-medium">
-        Xem góc nghiêng CNC
-      </button>
-    </div>
+    </nav>
   </header>
+
+  <main class="site26-main doc-container">
+    <section class="doc-hero">
+      <div class="doc-badge">HỆ THỐNG YANA AI 2026</div>
+      <h1 class="doc-title">Yana AI — MacBook Pro M5 3D Interactive Showcase</h1>
+      <p class="doc-lead">Tài liệu kỹ thuật và hướng dẫn thuộc hệ sinh thái Yana AI 2026.</p>
+    </section>
+
+    <div class="doc-content-wrapper">
+      <div class="doc-main-body">
+<!-- TOP HEADER -->
+  
 
   <!-- 3D MACBOOK VIEWPORT -->
   <main class="w-full flex-1 flex items-center justify-center relative py-12 stage-viewport">
@@ -344,18 +225,7 @@
   </main>
 
   <!-- BOTTOM FOOTER CONTROLLER -->
-  <footer class="w-full max-w-4xl flex items-center justify-between py-3 px-6 bg-white/[0.02] border border-white/5 rounded-2xl text-xs text-slate-400">
-    <div class="flex items-center gap-4">
-      <span>📐 <b>Kích thước:</b> 312.6 × 221.2 × 15.5 mm</span>
-      <span>💻 <b>Chip:</b> Apple M5 Max</span>
-      <span>🛡️ <b>OS:</b> Yana Agent OS</span>
-    </div>
-    <div class="text-right">
-      <span class="text-cyan-400 font-semibold">Tự động xoay 3D theo con trỏ chuột</span>
-    </div>
-  </footer>
-
-<script>
+  
   const rig = document.getElementById('macbookRig');
   let currentRx = 12;
   let currentRy = -18;
@@ -389,5 +259,73 @@
     targetRy = 55; // Nhìn vát một bên hông máy thấy rõ độ mỏng nhôm CNC
   }
 </script>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site26-footer">
+    <div class="footer-inner">
+      <div class="footer-brand-col">
+        <a href="index.html" class="footer-logo">
+          <img src="assets/yana-rabbit-app-icon.png" alt="Yana" width="28" height="28">
+          <span>Yana AI</span>
+        </a>
+        <p class="footer-tagline">Hệ điều hành Agentic AI cá nhân hóa — An toàn theo thiết kế, bảo chứng bằng sự thật.</p>
+        <div class="footer-crypto-badge">SHA-256 Verified Ecosystem • 2026</div>
+      </div>
+      <div class="footer-links-grid">
+        <div class="footer-col">
+          <h4>Sản Phẩm</h4>
+          <ul>
+            <li><a href="studio.html">Yana Studio IDE</a></li>
+            <li><a href="runtime.html">Yana Runtime Engine</a></li>
+            <li><a href="wheelbot.html">WheelBot Physical AI</a></li>
+            <li><a href="governance.html">Giám Thị OS</a></li>
+            <li><a href="download.html">Tải Bản Phát Hành</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Kiến Trúc & An Toàn</h4>
+          <ul>
+            <li><a href="architecture.html">Kiến Trúc Hệ Thống</a></li>
+            <li><a href="evidence.html">Truth Gate L0–L5</a></li>
+            <li><a href="safety.html">Hàng Rào Bảo Vệ</a></li>
+            <li><a href="connectors.html">MCP & Connectors</a></li>
+            <li><a href="continuity.html">Bộ Nhớ L1/L2</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Cài Đặt & Hỗ Trợ</h4>
+          <ul>
+            <li><a href="install-macos.html">Cài trên macOS</a></li>
+            <li><a href="install-linux.html">Cài trên Linux</a></li>
+            <li><a href="install-windows.html">Cài trên Windows</a></li>
+            <li><a href="yana-ai-system-map.html">Bản Đồ Hệ Thống</a></li>
+            <li><a href="support.html">Trung Tâm Hỗ Trợ</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Pháp Lý & Minh Bạch</h4>
+          <ul>
+            <li><a href="privacy.html">Chính Sách Riêng Tư</a></li>
+            <li><a href="legal-notices.html">Thông Cáo Pháp Lý</a></li>
+            <li><a href="acknowledgements.html">Tri Ân Mã Nguồn Mở</a></li>
+            <li><a href="history.html">Lịch Sử Phát Triển</a></li>
+            <li><a href="updates.html">Nhật Ký Cập Nhật</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Yana AI. Bản quyền mở theo Giấy phép MIT. Phát triển độc lập và tự chủ.</p>
+      <div class="footer-bottom-links">
+        <a href="privacy.html">Bảo mật</a>
+        <a href="legal-notices.html">Điều khoản</a>
+        <a href="contact.html">Liên hệ</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/site26.js"></script>
 </body>
 </html>

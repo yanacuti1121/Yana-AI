@@ -3,188 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nhạc — Yana AI</title>
-<meta property="og:title" content="Music — Yana AI">
-<meta property="og:description" content="Background music player for Yana AI — synced across all pages.">
-<meta property="og:image" content="https://yanacuti1121.github.io/yana-ai/yana-ai-overview.png">
-<meta property="og:url" content="https://yana-ai.pages.dev/music.html">
-<meta property="og:type" content="website">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Music — Yana AI">
-<meta name="twitter:description" content="Background music player for Yana AI — synced across all pages.">
-<meta name="description" content="Background music player for Yana AI — synced across all pages.">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:       hsl(40 30% 97%);
-      --bg-card:  hsl(0 0% 100%);
-      --border:   hsl(40 15% 88%);
-      --fg:       hsl(24 25% 12%);
-      --fg-muted: hsl(24 10% 48%);
-      --teal:     hsl(155 52% 32%);
-      --teal-lt:  hsla(155 52% 32% / .10);
-      --teal-md:  hsla(155 52% 32% / .22);
-      --shadow:   0 2px 16px hsla(155 40% 20% / .10), 0 1px 4px hsla(155 40% 20% / .06);
-    }
-
-    body {
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-      background: var(--bg);
-      color: var(--fg);
-      min-height: 100vh;
-      padding: 2.5rem 1rem 4rem;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    .container { max-width: 520px; margin: 0 auto; }
-
-    /* Back link */
-    .back-link {
-      display: inline-flex; align-items: center; gap: .4rem;
-      color: var(--fg-muted); text-decoration: none; font-size: .84rem;
-      margin-bottom: 2rem; transition: color .15s;
-    }
-    .back-link:hover { color: var(--teal); }
-
-    /* Header */
-    .page-header { margin-bottom: 2rem; }
-    .page-header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -.02em; }
-    .page-header p  { color: var(--fg-muted); font-size: .875rem; margin-top: .3rem; }
-
-    /* Player card */
-    .player-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 1.25rem 1.25rem 1rem;
-      box-shadow: var(--shadow);
-      margin-bottom: 1.25rem;
-    }
-
-    .now-label {
-      font-size: .68rem; font-weight: 700; letter-spacing: .08em;
-      text-transform: uppercase; color: var(--teal); margin-bottom: .6rem;
-    }
-
-    .now-row {
-      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-    }
-
-    .now-info { flex: 1; min-width: 0; }
-    .now-name {
-      font-weight: 600; font-size: .95rem;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .now-artist { font-size: .78rem; color: var(--fg-muted); margin-top: .15rem; }
-
-    /* Controls */
-    .controls { display: flex; align-items: center; gap: .6rem; flex-shrink: 0; }
-
-    .btn-ctrl {
-      display: flex; align-items: center; justify-content: center;
-      width: 38px; height: 38px; border-radius: 50%;
-      border: 1.5px solid var(--border);
-      background: var(--bg-card); cursor: pointer;
-      font-size: 1rem; transition: all .15s; color: var(--fg);
-    }
-    .btn-ctrl:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-lt); }
-
-    .btn-play {
-      width: 44px; height: 44px; font-size: 1.1rem;
-      background: var(--teal); border-color: var(--teal); color: #fff;
-    }
-    .btn-play:hover { background: hsl(155 55% 26%); border-color: hsl(155 55% 26%); color: #fff; }
-    .btn-play.paused { background: var(--bg-card); color: var(--teal); border-color: var(--teal); }
-    .btn-play.paused:hover { background: var(--teal-lt); }
-
-    /* Progress bar */
-    .progress-wrap {
-      margin-top: 1rem;
-      height: 3px; background: var(--border); border-radius: 2px;
-      overflow: hidden;
-    }
-    .progress-bar {
-      height: 100%; background: var(--teal); border-radius: 2px;
-      width: 0%; transition: width .8s linear;
-    }
-
-    /* Track list */
-    .section-label {
-      font-size: .72rem; font-weight: 700; letter-spacing: .07em;
-      text-transform: uppercase; color: var(--fg-muted);
-      margin-bottom: .75rem;
-    }
-
-    .track-list { display: flex; flex-direction: column; gap: .5rem; }
-
-    .track {
-      display: flex; align-items: center; gap: .875rem;
-      padding: .75rem .875rem;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: border-color .15s, background .15s, box-shadow .15s;
-    }
-    .track:hover { border-color: hsla(155 52% 32% / .4); box-shadow: 0 1px 8px hsla(155 40% 20% / .08); }
-    .track.active {
-      background: var(--teal-lt);
-      border-color: hsla(155 52% 32% / .35);
-      box-shadow: 0 2px 12px hsla(155 40% 20% / .10);
-    }
-
-    .track-icon { font-size: 1.3rem; flex-shrink: 0; line-height: 1; }
-    .track-info { flex: 1; min-width: 0; }
-    .track-name  { font-weight: 600; font-size: .875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .track-artist { font-size: .75rem; color: var(--fg-muted); margin-top: .1rem; }
-    .track-badge {
-      font-size: .62rem; font-weight: 700; letter-spacing: .04em;
-      background: var(--teal-md); color: var(--teal);
-      padding: .15rem .55rem; border-radius: 20px; flex-shrink: 0;
-    }
-    .track-remove {
-      font-size: .75rem; opacity: 0; padding: .15rem .4rem;
-      cursor: pointer; color: var(--fg-muted); transition: opacity .15s;
-      border-radius: 4px;
-    }
-    .track:hover .track-remove { opacity: .6; }
-    .track-remove:hover { opacity: 1 !important; color: hsl(0 65% 50%); }
-
-    /* Add section */
-    .add-section {
-      margin-top: 1.5rem; padding-top: 1.25rem;
-      border-top: 1px solid var(--border);
-    }
-    .add-section h2 { font-size: .9rem; font-weight: 600; margin-bottom: .625rem; }
-    .add-form { display: flex; gap: .5rem; }
-    .add-input {
-      flex: 1; padding: .55rem .875rem;
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 8px; color: var(--fg); font-size: .875rem; outline: none;
-      transition: border-color .15s;
-    }
-    .add-input::placeholder { color: var(--fg-muted); }
-    .add-input:focus { border-color: hsla(155 52% 32% / .5); box-shadow: 0 0 0 3px hsla(155 52% 32% / .12); }
-    .add-btn {
-      padding: .55rem 1rem;
-      background: var(--teal); border: 1px solid var(--teal);
-      border-radius: 8px; color: #fff; font-size: .875rem; font-weight: 600;
-      cursor: pointer; transition: background .15s; white-space: nowrap;
-    }
-    .add-btn:hover { background: hsl(155 55% 26%); }
-    .add-hint { font-size: .72rem; color: var(--fg-muted); margin-top: .4rem; }
-  
-    .dark { --bg: hsl(24 15% 8%); --bg-card: hsl(24 10% 10%); --border: hsl(24 10% 18%); --fg: hsl(38 20% 92%); --fg-muted: hsl(38 8% 55%); --teal: hsl(155 52% 42%); --teal-lt: hsla(155 52% 42% / .12); --teal-md: hsla(155 52% 42% / .24); }
-    html.theme-trans * { transition: background-color .25s ease, color .2s ease, border-color .2s ease !important; }
-  </style>
+  <title>Nhạc — Yana AI 2026</title>
+  <meta name="description" content="Phát xuyên trang — lưu vị trí giữa các lần truy cập">
+  <link rel="icon" type="image/svg+xml" href="yana-mark.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site26.css">
+  <link rel="stylesheet" href="assets/studio26.css">
 </head>
-<body>
-  <div class="container">
+<body class="site26-body page-article">
+  <header class="site26-nav-wrap">
+    <nav class="site26-nav" aria-label="Điều hướng chính">
+      <a href="index.html" class="nav-brand" aria-label="Yana AI Trang chủ">
+        <img src="assets/yana-rabbit-app-icon.png" alt="Yana Logo" class="brand-logo" width="32" height="32">
+        <span class="brand-text">Yana <span class="brand-sub">AI 2026</span></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="studio.html">Studio IDE</a></li>
+        <li><a href="runtime.html">Runtime</a></li>
+        <li><a href="wheelbot.html">WheelBot</a></li>
+        <li><a href="governance.html">Giám Thị OS</a></li>
+        <li><a href="agents-skills.html">Agents & Skills</a></li>
+        <li><a href="commands.html">Lệnh (170)</a></li>
+        <li><a href="evidence.html">Truth Gate</a></li>
+        <li><a href="download.html">Tải về</a></li>
+      </ul>
+      <div class="nav-cta">
+        <a href="download.html" class="btn-nav-primary">Tải Yana Studio</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="site26-main doc-container">
+    <section class="doc-hero">
+      <div class="doc-badge">HỆ THỐNG YANA AI 2026</div>
+      <h1 class="doc-title">🎵 Nhạc nền</h1>
+      <p class="doc-lead">Phát xuyên trang — lưu vị trí giữa các lần truy cập</p>
+    </section>
+
+    <div class="doc-content-wrapper">
+      <div class="doc-main-body">
+<div class="container">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem"><a href="index.html" class="back-link" style="margin-bottom:0">← Về trang chủ</a><button id="theme-toggle" onclick="toggleTheme()" style="border:none;background:transparent;cursor:pointer;font-size:1rem;padding:.25rem .4rem;border-radius:6px">🌙</button></div>
 
     <div class="page-header">
-      <h1>🎵 Nhạc nền</h1>
+      
       <p>Phát xuyên trang — lưu vị trí giữa các lần truy cập</p>
     </div>
 
@@ -232,235 +96,73 @@
   </div>
 
   <div id="yt-player" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none"></div>
-  <script src="shared-theme.js"></script>
-  <script>window._customToggleMute = true;</script>
-  <script src="music-player.js"></script>
-  <script src="https://www.youtube.com/iframe_api"></script>
+      </div>
+    </div>
+  </main>
 
-  <script>
-  const DEFAULT_TRACKS = [
-    { id: 'aKSJAcG4V4o', name: 'Chưa Được Yêu Như Thế',             artist: 'Trang · 1 giờ lofi',             icon: '🌙' },
-    { id: 'KeoAfgsM8o4', name: 'Nhạc Lofi Việt Chill',               artist: 'Lofi playlist · 2 giờ',           icon: '☕' },
-    { id: 'oy2CxxQCuhw', name: 'Bình Yên, Thằng Điên, Cứ Chill Thôi', artist: 'Nhạc Việt hay nhất',             icon: '🎶' },
-    { id: 'w1wdiibZTl8', name: 'Nhạc Chill Chữa Lành Tâm Hồn',      artist: 'Hits nhạc trẻ',                  icon: '🌸' },
-    { id: 'JCn0hoILmyw', name: 'List Chill 3 — Nhạc Không Lời',      artist: 'Relaxing Music',                 icon: '🌿' },
-    { id: 'fuXfT4Rv_WM', name: 'Nhạc Piano Thư Giãn',                artist: 'Âm thanh nước chảy · Nhạc thiền', icon: '🎹' },
-    { id: 'fDYDUonzTnM', name: 'Nhạc Chill Mở Đầu Ngày Mới',        artist: 'Buộc Vào Cơn Gió · Playlist',    icon: '🌤' },
-    { id: 'meZ9yZeebE8', name: 'Restore Your Nervous System',         artist: 'Stop Overthinking · Sleep',       icon: '🌿' },
-    { id: 'GZKSEAlOZRc', name: 'Âm Nhạc Tích Cực Buổi Sáng',        artist: 'Thư Giãn · Năng Lượng · Hạnh Phúc', icon: '🌅' },
-    { id: 'rA0XEb6ZBeU', name: 'List Chill 1 — Nhạc Không Lời',      artist: 'Relaxing music',                  icon: '🎼' },
-    { id: 'jbge2Ymnhvw', name: 'Nhạc Áp Tai Gối',                    artist: 'Bèo Dạt Mây Trôi · Piano Ballad', icon: '🌙' },
-    { id: 'Wr5kpTtcPMM', name: 'Vô Tình Bật Lên MOOD Lên Quá Trời', artist: 'Playlist Nhạc Chill Mùa Hạ',       icon: '🍃' },
-    { id: 'xX1w3mmTvHU', name: '2-Hour Study With Me',               artist: 'Piano · Pomodoro 25-5 · Window',   icon: '📚' },
-    { id: 'y1-rYYJvVVI', name: 'Nhạc Chill Bắt Đầu Ngày Mới',       artist: 'Nơi Con Tim Yên Bình · Playlist',  icon: '☀️' },
-  ];
-
-  let _saved = JSON.parse(localStorage.getItem('music-tracks') || 'null');
-  let tracks = (_saved && _saved.length) ? _saved : DEFAULT_TRACKS;
-  let _playing = true;
-  let _progressInterval = null;
-
-  function getVid() { return localStorage.getItem('music-vid') || DEFAULT_TRACKS[0].id; }
-  function saveTracks() { localStorage.setItem('music-tracks', JSON.stringify(tracks)); }
-
-  function extractId(url) {
-    url = url.trim();
-    const m = url.match(/(?:youtu\.be\/|v=|embed\/)([a-zA-Z0-9_-]{11})/);
-    if (m) return m[1];
-    if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
-    return null;
-  }
-
-  function togglePlay() {
-    // Local MP3 active → control local audio first
-    if (_localAudio && _localCur !== null) {
-      if (!_localAudio.paused) {
-        _localAudio.pause();
-        _playing = false;
-      } else {
-        _localAudio.play().catch(() => {});
-        _playing = true;
-      }
-      syncPlayBtn();
-      return;
-    }
-    // YT: if currently playing → pause; otherwise → resume/start
-    const isPlaying = window._getMusicPlaying ? window._getMusicPlaying() : _playing;
-    if (isPlaying) {
-      window._pauseMusic && window._pauseMusic();
-      _playing = false;
-    } else {
-      // Player may not be ready yet — _resumeMusic handles pending play
-      window._resumeMusic && window._resumeMusic();
-      _playing = true;
-    }
-    syncPlayBtn();
-  }
-
-  function toggleMuteLocal() {
-    window.toggleMuteOnly && window.toggleMuteOnly();
-    syncMuteBtn();
-  }
-
-  function syncPlayBtn() {
-    const btn = document.getElementById('play-btn');
-    if (!btn) return;
-    const localPlaying = _localAudio && !_localAudio.paused;
-    // Use actual player state if available, fall back to _playing intent
-    const ytActual  = window._getMusicPlaying ? window._getMusicPlaying() : false;
-    const ytPlaying = ytActual || _playing;
-    const isPlaying = localPlaying || ytPlaying;
-    btn.textContent = isPlaying ? '⏸' : '▶';
-    btn.classList.toggle('paused', !isPlaying);
-    btn.title = isPlaying ? 'Dừng' : 'Phát';
-  }
-
-  function syncMuteBtn() {
-    const muted = localStorage.getItem('site-mute') === '1';
-    const btn = document.getElementById('mute-btn');
-    if (btn) { btn.textContent = muted ? '🔇' : '🔊'; btn.title = muted ? 'Bật tiếng' : 'Tắt tiếng'; }
-  }
-
-  function startProgress() {
-    clearInterval(_progressInterval);
-    _progressInterval = setInterval(() => {
-      const bar = document.getElementById('progress-bar');
-      if (!bar) return;
-      // Local MP3 takes priority
-      if (_localAudio && _localAudio.duration) {
-        const pct = Math.min(100, (_localAudio.currentTime / _localAudio.duration) * 100);
-        bar.style.width = pct + '%';
-        syncPlayBtn();
-        return;
-      }
-      const p = window._getMusicPlayer && window._getMusicPlayer();
-      if (!p || typeof p.getDuration !== 'function') return;
-      const dur = p.getDuration();
-      if (!dur) return;
-      const pct = Math.min(100, (p.getCurrentTime() / dur) * 100);
-      bar.style.width = pct + '%';
-    }, 1000);
-  }
-
-  function playTrack(vid) {
-    window._loadMusicTrack && window._loadMusicTrack(vid, true);
-    _playing = true;
-    setTimeout(() => { syncPlayBtn(); startProgress(); }, 300);
-    renderList();
-  }
-
-  function addTrack() {
-    const url = document.getElementById('add-url').value;
-    const vid = extractId(url);
-    if (!vid) { alert('Link không hợp lệ'); return; }
-    if (tracks.find(t => t.id === vid)) { playTrack(vid); document.getElementById('add-url').value = ''; return; }
-    tracks.push({ id: vid, name: 'Bài thêm mới', artist: vid, icon: '🎵' });
-    saveTracks();
-    playTrack(vid);
-    document.getElementById('add-url').value = '';
-  }
-
-  function removeTrack(vid, e) {
-    e.stopPropagation();
-    tracks = tracks.filter(t => t.id !== vid);
-    saveTracks();
-    if (getVid() === vid) playTrack(tracks[0]?.id || DEFAULT_TRACKS[0].id);
-    else renderList();
-  }
-
-  function renderList() {
-    const cur = getVid();
-    const el = document.getElementById('track-list');
-    el.innerHTML = tracks.map(t => `
-      <div class="track ${t.id === cur ? 'active' : ''}" onclick="playTrack('${t.id}')">
-        <span class="track-icon">${t.icon}</span>
-        <div class="track-info">
-          <div class="track-name">${t.name}</div>
-          <div class="track-artist">${t.artist}</div>
+  <footer class="site26-footer">
+    <div class="footer-inner">
+      <div class="footer-brand-col">
+        <a href="index.html" class="footer-logo">
+          <img src="assets/yana-rabbit-app-icon.png" alt="Yana" width="28" height="28">
+          <span>Yana AI</span>
+        </a>
+        <p class="footer-tagline">Hệ điều hành Agentic AI cá nhân hóa — An toàn theo thiết kế, bảo chứng bằng sự thật.</p>
+        <div class="footer-crypto-badge">SHA-256 Verified Ecosystem • 2026</div>
+      </div>
+      <div class="footer-links-grid">
+        <div class="footer-col">
+          <h4>Sản Phẩm</h4>
+          <ul>
+            <li><a href="studio.html">Yana Studio IDE</a></li>
+            <li><a href="runtime.html">Yana Runtime Engine</a></li>
+            <li><a href="wheelbot.html">WheelBot Physical AI</a></li>
+            <li><a href="governance.html">Giám Thị OS</a></li>
+            <li><a href="download.html">Tải Bản Phát Hành</a></li>
+          </ul>
         </div>
-        ${t.id === cur ? '<span class="track-badge">▶ Đang phát</span>' : ''}
-        ${!DEFAULT_TRACKS.find(d => d.id === t.id) ? `<span class="track-remove" onclick="removeTrack('${t.id}',event)" title="Xoá">✕</span>` : ''}
-      </div>`).join('');
-
-    const cur_track = tracks.find(t => t.id === cur);
-    if (cur_track) {
-      document.getElementById('now-name').textContent = `${cur_track.icon} ${cur_track.name}`;
-      document.getElementById('now-artist').textContent = cur_track.artist;
-    }
-  }
-
-  // ── Local MP3 player ──────────────────────────────────────────────────────
-  const LOCAL_TRACKS = [
-    { name: 'DJ Thai Hoang Remix', artist: 'Giải Điệu DJ · SoundCloud', src: 'music/dj-thai-hoang-remix.mp3', icon: '🎧' },
-    // Thêm file MP3 khác: { name, artist, src, icon }
-  ];
-
-  let _localAudio = null;
-  let _localCur   = null;
-
-  function playLocal(idx) {
-    // Pause YouTube player and immediately mark as not-playing
-    // (pauseVideo is async — don't wait for onStateChange to fire)
-    window._pauseMusic && window._pauseMusic();
-    localStorage.setItem('music-playing', '0');
-    _playing = false;
-    syncPlayBtn();
-
-    if (_localAudio) { _localAudio.pause(); _localAudio = null; }
-    _localCur = idx;
-    _localAudio = new Audio(LOCAL_TRACKS[idx].src);
-    _localAudio.volume = 0.8;
-    _localAudio.play().catch(() => {});
-    _localAudio.addEventListener('ended', () => {
-      _localCur  = null;
-      _localAudio = null;
-      renderLocalList();
-      // Resume YouTube after local track finishes
-      window._resumeMusic && window._resumeMusic();
-      _playing = true;
-      syncPlayBtn();
-    });
-    renderLocalList();
-
-    // Update now-playing header
-    const t = LOCAL_TRACKS[idx];
-    document.getElementById('now-name').textContent   = `${t.icon} ${t.name}`;
-    document.getElementById('now-artist').textContent = t.artist;
-  }
-
-  function renderLocalList() {
-    const el = document.getElementById('local-track-list');
-    if (!el) return;
-    el.innerHTML = LOCAL_TRACKS.map((t, i) => `
-      <div class="track ${_localCur === i ? 'active' : ''}" onclick="playLocal(${i})" style="margin-bottom:.5rem">
-        <span class="track-icon">${t.icon}</span>
-        <div class="track-info">
-          <div class="track-name">${t.name}</div>
-          <div class="track-artist">${t.artist}</div>
+        <div class="footer-col">
+          <h4>Kiến Trúc & An Toàn</h4>
+          <ul>
+            <li><a href="architecture.html">Kiến Trúc Hệ Thống</a></li>
+            <li><a href="evidence.html">Truth Gate L0–L5</a></li>
+            <li><a href="safety.html">Hàng Rào Bảo Vệ</a></li>
+            <li><a href="connectors.html">MCP & Connectors</a></li>
+            <li><a href="continuity.html">Bộ Nhớ L1/L2</a></li>
+          </ul>
         </div>
-        ${_localCur === i ? '<span class="track-badge">▶ Đang phát</span>' : '<span style="font-size:.7rem;color:var(--fg-muted)">MP3</span>'}
-      </div>`).join('');
-  }
-  // ── End local MP3 ──────────────────────────────────────────────────────────
+        <div class="footer-col">
+          <h4>Cài Đặt & Hỗ Trợ</h4>
+          <ul>
+            <li><a href="install-macos.html">Cài trên macOS</a></li>
+            <li><a href="install-linux.html">Cài trên Linux</a></li>
+            <li><a href="install-windows.html">Cài trên Windows</a></li>
+            <li><a href="yana-ai-system-map.html">Bản Đồ Hệ Thống</a></li>
+            <li><a href="support.html">Trung Tâm Hỗ Trợ</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Pháp Lý & Minh Bạch</h4>
+          <ul>
+            <li><a href="privacy.html">Chính Sách Riêng Tư</a></li>
+            <li><a href="legal-notices.html">Thông Cáo Pháp Lý</a></li>
+            <li><a href="acknowledgements.html">Tri Ân Mã Nguồn Mở</a></li>
+            <li><a href="history.html">Lịch Sử Phát Triển</a></li>
+            <li><a href="updates.html">Nhật Ký Cập Nhật</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Yana AI. Bản quyền mở theo Giấy phép MIT. Phát triển độc lập và tự chủ.</p>
+      <div class="footer-bottom-links">
+        <a href="privacy.html">Bảo mật</a>
+        <a href="legal-notices.html">Điều khoản</a>
+        <a href="contact.html">Liên hệ</a>
+      </div>
+    </div>
+  </footer>
 
-  // If local MP3 is playing when navigating away, force music-playing=0
-  // so the next page doesn't autostart YouTube
-  window.addEventListener('beforeunload', () => {
-    if (_localAudio && !_localAudio.paused) {
-      localStorage.setItem('music-playing', '0');
-    }
-  });
-
-  document.addEventListener('DOMContentLoaded', () => {
-    syncMuteBtn();
-    syncPlayBtn();
-    renderList();
-    renderLocalList();
-    startProgress();
-    // Sync play button after player init
-    setTimeout(() => { syncPlayBtn(); startProgress(); }, 2000);
-  });
-  </script>
-  <script src="i18n.js"></script>
+  <script src="assets/site26.js"></script>
 </body>
 </html>

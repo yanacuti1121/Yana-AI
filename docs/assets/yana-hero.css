@@ -1,0 +1,283 @@
+/*
+ * Homepage hero, redone 19/10/2026 after the owner's samples: a rounded, heavy sans; two short
+ * lines that answer each other; one phrase marked by hand; a handwritten note at the button; a
+ * quiet fact line under it; the 3D Mac large and centred below. The samples were studied for
+ * tone and type only; none of their illustrations, icons or code are used. The floating
+ * stickers are Yana's own vocabulary (ALLOW / REQUIRE / SUPERVISED / audit).
+ */
+/* body.sakura-site.home-page: the site sets --sans/--display on .sakura-site, so match it and win. */
+body.sakura-site.home-page {
+  --sans: "Nunito", "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --display: "Nunito", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --hand: "Patrick Hand", "Segoe Print", cursive;
+  --ink: #17181c;
+  --ink-soft: #5d6573;
+  font-family: var(--sans);
+}
+body.home-page :is(h1, h2, h3) { font-family: "Nunito", ui-sans-serif, system-ui, sans-serif !important; font-weight: 800; letter-spacing: -.025em }
+
+.home-page .yana-intro.hero26 {
+  display: block;
+  min-height: 0;
+  padding: clamp(56px, 8vw, 110px) 0 0;
+  text-align: center;
+  background: transparent !important;
+  border-bottom: 0;
+  overflow: visible;
+  pointer-events: auto;
+}
+.hero26-copy { position: relative; z-index: 2; width: min(100% - 32px, 980px); margin-inline: auto }
+
+.hero26-badge {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 7px 16px 7px 8px; border-radius: 999px;
+  background: var(--ink); color: #fff; text-decoration: none;
+  box-shadow: 0 10px 24px -12px rgba(20, 24, 34, .6);
+}
+.hero26-badge img { width: 26px; height: 26px; padding: 3px; border-radius: 50%; background: #fff }
+.hero26-badge span { color: #fff; font: 400 1.25rem/1 var(--hand) }
+.hero26-badge small { color: #b9c3d3; font: 600 .78rem var(--sans); letter-spacing: .02em }
+
+.hero26-title {
+  margin: clamp(22px, 3vw, 34px) 0 0;
+  color: var(--ink);
+  font: 800 clamp(3rem, 8.2vw, 7.4rem)/1.02 "Nunito", ui-sans-serif, system-ui, sans-serif !important;
+  letter-spacing: -.035em;
+}
+.hero26-line { display: block }
+.hero26-mark {
+  position: relative; display: inline-block;
+  padding: 0 .06em;
+  background: linear-gradient(100deg, #4f80ff 10%, #38bdf8 55%, #6366f1 95%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.hero26-scribble { position: absolute; left: -2%; right: -2%; bottom: -.16em; width: 104%; height: .28em; overflow: visible }
+.hero26-scribble path {
+  fill: none; stroke: var(--ink); stroke-width: 3.2; stroke-linecap: round;
+  stroke-dasharray: 320; stroke-dashoffset: 320;
+  animation: hero26-draw 1s .5s cubic-bezier(.6, 0, .2, 1) forwards;
+}
+.hero26-scribble path + path { stroke-width: 2.2; animation-delay: .85s }
+
+.hero26-lead {
+  max-width: 34ch; margin: clamp(20px, 2.6vw, 30px) auto 0;
+  color: var(--ink-soft); font: 500 clamp(1.1rem, 1.7vw, 1.45rem)/1.5 var(--sans);
+}
+.hero26-lead strong { color: var(--ink); font-weight: 750 }
+
+.hero26-actions { position: relative; display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: clamp(34px, 4vw, 52px) }
+.home-page .hero26-actions .discovery-entry,
+.home-page .hero26-actions .hero26-secondary {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 28px;
+  border-radius: 999px; font: 750 1.05rem var(--sans); text-decoration: none;
+  translate: var(--mag-x, 0) var(--mag-y, 0);
+  transition: translate .5s cubic-bezier(.2, .9, .3, 1.2), box-shadow .35s ease;
+}
+.home-page .hero26-actions .discovery-entry.lg { background: var(--ink) !important }
+.home-page .hero26-actions .hero26-secondary { color: var(--ink) }
+.hero26-note {
+  position: absolute; right: calc(50% + 150px); top: -38px; margin: 0;
+  color: #3b6fe0; font: 400 clamp(1.15rem, 1.6vw, 1.4rem)/1 var(--hand); transform: rotate(-6deg);
+  white-space: nowrap;
+}
+.hero26-note svg { position: absolute; right: -40px; top: 10px; width: 40px; height: 46px; fill: none; stroke: #3b6fe0; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round }
+.hero26-meta { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px 0; margin: 18px 0 0; color: #8a93a2; font: 600 .86rem var(--sans) }
+.hero26-meta span + span::before { content: "·"; margin-inline: 10px; color: #c2c8d2 }
+
+/* Stickers: Yana's own words floating round the headline, each at its own depth on scroll. */
+.hero26-stickers { position: absolute; inset: 0 0 auto; height: min(760px, 92vh); z-index: 1; pointer-events: none }
+.hero26-sticker {
+  position: absolute; display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px; border-radius: 16px;
+  color: var(--ink); font: 700 .92rem var(--mono); white-space: nowrap;
+  rotate: var(--tilt, 0deg);
+}
+.hero26-sticker b { font-weight: 400 }
+.hero26-sticker em { padding: 2px 8px; border-radius: 8px; font: 800 .72rem var(--sans); font-style: normal; letter-spacing: .06em }
+.hero26-sticker--allow { left: 7%; top: 24%; --tilt: -7deg }
+.hero26-sticker--allow em { background: #d9f7e8; color: #13804f }
+.hero26-sticker--require { right: 6%; top: 18%; --tilt: 6deg }
+.hero26-sticker--require em { background: #ffefd5; color: #a35a00 }
+.hero26-sticker--mode { left: 12%; top: 58%; --tilt: 4deg; color: #13804f; letter-spacing: .1em }
+.hero26-sticker--audit { right: 9%; top: 56%; --tilt: -5deg; font-family: var(--sans) }
+.hero26-sticker--emblem { left: 22%; top: 8%; padding: 10px; border-radius: 22px; --tilt: -10deg }
+.hero26-sticker--emblem img { width: 44px; height: 44px }
+.hero26-sticker--human { right: 21%; top: 4%; --tilt: 8deg; font-family: var(--sans) }
+
+.home-page .yana-mac-embed.hero26-device {
+  position: relative; z-index: 2;
+  width: min(1180px, 94vw); aspect-ratio: 1.6; margin: clamp(10px, 2vw, 30px) auto 0;
+}
+
+/* Owner 19/10: scrolling pauses on the Mac for a moment. The device sticks while the page
+   scrolls through the extra height of its holder, then moves on. */
+.hero26-pin { position: relative; height: calc(min(1180px, 94vw) / 1.6 + 70vh) }
+.home-page .hero26-pin .yana-mac-embed.hero26-device { position: sticky; top: max(72px, calc(50vh - min(1180px, 94vw) / 3.2)) }
+
+/* Once the 3D lid is fully open it hands over to Apple's MacBook Pro 14 product bezel, so the
+   resting Mac looks photographed (owner 19/10, after tryonenotch.com). Apple's image stays
+   static, straight-on and uncut as its licence requires: it only fades in, it never folds;
+   the folding is our own 3D model. Placed to match the 3D lid at full open (measured on the
+   1180 x 738 stage with the eye-level open camera: lid 656 px wide, top 103 px).
+   .is-photo is set by yana-motion-2026.js. */
+.hero26-device .mac-photo {
+  position: absolute; left: 16.75%; top: 9.6%; width: 66.5%; aspect-ratio: 1930 / 1270;
+  opacity: 0; pointer-events: none;
+  transition: opacity .45s ease;
+}
+/* Swap in one short, timed fade once the lid is fully open: a scroll-scrubbed blend left both
+   Macs half-visible on top of each other whenever the reader stopped mid-way (owner 19/10). */
+.hero26-pin.is-photo .mac-photo { opacity: 1 }
+.hero26-device .mac-photo-screen { position: absolute; left: 10.829%; top: 11.339%; width: 78.342%; height: 77.323%; overflow: hidden; background: #000 }
+.hero26-device .mac-photo-screen :is(img, video) { display: block; width: 100%; height: 100%; object-fit: cover }
+.hero26-device .mac-photo-bezel { position: absolute; inset: 0; width: 100%; height: 100% }
+.hero26-device iframe { transition: opacity .45s ease }
+.hero26-pin.is-photo .hero26-device iframe { opacity: 0 }
+@media (max-width: 900px) { .hero26-device .mac-photo { display: none } .hero26-device iframe { opacity: 1 } }
+
+/* The photographed Mac comes alive through its screen only (Apple's licence lets screen content
+   move, never the device): a real Yana approval card slides in and can be answered, the screen
+   picture leans a few pixels with the pointer, and a glare follows it across the glass. */
+.hero26-pin.is-photo .mac-photo-screen { pointer-events: auto }
+.mac-photo-screen > :is(img, video) { transform: translate(var(--scr-x, 0), var(--scr-y, 0)) scale(1.02); transition: transform .5s cubic-bezier(.2, .8, .2, 1) }
+.mac-glare {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .4s ease;
+  background: radial-gradient(420px circle at var(--glare-x, 50%) var(--glare-y, 30%), rgba(255, 255, 255, .16), transparent 60%);
+}
+.mac-photo-screen:hover .mac-glare { opacity: 1 }
+.mac-gate {
+  position: absolute; right: 1.5%; top: 8%; width: 25%;
+  padding: 1.1% 1.3% 1.2%; border-radius: 10px;
+  background: rgba(22, 26, 34, .94); color: #e8ecf3;
+  border: 1px solid rgba(245, 165, 36, .55);
+  box-shadow: 0 14px 30px -10px rgba(0, 0, 0, .6);
+  font: 600 clamp(8px, .56vw, 11px)/1.35 var(--sans);
+  transform: translateX(120%); opacity: 0;
+  transition: transform .7s cubic-bezier(.2, 1, .3, 1) .15s, opacity .4s ease .15s, border-color .3s ease;
+}
+.hero26-pin.is-photo .mac-gate { transform: none; opacity: 1 }
+.mac-gate p { margin: 0 }
+.mac-gate-head b { color: #f5a524 }
+.mac-gate code { font: 600 .95em var(--mono); color: #fbd38d }
+.mac-gate-cmd { margin-top: 5% !important; padding: 4% 5%; border-radius: 6px; background: #0d1016 }
+.mac-gate-cmd code { color: #e8ecf3 }
+.mac-gate-actions { display: flex; gap: 5%; margin-top: 6% }
+.mac-gate-actions button {
+  flex: 1; padding: 4% 0; border: 1px solid; border-radius: 6px; cursor: pointer;
+  font: 800 1em var(--sans); background: transparent; transition: background-color .2s ease, transform .15s ease;
+}
+.mac-gate-actions button:active { transform: scale(.96) }
+.mac-gate-actions [data-gate="allow"] { color: #3ddc97; border-color: #3ddc97 }
+.mac-gate-actions [data-gate="allow"]:hover { background: rgba(61, 220, 151, .16) }
+.mac-gate-actions [data-gate="deny"] { color: #ff6b6b; border-color: #ff6b6b }
+.mac-gate-actions [data-gate="deny"]:hover { background: rgba(255, 107, 107, .16) }
+.mac-gate-result { display: none; margin-top: 6% !important; font-weight: 800 }
+.mac-gate:not([data-state="ask"]) .mac-gate-actions { display: none }
+.mac-gate:not([data-state="ask"]) .mac-gate-result { display: block }
+.mac-gate[data-state="allow"] { border-color: #3ddc97 }
+.mac-gate[data-state="allow"] .mac-gate-result { color: #3ddc97 }
+.mac-gate[data-state="deny"] { border-color: #ff6b6b }
+.mac-gate[data-state="deny"] .mac-gate-result { color: #ff6b6b }
+
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .hero26-sticker { animation: hero26-float linear both; animation-timeline: scroll(root); animation-range: 0 90vh }
+    .hero26-sticker:nth-child(odd) { --rise: -140px }
+    .hero26-sticker:nth-child(even) { --rise: -80px }
+    .hero26-sticker:nth-child(3n) { --rise: -200px }
+  }
+}
+@keyframes hero26-float { to { translate: 0 var(--rise, -100px); rotate: calc(var(--tilt, 0deg) * -1) } }
+
+/* Owner 20/10: the stickers keep moving on their own too. Each loops slowly round its spot and
+   rocks a little (transform only, separate from the scroll float above, which uses translate and
+   rotate). Each has its own pace and starting point; they run only while the hero is on screen
+   (yana-motion-2026.js sets .is-live on the hero). */
+@media (prefers-reduced-motion: no-preference) {
+  .hero26-sticker { --loop: 11s; --r: 14px; transform-origin: center }
+  .hero26-sticker:nth-child(2) { --loop: 13s; --r: 18px }
+  .hero26-sticker:nth-child(3) { --loop: 9s; --r: 10px }
+  .hero26-sticker:nth-child(4) { --loop: 15s; --r: 16px }
+  .hero26-sticker:nth-child(5) { --loop: 12s; --r: 20px }
+  .hero26-sticker:nth-child(6) { --loop: 10s; --r: 12px }
+  .hero26-stickers .hero26-sticker { animation: hero26-loop var(--loop) linear calc(var(--loop) * -.37 * var(--i, 1)) infinite paused }
+  .hero26-sticker:nth-child(1) { --i: 1 } .hero26-sticker:nth-child(2) { --i: 2 } .hero26-sticker:nth-child(3) { --i: 3 }
+  .hero26-sticker:nth-child(4) { --i: 4 } .hero26-sticker:nth-child(5) { --i: 5 } .hero26-sticker:nth-child(6) { --i: 6 }
+  .yana-intro.is-live .hero26-stickers .hero26-sticker { animation-play-state: running }
+}
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .hero26-stickers .hero26-sticker {
+      animation: hero26-float linear both, hero26-loop var(--loop) linear calc(var(--loop) * -.37 * var(--i, 1)) infinite paused;
+      animation-timeline: scroll(root), auto;
+      animation-range: 0 90vh, normal;
+    }
+    .yana-intro.is-live .hero26-stickers .hero26-sticker { animation-play-state: running, running }
+  }
+}
+@keyframes hero26-loop {
+  0%   { transform: translate(0, calc(var(--r) * -1)) rotate(-4deg) }
+  25%  { transform: translate(var(--r), 0) rotate(3deg) }
+  50%  { transform: translate(0, var(--r)) rotate(5deg) }
+  75%  { transform: translate(calc(var(--r) * -1), 0) rotate(-2deg) }
+  100% { transform: translate(0, calc(var(--r) * -1)) rotate(-4deg) }
+}
+@keyframes hero26-draw { to { stroke-dashoffset: 0 } }
+
+@media (max-width: 900px) {
+  .hero26-stickers { display: none }
+  .hero26-note { position: static; display: block; width: 100%; margin-bottom: 6px; transform: none }
+  .hero26-note svg { display: none }
+  .home-page .yana-mac-embed.hero26-device { aspect-ratio: 1.05 }
+  .hero26-pin { height: calc(94vw / 1.05 + 45vh) }
+  .home-page .hero26-pin .yana-mac-embed.hero26-device { top: 72px }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero26-scribble path { animation: none; stroke-dashoffset: 0 }
+}
+
+/* Owner 20/10: no black in the hero. Headline and bold text in a deep indigo, the hand-drawn
+   strokes in Yana blue, and the badge as frosted glass with blue text. */
+.home-page .yana-intro.hero26 { --hero-ink: #26306a }
+.home-page .hero26-title { color: var(--hero-ink) !important }
+.home-page .hero26-lead strong { color: var(--hero-ink) }
+.home-page .hero26-scribble path { stroke: #4f80ff }
+.home-page .hero26-badge {
+  background: rgba(255, 255, 255, .7);
+  color: #2a4fd6;
+  box-shadow: inset 0 1px 0 #fff, inset 0 0 0 1px rgba(79, 128, 255, .25), 0 10px 24px -14px rgba(59, 111, 224, .5);
+}
+.home-page .hero26-badge span { color: #2a4fd6 !important }
+.home-page .hero26-badge small { color: #5d6b8a }
+.home-page .hero26-badge img { background: linear-gradient(150deg, #eef4ff, #c7d7ff) }
+html body.home-page .hero26-actions :is(.discovery-entry, .hero26-secondary) { color: var(--hero-ink, #26306a) !important }
+
+/* The hero buttons stay put and keep their spacing (owner 20/10). */
+html body.home-page .hero26-actions :is(.discovery-entry, .hero26-secondary) { translate: none !important }
+.home-page .hero26-actions { gap: 16px !important }
+html body.home-page .hero26-actions .discovery-entry.lg.lg { color: var(--hero-ink, #26306a) !important }
+
+/* Springy hero buttons (owner 20/10: they felt stiff). They stay in place and only squash and
+   stretch: a spring curve on hover, a jelly squash on press, a bounce back on release.
+   --spring is a damped spring sampled with linear(); browsers without it fall back to the
+   overshooting cubic-bezier. */
+.home-page .hero26-actions :is(.discovery-entry, .hero26-secondary) {
+  --spring: cubic-bezier(.34, 1.8, .5, 1);
+  transition: scale .55s var(--spring), box-shadow .3s ease, background-color .2s ease !important;
+  scale: 1;
+  will-change: scale;
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  .home-page .hero26-actions :is(.discovery-entry, .hero26-secondary) {
+    --spring: linear(0, .22 6%, .76 14%, 1.06 21%, 1.13 26%, 1.08 32%, .98 41%, .96 47%, 1 58%, 1.01 68%, 1);
+  }
+}
+.home-page .hero26-actions :is(.discovery-entry, .hero26-secondary):hover { scale: 1.06 }
+.home-page .hero26-actions :is(.discovery-entry, .hero26-secondary):active {
+  scale: 1.08 .9;
+  transition-duration: .12s !important;
+  transition-timing-function: ease-out !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-page .hero26-actions :is(.discovery-entry, .hero26-secondary) { transition: none !important; scale: 1 !important }
+}

@@ -1,0 +1,84 @@
+/*
+ * "Một lệnh đi qua Yana" (owner 19/10/2026, after gsap.com's homepage): the page pins and the
+ * sentence travels sideways and slightly down as you scroll, with coloured tags and shapes
+ * popping in along the way. Built here from scratch in CSS: the section is as tall as the
+ * distance the track travels, every item slides on a scroll-driven compositor animation, and
+ * each item pops on the same timeline at its own spot (ranges written on the item).
+ */
+.home-page .hjourney {
+  --travel-x: -320vw;
+  --travel-y: -34vh;
+  position: relative;
+  height: calc(320vw + 100vh);
+  view-timeline: --hj block;
+  animation: none !important;
+  transform: none !important;
+}
+.hj-sticky { position: sticky; top: 0; height: 100vh; overflow: hidden }
+.hj-eyebrow {
+  position: absolute; left: 6vw; top: 14vh; z-index: 2; margin: 0;
+  color: #8b5cf6; font: 800 .9rem var(--sans); letter-spacing: .08em; text-transform: uppercase;
+}
+.hj-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%) }
+.hj-track { position: absolute; left: 0; top: 14vh; width: 420vw; height: 100vh }
+
+.hj-item { position: absolute; display: inline-flex; align-items: center; white-space: nowrap; rotate: var(--tilt, 0deg) }
+.hj-word { color: #17181c; font: 800 clamp(3.4rem, 8.5vw, 9rem)/1 var(--display); letter-spacing: -.04em }
+.hj-word.hj-soft { color: #b4bccb }
+.hj-word.hj-rainbow {
+  background: var(--ink-rainbow, linear-gradient(95deg, #f59e0b, #f43f5e, #d946ef, #8b5cf6, #3b82f6));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.hj-tag {
+  padding: .18em .5em; border-radius: .28em;
+  color: #17181c; font: 800 clamp(1.4rem, 3vw, 3rem)/1.1 var(--sans); letter-spacing: -.02em;
+  box-shadow: 0 .18em 0 rgba(23, 24, 28, .18);
+}
+.hj-pink { background: #fbcfe8 } .hj-orange { background: #fb923c } .hj-green { background: #4ade80 }
+.hj-amber { background: #fcd34d } .hj-blue { background: #93c5fd } .hj-mint { background: #a7f3d0 }
+.hj-violet { background: linear-gradient(120deg, #c4b5fd, #f0abfc) }
+.hj-tag:is(.hj-pink, .hj-orange) { font-family: var(--mono); font-weight: 700 }
+
+/* Shapes in Yana's colours, drawn with gradients only. */
+.hj-shape { width: 9vw; height: 9vw; min-width: 80px; min-height: 80px }
+.hj-ring { border-radius: 50%; background: radial-gradient(circle, transparent 46%, #38bdf8 47%, #a5b4fc 70%, transparent 71%) }
+.hj-emblem { justify-content: center; border-radius: 28%; background: linear-gradient(140deg, #eef4ff, #dbe7ff); box-shadow: 0 20px 40px -18px rgba(59, 111, 224, .5) }
+.hj-emblem img { width: 62% }
+.hj-hand { justify-content: center; font-size: 6vw }
+.hj-pill { width: 14vw; height: 5vw; border-radius: 999px; background: linear-gradient(90deg, #4f80ff, #38bdf8, #6366f1) }
+.hj-chain { position: relative; width: 13vw; height: 7.5vw; min-width: 130px; min-height: 75px }
+/* Two whole rings overlapping like chain links (the old gradient version cut both rings off). */
+.hj-chain::before, .hj-chain::after {
+  content: ""; position: absolute; top: 0; width: 7.5vw; height: 7.5vw; min-width: 75px; min-height: 75px;
+  box-sizing: border-box; border-radius: 50%; border: max(10px, 1.05vw) solid;
+}
+.hj-chain::before { left: 0; border-color: #8b5cf6 }
+.hj-chain::after { right: 0; border-color: rgba(244, 114, 182, .92) }
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* Each item travels on its own (transform) instead of one 4-screen-wide track moving:
+       22 small compositor layers instead of one huge one. Pop uses scale/rotate/opacity. */
+    .hj-item { animation: hj-pop linear both, hj-travel linear both; animation-timeline: --hj, --hj }
+    .hj-word { animation-name: hj-rise, hj-travel }
+  }
+}
+@keyframes hj-travel { to { transform: translate3d(var(--travel-x), var(--travel-y), 0) } }
+@keyframes hj-pop { from { opacity: 0; scale: .35; rotate: calc(var(--tilt, 0deg) * 4 + 20deg) } to { opacity: 1; scale: 1; rotate: var(--tilt, 0deg) } }
+@keyframes hj-rise { from { opacity: 0; translate: 0 .6em } to { opacity: 1; translate: 0 0 } }
+
+/* Without scroll-driven animation (or with reduced motion) the sentence reads as a wrapped block. */
+@supports not (animation-timeline: view()) {
+  .home-page .hjourney { height: auto; padding: 12vh 6vw }
+  .hj-sticky { position: static; height: auto; overflow: visible }
+  .hj-track { position: static; width: auto; height: auto; display: flex; flex-wrap: wrap; gap: 1rem 2rem; align-items: center }
+  .hj-item { position: static }
+  .hj-shape { display: none }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-page .hjourney { height: auto; padding: 12vh 6vw }
+  .hj-sticky { position: static; height: auto; overflow: visible }
+  .hj-track { position: static; width: auto; height: auto; display: flex; flex-wrap: wrap; gap: 1rem 2rem; align-items: center }
+  .hj-item { position: static }
+  .hj-shape { display: none }
+}
