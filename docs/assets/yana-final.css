@@ -1,0 +1,119 @@
+/*
+ * Closing call to action, 20/10/2026, after the owner's OneNotch sample: calm and spacious.
+ * The Yana emblem, one line of headline, one dark button, two quiet links, and Yana's own glyph
+ * tiles scattered around in three depth layers: near tiles sharp, far tiles small, faded and
+ * blurred, like a photo with a shallow depth of field. Each layer drifts at its own speed as
+ * you scroll and every tile circles slowly round its spot. No card behind it: it sits on the page.
+ * Cost: blur is fixed per tile (rasterised once); only transforms move, on the compositor.
+ */
+.home-page .home-final.final26 {
+  position: relative; overflow: hidden; text-align: center;
+  min-height: min(900px, 100vh);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding-block: clamp(90px, 10vw, 150px) !important;
+  background: none !important; box-shadow: none !important; border-radius: 0 !important;
+  width: auto !important; margin: 0 !important; animation: none !important; transform: none !important;
+}
+.home-page .final26 .home-shell { position: relative; z-index: 2; max-width: 1100px; margin-inline: auto }
+
+.final26-emblem {
+  width: clamp(96px, 8vw, 124px); aspect-ratio: 1; margin: 0 auto 30px;
+  display: grid; place-items: center; border-radius: 28%;
+  background: linear-gradient(150deg, #eef4ff, #c7d7ff);
+  box-shadow: inset 0 2px 0 #fff, 0 30px 60px -24px rgba(59, 111, 224, .6);
+}
+.final26-emblem img { width: 62% }
+.home-page .final26 h2 {
+  max-width: none !important; margin: 0 auto !important;
+  color: #2f3a4c !important;
+  font-size: clamp(2.3rem, 4.4vw, 4.2rem) !important;
+  line-height: 1.08 !important; letter-spacing: -.035em !important;
+}
+.home-page .final26 .home-final-actions { display: flex; justify-content: center; margin-top: 30px }
+.home-page .final26 .home-final-primary {
+  min-height: 58px; display: inline-flex; align-items: center; padding: 0 28px; border-radius: 16px;
+  background: #17181c !important; color: #fff !important; font: 800 1.05rem var(--sans);
+}
+.final26-links { display: flex; justify-content: center; gap: 22px; margin: 18px 0 0 !important }
+.final26-links a { color: #5d6573 !important; font: 700 .92rem var(--sans); text-decoration: none }
+.final26-links a:hover { color: #17181c !important }
+
+/* Depth field. Each tile circles slowly round its own spot (the anchor swings on x, the face on
+   y a quarter-turn later, which together trace a loop) and rocks a little: near tiles in wider,
+   quicker loops, far ones in small slow loops. Blur stays fixed per layer, so it is rasterised
+   once; everything that moves is a transform on the compositor. Runs only while on screen. */
+.final26-field { position: absolute; inset: 0; width: 100%; max-width: none !important; height: 100%; margin: 0 !important; z-index: 1; pointer-events: none } /* ecosystem-pages.css caps .home-final > div at 640px */
+.field-tile { position: absolute; left: var(--x); top: var(--y); width: 0; height: 0; --loop: 16s; --reach: 54px }
+.field-tile--l1 { --loop: 22s; --reach: 38px }
+.field-tile--l2 { --loop: 30s; --reach: 24px }
+.field-face {
+  position: absolute; left: -36px; top: -36px; width: 72px; height: 72px;
+  display: grid; place-items: center; border-radius: 22px;
+  background: linear-gradient(150deg, var(--c2), var(--c1));
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .55), 0 16px 30px -14px rgba(20, 30, 60, .4);
+  color: #fff; font: 800 1.5rem var(--sans); letter-spacing: -.02em;
+  rotate: var(--rot);
+}
+.field-tile--l0 .field-face { scale: 1.05 }
+.field-tile--l1 .field-face { scale: .82; opacity: .8; filter: blur(1.6px) }
+.field-tile--l2 .field-face { scale: .62; opacity: .5; filter: blur(5px) }
+.field-tile:is(:nth-child(6), :nth-child(9), :nth-child(14)) .field-face { font-size: .85rem; letter-spacing: .04em }
+
+@media (prefers-reduced-motion: no-preference) {
+  .field-tile { animation: field-swing-x var(--loop) ease-in-out calc(var(--d, 0s) * -1) infinite alternate paused }
+  .field-face {
+    animation: field-swing-y var(--loop) ease-in-out calc(var(--d, 0s) * -1 - var(--loop) / 2) infinite alternate paused,
+               field-rock calc(var(--loop) * 1.3) ease-in-out calc(var(--d, 0s) * -1) infinite alternate paused;
+  }
+  .final26.is-orbiting :is(.field-tile, .field-face) { animation-play-state: running }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* Near layers also travel furthest with scroll, far ones least: parallax depth. */
+    .final26-field { view-timeline: --field block }
+    .field-tile--l0 { animation: field-swing-x var(--loop) ease-in-out calc(var(--d, 0s) * -1) infinite alternate paused, field-near linear both; animation-timeline: auto, --field }
+    .field-tile--l1 { animation: field-swing-x var(--loop) ease-in-out calc(var(--d, 0s) * -1) infinite alternate paused, field-mid linear both; animation-timeline: auto, --field }
+    .field-tile--l2 { animation: field-swing-x var(--loop) ease-in-out calc(var(--d, 0s) * -1) infinite alternate paused, field-far linear both; animation-timeline: auto, --field }
+    .final26.is-orbiting .field-tile { animation-play-state: running, running }
+  }
+}
+@keyframes field-swing-x { from { translate: calc(var(--reach) * -1) 0 } to { translate: var(--reach) 0 } }
+@keyframes field-swing-y { from { translate: 0 calc(var(--reach) * -1) } to { translate: 0 var(--reach) } }
+@keyframes field-rock { from { rotate: calc(var(--rot) - 9deg) } to { rotate: calc(var(--rot) + 9deg) } }
+@keyframes field-near { from { transform: translateY(120px) } to { transform: translateY(-120px) } }
+@keyframes field-mid { from { transform: translateY(60px) } to { transform: translateY(-60px) } }
+@keyframes field-far { from { transform: translateY(24px) } to { transform: translateY(-24px) } }
+
+@media (max-width: 900px) {
+  .field-face { width: 52px; height: 52px; left: -26px; top: -26px; border-radius: 16px; font-size: 1.1rem }
+  .field-tile--l2 { display: none }
+}
+
+/* Terms of use under the footer, written out in full (owner 20/10: they must be clear). */
+.site-legal {
+  position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 36px 24px 48px;
+  border-top: 1px solid #e3e8ef; color: #4b5563; font: 500 .92rem/1.65 var(--sans);
+}
+.site-legal h2 { margin: 0 0 12px; color: #17181c; font: 800 1.05rem var(--sans); letter-spacing: -.01em }
+.site-legal ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px }
+.site-legal b { color: #17181c }
+.site-legal-links { margin: 16px 0 0; display: flex; flex-wrap: wrap; gap: 6px 18px }
+.site-legal-links a { color: #3b6fe0; font-weight: 700; text-decoration: underline; text-underline-offset: 3px }
+
+/* The glass colour field behind the actions (yana-glass.css) is not wanted in this calm ending. */
+.home-page .final26 .home-final-actions::before { display: none }
+
+/* Former black buttons become frosted glass (owner 20/10): the closing button, the hero's
+   "Trải nghiệm 60 giây" and the nav's "Bắt đầu". The closing buttons stay put. */
+html body.home-page :is(.final26 .home-final-primary, .hero26-actions .discovery-entry, .site-nav .nav-start).lg,
+html body.home-page .site-nav .nav-start {
+  background: rgba(255, 255, 255, .62) !important;
+  color: #17181c !important;
+  /* No backdrop blur: measured 20/10, a blur on these (the nav one rides over scrolling
+     content) took scrolling from ~6% to ~40% GPU. A see-through tint and a lit rim instead. */
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  box-shadow: inset 0 1px 0 #fff, inset 0 0 0 1px rgba(255, 255, 255, .7), 0 0 0 1px rgba(23, 24, 28, .08), 0 12px 26px -14px rgba(28, 58, 102, .4) !important;
+}
+html body.home-page .final26 :is(.home-final-primary, .home-final-actions a, .final26-links a) { translate: none !important; transform: none !important; transition: background-color .2s ease, color .2s ease !important }
+html body.home-page :is(.final26 .home-final-primary, .hero26-actions .discovery-entry, .site-nav .nav-start):hover { background: rgba(255, 255, 255, .72) !important }

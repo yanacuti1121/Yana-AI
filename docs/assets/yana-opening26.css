@@ -1,0 +1,61 @@
+/*
+ * Opening screen, redone 20/10/2026 (owner: not the v2 "YANA / 001" one). Yana's own story in
+ * under two seconds: the emblem springs in, "Đang kiểm tra quyền…" waits, a green tick draws
+ * and the line becomes "Đã duyệt · mời vào", then the whole screen lifts away with a soft
+ * curved edge. Driven by yana-opening26.js; shown once per session.
+ */
+.opening26 {
+  position: fixed; inset: 0; z-index: 1000;
+  display: grid; place-items: center;
+  background:
+    radial-gradient(circle, rgba(70, 100, 150, .14) 1.1px, transparent 1.5px) 0 0 / 26px 26px,
+    linear-gradient(180deg, #f7f9fe, #eef3fb);
+  border-radius: 0 0 50% 50% / 0 0 0 0;
+  transition: transform .75s cubic-bezier(.7, 0, .2, 1), border-radius .75s cubic-bezier(.7, 0, .2, 1);
+}
+.opening26.is-leaving { transform: translateY(-104%); border-radius: 0 0 50% 50% / 0 0 14vh 14vh }
+.opening26.is-gone { display: none }
+html.opening26-skipped .opening26 { display: none }
+/* Scroll is locked only while the screen plays (class set and removed by yana-opening26.js);
+   never set overflow on body otherwise, or body turns into its own scroller. */
+html.opening26-lock, html.opening26-lock body { overflow: hidden }
+
+.opening26-card { display: grid; justify-items: center; gap: 22px }
+.opening26-emblem {
+  width: 104px; aspect-ratio: 1; display: grid; place-items: center; border-radius: 28%;
+  background: linear-gradient(150deg, #eef4ff, #c7d7ff);
+  box-shadow: inset 0 2px 0 #fff, 0 30px 60px -24px rgba(59, 111, 224, .6);
+  animation: opening26-pop .7s cubic-bezier(.34, 1.8, .5, 1) both;
+}
+.opening26-emblem img { width: 62% }
+.opening26-line {
+  position: relative; margin: 0; height: 1.6em; width: 24ch;
+  font: 700 1.05rem/1.6 "Nunito", ui-sans-serif, system-ui, sans-serif; color: #26306a; text-align: center;
+  animation: opening26-rise .5s .25s ease-out both;
+}
+.opening26-ask, .opening26-ok { position: absolute; inset: 0; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 6px; transition: opacity .25s ease, transform .35s cubic-bezier(.34, 1.6, .5, 1) }
+.opening26-ask i { width: 5px; height: 5px; border-radius: 50%; background: #4f80ff; animation: opening26-dot .9s ease-in-out infinite }
+.opening26-ask i:nth-child(2) { animation-delay: .15s } .opening26-ask i:nth-child(3) { animation-delay: .3s }
+.opening26-ok { opacity: 0; transform: translateY(8px) scale(.96); color: #13804f }
+.opening26-ok svg { width: 22px; height: 22px; fill: none; stroke: #22c55e; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 24; stroke-dashoffset: 24 }
+.opening26.is-approved .opening26-ask { opacity: 0; transform: translateY(-8px) }
+.opening26.is-approved .opening26-ok { opacity: 1; transform: none }
+.opening26.is-approved .opening26-ok svg { transition: stroke-dashoffset .4s ease-out .05s; stroke-dashoffset: 0 }
+.opening26.is-approved .opening26-emblem { box-shadow: inset 0 2px 0 #fff, 0 0 0 6px rgba(34, 197, 94, .18), 0 30px 60px -24px rgba(34, 197, 94, .55); transition: box-shadow .35s ease }
+
+.opening26-skip {
+  position: absolute; right: 22px; bottom: 22px;
+  padding: 8px 14px; border: 0; border-radius: 999px; cursor: pointer;
+  background: rgba(255, 255, 255, .7); color: #5d6573; font: 700 .85rem "Nunito", system-ui, sans-serif;
+  box-shadow: inset 0 0 0 1px rgba(23, 24, 28, .08);
+}
+.opening26-skip:hover { color: #26306a }
+
+@keyframes opening26-pop { from { scale: .4; opacity: 0; rotate: -12deg } to { scale: 1; opacity: 1; rotate: 0deg } }
+@keyframes opening26-rise { from { opacity: 0; translate: 0 10px } to { opacity: 1; translate: 0 0 } }
+@keyframes opening26-dot { 0%, 100% { opacity: .25; translate: 0 0 } 50% { opacity: 1; translate: 0 -3px } }
+
+/* The hero's hand-drawn underline waits for the opening to finish. */
+html:not(.opening26-done):not(.opening26-skipped) .hero26-scribble path { animation-play-state: paused }
+
+@media (prefers-reduced-motion: reduce) { .opening26 { display: none } }

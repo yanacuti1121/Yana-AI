@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YANA AI // Mặt Phẳng Điều Khiển AI Cục Bộ Do Con Người Quản Trị</title>
+  <style>
+    :root {
+      --bg-base: #0d1117;
+      --bg-panel: #121821;
+      --bg-card: #161d28;
+      --bg-card-hover: #1c2533;
+      --border: #263142;
+      --border-bright: #374761;
+      --text-main: #e6edf3;
+      --text-muted: #8b949e;
+      --text-dim: #484f58;
+      --cyan: #00f0ff;
+      --cyan-glow: rgba(0, 240, 255, 0.16);
+      --green: #00ff9d;
+      --green-glow: rgba(0, 255, 157, 0.16);
+      --amber: #ffb800;
+      --amber-glow: rgba(255, 184, 0, 0.16);
+      --red: #ff2a55;
+      --red-glow: rgba(255, 42, 85, 0.22);
+      --purple: #b877ff;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 12% 18%, rgba(0, 240, 255, 0.04) 0%, transparent 32%),
+        radial-gradient(circle at 88% 82%, rgba(0, 255, 157, 0.04) 0%, transparent 35%),
+        linear-gradient(rgba(38, 49, 66, 0.18) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(38, 49, 66, 0.18) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 28px 28px, 28px 28px;
+      transition: background-color 0.25s ease;
+    }
+
+    body.halted-mode {
+      background-image: 
+        radial-gradient(circle at 50% 25%, rgba(255, 42, 85, 0.14) 0%, transparent 55%),
+        linear-gradient(rgba(255, 42, 85, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 42, 85, 0.08) 1px, transparent 1px);
+      background-size: 100% 100%, 28px 28px, 28px 28px;
+    }
+
+    /* THANH TIÊU ĐỀ TRÊN CÙNG */
+    header {
+      height: 62px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(13, 17, 23, 0.88);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 22px;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(0, 255, 157, 0.15));
+      border: 1px solid var(--cyan);
+      box-shadow: 0 0 14px var(--cyan-glow);
+      display: grid;
+      place-items: center;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      color: var(--cyan);
+      font-size: 16px;
+      letter-spacing: -1px;
+    }
+
+    .brand-title {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title h1 {
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .version-tag {
+      font-size: 10px;
+      background: rgba(0, 240, 255, 0.1);
+      color: var(--cyan);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    .brand-title span {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    .header-status-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      transition: all 0.2s ease;
+    }
+
+    .status-pill.active-guard {
+      border-color: rgba(0, 255, 157, 0.4);
+      background: rgba(0, 255, 157, 0.06);
+      color: var(--green);
+    }
+
+    .status-pill.halted-guard {
+      border-color: var(--red);
+      background: var(--red-glow);
+      color: #fff;
+      box-shadow: 0 0 18px var(--red-glow);
+      animation: pulseRed 1.2s infinite;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+    }
+
+    .dot.red {
+      background: var(--red);
+      box-shadow: 0 0 10px var(--red);
+    }
+
+    .dot.cyan {
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+    }
+
+    /* BỐ CỤC CHIA ĐÔI MÀN HÌNH */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.05fr 1fr;
+      gap: 18px;
+      padding: 18px 22px;
+      max-width: 1920px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 1180px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: rgba(18, 24, 33, 0.88);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(8px);
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    body.halted-mode .panel {
+      border-color: rgba(255, 42, 85, 0.55);
+    }
+
+    .panel-header {
+      padding: 12px 16px;
+      background: rgba(22, 29, 40, 0.9);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-weight: 600;
+      color: var(--text-main);
+      letter-spacing: 0.3px;
+    }
+
+    .window-dots {
+      display: flex;
+      gap: 6px;
+      margin-right: 4px;
+    }
+
+    .window-dots span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .window-dots span:nth-child(1) { background: #ff5f56; }
+    .window-dots span:nth-child(2) { background: #ffbd2e; }
+    .window-dots span:nth-child(3) { background: #27c93f; }
+
+    /* PANEL TRÁI: NÚT KIỂM THỬ NHANH & TERMINAL */
+    .sim-toolbar {
+      padding: 14px 16px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toolbar-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .quick-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 9px;
+    }
+
+    @media (min-width: 640px) {
+      .quick-buttons {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .sim-btn {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-bright);
+      background: var(--bg-panel);
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      transition: all 0.18s ease;
+      text-align: left;
+    }
+
+    .sim-btn small {
+      font-size: 10px;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+
+    .sim-btn:hover {
+      transform: translateY(-1px);
+      background: var(--bg-card-hover);
+    }
+
+    .sim-btn.btn-safe { border-color: rgba(0, 255, 157, 0.4); }
+    .sim-btn.btn-safe:hover {
+      border-color: var(--green);
+      box-shadow: 0 0 14px var(--green-glow);
+    }
+    .sim-btn.btn-safe .btn-badge { color: var(--green); }
+
+    .sim-btn.btn-danger { border-color: rgba(255, 42, 85, 0.45); }
+    .sim-btn.btn-danger:hover {
+      border-color: var(--red);
+      box-shadow: 0 0 14px var(--red-glow);
+    }
+    .sim-btn.btn-danger .btn-badge { color: var(--red); }
+
+    .sim-btn.btn-dag { border-color: rgba(0, 240, 255, 0.45); }
+    .sim-btn.btn-dag:hover {
+      border-color: var(--cyan);
+      box-shadow: 0 0 14px var(--cyan-glow);
+    }
+    .sim-btn.btn-dag .btn-badge { color: var(--cyan); }
+
+    .btn-badge {
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* KHUNG HIỂN THỊ NHẬT KÝ TERMINAL */
+    .terminal-viewport {
+      flex: 1;
+      min-height: 410px;
+      max-height: 540px;
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      line-height: 1.65;
+      overflow-y: auto;
+      background: #090d12;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .terminal-viewport::-webkit-scrollbar {
+      width: 6px;
+    }
+    .terminal-viewport::-webkit-scrollbar-thumb {
+      background: var(--border-bright);
+      border-radius: 3px;
+    }
+
+    .log-entry {
+      padding: 7px 10px;
+      border-radius: 6px;
+      border-left: 3px solid transparent;
+      background: rgba(255, 255, 255, 0.015);
+      animation: fadeSlideIn 0.16s ease-out;
+      word-break: break-word;
+    }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .log-entry.info { border-left-color: var(--cyan); }
+    .log-entry.success {
+      border-left-color: var(--green);
+      background: rgba(0, 255, 157, 0.04);
+    }
+    .log-entry.warn {
+      border-left-color: var(--amber);
+      background: rgba(255, 184, 0, 0.05);
+    }
+    .log-entry.halt {
+      border-left-color: var(--red);
+      background: rgba(255, 42, 85, 0.12);
+      border: 1px solid rgba(255, 42, 85, 0.4);
+      color: #ffd6de;
+    }
+
+    .log-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-right: 8px;
+      user-select: none;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      margin-right: 6px;
+      text-transform: uppercase;
+    }
+    .tag-cyan { background: var(--cyan-glow); color: var(--cyan); border: 1px solid rgba(0,240,255,0.3); }
+    .tag-green { background: var(--green-glow); color: var(--green); border: 1px solid rgba(0,255,157,0.3); }
+    .tag-amber { background: var(--amber-glow); color: var(--amber); border: 1px solid rgba(255,184,0,0.3); }
+    .tag-red { background: var(--red-glow); color: var(--red); border: 1px solid rgba(255,42,85,0.45); }
+    .tag-purple { background: rgba(184,119,255,0.15); color: var(--purple); border: 1px solid rgba(184,119,255,0.35); }
+
+    /* THANH NHẬP LỆNH CLI */
+    .composer-bar {
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+    }
+
+    .cli-form {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .cli-prompt {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--cyan);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .cli-input {
+      flex: 1;
+      background: #090d12;
+      border: 1px solid var(--border-bright);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      padding: 9px 12px;
+      border-radius: 6px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .cli-input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    .cli-submit {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 9px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--cyan);
+      background: rgba(0, 240, 255, 0.12);
+      color: var(--cyan);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .cli-submit:hover {
+      background: var(--cyan);
+      color: #090d12;
+    }
+
+    /* PANEL PHẢI: GIÁM THỊ & TELEMETRY */
+    .right-content {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex: 1;
+    }
+
+    .giam-thi-box {
+      border-radius: 10px;
+      padding: 16px;
+      border: 1px solid rgba(0, 255, 157, 0.35);
+      background: linear-gradient(135deg, rgba(0, 255, 157, 0.06), rgba(18, 24, 33, 0.9));
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: all 0.25s ease;
+    }
+
+    .giam-thi-box.halted {
+      border-color: var(--red);
+      background: linear-gradient(135deg, rgba(255, 42, 85, 0.22), rgba(28, 10, 16, 0.95));
+      box-shadow: 0 0 28px rgba(255, 42, 85, 0.25);
+      animation: pulseRedBorder 1.5s infinite;
+    }
+
+    @keyframes pulseRedBorder {
+      0%, 100% { box-shadow: 0 0 18px rgba(255, 42, 85, 0.2); }
+      50% { box-shadow: 0 0 32px rgba(255, 42, 85, 0.45); }
+    }
+
+    @keyframes pulseRed {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+
+    .gt-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+    }
+
+    .gt-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .gt-latency {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-bright);
+    }
+
+    .gt-details {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      line-height: 1.5;
+    }
+
+    .gt-violation-card {
+      display: none;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 42, 85, 0.55);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #ffd6de;
+      gap: 10px;
+      flex-direction: column;
+      line-height: 1.5;
+    }
+
+    .giam-thi-box.halted .gt-violation-card {
+      display: flex;
+    }
+
+    .unlock-btn {
+      align-self: flex-start;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 9px 16px;
+      border-radius: 6px;
+      border: 1px solid #fff;
+      background: var(--red);
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 0 16px rgba(255, 42, 85, 0.6);
+      transition: all 0.2s ease;
+    }
+
+    .unlock-btn:hover {
+      background: #ff476c;
+      transform: translateY(-1px);
+      box-shadow: 0 0 24px rgba(255, 42, 85, 0.9);
+    }
+
+    /* THẺ CHỈ SỐ METRICS */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    @media (min-width: 640px) {
+      .metrics-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .metric-label {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .metric-value {
+      font-family: var(--font-mono);
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .metric-sub {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--green);
+    }
+
+    /* SƠ ĐỒ DAG THEO ĐỢT SÓNG (WAVES) */
+    .dag-container {
+      background: #090d12;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .dag-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    .dag-waves {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 680px) {
+      .dag-waves {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .wave-col {
+      background: rgba(22, 29, 40, 0.55);
+      border: 1px dashed var(--border-bright);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .wave-title {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+    }
+
+    .dag-node {
+      background: var(--bg-card);
+      border: 1px solid var(--border-bright);
+      border-radius: 7px;
+      padding: 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.25s ease;
+    }
+
+    .dag-node.running {
+      border-color: var(--cyan);
+      box-shadow: 0 0 15px var(--cyan-glow);
+      background: rgba(0, 240, 255, 0.06);
+    }
+
+    .dag-node.completed {
+      border-color: var(--green);
+      background: rgba(0, 255, 157, 0.05);
+    }
+
+    .node-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .node-state {
+      font-size: 9.5px;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+    }
+
+    .dag-node.running .node-state {
+      background: var(--cyan-glow);
+      color: var(--cyan);
+    }
+
+    .dag-node.completed .node-state {
+      background: var(--green-glow);
+      color: var(--green);
+    }
+
+    .evidence-row {
+      font-size: 10px;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 6px;
+      border-radius: 4px;
+    }
+
+    .ev-in { color: var(--amber); }
+    .ev-out { color: var(--cyan); }
+
+    /* CHÂN TRANG TELEMETRY */
+    .telemetry-footer {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .progress-bar-wrap {
+      width: 120px;
+      height: 6px;
+      background: #090d12;
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- THANH ĐIỀU HƯỚNG & TRẠNG THÁI QUẢN TRỊ -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo">Y//</div>
+      <div class="brand-title">
+        <h1>YANA AI <span class="version-tag">v2.4-LOCAL</span></h1>
+        <span>Mặt Phẳng Điều Khiển AI Cục Bộ &amp; IDE Zero-Trust Do Con Người Quản Trị</span>
+      </div>
+    </div>
+
+    <div class="header-status-bar">
+      <div class="status-pill" title="Xác thực mã băm tiền tố bất biến">
+        <span class="dot cyan"></span>
+        <span>PROMPT CACHE: <strong id="hdr-cache">100% HIT</strong></span>
+      </div>
+      <div id="hdr-guard-pill" class="status-pill active-guard">
+        <span id="hdr-guard-dot" class="dot"></span>
+        <span id="hdr-guard-text">GIÁM THỊ: ĐANG BẢO VỆ (FAIL-CLOSED)</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- KHÔNG GIAN LÀM VIỆC CHÍNH -->
+  <main>
+    <!-- PANEL TRÁI: TERMINAL TƯƠNG TÁC & TRÌNH SOẠN NHIỆM VỤ -->
+    <section class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <div class="window-dots"><span></span><span></span><span></span></div>
+          <span>TERMINAL // TRÌNH SOẠN NHIỆM VỤ &amp; DÒNG ĐÁNH CHẶN SYSCALL</span>
+        </div>
+        <span style="color: var(--text-muted);" id="terminal-pid">PID: 48102 // TTY: local-0</span>
+      </div>
+
+      <!-- CÁC NÚT KIỂM THỬ NHANH -->
+      <div class="sim-toolbar">
+        <div class="toolbar-label">
+          <span>Kịch Bản Kiểm Thử Nhanh (Nhấn để mô phỏng)</span>
+          <span id="blocked-counter" style="color: var(--text-muted);">Đề xuất bị chặn: 0</span>
+        </div>
+        <div class="quick-buttons">
+          <button class="sim-btn btn-safe" onclick="runNormalTask()">
+            <span class="btn-badge">● [Tác Vụ Chuẩn]</span>
+            <span>Tối ưu hóa Auth JWT</span>
+            <small>100% Cache • &lt;4ms</small>
+          </button>
+
+          <button class="sim-btn btn-danger" onclick="simulateRmRf()">
+            <span class="btn-badge">▲ [Mô phỏng rm -rf]</span>
+            <span>Xóa Phá Hủy Thư Mục</span>
+            <small>Kích hoạt Khóa OS</small>
+          </button>
+
+          <button class="sim-btn btn-danger" onclick="simulateForcePush()">
+            <span class="btn-badge">▲ [git push --force]</span>
+            <span>Ghi Đè Lịch Sử Git</span>
+            <small>Kích hoạt Khóa OS</small>
+          </button>
+
+          <button class="sim-btn btn-dag" onclick="runDagMission()">
+            <span class="btn-badge">◆ [Nhiệm Vụ DAG]</span>
+            <span>Thực Thi Theo Đợt Sóng</span>
+            <small>Cổng Bằng Chứng</small>
+          </button>
+        </div>
+      </div>
+
+      <!-- KHUNG LOG TRỰC TIẾP -->
+      <div class="terminal-viewport" id="terminal-logs">
+        <!-- Được điền tự động bằng JavaScript -->
+      </div>
+
+      <!-- KHUNG NHẬP LỆNH TÙY CHỈNH -->
+      <div class="composer-bar">
+        <form class="cli-form" onsubmit="handleCustomCommand(event)">
+          <span class="cli-prompt">yana@control-plane:~$</span>
+          <input 
+            type="text" 
+            id="cli-input" 
+            class="cli-input" 
+            placeholder="Nhập lệnh AI đề xuất (VD: 'yana test --unit', 'rm -rf /', 'git push --force')..." 
+            autocomplete="off"
+          />
+          <button type="submit" class="cli-submit">THỰC THI</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- PANEL PHẢI: TELEMETRY TRỰC TIẾP & BỘ GIÁM SÁT "GIÁM THỊ" -->
+    <section class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="dot cyan"></span>
+          <span>TELEMETRY // BỘ GIÁM SÁT ĐỘC LẬP "GIÁM THỊ" (OS HALT WATCHER)</span>
+        </div>
+        <span style="color: var(--cyan);">KERNEL CỤC BỘ</span>
+      </div>
+
+      <div class="right-content">
+        <!-- HỘP TRẠNG THÁI GIÁM THỊ -->
+        <div id="giam-thi-panel" class="giam-thi-box">
+          <div class="gt-header">
+            <div class="gt-title">
+              <span id="gt-icon" style="color: var(--green);">🛡️</span>
+              <span id="gt-status-title">GIÁM THỊ: ĐANG HOẠT ĐỘNG &amp; XÁC MINH</span>
+            </div>
+            <span class="gt-latency" id="gt-intercept-timer">Kiểm tra cuối: 3.48 ms</span>
+          </div>
+
+          <div class="gt-details" id="gt-normal-desc">
+            <div>• Tiến trình hệ điều hành độc lập kiểm tra mọi syscall &amp; đề xuất công cụ của Agent trước khi chạy.</div>
+            <div>• Cơ chế: <strong>Bất đối xứng Fail-Closed</strong> (Mọi vi phạm chính sách sẽ lập tức khóa `.yana/halt.lock`).</div>
+          </div>
+
+          <!-- BANNER CẢNH BÁO ĐỎ KHI HỆ THỐNG BỊ ĐÌNH CHỈ -->
+          <div class="gt-violation-card" id="gt-violation-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong style="color: var(--red); font-size: 13px;">🚨 SYSTEM HALTED // ĐÃ KHÓA HỆ THỐNG KHẨN CẤP</strong>
+              <span class="tag tag-red" id="gt-violation-time">ĐÁNH CHẶN TRONG 2.84 ms</span>
+            </div>
+            <div id="gt-violation-reason">
+              Vi phạm chính sách: Phát hiện lệnh gọi hệ thống có tính chất phá hủy dữ liệu.
+            </div>
+            <div style="font-size: 11px; color: var(--amber);">
+              File khóa đang kích hoạt: <code>/var/run/yana/giam-thi.halt.lock</code> — Toàn bộ đề xuất tiếp theo từ Agent đều bị từ chối cho đến khi con người trực tiếp mở khóa.
+            </div>
+            <button class="unlock-btn" onclick="humanUnlockSystem()">
+              <span>🔓 CON NGƯỜI MỞ KHÓA (XÓA .HALT.LOCK &amp; KHÔI PHỤC)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 THẺ CHỈ SỐ TELEMETRY -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span class="metric-label">Khởi Động Lạnh (Cold Start)</span>
+            <span class="metric-value" id="metric-cold">4.21 ms</span>
+            <span class="metric-sub">Rust CLI không daemon</span>
+          </div>
+
+          <div class="metric-card">
+            <span class="metric-label">Token Guard</span>
+            <span class="metric-value" id="metric-guard">3.48 ms</span>
+            <span class="metric-sub" id="metric-guard-sub">Xác thực AST + Chính sách</span>
+          </div>
+
+          <div class="metric-card">
+            <span class="metric-label">Tỷ Lệ Trúng Cache</span>
+            <span class="metric-value" style="color: var(--cyan);" id="metric-cache">100%</span>
+            <span class="metric-sub" id="metric-tokens-saved">Tiết kiệm 14,820 tokens</span>
+          </div>
+
+          <div class="metric-card">
+            <span class="metric-label">Hạn Ngạch Đang Dùng</span>
+            <span class="metric-value" id="metric-quota">12 / 500</span>
+            <span class="metric-sub" id="metric-quota-sub">Syscall trong ngân sách</span>
+          </div>
+        </div>
+
+        <!-- ĐỒ THỊ DAG TƯƠNG TÁC THEO ĐỢT SÓNG -->
+        <div class="dag-container">
+          <div class="dag-header">
+            <div>
+              <strong>BỘ LẬP LỊCH DAG THEO ĐỢT SÓNG (WAVE SCHEDULER)</strong>
+              <span style="color: var(--text-muted); margin-left: 8px;">Cổng Kiểm Chứng Bằng Chứng Tường Minh</span>
+            </div>
+            <span class="tag tag-cyan" id="dag-status-badge">SẴN SÀNG</span>
+          </div>
+
+          <div class="dag-waves">
+            <!-- ĐỢT 1 -->
+            <div class="wave-col">
+              <div class="wave-title">
+                <span>ĐỢT 01 // SONG SONG</span>
+                <span>2 TÁC VỤ</span>
+              </div>
+
+              <div class="dag-node" id="node-w1-a">
+                <div class="node-head">
+                  <span>T1: Kiểm toán AST Schema</span>
+                  <span class="node-state" id="state-w1-a">SẴN SÀNG</span>
+                </div>
+                <div class="evidence-row">
+                  <span class="ev-in">--consumes: src/schema.ts</span>
+                  <span class="ev-out">--produces: ast.report.json</span>
+                </div>
+              </div>
+
+              <div class="dag-node" id="node-w1-b">
+                <div class="node-head">
+                  <span>T2: Quét Mô Hình Đe Dọa</span>
+                  <span class="node-state" id="state-w1-b">SẴN SÀNG</span>
+                </div>
+                <div class="evidence-row">
+                  <span class="ev-in">--consumes: policy.yana.toml</span>
+                  <span class="ev-out">--produces: sec.bounds.sig</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ĐỢT 2 -->
+            <div class="wave-col">
+              <div class="wave-title">
+                <span>ĐỢT 02 // HỘI TỤ CỔNG</span>
+                <span>1 TÁC VỤ</span>
+              </div>
+
+              <div class="dag-node" id="node-w2-a" style="margin: auto 0;">
+                <div class="node-head">
+                  <span>T3: Tổng Hợp Bản Vá</span>
+                  <span class="node-state" id="state-w2-a">ĐANG CHỜ</span>
+                </div>
+                <div class="evidence-row">
+                  <span class="ev-in">--consumes: ast.report.json</span>
+                  <span class="ev-in">--consumes: sec.bounds.sig</span>
+                  <span class="ev-out">--produces: patch.verified.diff</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ĐỢT 3 -->
+            <div class="wave-col">
+              <div class="wave-title">
+                <span>ĐỢT 03 // HOÀN TẤT</span>
+                <span>1 TÁC VỤ</span>
+              </div>
+
+              <div class="dag-node" id="node-w3-a" style="margin: auto 0;">
+                <div class="node-head">
+                  <span>T4: Xác Thực Tất Định</span>
+                  <span class="node-state" id="state-w3-a">ĐANG CHỜ</span>
+                </div>
+                <div class="evidence-row">
+                  <span class="ev-in">--consumes: patch.verified.diff</span>
+                  <span class="ev-out">--produces: release.attest.bin</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CHÂN TRANG TELEMETRY -->
+        <div class="telemetry-footer">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span>Tiền tố System Prompt Bất Biến:</span>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill"></div>
+            </div>
+            <span style="color: var(--green);">ĐÃ KHÓA (SHA256: 9f8a..e41b)</span>
+          </div>
+          <div>
+            <span>Trạng thái Lockfile: <code id="footer-lock-state" style="color: var(--green);">SẠCH (CLEAR)</code></span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // --- TRẠNG THÁI ỨNG DỤNG ---
+    let systemHalted = false;
+    let tokensSaved = 14820;
+    let quotaUsed = 12;
+    let blockedCount = 0;
+    let dagRunning = false;
+    let dagTimers = [];
+
+    const terminalEl = document.getElementById('terminal-logs');
+
+    // --- HÀM LẤY THỜI GIAN THỰC ---
+    function getTimestamp() {
+      const now = new Date();
+      return now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+    }
+
+    // --- HÀM GHI LOG VÀO TERMINAL ---
+    function appendLog(type, tagText, tagClass, message) {
+      const div = document.createElement('div');
+      div.className = `log-entry ${type}`;
+      div.innerHTML = `
+        <span class="log-meta">[${getTimestamp()}]</span>
+        <span class="tag ${tagClass}">${tagText}</span>
+        <span>${message}</span>
+      `;
+      terminalEl.appendChild(div);
+      terminalEl.scrollTop = terminalEl.scrollHeight;
+    }
+
+    // --- KHỞI ĐỘNG HỆ THỐNG BAN ĐẦU ---
+    function initBootSequence() {
+      appendLog('info', 'KERNEL', 'tag-cyan', 'Mặt phẳng điều khiển cục bộ Yana AI đã khởi tạo (Cold start: <strong>4.21 ms</strong>).');
+      appendLog('info', 'CACHE', 'tag-purple', 'System prompt tĩnh & định nghĩa công cụ đã ghim vào bộ nhớ đệm KV (<strong>Tỷ lệ trúng Cache: 100%</strong>).');
+      appendLog('success', 'GIÁM THỊ', 'tag-green', 'Bộ giám sát độc lập Giám Thị đã gắn vào vòng lặp syscall. Cơ chế bất đối xứng Fail-Closed đang bật.');
+    }
+
+    // --- KIỂM TRA KHÓA FAIL-CLOSED ---
+    function checkFailClosed(proposedAction) {
+      if (!systemHalted) return false;
+
+      blockedCount++;
+      document.getElementById('blocked-counter').textContent = `Đề xuất bị chặn: ${blockedCount}`;
+      const latency = (Math.random() * 0.9 + 0.8).toFixed(2);
+      document.getElementById('gt-intercept-timer').textContent = `Đã chặn trong ${latency} ms`;
+
+      appendLog(
+        'halt',
+        'FAIL-CLOSED',
+        'tag-red',
+        `Từ chối thực thi (<strong>${latency} ms</strong>): <code>${proposedAction}</code> — Hệ thống đang bị khóa bởi <strong>Giám Thị</strong>. Yêu cầu con người mở khóa.`
+      );
+      return true;
+    }
+
+    // --- 1. CHẠY TÁC VỤ AN TOÀN CHUẨN ---
+    function runNormalTask() {
+      const cmd = 'yana code --task "refactor-jwt-validator" --strict-types';
+      if (checkFailClosed(cmd)) return;
+
+      const guardMs = (Math.random() * 0.7 + 3.1).toFixed(2);
+      tokensSaved += 2450;
+      quotaUsed = Math.min(500, quotaUsed + 1);
+
+      document.getElementById('metric-guard').textContent = `${guardMs} ms`;
+      document.getElementById('gt-intercept-timer').textContent = `Kiểm tra cuối: ${guardMs} ms`;
+      document.getElementById('metric-tokens-saved').textContent = `Tiết kiệm ${tokensSaved.toLocaleString()} tokens`;
+      document.getElementById('metric-quota').textContent = `${quotaUsed} / 500`;
+
+      appendLog('info', 'ĐỀ XUẤT', 'tag-cyan', `Agent đề xuất gọi công cụ: <code>${cmd}</code>`);
+      setTimeout(() => {
+        if (systemHalted) return;
+        appendLog(
+          'success',
+          'PROMPT CACHE',
+          'tag-purple',
+          `Trúng 100% KV Prefix Cache (Tiết kiệm +2,450 tokens). Đảm bảo không trôi lệch ngữ cảnh.`
+        );
+        appendLog(
+          'success',
+          'GIÁM THỊ DUYỆT',
+          'tag-green',
+          `Đã xác minh chính sách & cây cú pháp AST trong <strong>${guardMs} ms</strong>. Áp dụng bản vá an toàn vào <code>src/auth/jwt.ts</code>.`
+        );
+      }, 120);
+    }
+
+    // --- KÍCH HOẠT ĐÌNH CHỈ HỆ THỐNG (OS HALT) ---
+    function triggerOsHalt(commandStr, policyCode, explanation) {
+      dagTimers.forEach(t => clearTimeout(t));
+      dagTimers = [];
+      if (dagRunning) {
+        dagRunning = false;
+        document.getElementById('dag-status-badge').className = 'tag tag-red';
+        document.getElementById('dag-status-badge').textContent = 'ĐÃ HỦY // BỊ ĐÌNH CHỈ';
+      }
+
+      const interceptMs = (Math.random() * 1.1 + 2.1).toFixed(2);
+      systemHalted = true;
+
+      // Cập nhật giao diện sang chế độ Cảnh Báo Đỏ
+      document.body.classList.add('halted-mode');
+      const guardPill = document.getElementById('hdr-guard-pill');
+      guardPill.className = 'status-pill halted-guard';
+      document.getElementById('hdr-guard-dot').className = 'dot red';
+      document.getElementById('hdr-guard-text').textContent = 'GIÁM THỊ: HỆ THỐNG BỊ ĐÌNH CHỈ (ĐÃ KHÓA)';
+
+      // Cập nhật bảng Giám Thị
+      const gtPanel = document.getElementById('giam-thi-panel');
+      gtPanel.classList.add('halted');
+      document.getElementById('gt-icon').textContent = '🛑';
+      document.getElementById('gt-status-title').textContent = 'GIÁM THỊ: ĐÃ ĐÌNH CHỈ HỆ THỐNG (SYSTEM HALTED)';
+      document.getElementById('gt-intercept-timer').textContent = `Đánh chặn: ${interceptMs} ms`;
+      document.getElementById('gt-violation-time').textContent = `ĐÁNH CHẶN TRONG ${interceptMs} ms`;
+      document.getElementById('gt-violation-reason').innerHTML = `
+        <div><strong>Lệnh bị chặn:</strong> <code>${commandStr}</code></div>
+        <div><strong>Vi phạm quy tắc:</strong> <code>${policyCode}</code> — ${explanation}</div>
+      `;
+
+      // Cập nhật thẻ chỉ số
+      document.getElementById('metric-guard').textContent = `${interceptMs} ms`;
+      document.getElementById('metric-guard').style.color = 'var(--red)';
+      document.getElementById('metric-guard-sub').textContent = 'ĐÃ CHẶN SYSCALL NGUY HIỂM';
+      document.getElementById('footer-lock-state').textContent = 'ĐANG KHÓA (.halt.lock)';
+      document.getElementById('footer-lock-state').style.color = 'var(--red)';
+
+      // Ghi log Terminal
+      appendLog('warn', 'AGENT GỌI LỆNH', 'tag-amber', `Agent không bị ràng buộc vừa đề xuất: <code>${commandStr}</code>`);
+      appendLog(
+        'halt',
+        'ĐÌNH CHỈ OS',
+        'tag-red',
+        `<strong>GIÁM THỊ ĐÁNH CHẶN (${interceptMs} ms)</strong>: Vi phạm <code>${policyCode}</code>. Đã đóng băng cây tiến trình &amp; ghi file khóa <code>.yana/halt.lock</code>.`
+      );
+    }
+
+    // --- 2. MÔ PHỎNG LỆNH XÓA FILE (RM -RF) ---
+    function simulateRmRf() {
+      const cmd = 'rm -rf ./src /var/lib/yana-workspace/*';
+      if (checkFailClosed(cmd)) return;
+
+      triggerOsHalt(
+        cmd,
+        'POLICY_FS_DESTRUCTIVE_01',
+        'Nghiêm cấm xóa đệ quy cưỡng bức bên ngoài vùng nháp (sandbox scratchpad) tạm thời.'
+      );
+    }
+
+    // --- 3. MÔ PHỎNG GHI ĐÈ GIT (GIT PUSH --FORCE) ---
+    function simulateForcePush() {
+      const cmd = 'git push --force origin main';
+      if (checkFailClosed(cmd)) return;
+
+      triggerOsHalt(
+        cmd,
+        'POLICY_GIT_IMMUTABLE_HISTORY',
+        'Hành vi ghi đè lịch sử commit trên nhánh được bảo vệ (main) vi phạm chính sách quản trị kho mã nguồn.'
+      );
+    }
+
+    // --- CON NGƯỜI MỞ KHÓA HỆ THỐNG ---
+    function humanUnlockSystem() {
+      systemHalted = false;
+      document.body.classList.remove('halted-mode');
+
+      const guardPill = document.getElementById('hdr-guard-pill');
+      guardPill.className = 'status-pill active-guard';
+      document.getElementById('hdr-guard-dot').className = 'dot';
+      document.getElementById('hdr-guard-text').textContent = 'GIÁM THỊ: ĐANG BẢO VỆ (FAIL-CLOSED)';
+
+      const gtPanel = document.getElementById('giam-thi-panel');
+      gtPanel.classList.remove('halted');
+      document.getElementById('gt-icon').textContent = '🛡️';
+      document.getElementById('gt-status-title').textContent = 'GIÁM THỊ: ĐANG HOẠT ĐỘNG & XÁC MINH';
+      document.getElementById('gt-intercept-timer').textContent = 'Kiểm tra cuối: 3.48 ms';
+
+      document.getElementById('metric-guard').textContent = '3.48 ms';
+      document.getElementById('metric-guard').style.color = 'var(--text-main)';
+      document.getElementById('metric-guard-sub').textContent = 'Xác thực AST + Chính sách';
+      document.getElementById('footer-lock-state').textContent = 'SẠCH (CLEAR)';
+      document.getElementById('footer-lock-state').style.color = 'var(--green)';
+
+      appendLog(
+        'success',
+        'MỞ KHÓA THỦ CÔNG',
+        'tag-green',
+        'Quản trị viên (Con người) đã kiểm tra và xóa <code>/var/run/yana/giam-thi.halt.lock</code>. Mặt phẳng điều khiển hoạt động trở lại.'
+      );
+    }
+
+    // --- 4. CHẠY NHIỆM VỤ DAG THEO ĐỢT SÓNG ---
+    function resetDagNodes() {
+      const ids = ['w1-a', 'w1-b', 'w2-a', 'w3-a'];
+      ids.forEach((id, idx) => {
+        const node = document.getElementById(`node-${id}`);
+        const state = document.getElementById(`state-${id}`);
+        node.className = 'dag-node';
+        state.textContent = idx < 2 ? 'SẴN SÀNG' : 'ĐANG CHỜ';
+      });
+    }
+
+    function setNodeState(id, statusClass, label) {
+      const node = document.getElementById(`node-${id}`);
+      const state = document.getElementById(`state-${id}`);
+      node.className = `dag-node ${statusClass}`;
+      state.textContent = label;
+    }
+
+    function runDagMission() {
+      const cmd = 'yana dag run --mission "zero-trust-release" --verify-evidence';
+      if (checkFailClosed(cmd)) return;
+      if (dagRunning) {
+        appendLog('warn', 'DAG ĐANG CHẠY', 'tag-amber', 'Bộ lập lịch đợt sóng đang thực thi một nhiệm vụ khác.');
+        return;
+      }
+
+      dagRunning = true;
+      resetDagNodes();
+
+      const badge = document.getElementById('dag-status-badge');
+      badge.className = 'tag tag-cyan';
+      badge.textContent = 'ĐỢT 01 // ĐANG CHẠY';
+
+      appendLog('info', 'KHỞI CHẠY DAG', 'tag-cyan', `Bắt đầu nhiệm vụ DAG theo đợt sóng: <code>${cmd}</code>`);
+      appendLog('info', 'ĐỢT SÓNG 01', 'tag-purple', 'Thực thi song song T1 & T2. Đang kiểm tra đầu vào <code>--consumes</code>...');
+
+      setNodeState('w1-a', 'running', 'ĐANG CHẠY');
+      setNodeState('w1-b', 'running', 'ĐANG CHẠY');
+
+      // Hoàn tất Đợt 1 -> Chuyển sang Đợt 2
+      dagTimers.push(setTimeout(() => {
+        if (systemHalted) return;
+        setNodeState('w1-a', 'completed', 'ĐÃ TẠO BẰNG CHỨNG');
+        setNodeState('w1-b', 'completed', 'ĐÃ TẠO BẰNG CHỨNG');
+        tokensSaved += 3800;
+        document.getElementById('metric-tokens-saved').textContent = `Tiết kiệm ${tokensSaved.toLocaleString()} tokens`;
+
+        appendLog(
+          'success',
+          'CỔNG BẰNG CHỨNG',
+          'tag-green',
+          'Đợt 01 hoàn tất. Đã xác thực chữ ký băm cho <code>ast.report.json</code> &amp; <code>sec.bounds.sig</code>.'
+        );
+
+        badge.textContent = 'ĐỢT 02 // ĐANG TỔNG HỢP';
+        setNodeState('w2-a', 'running', 'ĐANG TỔNG HỢP');
+        appendLog('info', 'ĐỢT SÓNG 02', 'tag-purple', 'Cổng bằng chứng mở: T3 tiếp nhận kết quả Đợt 01 để tổng hợp bản vá.');
+      }, 950));
+
+      // Hoàn tất Đợt 2 -> Chuyển sang Đợt 3
+      dagTimers.push(setTimeout(() => {
+        if (systemHalted) return;
+        setNodeState('w2-a', 'completed', 'ĐÃ TẠO BẰNG CHỨNG');
+        appendLog(
+          'success',
+          'CỔNG BẰNG CHỨNG',
+          'tag-green',
+          'Đợt 02 hoàn tất. Đã sinh tạo <code>patch.verified.diff</code> (Giám Thị kiểm tra trong 3.31 ms).'
+        );
+
+        badge.textContent = 'ĐỢT 03 // ĐANG KÝ SỐ';
+        setNodeState('w3-a', 'running', 'ĐANG XÁC THỰC');
+      }, 1900));
+
+      // Hoàn tất Đợt 3
+      dagTimers.push(setTimeout(() => {
+        if (systemHalted) return;
+        setNodeState('w3-a', 'completed', 'ĐÃ CHỨNG THỰC');
+        badge.className = 'tag tag-green';
+        badge.textContent = 'HOÀN TẤT NHIỆM VỤ';
+        dagRunning = false;
+        quotaUsed = Math.min(500, quotaUsed + 4);
+        document.getElementById('metric-quota').textContent = `${quotaUsed} / 500`;
+
+        appendLog(
+          'success',
+          'DAG HOÀN TẤT',
+          'tag-green',
+          'Cả 3 đợt sóng đã hoàn thành với 100% bằng chứng hợp lệ: Đã ký phát hành <code>release.attest.bin</code>.'
+        );
+      }, 2800));
+    }
+
+    // --- THOÁT KÝ TỰ HTML CHO NỘI DUNG NGƯỜI DÙNG NHẬP ---
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // --- XỬ LÝ LỆNH TÙY CHỈNH TỪ Ô NHẬP LIỆU ---
+    function handleCustomCommand(e) {
+      e.preventDefault();
+      const inputEl = document.getElementById('cli-input');
+      // Escaped once here: raw flows into innerHTML via appendLog,
+      // triggerOsHalt and checkFailClosed.
+      const raw = escapeHtml(inputEl.value.trim());
+      if (!raw) return;
+      inputEl.value = '';
+
+      if (checkFailClosed(raw)) return;
+
+      const lower = raw.toLowerCase();
+      if (lower.includes('rm -rf') || lower.includes('mkfs') || lower.includes('dd if=')) {
+        triggerOsHalt(
+          raw,
+          'POLICY_FS_DESTRUCTIVE_01',
+          'Lệnh phá hủy hệ thống tệp tin bị chặn bởi bộ lọc syscall của Giám Thị.'
+        );
+      } else if (lower.includes('--force') || lower.includes(' push -f') || lower.includes('reset --hard')) {
+        triggerOsHalt(
+          raw,
+          'POLICY_GIT_IMMUTABLE_HISTORY',
+          'Lệnh thay đổi lịch sử Git cưỡng bức bị chặn bởi chính sách bảo vệ nhánh.'
+        );
+      } else if (lower.includes('dag')) {
+        runDagMission();
+      } else {
+        const guardMs = (Math.random() * 0.8 + 3.0).toFixed(2);
+        tokensSaved += 1120;
+        quotaUsed = Math.min(500, quotaUsed + 1);
+        document.getElementById('metric-guard').textContent = `${guardMs} ms`;
+        document.getElementById('metric-tokens-saved').textContent = `Tiết kiệm ${tokensSaved.toLocaleString()} tokens`;
+        document.getElementById('metric-quota').textContent = `${quotaUsed} / 500`;
+
+        appendLog('info', 'CLI THỰC THI', 'tag-cyan', `Đang thực thi lệnh dưới quyền giám sát: <code>${raw}</code>`);
+        appendLog('success', 'GIÁM THỊ DUYỆT', 'tag-green', `Kiểm tra chính sách syscall đạt trong <strong>${guardMs} ms</strong>. 100% Prompt Cache hit.`);
+      }
+    }
+
+    // Chạy khởi tạo khi tải trang xong
+    window.addEventListener('DOMContentLoaded', initBootSequence);
+  </script>
+</body>
+</html>

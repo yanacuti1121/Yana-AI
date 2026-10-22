@@ -1,290 +1,49 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Yana AI — System Map v0.12.0</title>
-<meta property="og:title" content="System Map — Yana AI">
-<meta property="og:description" content="Architecture overview of Yana AI — gates, agents, skills, bus.">
-<meta property="og:image" content="https://yanacuti1121.github.io/yana-ai/yana-mark.svg">
-<meta property="og:url" content="https://yanacuti1121.github.io/yana-ai/yana-ai-system-map.html">
-<meta property="og:type" content="website">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="System Map — Yana AI">
-<meta name="twitter:description" content="Architecture overview of Yana AI — gates, agents, skills, bus.">
-<meta name="description" content="Architecture overview of Yana AI — gates, agents, skills, bus.">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600;700&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --ink:#0a0f1e;
-  --paper:#f0f4ff;
-  --grid:rgba(60,100,200,.07);
-  --c1:#2563eb;--c1l:#dbeafe;
-  --c2:#7c3aed;--c2l:#ede9fe;
-  --c3:#0891b2;--c3l:#cffafe;
-  --c4:#059669;--c4l:#d1fae5;
-  --c5:#dc2626;--c5l:#fee2e2;
-  --c6:#d97706;--c6l:#fef3c7;
-  --c7:#db2777;--c7l:#fce7f3;
-  --dim:.55;
-}
-body{
-  background:var(--ink);
-  font-family:'IBM Plex Mono',monospace;
-  color:#e8eeff;
-  min-height:100vh;
-  overflow-x:hidden;
-  position:relative;
-}
-
-/* blueprint grid */
-body::before{
-  content:'';
-  position:fixed;inset:0;
-  background-image:
-    linear-gradient(rgba(60,120,255,.05) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(60,120,255,.05) 1px,transparent 1px),
-    linear-gradient(rgba(60,120,255,.025) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(60,120,255,.025) 1px,transparent 1px);
-  background-size:80px 80px,80px 80px,16px 16px,16px 16px;
-  pointer-events:none;z-index:0;
-}
-
-.wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:40px 24px 60px}
-
-/* ── TOP HEADER ── */
-.top-bar{
-  display:flex;justify-content:space-between;align-items:flex-start;
-  border-bottom:1px solid rgba(100,140,255,.2);
-  padding-bottom:24px;margin-bottom:32px;flex-wrap:wrap;gap:16px;
-}
-.logo-block{}
-.logo-tag{
-  font-size:10px;letter-spacing:.3em;color:rgba(100,160,255,.6);
-  text-transform:uppercase;margin-bottom:6px;
-}
-.logo-name{
-  font-size:52px;font-weight:700;letter-spacing:-.02em;line-height:1;
-  background:linear-gradient(135deg,#60a5fa,#a78bfa 50%,#34d399);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-.logo-sub{font-size:11px;color:rgba(100,160,255,.5);letter-spacing:.15em;margin-top:4px}
-
-.meta-block{text-align:right}
-.meta-version{font-size:11px;color:rgba(100,160,255,.4);margin-bottom:8px}
-.meta-stats{display:flex;gap:20px;flex-wrap:wrap;justify-content:flex-end}
-.ms{display:flex;flex-direction:column;align-items:center}
-.ms-n{font-size:28px;font-weight:700;line-height:1}
-.ms-n.n1{color:#60a5fa}.ms-n.n2{color:#a78bfa}.ms-n.n3{color:#34d399}
-.ms-n.n4{color:#fbbf24}.ms-n.n5{color:#f472b6}.ms-n.n6{color:#2dd4bf}
-.ms-l{font-size:9px;letter-spacing:.12em;color:rgba(100,160,255,.4);margin-top:2px;text-transform:uppercase}
-
-/* ── SECTION LABEL ── */
-.sec{
-  font-size:9px;letter-spacing:.25em;text-transform:uppercase;
-  color:rgba(100,160,255,.35);margin-bottom:12px;
-  display:flex;align-items:center;gap:10px;
-}
-.sec::before{content:'//';color:rgba(100,160,255,.2)}
-.sec::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(100,160,255,.15),transparent)}
-
-/* ── HOOK FLOW ── */
-.flow-wrap{
-  display:flex;align-items:stretch;gap:0;
-  margin-bottom:32px;overflow-x:auto;padding-bottom:4px;
-}
-.flow-stage{
-  display:flex;flex-direction:column;gap:6px;
-  flex-shrink:0;
-}
-.fs-label{
-  font-size:8px;letter-spacing:.2em;text-transform:uppercase;
-  text-align:center;padding:4px 8px;margin-bottom:2px;
-  border-radius:3px;
-}
-.fsl-pre {background:rgba(96,165,250,.1);color:#60a5fa}
-.fsl-exec{background:rgba(167,139,250,.12);color:#a78bfa}
-.fsl-post{background:rgba(52,211,153,.1);color:#34d399}
-.fsl-stop{background:rgba(248,113,113,.1);color:#f87171}
-.fsl-user{background:rgba(251,191,36,.08);color:#fbbf24}
-
-.hook-pill{
-  display:flex;align-items:center;gap:6px;
-  padding:7px 12px;border-radius:5px;
-  border:1px solid rgba(100,160,255,.1);
-  background:rgba(10,15,40,.6);
-  font-size:10px;color:#94a3b8;
-  white-space:nowrap;transition:border-color .15s,color .15s;
-  cursor:default;
-}
-.hook-pill:hover{border-color:rgba(100,160,255,.4);color:#e2e8f0}
-.hook-pill .dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
-.dp-pre {background:#60a5fa}
-.dp-exec{background:#a78bfa}
-.dp-post{background:#34d399}
-.dp-stop{background:#f87171}
-.dp-user{background:#fbbf24}
-
-.flow-arrow-col{
-  display:flex;align-items:center;justify-content:center;
-  padding:0 4px;color:rgba(100,160,255,.2);font-size:16px;
-  flex-shrink:0;align-self:center;margin-top:28px;
-}
-
-/* ── AGENT GRID ── */
-.agent-section{margin-bottom:32px}
-.agent-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
-  gap:10px;
-}
-.ag{
-  border:1px solid rgba(100,160,255,.1);border-radius:8px;
-  padding:14px;background:rgba(10,15,40,.5);
-  transition:border-color .2s,transform .15s;
-  cursor:default;position:relative;overflow:hidden;
-}
-.ag::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:8px 8px 0 0;
-  opacity:.7;
-}
-.ag:hover{transform:translateY(-2px);border-color:rgba(100,160,255,.3)}
-.ag-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.ag-icon{font-size:14px;opacity:.7}
-.ag-name{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
-.ag-list{list-style:none;display:flex;flex-direction:column;gap:3px}
-.ag-list li{font-size:10px;color:rgba(148,163,184,.7);padding-left:10px;position:relative}
-.ag-list li::before{content:'─';position:absolute;left:0;color:rgba(100,160,255,.2)}
-.ag-more{font-size:9px;color:rgba(100,160,255,.3);margin-top:6px;text-align:right;letter-spacing:.05em}
-
-/* category colors */
-.ag.t1::before{background:#60a5fa}
-.ag.t1 .ag-name{color:#60a5fa}
-.ag.t2::before{background:#a78bfa}
-.ag.t2 .ag-name{color:#a78bfa}
-.ag.t3::before{background:#34d399}
-.ag.t3 .ag-name{color:#34d399}
-.ag.t4::before{background:#fbbf24}
-.ag.t4 .ag-name{color:#fbbf24}
-.ag.t5::before{background:#f472b6}
-.ag.t5 .ag-name{color:#f472b6}
-.ag.t6::before{background:#2dd4bf}
-.ag.t6 .ag-name{color:#2dd4bf}
-.ag.t7::before{background:#fb923c}
-.ag.t7 .ag-name{color:#fb923c}
-.ag.t8::before{background:#f87171}
-.ag.t8 .ag-name{color:#f87171}
-
-/* ── RULE CLOUD ── */
-.rules-grid{
-  display:flex;flex-wrap:wrap;gap:6px;
-  margin-bottom:32px;
-}
-.rule-tag{
-  font-size:9px;padding:4px 10px;border-radius:20px;
-  border:1px solid;letter-spacing:.04em;
-  transition:opacity .15s;cursor:default;
-}
-.rule-tag:hover{opacity:1!important}
-.rt-law{border-color:rgba(248,113,113,.3);color:#f87171;background:rgba(248,113,113,.06)}
-.rt-guard{border-color:rgba(251,191,36,.3);color:#fbbf24;background:rgba(251,191,36,.06)}
-.rt-policy{border-color:rgba(167,139,250,.3);color:#a78bfa;background:rgba(167,139,250,.06)}
-.rt-gate{border-color:rgba(52,211,153,.3);color:#34d399;background:rgba(52,211,153,.06)}
-.rt-core{border-color:rgba(96,165,250,.3);color:#60a5fa;background:rgba(96,165,250,.06)}
-
-/* ── SKILL DOMAINS ── */
-.skill-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-  gap:10px;margin-bottom:32px;
-}
-.skill-domain{
-  background:rgba(10,15,40,.5);
-  border:1px solid rgba(100,160,255,.08);
-  border-radius:8px;padding:12px 14px;
-}
-.sd-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.sd-name{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8}
-.sd-count{font-size:16px;font-weight:700}
-.sd-bar{height:3px;border-radius:2px;margin-bottom:8px;background:rgba(100,160,255,.08);overflow:hidden}
-.sd-fill{height:100%;border-radius:2px}
-.sd-tags{display:flex;flex-wrap:wrap;gap:4px}
-.sd-tag{font-size:9px;color:rgba(100,160,255,.35);background:rgba(100,160,255,.05);padding:2px 6px;border-radius:3px}
-
-/* ── MEMORY & GATES ── */
-.bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:32px}
-@media(max-width:600px){.bottom-row{grid-template-columns:1fr}}
-
-.panel{
-  background:rgba(10,15,40,.5);
-  border:1px solid rgba(100,160,255,.1);
-  border-radius:8px;padding:16px;
-}
-.panel-title{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:rgba(100,160,255,.3);margin-bottom:12px}
-
-.mem-tier{
-  display:flex;align-items:flex-start;gap:12px;
-  padding:10px 0;border-bottom:1px solid rgba(100,160,255,.07);
-}
-.mem-tier:last-child{border-bottom:none}
-.mem-badge{
-  font-size:11px;font-weight:700;min-width:24px;
-  padding:3px 7px;border-radius:4px;text-align:center;
-}
-.mb-l1{background:rgba(52,211,153,.12);color:#34d399}
-.mb-l2{background:rgba(96,165,250,.12);color:#60a5fa}
-.mem-text{}
-.mem-name{font-size:11px;font-weight:600;color:#cbd5e1;margin-bottom:2px}
-.mem-desc{font-size:9px;color:rgba(100,160,255,.35);line-height:1.6}
-
-.gate-item{
-  display:flex;align-items:flex-start;gap:10px;
-  padding:8px 0;border-bottom:1px solid rgba(100,160,255,.07);
-}
-.gate-item:last-child{border-bottom:none}
-.gate-level{
-  font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;
-  white-space:nowrap;margin-top:1px;
-}
-.gl-l3{background:rgba(248,113,113,.1);color:#f87171}
-.gl-l2{background:rgba(251,191,36,.1);color:#fbbf24}
-.gl-l1{background:rgba(52,211,153,.1);color:#34d399}
-.gl-l0{background:rgba(96,165,250,.1);color:#60a5fa}
-.gate-text{}
-.gate-name{font-size:11px;font-weight:600;color:#cbd5e1;margin-bottom:1px}
-.gate-desc{font-size:9px;color:rgba(100,160,255,.35);line-height:1.5}
-
-/* ── FOOTER ── */
-.footer{
-  display:flex;justify-content:space-between;align-items:center;
-  padding-top:20px;border-top:1px solid rgba(100,160,255,.12);
-  flex-wrap:wrap;gap:12px;
-}
-.f-left{font-size:10px;color:rgba(100,160,255,.25);letter-spacing:.05em}
-.f-left span{color:rgba(100,160,255,.5)}
-.f-tags{display:flex;gap:8px;flex-wrap:wrap}
-.f-tag{font-size:9px;padding:3px 8px;border:1px solid rgba(100,160,255,.1);border-radius:3px;color:rgba(100,160,255,.3);letter-spacing:.04em}
-
-/* fade in */
-@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-.wrap>*{animation:up .4s ease both}
-.wrap>*:nth-child(1){animation-delay:.02s}
-.wrap>*:nth-child(2){animation-delay:.06s}
-.wrap>*:nth-child(3){animation-delay:.1s}
-.wrap>*:nth-child(4){animation-delay:.14s}
-.wrap>*:nth-child(5){animation-delay:.18s}
-.wrap>*:nth-child(6){animation-delay:.22s}
-.wrap>*:nth-child(7){animation-delay:.26s}
-.wrap>*:nth-child(8){animation-delay:.3s}
-.wrap>*:nth-child(9){animation-delay:.34s}
-.wrap>*:nth-child(10){animation-delay:.38s}
-@keyframes _pg{from{opacity:0}to{opacity:1}}body{animation:_pg .32s ease-out both}
-</style>
-
-  <link rel="stylesheet" href="lotus-pond.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yana AI — System Map v0.12.0 — Yana AI 2026</title>
+  <meta name="description" content="Tài liệu kỹ thuật và hướng dẫn thuộc hệ sinh thái Yana AI 2026.">
+  <link rel="icon" type="image/svg+xml" href="yana-mark.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site26.css">
+  <link rel="stylesheet" href="assets/studio26.css">
 </head>
-<body>
+<body class="site26-body page-article">
+  <header class="site26-nav-wrap">
+    <nav class="site26-nav" aria-label="Điều hướng chính">
+      <a href="index.html" class="nav-brand" aria-label="Yana AI Trang chủ">
+        <img src="assets/yana-rabbit-app-icon.png" alt="Yana Logo" class="brand-logo" width="32" height="32">
+        <span class="brand-text">Yana <span class="brand-sub">AI 2026</span></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="studio.html">Studio IDE</a></li>
+        <li><a href="runtime.html">Runtime</a></li>
+        <li><a href="wheelbot.html">WheelBot</a></li>
+        <li><a href="governance.html">Giám Thị OS</a></li>
+        <li><a href="agents-skills.html">Agents & Skills</a></li>
+        <li><a href="commands.html">Lệnh (170)</a></li>
+        <li><a href="evidence.html">Truth Gate</a></li>
+        <li><a href="download.html">Tải về</a></li>
+      </ul>
+      <div class="nav-cta">
+        <a href="download.html" class="btn-nav-primary">Tải Yana Studio</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="site26-main doc-container">
+    <section class="doc-hero">
+      <div class="doc-badge">BẢN ĐỒ & LỊCH SỬ</div>
+      <h1 class="doc-title">Yana AI — System Map v0.12.0</h1>
+      <p class="doc-lead">Tài liệu kỹ thuật và hướng dẫn thuộc hệ sinh thái Yana AI 2026.</p>
+    </section>
+
+    <div class="doc-content-wrapper">
+      <div class="doc-main-body">
 <div class="wrap">
 
 <!-- TOP HEADER -->
@@ -804,9 +563,9 @@ body::before{
 </div>
 
 </div>
-  <script src="water-bg.js" defer></script>
-  <script src="water-droplet.js" defer></script>
-  <script src="lotus-petals.js" defer></script>
+  
+  
+  
   <!-- Music player -->
   <div id="yt-player" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none"></div>
   <button id="mute-btn" onclick="toggleMute()" title="Phát nhạc" style="
@@ -823,9 +582,73 @@ body::before{
     width:2.4rem;height:2.4rem;font-size:.9rem;text-decoration:none;
     display:flex;align-items:center;justify-content:center;transition:all .2s;
   ">🎵</a>
-  <script src="https://www.youtube.com/iframe_api"></script>
-  <script src="music-player.js"></script>
-  <script src="shared-theme.js"></script>
-  <script src="i18n.js"></script>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site26-footer">
+    <div class="footer-inner">
+      <div class="footer-brand-col">
+        <a href="index.html" class="footer-logo">
+          <img src="assets/yana-rabbit-app-icon.png" alt="Yana" width="28" height="28">
+          <span>Yana AI</span>
+        </a>
+        <p class="footer-tagline">Hệ điều hành Agentic AI cá nhân hóa — An toàn theo thiết kế, bảo chứng bằng sự thật.</p>
+        <div class="footer-crypto-badge">SHA-256 Verified Ecosystem • 2026</div>
+      </div>
+      <div class="footer-links-grid">
+        <div class="footer-col">
+          <h4>Sản Phẩm</h4>
+          <ul>
+            <li><a href="studio.html">Yana Studio IDE</a></li>
+            <li><a href="runtime.html">Yana Runtime Engine</a></li>
+            <li><a href="wheelbot.html">WheelBot Physical AI</a></li>
+            <li><a href="governance.html">Giám Thị OS</a></li>
+            <li><a href="download.html">Tải Bản Phát Hành</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Kiến Trúc & An Toàn</h4>
+          <ul>
+            <li><a href="architecture.html">Kiến Trúc Hệ Thống</a></li>
+            <li><a href="evidence.html">Truth Gate L0–L5</a></li>
+            <li><a href="safety.html">Hàng Rào Bảo Vệ</a></li>
+            <li><a href="connectors.html">MCP & Connectors</a></li>
+            <li><a href="continuity.html">Bộ Nhớ L1/L2</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Cài Đặt & Hỗ Trợ</h4>
+          <ul>
+            <li><a href="install-macos.html">Cài trên macOS</a></li>
+            <li><a href="install-linux.html">Cài trên Linux</a></li>
+            <li><a href="install-windows.html">Cài trên Windows</a></li>
+            <li><a href="yana-ai-system-map.html">Bản Đồ Hệ Thống</a></li>
+            <li><a href="support.html">Trung Tâm Hỗ Trợ</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Pháp Lý & Minh Bạch</h4>
+          <ul>
+            <li><a href="privacy.html">Chính Sách Riêng Tư</a></li>
+            <li><a href="legal-notices.html">Thông Cáo Pháp Lý</a></li>
+            <li><a href="acknowledgements.html">Tri Ân Mã Nguồn Mở</a></li>
+            <li><a href="history.html">Lịch Sử Phát Triển</a></li>
+            <li><a href="updates.html">Nhật Ký Cập Nhật</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Yana AI. Bản quyền mở theo Giấy phép MIT. Phát triển độc lập và tự chủ.</p>
+      <div class="footer-bottom-links">
+        <a href="privacy.html">Bảo mật</a>
+        <a href="legal-notices.html">Điều khoản</a>
+        <a href="contact.html">Liên hệ</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/site26.js"></script>
 </body>
 </html>

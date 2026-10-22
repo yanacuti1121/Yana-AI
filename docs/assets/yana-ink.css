@@ -1,0 +1,98 @@
+/*
+ * Ink marks on headings (see yana-ink.js): rainbow words, marker swipes, hand-drawn
+ * underlines, squiggles, circles, a selection box and little bursts. Each draws once.
+ */
+:root {
+  --ink-rainbow: linear-gradient(95deg, #f59e0b 0%, #f43f5e 28%, #d946ef 52%, #8b5cf6 72%, #3b82f6 100%);
+  --ink-pen: #1f2430;
+  --ink-blue: #3b6fe0;
+}
+
+.home-page .ink { position: relative; display: inline-block; white-space: nowrap; font-style: normal }
+.home-page .ink-keep { white-space: nowrap }
+
+/* Rainbow words: colour sweeps in from the left the first time they are seen. */
+.home-page .ink--rainbow,
+.home-page .hero26-mark,
+.home-page .home-why .ink-rainbow-word {
+  background: var(--ink-rainbow);
+  background-size: 220% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+  transition: background-position 1.4s cubic-bezier(.3, .8, .2, 1);
+}
+.home-page .ink--rainbow.is-inked,
+.home-page .hero26-mark,
+.home-page .home-why .ink-rainbow-word { background-position: 0 0 }
+
+/* Marker swipes behind the words, slightly tilted, wiped on left to right. */
+.home-page .ink[class*="ink--highlight"]::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -.12em; right: -.12em; bottom: .04em; height: .5em;
+  border-radius: .12em .3em .18em .35em;
+  transform: rotate(-1.2deg) scaleX(0);
+  transform-origin: left center;
+  transition: transform .8s cubic-bezier(.6, 0, .2, 1) .15s;
+}
+.home-page .ink[class*="ink--highlight"].is-inked::before { transform: rotate(-1.2deg) scaleX(1) }
+.home-page .ink--highlight-green::before { background: #b9f0c9 }
+.home-page .ink--highlight-yellow::before { background: #fde68a }
+.home-page .ink--highlight-blue::before { background: #c7dbff }
+.home-page .ink[class*="ink--highlight"] { isolation: isolate }
+
+/* Drawn strokes: underline, squiggle, circle, burst. */
+.home-page .ink-svg { position: absolute; overflow: visible; pointer-events: none }
+.home-page .ink-svg path {
+  fill: none; stroke: var(--ink-pen); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 1; stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1s cubic-bezier(.6, 0, .2, 1) .1s;
+}
+.home-page .ink-svg path { stroke-dasharray: 600; stroke-dashoffset: 600 }
+.home-page .is-inked .ink-svg path { stroke-dashoffset: 0 }
+.home-page .is-inked .ink-svg path + path { transition-delay: .4s }
+.home-page .ink-svg--under { left: -2%; bottom: -.2em; width: 104%; height: .32em }
+.home-page .ink--squiggle .ink-svg path { stroke: var(--ink-blue); stroke-width: 2.6 }
+.home-page .ink-svg--circle { left: -9%; top: -14%; width: 118%; height: 128% }
+.home-page .ink--circle .ink-svg path { stroke: #f43f5e; stroke-width: 2.6 }
+.home-page .ink-svg--burst { left: 50%; top: -.55em; width: 1.9em; height: .9em; translate: -50% 0 }
+.home-page .ink--burst .ink-svg path { stroke: #22c55e; stroke-width: 5; transition-duration: .5s }
+.home-page .ink--burst .ink-svg path:nth-child(n+4) { transition-delay: .25s }
+.home-page .home-final .ink-svg path { stroke: #fff }
+.home-page .home-final .ink--burst .ink-svg path { stroke: #4ade80 }
+
+/* Selection box with four handles, as when an object is picked in a design tool. */
+.home-page .ink--box { padding: 0 .12em; margin: 0 .04em; color: var(--ink-blue) }
+.home-page .ink-box {
+  position: absolute; inset: -.04em -.06em -.02em;
+  border: 2px solid var(--ink-blue);
+  background: rgba(59, 111, 224, .1);
+  transform: rotate(-1.5deg) scale(.6);
+  opacity: 0;
+  transition: transform .5s cubic-bezier(.2, 1.4, .4, 1), opacity .3s ease;
+  z-index: -1;
+}
+.home-page .ink--box { isolation: isolate }
+.home-page .ink--box.is-inked .ink-box { transform: rotate(-1.5deg) scale(1); opacity: 1 }
+.home-page .ink-box i { position: absolute; width: 9px; height: 9px; border: 2px solid var(--ink-blue); background: #fff }
+.home-page .ink-box i:nth-child(1) { left: -6px; top: -6px }
+.home-page .ink-box i:nth-child(2) { right: -6px; top: -6px }
+.home-page .ink-box i:nth-child(3) { left: -6px; bottom: -6px }
+.home-page .ink-box i:nth-child(4) { right: -6px; bottom: -6px }
+
+/* Eyebrows: coloured, a different hue per section, instead of uniform grey caps. */
+.home-page main > section .eyebrow { font-weight: 800; letter-spacing: .08em }
+.home-page main > section:nth-of-type(6n+1) .eyebrow { color: #8b5cf6 }
+.home-page main > section:nth-of-type(6n+2) .eyebrow { color: #f43f5e }
+.home-page main > section:nth-of-type(6n+3) .eyebrow { color: #0ea5e9 }
+.home-page main > section:nth-of-type(6n+4) .eyebrow { color: #f59e0b }
+.home-page main > section:nth-of-type(6n+5) .eyebrow { color: #10b981 }
+.home-page main > section:nth-of-type(6n) .eyebrow { color: #3b6fe0 }
+.home-page .home-final .eyebrow { color: #fcd34d }
+
+@media (prefers-reduced-motion: reduce) {
+  .home-page .ink *, .home-page .ink::before { transition: none !important }
+}

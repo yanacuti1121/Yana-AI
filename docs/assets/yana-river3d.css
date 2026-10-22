@@ -1,0 +1,82 @@
+/*
+ * Panels in depth (19/10/2026). The river canvas that ran under them was removed at the
+ * owner's request; the panel motion stays. Every section
+ * after the hero becomes a panel standing on one bank. A panel comes in from the distance
+ * turned toward the river, faces the reader flat while it is read, then swings back and
+ * recedes as the camera passes. Banks alternate with the bends (.river-left / .river-right,
+ * set by nth-of-type below). Transform only, no opacity, so glass inside the panels still
+ * sees the river behind them.
+ */
+html:has(body.home-page),
+body.home-page {
+  /* Not `fixed`: a fixed page background is repainted on every scroll frame. */
+  background: linear-gradient(180deg, #f5f8fd 0%, #eef3fb 38%, #e8eff9 100%) !important;
+}
+
+/* Page backdrop on one fixed layer so scrolling never repaints it. (A real element: the
+   site's own CSS hides body::before.) */
+.home-page .page-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* Owner 19/10: the ruled lines tired the eyes. A light dot paper instead, fading out
+     towards the edges so the middle of the page stays calm. */
+  background: radial-gradient(circle, rgba(70, 100, 150, .16) 1.1px, transparent 1.5px) 0 0 / 26px 26px;
+  -webkit-mask: radial-gradient(ellipse 75% 70% at 50% 40%, #000 30%, transparent 85%);
+  mask: radial-gradient(ellipse 75% 70% at 50% 40%, #000 30%, transparent 85%);
+}
+.home-page :is(main, .site-footer) { position: relative; z-index: 1 }
+.home-page main { background: transparent !important }
+
+/* Sections lose their slabs of colour; the river and sky show between the panels. */
+.home-page main > section:not(.yana-intro, .home-final) {
+  background: transparent !important;
+  background-image: none !important;
+  border-bottom-color: transparent !important;
+}
+/* The final call to action stays a dark panel; "Vì sao Yana" is light like the rest (owner 19/10). */
+.home-page .home-final {
+  width: min(100% - 32px, 1320px);
+  margin: clamp(60px, 8vw, 120px) auto;
+  border-radius: clamp(24px, 3vw, 40px);
+  box-shadow: 0 40px 80px -30px rgba(15, 30, 60, .45);
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .home-page main > section:not(.yana-intro) {
+      transform-origin: 50% 50%;
+      animation: river-in linear both, river-out linear forwards;
+      animation-timeline: view(), view();
+      animation-range: entry 0% entry 55%, exit 45% exit 100%;
+    }
+    .home-page main > section:not(.yana-intro):nth-of-type(odd) { --bank: -1 }
+    .home-page main > section:not(.yana-intro):nth-of-type(even) { --bank: 1 }
+  }
+}
+
+/* --bank: -1 = left bank, 1 = right bank. A panel arrives from deep on its bank, turned to
+   face the river, and leaves toward the camera's back on the same bank. */
+@keyframes river-in {
+  from {
+    transform: perspective(1400px) translate3d(calc(var(--bank, 1) * 9vw), 6vh, -520px) rotateY(calc(var(--bank, 1) * -24deg));
+  }
+  to { transform: perspective(1400px) translate3d(0, 0, 0) rotateY(0deg) }
+}
+@keyframes river-out {
+  from { transform: perspective(1400px) translate3d(0, 0, 0) rotateY(0deg) }
+  to {
+    transform: perspective(1400px) translate3d(calc(var(--bank, 1) * 7vw), -4vh, -380px) rotateY(calc(var(--bank, 1) * 18deg));
+  }
+}
+
+/* Sections holding Apple's bezels (iMac, MacBook Pro) must stay straight-on: no panel tilt. */
+.home-page main > section:is(#product-2, #terminal-origin) { animation: none !important; transform: none !important }
+
+/* "Vì sao Yana" without its navy slab: dark ink on the light page. */
+.home-page .home-why { color: #17181c }
+.home-page .home-why :is(h2, h3) { color: #17181c !important }
+.home-page .home-why .home-why-list strong { color: #17181c !important }
+.home-page .home-why .home-why-list p { color: #5d6573 !important }
+.home-page .home-why .home-why-list > div { border-color: #dfe5ee !important }
