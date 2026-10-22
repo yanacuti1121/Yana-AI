@@ -251,7 +251,7 @@
     });
   }
 
-  if (store.get("yana-announcement-hidden") !== "1") {
+  if (nav && store.get("yana-announcement-hidden") !== "1") {
     const bar=document.createElement("div");bar.className="announcement-bar";bar.innerHTML=`<span>${copy.announcement}</span><button type="button" aria-label="${vi?"Đóng":ko?"닫기":"Close"}">×</button>`;document.body.prepend(bar);const hideAnnouncement=()=>{bar.classList.add("is-hiding");setTimeout(()=>{bar.hidden=true;store.set("yana-announcement-hidden","1")},420)};bar.querySelector("button").addEventListener("click",hideAnnouncement);setTimeout(hideAnnouncement,5200);
   }
 

@@ -121,9 +121,13 @@
   const pin = page.querySelector('.hero26-pin');
   const macFrame = pin?.querySelector('iframe');
   if (pin && macFrame) {
-    let lastLid = -1, queued = 0;
+    let lastLid = -1, queued = 0, embedReady = false;
+    if (pin.classList.contains('is-photo')) {
+      screenReel?.(true);
+    }
     const sendLid = () => {
       queued = 0;
+      if (!embedReady) return;
       const device = pin.firstElementChild;
       const stickTop = parseFloat(getComputedStyle(device).top) || 0;
       const start = pin.offsetTop - stickTop;
@@ -139,13 +143,22 @@
       }
       macFrame.contentWindow?.postMessage({ type: 'yana:lid', value: lid }, location.origin);
     };
-    addEventListener('scroll', () => { if (!queued) queued = requestAnimationFrame(sendLid); }, { passive: true });
+    addEventListener('scroll', () => { if (embedReady && !queued) queued = requestAnimationFrame(sendLid); }, { passive: true });
     // The embed says when it can listen; send the current lid again then (page may load mid-pin).
     addEventListener('message', event => {
       if (event.origin !== location.origin || event.source !== macFrame.contentWindow || event.data?.type !== 'yana:lid-ready') return;
+      embedReady = true;
       lastLid = -1;
       sendLid();
     });
+    const embedSrc = macFrame.dataset.embedSrc;
+    if (embedSrc) {
+      fetch(embedSrc, { method: 'HEAD' }).then(res => {
+        if (res.ok && !res.headers.get('x-vercel-error')) {
+          macFrame.src = embedSrc;
+        }
+      }).catch(() => {});
+    }
   }
 
   // Section videos (iMac screen, small MacBook terminal) play only while on screen.
