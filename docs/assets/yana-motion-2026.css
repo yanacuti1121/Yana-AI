@@ -1,0 +1,263 @@
+/*
+ * Per-section motion for the homepage (test copy, 19/10/2026). Replaces the uniform pass of
+ * yana-guided-motion.js (same lift, tilt and drift on every section) with one idea per section.
+ * Scroll-linked parts use CSS scroll-driven animations: they advance only while the page
+ * scrolls and run on the compositor where possible, so a still page does no work.
+ * Without support, or with reduced motion, everything shows in its final state.
+ */
+
+/* The old one-size reveal and carousel are retired on this page. */
+.home-page .journey-reveal { opacity: 1 !important; transform: none !important; transition: none !important }
+.home-page .showcase-carousel-controls { display: none !important }
+
+/* 16 · final call to action: magnetic button (offset set by yana-motion-2026.js on pointer move). */
+.home-page .home-final-primary { translate: var(--mag-x, 0) var(--mag-y, 0); transition: translate .5s cubic-bezier(.2, .9, .3, 1.2) }
+
+/* 2 · discovery: a glass knob slides to the current step. */
+.home-page .discovery-steps { position: relative; isolation: isolate }
+.home-page .discovery-steps button { background: transparent !important; box-shadow: none !important }
+.home-page .discovery-knob {
+  position: absolute; z-index: -1; left: 0; top: 0;
+  width: var(--knob-w, 0); height: var(--knob-h, 0);
+  translate: var(--knob-x, 0) var(--knob-y, 0);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .55);
+  box-shadow: inset 0 1px 0 #fff, inset 0 0 0 1px rgba(255, 255, 255, .6), 0 10px 24px -12px rgba(28, 58, 102, .35);
+  transition: translate .55s cubic-bezier(.3, 1.35, .45, 1), width .45s ease, height .45s ease;
+  pointer-events: none;
+}
+
+/* 13 · use cases: the hovered card widens, the others give way. */
+@media (min-width: 901px) {
+  .home-page .home-use-list { display: grid; grid-template-columns: 1fr 1fr 1fr; transition: grid-template-columns .6s cubic-bezier(.2, .8, .2, 1) }
+  .home-page .home-use-list:has(> a:nth-child(1):is(:hover, :focus-visible)) { grid-template-columns: 1.7fr .9fr .9fr }
+  .home-page .home-use-list:has(> a:nth-child(2):is(:hover, :focus-visible)) { grid-template-columns: .9fr 1.7fr .9fr }
+  .home-page .home-use-list:has(> a:nth-child(3):is(:hover, :focus-visible)) { grid-template-columns: .9fr .9fr 1.7fr }
+}
+
+/* 10 · capabilities: light follows the pointer inside each card. */
+.home-page .home-cap { position: relative; overflow: hidden }
+.home-page .home-cap::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, -40%), rgba(79, 128, 255, .18), transparent 70%);
+  opacity: 0; transition: opacity .3s ease;
+}
+.home-page .home-cap:hover::after { opacity: 1 }
+
+@supports (animation-timeline: view()) {
+@media (prefers-reduced-motion: no-preference) {
+
+  /* 1 · hero: see yana-hero.css (hand-drawn mark, stickers at their own depths). */
+
+  /* 3 · tour: a hairline fills under the four stops as the strip passes. */
+  .home-page .home-tour-steps { position: relative }
+  .home-page .home-tour-steps::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+    background: linear-gradient(90deg, var(--lg-blue, #4f80ff), var(--lg-sky, #38bdf8));
+    transform-origin: left; animation: m-fill linear both; animation-timeline: view(); animation-range: entry 80% cover 60%;
+  }
+
+  /* 4 · flow: the line draws from AI agent to execution; each stop lights as it is reached. */
+  .home-page .home-flow-steps::after {
+    content: ""; position: absolute; left: 0; right: 0; top: -1px; height: 2px; background: #3676af;
+    transform-origin: left; animation: m-fill linear both; animation-timeline: --flow; animation-range: entry 70% cover 55%;
+  }
+  .home-page .home-flow-steps { view-timeline: --flow block }
+  /* (child 1 is the travelling .flow-token, see yana-flow26.css) */
+  .home-page .home-flow-steps li:not(.flow-token)::before { animation: m-dot linear both; animation-timeline: --flow }
+  .home-page .home-flow-steps li:nth-child(2)::before { animation-range: entry 70% entry 80% }
+  .home-page .home-flow-steps li:nth-child(3)::before { animation-range: entry 90% cover 30% }
+  .home-page .home-flow-steps li:nth-child(4)::before { animation-range: cover 35% cover 43% }
+  .home-page .home-flow-steps li:nth-child(5)::before { animation-range: cover 47% cover 55% }
+
+  /* 5 · terminal: now a small MacBook playing a terminal session (see the end of this file). */
+
+  /* 6 · ecosystem: the three products open out of a narrow slit. */
+  .home-page .showcase-intro-panel { animation: m-slit linear both; animation-timeline: view(); animation-range: entry 10% cover 40% }
+
+  /* 7 · Yana AI: requests slide in and stop at the gate line. */
+  .home-page .showcase-visual--ai .flow { position: relative; view-timeline: --gate block }
+  .home-page .showcase-visual--ai .flow::after {
+    content: ""; position: absolute; top: 0; bottom: 0; left: -14px; right: auto; width: 2px; height: auto; border: 0; box-shadow: none; border-radius: 2px;
+    background: linear-gradient(var(--lg-blue, #4f80ff), var(--lg-indigo, #6366f1));
+    transform-origin: top; animation: m-fill-y linear both; animation-timeline: --gate; animation-range: entry 20% cover 35%;
+  }
+  .home-page .showcase-visual--ai .flow-row { animation: m-to-gate linear both; animation-timeline: --gate }
+  .home-page .showcase-visual--ai .flow-row:nth-child(1) { animation-range: entry 30% cover 35% }
+  .home-page .showcase-visual--ai .flow-row:nth-child(3) { animation-range: entry 50% cover 42% }
+  .home-page .showcase-visual--ai .flow-row:nth-child(5) { animation-range: entry 70% cover 50% }
+
+  /* 8 · Yana Studio: a camera tours the real app (explorer, then Yana AI, then the status bar
+     with Policy and Audit) as the card passes, and each label shows while its area is in frame. */
+  .home-page .studio-display { view-timeline: --studio block }
+  .home-page .studio-display .imac-content { transform-origin: 0 0; animation: m-tour linear both; animation-timeline: --studio; animation-range: entry 70% cover 62% }
+  .home-page .studio-display .studio-layer { animation: m-label-files linear both; animation-timeline: --studio; animation-range: entry 70% cover 62% }
+  .home-page .studio-display .studio-layer--terminal { animation-name: m-label-ai }
+  .home-page .studio-display .studio-layer--control { animation-name: m-label-status }
+
+  /* 9 · Wheelbot: the caption floats at its own depth. The picture itself is never scaled or
+     cropped (zooming it inside a clipped frame cut the robot's head off, owner 20/10). */
+  .home-page .wheelbot-concept figcaption { animation: m-depth-near linear both; animation-timeline: view(); animation-range: cover }
+
+  /* 10 · capabilities: each card tips up into place on its own. */
+  .home-page .home-cap { animation: m-tip linear both; animation-timeline: view(); animation-range: entry 0% cover 30% }
+
+  /* 11 · architecture: the four layers start stacked as one and separate. */
+  .home-page .home-architecture-map ol { view-timeline: --arch block }
+  .home-page .home-architecture-map li { animation: m-explode linear both; animation-timeline: --arch; animation-range: entry 30% cover 45% }
+  .home-page .home-architecture-map li:nth-child(1) { --stack: 1.5 }
+  .home-page .home-architecture-map li:nth-child(2) { --stack: .5 }
+  .home-page .home-architecture-map li:nth-child(3) { --stack: -.5 }
+  .home-page .home-architecture-map li:nth-child(4) { --stack: -1.5 }
+
+  /* 12 · evidence: a scan line passes over each record in turn. */
+  .home-page .home-evidence-list { view-timeline: --ev block }
+  .home-page .home-evidence-list a {
+    background-image: linear-gradient(90deg, transparent, rgba(79, 128, 255, .16), transparent);
+    background-size: 35% 100%; background-repeat: no-repeat;
+    animation: m-scan linear both; animation-timeline: --ev;
+  }
+  .home-page .home-evidence-list a:nth-child(1) { animation-range: entry 50% cover 35% }
+  .home-page .home-evidence-list a:nth-child(2) { animation-range: entry 75% cover 45% }
+  .home-page .home-evidence-list a:nth-child(3) { animation-range: entry 100% cover 55% }
+
+  /* 14 · why: the sentence lights word by word while it is read (words wrapped by the JS). */
+  .home-page .home-why h2 { view-timeline: --why block }
+  .home-page .home-why h2 .w { animation: m-word linear both; animation-timeline: --why;
+    animation-range: cover calc(18% + var(--i) * var(--step)) cover calc(24% + var(--i) * var(--step)) }
+}
+}
+
+@keyframes m-fill { from { transform: scaleX(0) } to { transform: scaleX(1) } }
+@keyframes m-fill-y { from { transform: scaleY(0) } to { transform: scaleY(1) } }
+@keyframes m-dot { from { scale: .4; opacity: .35 } to { scale: 1; opacity: 1 } }
+@keyframes m-type { from { clip-path: inset(0 100% 0 0) } to { clip-path: inset(0 0 0 0) } }
+@keyframes m-fade { from { opacity: 0 } to { opacity: 1 } }
+@keyframes m-slit { from { clip-path: inset(46% 28% round 40px); opacity: .4 } to { clip-path: inset(-10% -10% round 0); opacity: 1 } }
+@keyframes m-to-gate { from { translate: -64px 0; opacity: .15 } to { translate: 0 0; opacity: 1 } }
+@keyframes m-tour {
+  0%, 8% { transform: none }
+  22%, 34% { transform: scale(1.85) translate(-11%, -6%) }
+  48%, 60% { transform: scale(1.85) translate(-34%, -6%) }
+  74%, 86% { transform: scale(1.85) translate(-11%, -43%) }
+  100% { transform: none }
+}
+/* Each label shows while the camera holds on its area (same stops as m-tour). */
+@keyframes m-label-files { 0%, 16% { opacity: 0; translate: 0 14px } 22%, 34% { opacity: 1; translate: 0 0 } 40%, 100% { opacity: 0; translate: 0 -10px } }
+@keyframes m-label-ai { 0%, 42% { opacity: 0; translate: 0 14px } 48%, 60% { opacity: 1; translate: 0 0 } 66%, 100% { opacity: 0; translate: 0 -10px } }
+@keyframes m-label-status { 0%, 68% { opacity: 0; translate: 0 14px } 74%, 86% { opacity: 1; translate: 0 0 } 92%, 100% { opacity: 0; translate: 0 -10px } }
+@keyframes m-depth-near { from { translate: 0 30px } to { translate: 0 -30px } }
+@keyframes m-tip { from { transform: perspective(900px) rotateX(16deg) translateY(48px); opacity: .25 } to { transform: none; opacity: 1 } }
+@keyframes m-explode { from { translate: 0 calc(var(--stack) * 100%); scale: .94; opacity: .55 } to { translate: 0 0; scale: 1; opacity: 1 } }
+@keyframes m-scan { from { background-position: -60% 0 } to { background-position: 160% 0 } }
+@keyframes m-word { from { opacity: .16 } to { opacity: 1 } }
+
+/* 15 · products: opening Yana Studio morphs its card into the Studio page (same-origin
+   cross-document view transition; the Studio page names its hero the same way). */
+@view-transition { navigation: auto }
+.home-page .route-card[href="studio.html"] { view-transition-name: studio-card }
+::view-transition-group(studio-card) { animation-duration: .6s; animation-timing-function: cubic-bezier(.2, .8, .2, 1) }
+@media (prefers-reduced-motion: reduce) { @view-transition { navigation: none } }
+
+/* 8 · label spots on the new IDE screenshot (the old card placed them for the old app). */
+/* Apple's iMac bezel (Apple Design Resources, owner-approved 19/10/2026), kept static,
+   straight-on and unmodified as its licence requires; only the screen content moves. The
+   screen opening measured on the PNG: x 140-4619, y 150-2669 of 4760 x 4050. */
+.home-page .showcase-visual--studio { padding: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important }
+/* The whole iMac stands on its own, large, with no card around it (owner 19/10). */
+.home-page .showcase-visual--studio::before { display: none !important }
+@media (min-width: 901px) {
+  /* Fixed order: the iMac on the left and large, whatever position the section has in the page. */
+  .home-page #product-2.showcase-scene { grid-template-columns: minmax(0, 1.75fr) minmax(0, .8fr) }
+  .home-page #product-2 .showcase-visual { order: 1 }
+  .home-page #product-2 .showcase-copy { order: 2 }
+}
+.home-page .studio-display.imac { position: relative; width: 100%; aspect-ratio: 2000 / 1702; overflow: visible; border: 0; border-radius: 0; box-shadow: none; transform: none }
+.home-page .imac-screen { position: absolute; left: 2.941%; top: 3.704%; width: 94.118%; height: 62.222%; overflow: hidden; background: #111 }
+.home-page .imac-screen .imac-content { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 50%; border: 0; border-radius: 0; box-shadow: none; animation: none !important }
+/* The screen now plays the real ActionGate recording; the camera tour and its labels were for the still. */
+.home-page .studio-display.imac .studio-layer { display: none !important }
+/* yana-white.css gives every image in this card a white border and shadow with !important;
+   the bezel must stay exactly as Apple ships it, so take those off with matching weight. */
+.home-page .showcase-visual--studio .studio-display.imac img.imac-bezel { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; transform: none !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: none !important }
+.home-page .studio-display .studio-layer { transform: none !important }
+.home-page .studio-display .studio-layer--files { left: 4%; top: 30%; right: auto; bottom: auto }
+.home-page .studio-display .studio-layer--terminal { right: 4%; top: 30%; left: auto; bottom: auto }
+.home-page .studio-display .studio-layer--control { left: 4%; bottom: 8%; top: auto; right: auto }
+
+/* Ticker under the Studio scene: what the app really has, running without pause (the owner
+   asked for it to keep moving). Transform only, so it stays on the compositor. */
+.home-page .studio-marquee {
+  grid-column: 1 / -1;
+  order: 3;
+  display: flex;
+  overflow: hidden;
+  margin-top: clamp(8px, 2vw, 24px);
+  padding-block: 18px;
+  border-block: 1px solid #e3e8ef;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.home-page .studio-marquee ul {
+  display: flex;
+  flex: none;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  animation: m-marquee 48s linear infinite;
+}
+.home-page .studio-marquee li {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  color: #1d1d1f;
+  font: 500 clamp(1rem, 1.6vw, 1.35rem) var(--sans);
+  letter-spacing: -.01em;
+}
+.home-page .studio-marquee li::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  margin-inline: clamp(18px, 2.4vw, 34px);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f80ff, #38bdf8);
+}
+.home-page .studio-marquee li:nth-child(n+3):nth-child(-n+5) { font-family: var(--mono); font-size: clamp(.9rem, 1.4vw, 1.15rem) }
+@keyframes m-marquee { to { transform: translateX(-100%) } }
+@media (prefers-reduced-motion: reduce) {
+  .home-page .studio-marquee { overflow-x: auto }
+  .home-page .studio-marquee ul { animation: none }
+  .home-page .studio-marquee ul[aria-hidden] { display: none }
+}
+
+/* 9 · Wheelbot: room above the robot so the Concept / 3D-print switch does not sit on its head. */
+.home-page .wheelbot-concept img { padding-top: clamp(36px, 4vw, 56px); box-sizing: border-box }
+
+/* Springy controls in the discovery demo and the tour (owner 20/10: "thiếu sự đàn hồi").
+   Same spring as the hero buttons: grow with an overshoot on hover, squash like jelly on press,
+   bounce back on release. Scale only, so nothing shifts position. */
+.home-page :is(.discovery-steps button, .discovery-controls button, .discovery-decisions button, .discovery-confirm, .home-tour-steps a, .discovery-links a) {
+  --spring: cubic-bezier(.34, 1.8, .5, 1);
+  transition: scale .55s var(--spring), background-color .2s ease, color .2s ease, box-shadow .3s ease !important;
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  .home-page :is(.discovery-steps button, .discovery-controls button, .discovery-decisions button, .discovery-confirm, .home-tour-steps a, .discovery-links a) {
+    --spring: linear(0, .22 6%, .76 14%, 1.06 21%, 1.13 26%, 1.08 32%, .98 41%, .96 47%, 1 58%, 1.01 68%, 1);
+  }
+}
+.home-page :is(.discovery-steps button:not(:disabled), .discovery-controls button:not(:disabled), .discovery-decisions button, .discovery-confirm, .discovery-links a):hover { scale: 1.05 }
+.home-page .home-tour-steps a:hover { scale: 1.04 }
+.home-page :is(.discovery-steps button:not(:disabled), .discovery-controls button:not(:disabled), .discovery-decisions button, .discovery-confirm, .home-tour-steps a, .discovery-links a):active {
+  scale: 1.07 .9; transition-duration: .12s !important; transition-timing-function: ease-out !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-page :is(.discovery-steps button, .discovery-controls button, .discovery-decisions button, .discovery-confirm, .home-tour-steps a, .discovery-links a) { transition: none !important; scale: 1 !important }
+}
+
+/* 5 · "Từ terminal đến Runtime": a small MacBook Pro (Apple's bezel, static and straight-on) with
+   the terminal session video in its screen. Screen opening measured on the bezel PNG. */
+.home-page .mini-mac { position: relative; width: min(100%, 640px); aspect-ratio: 1930 / 1270; margin-inline: auto }
+.home-page .mini-mac-screen { position: absolute; left: 10.829%; top: 11.339%; width: 78.342%; height: 77.323%; overflow: hidden; background: #111 }
+.home-page .mini-mac-screen video { display: block; width: 100%; height: 100%; object-fit: cover }
+.home-page .mini-mac-bezel { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none }

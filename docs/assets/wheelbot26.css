@@ -1,0 +1,91 @@
+/* ==========================================================================
+   YANA WHEELBOT 2026 DESIGN LAYER
+   Cảm hứng: Apple Hardware Spec Sheet & Bambu Lab Lab-Grade Industrial Design
+   ========================================================================== */
+
+.wheelbot-hero-2026 {
+  padding: 130px 24px 70px;
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+  position: relative;
+}
+
+.wheelbot-hero-2026 h1 {
+  font-family: var(--font-display);
+  font-size: clamp(34px, 4.6vw, 62px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--ink-primary);
+  margin: 18px 0 20px;
+}
+
+/* Hardware Bento Matrix */
+.hardware-bento-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1240px;
+  margin: 40px auto 60px;
+}
+
+@media (max-width: 900px) {
+  .hardware-bento-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hardware-card {
+  padding: 32px 28px;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.hardware-chip-spec {
+  background: #090d16;
+  color: #38bdf8;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 16px;
+  border-radius: 12px;
+  margin-top: 18px;
+  line-height: 1.6;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+/* Download Panels for Firmware & 3MF */
+.firmware-download-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  max-width: 1240px;
+  margin: 40px auto;
+}
+
+@media (max-width: 860px) {
+  .firmware-download-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.firmware-card {
+  padding: 36px 30px;
+  border-radius: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sha256-code-box {
+  background: #f1f5f9;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: #475569;
+  word-break: break-all;
+  border: 1px solid #e2e8f0;
+}
