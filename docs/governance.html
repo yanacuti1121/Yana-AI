@@ -1,282 +1,30 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Yana Governance · Quyền Lực Nằm Ngoài Prompt 2026</title>
-  <meta name="description" content="Authority chain, Giám Thị native supervisor, HALT khẩn cấp, Action Gate và Truth Gate bảo vệ hệ thống tuyệt đối.">
-
-  <!-- Google Fonts: Plus Jakarta Sans, JetBrains Mono & Caveat (Handwritten) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Core 2026 Design System -->
-  <link rel="stylesheet" href="assets/site26.css?v=20261020k">
-  <link rel="stylesheet" href="assets/studio26.css?v=20261020k">
-  <link rel="stylesheet" href="assets/governance26.css?v=20261020k">
-</head>
-<body class="site26-body">
-
-  <!-- Nền Canvas Chấm Bi Mờ Rìa (Cố định, GPU < 2%) -->
-  <div class="site26-bg-canvas" aria-hidden="true"></div>
-
-  <!-- Thanh Menu Nổi Bo Tròn 2026 Đồng Bộ -->
-    <header class="studio26-nav">
-    <a href="index.html" class="brand-link">
-      <img src="yana-mark.svg" alt="Yana Official Logo" class="nav-brand-icon">
-      <span>Giám Thị OS</span>
-    </a>
-    <nav class="nav-menu">
-      <a href="index.html">Trang chủ</a>
-      <a href="studio.html">Studio IDE</a>
-      <a href="runtime.html">Runtime</a>
-      <a href="wheelbot.html">Wheelbot</a>
-      <a href="governance.html">Quản trị quyền</a>
-      <a href="safety.html">Hàng rào an toàn</a>
-      <a href="https://github.com/yanacuti1121/Yana-AI" target="_blank" rel="noreferrer">GitHub ↗</a>
-    </nav>
-    <a href="#matrix" class="btn-spring-2026 btn-spring-primary" style="padding: 8px 20px; font-size: 13px;">
-      Khám Phá Giám Thị
-    </a>
-  </header>
-
-  <main>
-    <!-- 1. Hero Section Governance -->
-    <section class="governance-hero-2026">
-      <div class="floating-hero-pill">
-        <span>🛡️ Native OS Supervisor · Không Có Vùng Mờ</span>
-        <span style="opacity: 0.4;">·</span>
-        <span style="color: #059669;">Zero Silent Execution</span>
-      </div>
-
-      <h1>
-        Quyền lực không nằm trong prompt.<br>
-        <span class="text-rainbow-2026" style="position: relative;">
-          Allow, Ask hoặc Deny rõ ràng.
-          <svg class="hand-drawn-underline" viewBox="0 0 200 8" preserveAspectRatio="none">
-            <path d="M2,5 C50,2 150,7 198,4" />
-          </svg>
-        </span>
-        <span class="hand-note-tag">← con người quyết định giới hạn!</span>
-      </h1>
-
-      <p class="lead-text">
-        Model AI chỉ được quyền đề xuất. Quyền phê duyệt, ranh giới capability và lệnh ngắt <strong>HALT</strong> thuộc về Giám Thị độc lập chạy ở tầng hệ điều hành, nằm ngoài mọi phiên AI.
-      </p>
-
-      <div style="display: flex; gap: 16px; justify-content: center; align-items: center; margin-bottom: 48px; flex-wrap: wrap;">
-        <a href="#giam-thi" class="btn-spring-2026 btn-spring-primary">
-          Khám Phá Giám Thị (Supervisor) ↓
-        </a>
-        <a href="#truth-gate" class="btn-spring-2026 btn-spring-secondary">
-          Cổng Sự Thật (Truth Gate)
-        </a>
-      </div>
-
-      <!-- Giám Thị Native Supervisor Dashboard Card -->
-      <div class="supervisor-radar-card" id="giam-thi">
-        <div class="radar-header">
-          <div>
-            <span style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; color: #38bdf8;">Native Supervisor Engine</span>
-            <h3 style="font-family: var(--font-display); font-size: 22px; margin: 4px 0 0; color: #fff;">Giám Thị OS · Heartbeat &amp; HALT Control</h3>
-          </div>
-          <span class="radar-indicator">SUPERVISOR ONLINE</span>
-        </div>
-
-        <div class="supervisor-metrics-grid">
-          <div class="metric-box">
-            <small>CPU Usage</small>
-            <strong>2.4%</strong>
-          </div>
-          <div class="metric-box">
-            <small>Active Sessions</small>
-            <strong>1 Supervised</strong>
-          </div>
-          <div class="metric-box">
-            <small>Heartbeat SLO</small>
-            <strong style="color: #10b981;">99.99%</strong>
-          </div>
-          <div class="metric-box">
-            <small>HALT Lock Status</small>
-            <strong style="color: #38bdf8;">ARMED · READY</strong>
-          </div>
-        </div>
-
-        <div style="font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: #cbd5e1; background: rgba(0,0,0,0.3); padding: 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
-          <div style="color: #94a3b8;">$ yana-rt os supervisor tick</div>
-          <div>→ Health receipt verified · tamper-evident chain OK</div>
-          <div style="color: #34d399;">✓ Cơ chế ngắt khẩn cấp: Ghi lock file <code>.claude/state/GIAMTHI_HALT.lock</code> khi phát hiện hành vi vượt quyền.</div>
-          <div style="color: #fbbf24;">⚠ Mở khoá yêu cầu nghi thức người: Phải có chữ ký danh tính (actor) và lý do giải trình trước khi gỡ khoá.</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 2. Section 3 Trụ Cột Authority Chain -->
-    <section class="studio26-section" id="authority">
-      <div class="studio26-head">
-        <p class="studio26-eyebrow">AUTHORITY CHAIN</p>
-        <h2>Allow, Ask hoặc Deny.<br><span class="text-rainbow-2026">Không có vùng mờ thỏa hiệp.</span></h2>
-        <p>YanaAuthorityChain chạy preflight tất định trước hành động thật; Giám Thị giữ quyền HALT tối cao.</p>
-      </div>
-
-      <div class="authority-grid">
-        <!-- Pillar 1 -->
-        <div class="glass-panel-2026 authority-card">
-          <span style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; color: #2563eb; font-weight: 700;">CAPABILITY MANIFEST</span>
-          <h3 style="font-family: var(--font-display); font-size: 20px; margin: 10px 0 8px;">Khai Báo Năng Lực Rõ Ràng</h3>
-          <p style="font-family: var(--font-body); font-size: 14.5px; color: var(--ink-secondary); line-height: 1.6;">Mỗi hành động đều có định danh chính thức, cấp độ rủi ro (risk level) và yêu cầu phê duyệt riêng biệt.</p>
-          <div class="authority-code-block">
-capability  file.write
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Yana Governance — Quyền hạn nằm ngoài model</title>
+  <meta name="description" content="Authority chain, capability leases, approval, HALT và audit receipts của Yana.">
+  <link rel="icon" href="yana-mark.svg"><link rel="stylesheet" href="assets/ecosystem-pages.css?v=20260926a"><link rel="stylesheet" href="assets/sakura-site.css?v=20260926a">
+<link rel="stylesheet" href="assets/yana-white.css?v=20260930g"></head>
+<body class="sakura-site"><div class="yana-opening yana-opening--inner" aria-label="Yana"><div class="opening-center"><div class="opening-mark"><img src="yana-mark.svg" alt="" width="58" height="58"></div><div class="opening-word" aria-hidden="true"><span>Y</span><span>a</span><span>n</span><span>a</span></div><p class="opening-caption">AI làm việc. Bạn giữ quyền.</p></div><button class="opening-skip" type="button">Bỏ qua <span aria-hidden="true">↗</span></button></div>
+<nav class="site-nav"></nav>
+<main>
+  <section class="hero"><div class="hero-inner"><p class="eyebrow">GOVERNANCE · LIVE</p><h1>Quyền lực không nằm trong prompt.</h1><p class="hero-copy">Model có thể đề xuất hành động. Authority chain, capability scope và con người mới quyết định hành động đó được đi xa tới đâu.</p><div class="hero-actions"><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="#authority"><span class="lbl">Xem authority chain</span></a></div><div class="liquid-stage liquid-stage--cta" data-liquid-metal="cta"><div class="liquid-plate" aria-hidden="true"></div><a class="liquid-button liquid-button--cta" href="runtime.html"><span class="lbl">Mở Runtime</span></a></div></div><div class="hero-stage"><div class="window-bar"><i></i><i></i><i></i></div><div style="padding:34px"><div class="visual-row"><strong>Model request</strong><span>file.write</span></div><div class="visual-row"><strong>Policy preflight</strong><span>workspace only</span></div><div class="visual-row"><strong>Human approval</strong><span>required</span></div><div class="visual-row"><strong>Execution receipt</strong><span>recorded</span></div></div></div></div></section>
+  <section class="section" id="giam-thi"><div class="section-head"><p class="eyebrow">GIÁM THỊ</p><h2>Một supervisor chạy ngoài phiên AI,<br>không phải một hook có thể tắt cùng session.</h2><p>Hook Claude/Codex/Cursor chỉ enforce trạng thái an toàn dùng chung — chúng không tự có quyền HALT. Quyền đó chỉ thuộc về Giám Thị native supervisor, chạy độc lập ở tầng hệ điều hành, ngoài mọi phiên AI.</p></div><div class="product-grid"><article class="product-card"><div><h3>Tick định kỳ</h3><p>Thu thập CPU, RAM, disk, GPU, heartbeat SLO và số session đang chạy, kèm theo một receipt chain chống giả mạo.</p></div><div class="product-art"><code>yana-rt os supervisor tick
+→ health receipt
+→ tamper-evident chain</code></div></article><article class="product-card"><div><h3>HALT qua lock file dùng chung</h3><p>Phát hiện bất thường → tạo lock file chung → mọi hook Claude/Codex/Cursor tôn trọng ngay lập tức.</p></div><div class="product-art"><code>.claude/state/
+  GIAMTHI_HALT.lock</code></div></article><article class="product-card"><div><h3>Mở khoá cần nghi thức người</h3><p>Gỡ HALT đòi hỏi actor và lý do được ghi lại trước khi khoá được gỡ — không agent nào tự mở khoá cho chính mình.</p></div><div class="product-art"><code>unlock requires
+  actor + reason
+  recorded first</code></div></article></div></section>
+  <section class="section" id="authority"><div class="section-head"><p class="eyebrow">AUTHORITY CHAIN</p><h2>Allow, ask hoặc deny.<br>Không có vùng mờ.</h2><p>YanaAuthorityChain chạy preflight tất định trước hành động thật; Giám Thị giữ HALT authority cao nhất.</p></div><div class="product-grid"><article class="product-card"><div><h3>Capability manifest</h3><p>Mỗi hành động có tên chính thức, risk và yêu cầu approval riêng.</p></div><div class="product-art"><code>capability  file.write
 risk        mutating
-approval    required
-scope       strict workspace
-          </div>
-        </div>
-
-        <!-- Pillar 2 -->
-        <div class="glass-panel-2026 authority-card">
-          <span style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; color: #16a34a; font-weight: 700;">SCOPED LEASES</span>
-          <h3 style="font-family: var(--font-display); font-size: 20px; margin: 10px 0 8px;">Giới Hạn Phạm Vi &amp; Thời Gian</h3>
-          <p style="font-family: var(--font-body); font-size: 14.5px; color: var(--ink-secondary); line-height: 1.6;">Quyền hạn được cấp tạm thời theo từng phiên làm việc, có thời hạn (TTL) và có thể thu hồi bất cứ lúc nào.</p>
-          <div class="authority-code-block" style="color: #bbf7d0;">
-subject     current session
-scope       /workspace
-ttl         27 minutes
-revoke      instant available
-          </div>
-        </div>
-
-        <!-- Pillar 3 -->
-        <div class="glass-panel-2026 authority-card">
-          <span style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; color: #dc2626; font-weight: 700;">FAIL LOUDLY</span>
-          <h3 style="font-family: var(--font-display); font-size: 20px; margin: 10px 0 8px;">Phát Hiện &amp; Báo Động Ngay</h3>
-          <p style="font-family: var(--font-body); font-size: 14.5px; color: var(--ink-secondary); line-height: 1.6;">Thiếu governance phải lộ diện ngay lập tức; cấm tuyệt đối việc âm thầm bỏ qua hàng rào an toàn.</p>
-          <div class="authority-code-block" style="color: #fecaca;">
-guard missing  → HALT
-denied         → visible alert
-HALT state     → highest priority
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 3. Section Cổng Sự Thật (Truth Gate) & Bằng Chứng Audit -->
-    <section class="studio26-section" id="truth-gate">
-      <div class="glass-panel-2026 boundary-box">
-        <div class="boundary-copy">
-          <p class="studio26-eyebrow">CỔNG SỰ THẬT (TRUTH GATE)</p>
-          <h2>Không bằng chứng, không tuyên bố.<br><span class="text-rainbow-2026">Chấm dứt thói quen ảo giác của AI.</span></h2>
-          <p>Trước khi AI dám nói "Đã sửa xong / Tests passed / Code sạch", Truth Gate bắt buộc phải có output lệnh thật (git diff, test runner, file bytes) đính kèm trong cùng một phản hồi.</p>
-          <a href="studio.html#legal" class="btn-spring-2026 btn-spring-secondary">
-            Xem Cam Kết Pháp Lý &amp; Audit Log ↗
-          </a>
-        </div>
-
-        <div class="boundary-lanes">
-          <div class="boundary-lane-item">
-            <small>QUY TẮC CỔNG SỰ THẬT</small>
-            <strong>No Claim Without Evidence</strong>
-            <span>Không bằng chứng → Buộc phải dùng từ ngữ thận trọng: <em>"dự kiến / chưa kiểm chứng"</em></span>
-          </div>
-
-          <div class="boundary-lane-item" style="border-left: 4px solid #10b981;">
-            <small>BIÊN NHẬN MÃ HÓA HASH-CHAIN</small>
-            <strong>Tamper-Detectable Receipts</strong>
-            <span>Ghi log chuỗi băm SHA-256 bất biến: Proposal → Decision → Execution → Receipt</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 4. ĐOẠN KẾT: HỆ THỐNG CÁC ỨNG DỤNG MACOS QUAY QUANH LÕI GOVERNANCE -->
-    <section class="studio-closing-2026">
-      <div class="orbital-center-anchor">
-        <div class="studio-closing-emblem">
-          <img src="yana-mark.svg" alt="Yana Governance Core Emblem">
-        </div>
-
-        <div class="orbital-system" aria-hidden="true">
-          <div class="orbit-ring orbit-ring--1">
-            <div class="orbit-ring-track">
-              <div class="orbit-node" style="--angle: 0deg; --radius: 150px; --node-size: 44px;" title="Truth Gate">
-                <span class="orbit-tooltip">Truth Gate</span>
-                <div class="orbit-node-inner"><img src="assets/icon-mac-terminal.png" alt=""></div>
-              </div>
-              <div class="orbit-node" style="--angle: 120deg; --radius: 150px; --node-size: 44px;" title="Action Gate">
-                <span class="orbit-tooltip">Action Gate</span>
-                <div class="orbit-node-inner"><img src="assets/mac-icons/icon-mac-system-settings.png" alt=""></div>
-              </div>
-              <div class="orbit-node" style="--angle: 240deg; --radius: 150px; --node-size: 44px;" title="Giám Thị OS">
-                <span class="orbit-tooltip">Giám Thị OS</span>
-                <div class="orbit-node-inner"><img src="assets/icon-yana-studio-app.png" alt=""></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="studio-closing-shell">
-        <h2>
-          Bảo vệ dự án của bạn khỏi rủi ro AI.<br>
-          <span class="text-rainbow-2026">Bắt đầu cùng Yana Governance.</span>
-        </h2>
-        <p>Minh bạch, có giải trình và trao trọn quyền làm chủ cho kỹ sư.</p>
-        <div class="studio-closing-actions">
-          <a href="studio.html" class="btn-spring-2026 btn-spring-primary" style="padding: 16px 36px; font-size: 16px;">
-            Mở Yana Studio IDE ↗
-          </a>
-          <a href="runtime.html" class="btn-spring-2026 btn-spring-secondary" style="padding: 16px 32px; font-size: 16px;">
-            Xem Yana Runtime →
-          </a>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- Chân Trang Chuẩn Đầy Đủ (Footer) Đồng Bộ 2026 -->
-  <footer class="studio26-footer">
-    <div class="footer-main-grid">
-      <div class="footer-col">
-        <a href="index.html" class="brand-link" style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-weight: 700; color: var(--ink-primary); text-decoration: none;">
-          <img src="yana-mark.svg" alt="Yana Official Logo" style="width: 28px; height: 28px; border-radius: 7px; object-fit: cover; box-shadow: 0 2px 8px rgba(37,99,235,0.3);">
-          <span>Yana AI</span>
-        </a>
-        <p style="font-family: var(--font-body); font-size: 14px; color: var(--ink-secondary); line-height: 1.6;">
-          Hệ điều hành cá nhân cho công việc AI có kiểm soát. Tối ưu cho các kỹ sư trên nền tảng Apple Silicon.
-        </p>
-      </div>
-
-      <div class="footer-col">
-        <h4>Sản phẩm</h4>
-        <a href="studio.html">Yana Studio</a>
-        <a href="runtime.html">Yana Runtime</a>
-        <a href="wheelbot.html">Yana Wheelbot</a>
-        <a href="governance.html">Quản trị quyền</a>
-      </div>
-
-      <div class="footer-col">
-        <h4>Mã nguồn &amp; Tài liệu</h4>
-        <a href="https://github.com/yanacuti1121/Yana-AI" target="_blank" rel="noreferrer">GitHub</a>
-        <a href="https://gitlab.com/yana-ai-group/Yana-AI-project" target="_blank" rel="noreferrer">GitLab mirror</a>
-        <a href="architecture.html">Kiến trúc kỹ thuật</a>
-        <a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ROADMAP.md" target="_blank" rel="noreferrer">Lộ trình Roadmap</a>
-        <a href="studio.html#legal">Điều khoản &amp; Bản quyền (EULA)</a>
-      </div>
-
-      <div class="footer-col">
-        <h4>Liên hệ</h4>
-        <a href="mailto:phamlongh230@gmail.com">phamlongh230@gmail.com</a>
-        <a href="https://yana.vutam.link" target="_blank" rel="noreferrer">yana.vutam.link</a>
-        <a href="https://github.com/yanacuti1121/Yana-AI" target="_blank" rel="noreferrer">yanacuti1121/Yana-AI</a>
-      </div>
-    </div>
-
-    <div class="footer-legal-notice">
-      <strong>Acknowledgements:</strong> Yana Governance tuân thủ chặt chẽ các nguyên tắc an toàn AI và kiểm soát quyền lực độc lập. © 2026 Yana AI · Giấy phép Apache 2.0.
-    </div>
-  </footer>
-
-  <script src="assets/site26.js?v=20261020k"></script>
-</body>
-</html>
+approval    required</code></div></article><article class="product-card"><div><h3>Scoped leases</h3><p>Quyền được giới hạn theo chủ thể, phạm vi và thời gian; có thể thu hồi.</p></div><div class="product-art"><code>subject  current session
+scope    /workspace
+ttl      27 min
+revoke   available</code></div></article><article class="product-card"><div><h3>Fail loudly</h3><p>Thiếu governance phải lộ ra, không được âm thầm bỏ qua quyền hạn.</p></div><div class="product-art"><code>guard missing  → stop
+denied         → visible
+HALT           → highest</code></div></article></div></section>
+  <section class="section feature"><div class="feature-copy"><p class="eyebrow">AUDIT</p><h2>Dấu vết có thể kiểm chứng.</h2><p>Audit log dùng hash-chain để phát hiện can thiệp. Yana gọi đúng bản chất: tamper-detectable, không quảng cáo quá thành tamper-proof.</p></div><div class="feature-visual"><div class="visual-window"><div class="visual-row"><strong>Proposal</strong><span>#a81f</span></div><div class="visual-row"><strong>Decision</strong><span>#bd40</span></div><div class="visual-row"><strong>Execution</strong><span>#c298</span></div><div class="visual-row"><strong>Receipt</strong><span>#ef31</span></div></div></div></section>
+</main>
+<footer class="site-footer"><div class="footer-inner"><div><a class="brand" href="index.html"><img src="yana-mark.svg" alt=""><span>Yana</span></a><p>Hệ điều hành cá nhân cho công việc AI có kiểm soát.</p></div><div class="footer-links"><strong>Sản phẩm</strong><a href="studio.html">Studio</a><a href="runtime.html">Runtime</a><a href="wheelbot.html">Wheelbot</a></div><div class="footer-links"><strong>Nguồn</strong><a href="https://github.com/yanacuti1121/Yana-AI">GitHub</a><a href="https://gitlab.com/yana-ai-group/Yana-AI-project">GitLab mirror</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ROADMAP.md">Roadmap</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/SECURITY.md">Security</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ACKNOWLEDGEMENTS.md">Acknowledgements</a></div><div class="footer-links"><strong>Liên hệ</strong><a href="mailto:phamlongh230@gmail.com">phamlongh230@gmail.com</a><a href="https://yana.vutam.link">yana.vutam.link</a><a href="https://github.com/yanacuti1121/Yana-AI">yanacuti1121/Yana-AI</a></div></div><div class="footer-ack"><strong>Acknowledgements</strong><p>Yana AI is built on top of ideas, patterns, and tooling from the open-source community, including projects licensed under Apache 2.0, MIT, and other permissive licenses. All third-party sources are used in compliance with their respective licenses. This project has no intent to copy, misrepresent, or infringe upon the intellectual property of any individual or organization. Where specific projects have directly influenced design decisions, they are credited in the relevant source files and rule documentation.</p></div><div class="footer-bottom">© 2026 Yana AI · Apache 2.0</div></footer><script src="assets/ecosystem-pages.js?v=20260928b"></script><script src="assets/sakura-site.js?v=20261001a"></script>
+<script src="assets/yana-motion.js?v=20260929b"></script></body></html>

@@ -159,6 +159,10 @@
         }
       }).catch(() => {});
     }
+  } else if (pin?.classList.contains('is-photo')) {
+    // No 3D embed on the page (the /embed/mac route was never deployed): the photographed
+    // Mac is the hero, so its screen reel starts straight away.
+    screenReel?.(true);
   }
 
   // Section videos (iMac screen, small MacBook terminal) play only while on screen.
