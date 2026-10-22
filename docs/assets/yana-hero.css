@@ -132,8 +132,12 @@ body.home-page :is(h1, h2, h3) { font-family: "Nunito", ui-sans-serif, system-ui
 .hero26-device .mac-photo-screen :is(img, video) { display: block; width: 100%; height: 100%; object-fit: cover }
 .hero26-device .mac-photo-bezel { position: absolute; inset: 0; width: 100%; height: 100% }
 .hero26-device iframe { transition: opacity .45s ease }
-.hero26-pin.is-photo .hero26-device iframe { opacity: 0 }
-@media (max-width: 900px) { .hero26-device .mac-photo { display: none } .hero26-device iframe { opacity: 1 } }
+.hero26-pin.is-photo .hero26-device iframe { opacity: 0; pointer-events: none }
+@media (max-width: 900px) {
+  .hero26-pin:not(.is-photo) .hero26-device .mac-photo { display: none }
+  .hero26-pin:not(.is-photo) .hero26-device iframe { opacity: 1 }
+  .hero26-pin.is-photo .hero26-device .mac-photo { left: 3%; top: 6%; width: 94% }
+}
 
 /* The photographed Mac comes alive through its screen only (Apple's licence lets screen content
    move, never the device): a real Yana approval card slides in and can be answered, the screen

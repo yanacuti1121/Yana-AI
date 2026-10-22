@@ -1644,3 +1644,14 @@
     transform: rotate(var(--angle)) translate(calc(var(--radius) * 0.72)) rotate(calc(-1 * var(--angle)));
   }
 }
+
+/* Override any dark button contrast issue */
+a.btn-spring-2026.btn-spring-primary,
+button.btn-spring-2026.btn-spring-primary,
+.btn-spring-primary {
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+.btn-spring-primary * {
+  color: #ffffff !important;
+}
