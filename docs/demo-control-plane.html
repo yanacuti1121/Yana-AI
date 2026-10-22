@@ -1318,11 +1318,23 @@
       }, 2800));
     }
 
+    // --- THOÁT KÝ TỰ HTML CHO NỘI DUNG NGƯỜI DÙNG NHẬP ---
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     // --- XỬ LÝ LỆNH TÙY CHỈNH TỪ Ô NHẬP LIỆU ---
     function handleCustomCommand(e) {
       e.preventDefault();
       const inputEl = document.getElementById('cli-input');
-      const raw = inputEl.value.trim();
+      // Escaped once here: raw flows into innerHTML via appendLog,
+      // triggerOsHalt and checkFailClosed.
+      const raw = escapeHtml(inputEl.value.trim());
       if (!raw) return;
       inputEl.value = '';
 
