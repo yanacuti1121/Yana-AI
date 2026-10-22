@@ -331,6 +331,6 @@ mod tests {
         }
         assert!(DefaultProvider.supports_tool_calling());
         let tools = tools_for_turn(&DefaultProvider, &ctx());
-        assert_eq!(tools.len(), 4);
+        assert_eq!(tools.len(), 9, "five core tools plus four read-only inspection tools");
     }
 }

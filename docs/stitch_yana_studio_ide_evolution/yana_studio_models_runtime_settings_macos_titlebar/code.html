@@ -1,0 +1,1558 @@
+<!DOCTYPE html><html class="dark" lang="vi" style="width: 1280px; height: 3972px; overflow: hidden; position: relative;"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>YANA STUDIO - Cài đặt &amp; Models Control Plane</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container": "#1e2024",
+            "tertiary-fixed-dim": "#4edea3",
+            "tertiary-container": "#00a572",
+            "on-primary-fixed": "#00174b",
+            "surface": "#111317",
+            "on-tertiary-container": "#00311f",
+            "on-surface-variant": "#c3c6d7",
+            "on-background": "#e2e2e8",
+            "surface-container-highest": "#333539",
+            "on-tertiary": "#003824",
+            "primary": "#b4c5ff",
+            "inverse-primary": "#1454d3",
+            "primary-container": "#608bff",
+            "primary-fixed": "#dbe1ff",
+            "inverse-surface": "#e2e2e8",
+            "surface-container-high": "#282a2e",
+            "outline-variant": "#434654",
+            "error-container": "#93000a",
+            "on-secondary": "#003733",
+            "secondary-fixed": "#56faeb",
+            "surface-variant": "#333539",
+            "secondary": "#46eee0",
+            "surface-dim": "#111317",
+            "background": "#111317",
+            "surface-tint": "#b4c5ff",
+            "on-primary-container": "#002469",
+            "outline": "#8d90a0",
+            "primary-fixed-dim": "#b4c5ff",
+            "on-tertiary-fixed": "#002113",
+            "surface-bright": "#37393e",
+            "inverse-on-surface": "#2f3035",
+            "on-error-container": "#ffdad6",
+            "tertiary": "#4edea3",
+            "secondary-fixed-dim": "#28ddcf",
+            "on-secondary-fixed-variant": "#00504a",
+            "on-tertiary-fixed-variant": "#005236",
+            "on-secondary-fixed": "#00201d",
+            "on-primary": "#002a77",
+            "error": "#ffb4ab",
+            "secondary-container": "#00d2c4",
+            "on-error": "#690005",
+            "surface-container-low": "#1a1c20",
+            "on-primary-fixed-variant": "#003ea7",
+            "on-surface": "#e2e2e8",
+            "surface-container-lowest": "#0c0e12",
+            "tertiary-fixed": "#6ffbbe",
+            "on-secondary-container": "#00554f"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "margin": "0px",
+            "gutter": "0px",
+            "space-md": "0.5rem",
+            "space-xl": "1rem",
+            "space-xs": "0.125rem",
+            "space-lg": "0.75rem",
+            "space-sm": "0.25rem"
+          },
+          "fontFamily": {
+            "body-lg": ["Geist"],
+            "body-md": ["Geist"],
+            "code-md": ["JetBrains Mono"],
+            "headline-sm": ["Geist"],
+            "label-md": ["JetBrains Mono"],
+            "code-sm": ["JetBrains Mono"],
+            "headline-md": ["Geist"],
+            "headline-lg": ["Geist"],
+            "code-lg": ["JetBrains Mono"],
+            "body-sm": ["Geist"],
+            "label-sm": ["JetBrains Mono"]
+          },
+          "fontSize": {
+            "body-lg": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "body-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "code-md": ["12px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "headline-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "-0.005em", "fontWeight": "600" }],
+            "label-md": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "code-sm": ["11px", { "lineHeight": "15px", "fontWeight": "400" }],
+            "headline-md": ["15px", { "lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "code-lg": ["13px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "label-sm": ["10px", { "lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "500" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    /* Custom scrollbar for IDE precision */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #0c0e12; }
+    ::-webkit-scrollbar-thumb { background: #282a2e; border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: #434654; }
+  </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface antialiased font-body-md select-none overflow-x-hidden min-h-screen">
+<!-- macOS Top Chrome Titlebar & IDE Menu Header -->
+<header class="fixed top-0 left-0 right-0 z-50 h-9 bg-surface-container-low border-b border-outline-variant flex items-center justify-between px-3 text-on-surface select-none">
+<!-- Left: Traffic Lights & Standard Menubar -->
+<div class="flex items-center space-x-3">
+<!-- Traffic lights -->
+<div class="flex items-center space-x-1.5 pr-2">
+<span class="w-3 h-3 rounded-full bg-[#ff5f56] inline-block shadow-sm"></span>
+<span class="w-3 h-3 rounded-full bg-[#ffbd2e] inline-block shadow-sm"></span>
+<span class="w-3 h-3 rounded-full bg-[#27c93f] inline-block shadow-sm"></span>
+</div>
+<!-- App Menu -->
+<nav class="flex items-center space-x-2 text-label-sm font-label-sm text-on-surface-variant">
+<span class="hover:text-on-surface hover:bg-surface-container-high px-1.5 py-0.5 rounded cursor-pointer transition-colors duration-150">File</span>
+<span class="hover:text-on-surface hover:bg-surface-container-high px-1.5 py-0.5 rounded cursor-pointer transition-colors duration-150">Edit</span>
+<span class="hover:text-on-surface hover:bg-surface-container-high px-1.5 py-0.5 rounded cursor-pointer transition-colors duration-150">Selection</span>
+<span class="hover:text-on-surface hover:bg-surface-container-high px-1.5 py-0.5 rounded cursor-pointer transition-colors duration-150">View</span>
+<span class="hover:text-on-surface hover:bg-surface-container-high px-1.5 py-0.5 rounded cursor-pointer transition-colors duration-150">Go</span>
+<span class="hover:text-on-surface hover:bg-surface-container-high px-1.5 py-0.5 rounded cursor-pointer transition-colors duration-150">Run</span>
+<span class="hover:text-on-surface hover:bg-surface-container-high px-1.5 py-0.5 rounded cursor-pointer transition-colors duration-150">Terminal</span>
+<span class="hover:text-on-surface hover:bg-surface-container-high px-1.5 py-0.5 rounded cursor-pointer transition-colors duration-150">Help</span>
+</nav>
+<span class="text-outline-variant">|</span>
+<!-- Layout Toggles & History Controls -->
+<div class="flex items-center space-x-1 text-on-surface-variant">
+<button class="hover:text-on-surface hover:bg-surface-container-high p-0.5 rounded transition-colors duration-150" title="Back">
+<span class="material-symbols-outlined text-[16px]">arrow_back</span>
+</button>
+<button class="hover:text-on-surface hover:bg-surface-container-high p-0.5 rounded transition-colors duration-150" title="Forward">
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+<button class="hover:text-on-surface hover:bg-surface-container-high p-0.5 rounded transition-colors duration-150 ml-1" title="Toggle Primary Side Bar">
+<span class="material-symbols-outlined text-[16px]">view_sidebar</span>
+</button>
+<button class="hover:text-on-surface hover:bg-surface-container-high p-0.5 rounded transition-colors duration-150" title="Toggle Panel">
+<span class="material-symbols-outlined text-[16px]">bottom_panel_open</span>
+</button>
+<button class="text-secondary hover:bg-surface-container-high p-0.5 rounded transition-colors duration-150" title="Toggle Secondary Side Bar">
+<span class="material-symbols-outlined text-[16px]">splitscreen</span>
+</button>
+</div>
+</div>
+<!-- Center: Search & Quick Open Command Bar -->
+<div class="flex-1 max-w-sm mx-4">
+<div class="flex items-center justify-between px-2.5 py-1 bg-surface-container border border-outline-variant rounded text-label-sm font-label-sm text-on-surface-variant hover:border-outline cursor-pointer transition-colors duration-150">
+<div class="flex items-center space-x-1.5 truncate">
+<span class="material-symbols-outlined text-[14px]">search</span>
+<span class="text-on-surface font-code-sm">yanacuti1121/Yana-AI</span>
+</div>
+<kbd class="px-1 py-0.2 bg-surface-container-high border border-outline-variant rounded text-[9px] text-on-surface-variant font-code-sm">⌘P</kbd>
+</div>
+</div>
+<!-- Right: Studio Context Tabs & Control Actions -->
+<div class="flex items-center space-x-2">
+<div class="flex items-center space-x-1 text-label-sm font-label-sm">
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-150">Studio Home</button>
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-150">Workspace</button>
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-150">Design Canvas</button>
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-150">Tasks</button>
+<button class="px-2.5 py-0.5 rounded bg-surface-container-highest text-primary border-b-2 border-primary font-semibold transition-colors duration-150">Models &amp; Runtime</button>
+<button class="px-2 py-0.5 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-150">Settings</button>
+</div>
+<div class="flex items-center pl-2 border-l border-outline-variant space-x-1">
+<button class="h-6 px-2 bg-primary text-on-primary font-label-sm text-[11px] font-semibold rounded hover:brightness-110 flex items-center space-x-1 transition-all">
+<span class="material-symbols-outlined text-[14px]">rocket_launch</span>
+<span class="">Deploy</span>
+</button>
+<button class="p-1 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded transition-colors">
+<span class="material-symbols-outlined text-[17px]">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Activity Bar & SideNav Blueprint (Shared Activity Bar Docker) -->
+<aside class="fixed left-0 top-9 bottom-0 w-12 bg-surface-dim border-r border-outline-variant flex flex-col justify-between items-center py-2 z-40">
+<div class="flex flex-col items-center space-y-2 w-full">
+<div class="w-7 h-7 rounded flex items-center justify-center text-primary font-code-sm font-bold bg-surface-container-high mb-1" title="YANA v2.4-alpha node">
+        YA
+      </div>
+<!-- Tab icons -->
+<button class="w-12 h-10 flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container border-l-2 border-transparent transition-colors duration-150" title="Explorer">
+<span class="material-symbols-outlined text-[20px]">folder</span>
+</button>
+<button class="w-12 h-10 flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container border-l-2 border-transparent transition-colors duration-150" title="Search">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</button>
+<button class="w-12 h-10 flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container border-l-2 border-transparent transition-colors duration-150" title="Source Control">
+<span class="material-symbols-outlined text-[20px]">account_tree</span>
+</button>
+<button class="w-12 h-10 flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container border-l-2 border-transparent transition-colors duration-150" title="Yana Agents">
+<span class="material-symbols-outlined text-[20px]">smart_toy</span>
+</button>
+<button class="w-12 h-10 flex items-center justify-center text-primary border-l-2 border-primary bg-surface-container-high transition-colors duration-150" title="Governance &amp; Runtime">
+<span class="material-symbols-outlined text-[20px]">verified_user</span>
+</button>
+<button class="w-12 h-10 flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container border-l-2 border-transparent transition-colors duration-150" title="Extensions">
+<span class="material-symbols-outlined text-[20px]">extension</span>
+</button>
+</div>
+<div class="flex flex-col items-center space-y-2 w-full">
+<button class="w-12 h-9 flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container border-l-2 border-transparent transition-colors duration-150" title="Telemetry">
+<span class="material-symbols-outlined text-[18px]">show_chart</span>
+</button>
+<button class="w-12 h-9 flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container border-l-2 border-transparent transition-colors duration-150" title="Settings">
+<span class="material-symbols-outlined text-[18px]">settings</span>
+</button>
+</div>
+</aside>
+<!-- Main Canvas Content Area -->
+<main class="ml-12 pt-9 min-h-screen bg-surface-dim">
+<div class="max-w-7xl mx-auto px-6 py-6 space-y-6">
+<!-- Breadcrumb & Top Page Header -->
+<section class="space-y-3">
+<div class="flex items-center space-x-2">
+<a class="inline-flex items-center space-x-1 text-on-surface-variant hover:text-primary font-body-sm transition-colors" href="#">
+<span class="material-symbols-outlined text-[15px]">arrow_back</span>
+<span class="">Workspace</span>
+</a>
+</div>
+<div>
+<span class="inline-block px-1.5 py-0.5 rounded text-[10px] tracking-widest font-mono text-primary bg-primary/10 border border-primary/20 uppercase font-semibold mb-1">
+            CONTROL PLANE
+          </span>
+<h1 class="text-headline-lg font-headline-lg text-on-surface tracking-tight font-bold">Cài đặt Yana Studio</h1>
+<p class="text-body-md font-body-md text-on-surface-variant mt-0.5">Quản lý giao diện, model, runtime và kết nối trong một nơi.</p>
+</div>
+<div class="pt-0.5">
+<a class="inline-flex items-center space-x-1 text-body-sm font-body-sm text-primary hover:underline" href="#">
+<span class="">Xem lại giới thiệu Studio</span>
+<span class="material-symbols-outlined text-[13px]">north_east</span>
+</a>
+</div>
+<!-- Horizontal Settings Navigation Tabs (Exact matches to reference screenshots) -->
+<nav class="flex items-center gap-1.5 overflow-x-auto pb-1 pt-2 border-b border-outline-variant">
+<button class="px-3 py-1 rounded text-body-sm font-body-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">Tài khoản</button>
+<button class="px-3 py-1 rounded text-body-sm font-body-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">Giao diện</button>
+<!-- Active Tab -->
+<button class="px-3 py-1 rounded text-body-sm font-body-sm bg-primary/15 text-primary border border-primary/40 font-medium">Mô hình &amp; Điều phối</button>
+<button class="px-3 py-1 rounded text-body-sm font-body-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">Sử dụng</button>
+<button class="px-3 py-1 rounded text-body-sm font-body-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">Tài khoản &amp; Kết nối</button>
+<button class="px-3 py-1 rounded text-body-sm font-body-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">Quyền hạn</button>
+<button class="px-3 py-1 rounded text-body-sm font-body-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">Công cụ ngoài</button>
+<button class="px-3 py-1 rounded text-body-sm font-body-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">Lệnh Yana</button>
+<button class="px-3 py-1 rounded text-body-sm font-body-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">Riêng tư &amp; Dữ liệu</button>
+</nav>
+</section>
+<!-- Subheader & Model Search Filter -->
+<section class="space-y-3">
+<div>
+<h2 class="text-headline-md font-headline-md text-on-surface font-semibold">Model &amp; Runtime</h2>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Cloud và local cùng đi qua TurnEngine và RuntimeAuthority của Yana.</p>
+</div>
+<!-- Search Bar with Live Filter Input -->
+<div class="relative">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">search</span>
+</span>
+<input class="w-full pl-9 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded focus:border-primary focus:ring-1 focus:ring-primary text-body-sm font-body-sm text-on-surface placeholder-outline transition-all outline-none" placeholder="Tìm model theo tên, provider hoặc khả năng (vision, reasoning, cheap...)" type="text">
+</div>
+<!-- Alert Notification Bar -->
+<div class="flex items-center space-x-2 px-3 py-2 bg-surface-container border border-outline-variant rounded text-body-sm font-body-sm text-on-surface">
+<span class="material-symbols-outlined text-[16px] text-tertiary">bolt</span>
+<span class=""><span class="font-semibold text-tertiary">TurboFieldfare</span> chạy không cần API key. Quét local để kết nối tức thì.</span>
+</div>
+</section>
+<!-- Top Two Columns Grid: Active Model Configuration vs Local Discovery -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+<!-- Column 1: Model đang dùng (Configured active engine) -->
+<div class="bg-surface-container-low border border-outline-variant rounded p-4 flex flex-col justify-between space-y-4">
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<div>
+<h3 class="text-headline-sm font-headline-sm text-on-surface font-semibold">Model đang dùng</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Cùng catalog với yana-rt; mỗi provider giữ key riêng.</p>
+</div>
+<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded text-[11px] font-mono text-secondary border border-secondary/30 bg-secondary/10">
+<span class="material-symbols-outlined text-[13px]">memory</span>
+<span class="">Local</span>
+</span>
+</div>
+<!-- Provider Selector Dropdown -->
+<div class="space-y-1">
+<label class="block text-label-md font-label-md text-on-surface-variant">Provider</label>
+<div class="relative">
+<select class="w-full bg-surface border border-outline-variant rounded px-2.5 py-1.5 text-body-sm font-body-sm text-on-surface appearance-none focus:border-primary outline-none cursor-pointer pr-8">
+<option selected="">TurboFieldfare • On-device</option>
+<option>Ollama (127.0.0.1:11434)</option>
+<option>LM Studio (127.0.0.1:1234)</option>
+<option>Groq (groq/openai/gpt-oss-120b)</option>
+<option>Claude 3.7 Sonnet (Anthropic)</option>
+</select>
+<span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">expand_more</span>
+</span>
+</div>
+</div>
+<!-- Endpoint URL Input -->
+<div class="space-y-1">
+<label class="block text-label-md font-label-md text-on-surface-variant">Endpoint</label>
+<input class="w-full bg-surface border border-outline-variant rounded px-2.5 py-1.5 font-code-sm text-code-sm text-on-surface focus:border-primary outline-none" type="text" value="http://127.0.0.1:8091/v1">
+<p class="text-[11px] text-on-surface-variant pt-0.5">Provider Yana chính thức dùng endpoint cố định. Custom chỉ nhận HTTPS hoặc loopback HTTP.</p>
+</div>
+<!-- Model ID Input -->
+<div class="space-y-1">
+<label class="block text-label-md font-label-md text-on-surface-variant">Model ID</label>
+<input class="w-full bg-surface border border-outline-variant rounded px-2.5 py-1.5 font-code-sm text-code-sm text-on-surface focus:border-primary outline-none" type="text" value="gemma-4-26b-a4b-it">
+</div>
+<!-- Fetch Fallback/Error Diagnostics Box -->
+<div class="p-2.5 bg-error-container/20 border border-error/30 rounded flex items-center justify-between text-body-sm">
+<div class="flex items-center space-x-2 text-error text-[11px] font-code-sm truncate">
+<span class="material-symbols-outlined text-[15px] shrink-0">error</span>
+<span class="truncate">Error invoking remote method 'studio:discoverModels': TypeError: fetch failed</span>
+</div>
+<button class="shrink-0 ml-2 px-2 py-0.5 bg-surface border border-error/40 text-error text-[11px] rounded hover:bg-error/10 font-medium transition-colors">
+                Thử lại
+              </button>
+</div>
+</div>
+<!-- Offline Recommendation Pill Card -->
+<div class="p-2.5 bg-surface border border-outline-variant rounded space-y-1">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-1.5">
+<span class="font-code-sm text-code-sm text-on-surface font-semibold">Gemma 4 26B</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm">gemma-4-26b-a4b-it</span>
+</div>
+<span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-surface-container-high text-on-surface-variant border border-outline-variant">local</span>
+</div>
+<p class="text-[11px] text-on-surface-variant">Gợi ý offline — Studio sẽ thay bằng danh sách tài khoản của bạn ngay khi kết nối được provider.</p>
+</div>
+</div>
+<!-- Column 2: Local AI trên máy (Hardware discovery) -->
+<div class="bg-surface-container-low border border-outline-variant rounded p-4 flex flex-col justify-between space-y-4">
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<div>
+<h3 class="text-headline-sm font-headline-sm text-on-surface font-semibold">Local AI trên máy</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Dò endpoint từ trusted host, không qua renderer.</p>
+</div>
+<button class="flex items-center space-x-1 px-2.5 py-1 bg-surface-container hover:bg-surface-container-high border border-outline-variant rounded text-body-sm font-body-sm text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[14px]">refresh</span>
+<span class="">Quét local</span>
+</button>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant">
+              Bấm Quét local để tìm 9Router, Ollama, LM Studio, llama.cpp, TurboFieldfare và AirLLM.
+            </p>
+<!-- Detected Engines Status Cards -->
+<div class="space-y-2 pt-1">
+<div class="p-2.5 bg-surface border border-outline-variant rounded flex items-center justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[16px]">memory</span>
+</div>
+<div>
+<span class="font-code-sm text-code-sm text-on-surface font-semibold block">Ollama Engine</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm">http://127.0.0.1:11434 • 3 models active</span>
+</div>
+</div>
+<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-tertiary/15 text-tertiary border border-tertiary/30">
+                  CONNECTED
+                </span>
+</div>
+<div class="p-2.5 bg-surface border border-outline-variant rounded flex items-center justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[16px]">terminal</span>
+</div>
+<div>
+<span class="font-code-sm text-code-sm text-on-surface font-semibold block">LM Studio Server</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm">http://127.0.0.1:1234/v1 • Port ready</span>
+</div>
+</div>
+<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant border border-outline-variant">
+                  KEYLESS READY
+                </span>
+</div>
+<div class="p-2.5 bg-surface border border-outline-variant rounded flex items-center justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">code</span>
+</div>
+<div>
+<span class="font-code-sm text-code-sm text-on-surface font-semibold block">llama.cpp Runtime</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm">CLI Daemon Standby • GGUF loader</span>
+</div>
+</div>
+<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant border border-outline-variant">
+                  STANDBY
+                </span>
+</div>
+</div>
+</div>
+<!-- Architecture Note & Reference Visual Indicator -->
+<div class="p-3 bg-surface-container border border-outline-variant rounded text-[11px] font-body-sm text-on-surface-variant flex items-center justify-between">
+<span class="">Tự động tối ưu hoá VRAM và tensor parallelism qua Apple Metal MPS.</span>
+<span class="text-tertiary flex items-center space-x-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
+<span class="font-code-sm text-[10px]">Metal VRAM 64GB OK</span>
+</span>
+</div>
+</div>
+</section>
+<!-- Middle Section: Yana runtime & Governance Security Boundary (Screenshot 6 reference) -->
+<section class="bg-surface-container-low border border-outline-variant rounded p-4 space-y-3">
+<div class="flex items-center justify-between">
+<div>
+<h3 class="text-headline-sm font-headline-sm text-on-surface font-semibold">Yana runtime</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Studio gọi trực tiếp binary yana-rt, không dùng gateway cũ.</p>
+</div>
+<button class="flex items-center space-x-1.5 px-3 py-1 bg-surface border border-outline-variant hover:bg-surface-container-high rounded text-body-sm font-body-sm text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[16px]">folder_open</span>
+<span class="">Chọn yana-rt</span>
+</button>
+</div>
+<!-- Binary Path Bar -->
+<div class="p-2.5 bg-surface border border-outline-variant rounded flex items-center justify-between font-code-sm text-code-sm text-on-surface">
+<span class="truncate">/Users/vutam/Yana-AI/tools/yana-studio/runtime/yana-rt</span>
+<span class="text-[10px] px-1.5 py-0.5 bg-surface-container rounded text-tertiary border border-tertiary/20 ml-2">ELF v2.4 executable</span>
+</div>
+<!-- Security Boundary Notice -->
+<div class="p-3 bg-surface border border-outline-variant rounded space-y-1">
+<div class="flex items-center space-x-1.5 text-on-surface font-semibold text-body-sm font-body-sm">
+<span class="material-symbols-outlined text-[16px] text-primary">security</span>
+<span class="">Ranh giới quyền hạn</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant">
+            Chat → TurnEngine → RuntimeAuthority → Giám Thị. Terminal vẫn là shell của người dùng và không phải đường thực thi AI.
+          </p>
+<p class="text-[11px] font-code-sm text-on-surface-variant pt-0.5">
+            Lưu key: OS encrypted (safeStorage). Key không được trả lại renderer, không nằm trong localStorage hoặc workspace JSON.
+          </p>
+</div>
+</section>
+<!-- Core Section: Provider Library (19 Providers from Rust Catalog - Screenshot 7 reference) -->
+<section class="space-y-3">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
+<div>
+<h3 class="text-headline-md font-headline-md text-on-surface font-semibold">Provider library</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant">41 provider chính thức từ catalog Rust yana-rt • Cloud, Local &amp; Specialized Gateway.</p>
+</div>
+<span class="text-label-md font-label-md text-primary font-code-sm bg-primary/10 border border-primary/20 px-2 py-0.5 rounded self-start md:self-auto">41 TOTAL PROVIDERS LOADED (Cloud, Local &amp; Inference Gateways)</span>
+</div>
+<!-- Filter Tabs & Quick Search in Provider Library -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
+<div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-label-sm font-label-sm">
+<button class="px-2.5 py-1 rounded bg-primary/15 text-primary border border-primary/40 font-medium whitespace-nowrap">Tất cả (41)</button>
+<button class="px-2.5 py-1 rounded bg-surface border border-outline-variant text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors whitespace-nowrap">Cloud LLM (18)</button>
+<button class="px-2.5 py-1 rounded bg-surface border border-outline-variant text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors whitespace-nowrap">Local / On-device (7)</button>
+<button class="px-2.5 py-1 rounded bg-surface border border-outline-variant text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors whitespace-nowrap">Open-source Hosting &amp; Router (10)</button>
+<button class="px-2.5 py-1 rounded bg-surface border border-outline-variant text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors whitespace-nowrap">Specialized / Enterprise (6)</button>
+</div>
+<div class="relative min-w-[200px]">
+<span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">filter_list</span>
+</span>
+<input type="text" placeholder="Lọc theo tên catalog..." class="w-full pl-8 pr-3 py-1 bg-surface border border-outline-variant rounded text-code-sm font-code-sm text-on-surface placeholder-outline focus:border-primary outline-none">
+</div>
+</div>
+<!-- Bento Grid of All 41 Providers -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1">
+<!-- 1. Claude -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">cloud</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Claude</h4>
+<span class="text-[11px] text-on-surface-variant block">Anthropic</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">balanced</span>
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">tools</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">4 models</span>
+</div>
+</div>
+<!-- 2. OpenAI -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">cloud</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">OpenAI</h4>
+<span class="text-[11px] text-on-surface-variant block">OpenAI</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">fast</span>
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">cheap</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">5 models</span>
+</div>
+</div>
+<!-- 3. Gemini -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">cloud</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Gemini</h4>
+<span class="text-[11px] text-on-surface-variant block">Google</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">fast</span>
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">cheap</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">3 models</span>
+</div>
+</div>
+<!-- 4. Groq -->
+<div class="p-3 bg-surface-container border border-tertiary/40 rounded flex flex-col justify-between space-y-2.5 transition-colors ring-1 ring-tertiary/20">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-tertiary/10 border border-tertiary/30 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Groq</h4>
+<span class="text-[11px] text-on-surface-variant block">Groq Cloud LPU</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-tertiary bg-tertiary/10 px-1.5 py-0.5 rounded border border-tertiary/20 font-medium">Key encrypted</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">balanced</span>
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">tools</span>
+<span class="text-[10px] text-tertiary font-code-sm ml-auto">3 models active</span>
+</div>
+</div>
+<!-- 5. DeepSeek -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">cloud</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">DeepSeek</h4>
+<span class="text-[11px] text-on-surface-variant block">DeepSeek</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">balanced</span>
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">tools</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">2 models</span>
+</div>
+</div>
+<!-- 6. OpenRouter -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">hub</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">OpenRouter</h4>
+<span class="text-[11px] text-on-surface-variant block">Multi-model Gateway</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">cheap</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">120+ models</span>
+</div>
+</div>
+<!-- 7. xAI -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">psychology</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">xAI</h4>
+<span class="text-[11px] text-on-surface-variant block">xAI (Grok)</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">balanced</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">3 models</span>
+</div>
+</div>
+<!-- 8. Mistral AI -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">cloud</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Mistral AI</h4>
+<span class="text-[11px] text-on-surface-variant block">Mistral Platform</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">fast</span>
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">code</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">4 models</span>
+</div>
+</div>
+<!-- 9. Cohere -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">layers</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Cohere</h4>
+<span class="text-[11px] text-on-surface-variant block">Command R+</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">rag</span>
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">tools</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">3 models</span>
+</div>
+</div>
+<!-- 10. Perplexity -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">travel_explore</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Perplexity</h4>
+<span class="text-[11px] text-on-surface-variant block">Sonar Online</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">search</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">2 models</span>
+</div>
+</div>
+<!-- 11. AI21 Labs -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">menu_book</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">AI21 Labs</h4>
+<span class="text-[11px] text-on-surface-variant block">Jamba 1.5 Mini/Large</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">hybrid</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">2 models</span>
+</div>
+</div>
+<!-- 12. Novita AI -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">cloud</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Novita AI</h4>
+<span class="text-[11px] text-on-surface-variant block">Novita AI Llama</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">balanced</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">2 models</span>
+</div>
+</div>
+<!-- 13. NVIDIA -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">developer_board</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">NVIDIA</h4>
+<span class="text-[11px] text-on-surface-variant block">NVIDIA NIM</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="pt-1">
+<span class="font-code-sm text-[10px] text-on-surface-variant truncate block">nvidia/llama-3.1-nemotron-70b</span>
+</div>
+</div>
+<!-- 14. MiniMax -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">cloud</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">MiniMax</h4>
+<span class="text-[11px] text-on-surface-variant block">MiniMax abab6.5</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">balanced</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">2 models</span>
+</div>
+</div>
+<!-- 15. GLM -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">cloud</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">GLM</h4>
+<span class="text-[11px] text-on-surface-variant block">Zhipu AI GLM-4</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">tools</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">2 models</span>
+</div>
+</div>
+<!-- 16. Kimi -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">nights_stay</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Kimi</h4>
+<span class="text-[11px] text-on-surface-variant block">Moonshot AI</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">long-context</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">2 models</span>
+</div>
+</div>
+<!-- 17. Qwen (DashScope) -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">language</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Qwen</h4>
+<span class="text-[11px] text-on-surface-variant block">Alibaba Cloud / DashScope</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">coder</span>
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">vision</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">3 models</span>
+</div>
+</div>
+<!-- 18. Baidu ERNIE -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">cloud_circle</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Baidu ERNIE</h4>
+<span class="text-[11px] text-on-surface-variant block">Baidu Qianfan Platform</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">enterprise</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">2 models</span>
+</div>
+</div>
+<!-- 19. Ollama (Local) -->
+<div class="p-3 bg-surface-container-low border border-secondary/30 rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[18px]">memory</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Ollama</h4>
+<span class="text-[11px] text-on-surface-variant block">On-device engine</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-secondary bg-secondary/10 px-1.5 py-0.5 rounded border border-secondary/20">Keyless</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-secondary border border-secondary/30 text-[10px] font-code-sm">local</span>
+<span class="text-[10px] text-tertiary font-code-sm ml-auto">3 models (Connected)</span>
+</div>
+</div>
+<!-- 20. LM Studio (Local) -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[18px]">desktop_windows</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">LM Studio</h4>
+<span class="text-[11px] text-on-surface-variant block">On-device</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-secondary bg-secondary/10 px-1.5 py-0.5 rounded border border-secondary/20">Keyless</span>
+</div>
+<div class="pt-1">
+<span class="font-code-sm text-[10px] text-on-surface-variant block">local-model</span>
+</div>
+</div>
+<!-- 21. llama.cpp (Local) -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[18px]">terminal</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">llama.cpp</h4>
+<span class="text-[11px] text-on-surface-variant block">CLI Daemon Standby</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-secondary bg-secondary/10 px-1.5 py-0.5 rounded border border-secondary/20">Keyless</span>
+</div>
+<div class="pt-1">
+<span class="font-code-sm text-[10px] text-on-surface-variant block">local-model</span>
+</div>
+</div>
+<!-- 22. TurboFieldfare (Active Local Engine) -->
+<div class="p-3 bg-surface-container border border-primary/40 rounded flex flex-col justify-between space-y-2.5 transition-colors ring-1 ring-primary/20">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-primary/10 border border-primary/30 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">TurboFieldfare</h4>
+<span class="text-[11px] text-on-surface-variant block">On-device engine</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">Keyless</span>
+</div>
+<div class="pt-1 flex items-center justify-between">
+<span class="font-code-sm text-[10px] text-primary truncate">gemma-4-26b-a4b-it (Active)</span>
+<span class="w-2 h-2 rounded-full bg-primary inline-block"></span>
+</div>
+</div>
+<!-- 23. AirLLM (Local) -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[18px]">memory</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">AirLLM</h4>
+<span class="text-[11px] text-on-surface-variant block">On-device VRAM optimizer</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-secondary bg-secondary/10 px-1.5 py-0.5 rounded border border-secondary/20">Keyless</span>
+</div>
+<div class="pt-1">
+<span class="font-code-sm text-[10px] text-on-surface-variant block truncate">70B layer streaming</span>
+</div>
+</div>
+<!-- 24. vLLM Engine (Local) -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[18px]">speed</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">vLLM Engine</h4>
+<span class="text-[11px] text-on-surface-variant block">Local high-throughput</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-secondary bg-secondary/10 px-1.5 py-0.5 rounded border border-secondary/20">Keyless</span>
+</div>
+<div class="pt-1">
+<span class="font-code-sm text-[10px] text-on-surface-variant block truncate">local-server :8000</span>
+</div>
+</div>
+<!-- 25. Jan / Cortex.cpp (Local) -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[18px]">folder_managed</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Jan / Cortex.cpp</h4>
+<span class="text-[11px] text-on-surface-variant block">Local offline engine</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-secondary bg-secondary/10 px-1.5 py-0.5 rounded border border-secondary/20">Keyless</span>
+</div>
+<div class="pt-1">
+<span class="font-code-sm text-[10px] text-on-surface-variant block truncate">local runtime</span>
+</div>
+</div>
+<!-- 26. 9Router -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[18px]">router</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">9Router</h4>
+<span class="text-[11px] text-on-surface-variant block">Local gateway aggregator</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">balanced</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">2 models</span>
+</div>
+</div>
+<!-- 27. Hugging Face -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">sentiment_satisfied</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Hugging Face</h4>
+<span class="text-[11px] text-on-surface-variant block">Inference Endpoints</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="pt-1">
+<span class="font-code-sm text-[10px] text-on-surface-variant truncate block">meta-llama/Llama-3.3-70B</span>
+</div>
+</div>
+<!-- 28. Together AI -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">hub</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Together AI</h4>
+<span class="text-[11px] text-on-surface-variant block">Together Inference</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">fast</span>
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">tools</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">8 models</span>
+</div>
+</div>
+<!-- 29. Fireworks AI -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">flare</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Fireworks AI</h4>
+<span class="text-[11px] text-on-surface-variant block">Function Calling &amp; VLM</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">fast</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">6 models</span>
+</div>
+</div>
+<!-- 30. Anyscale Endpoints -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">blur_on</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Anyscale</h4>
+<span class="text-[11px] text-on-surface-variant block">Ray LLM Endpoints</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">scale</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">4 models</span>
+</div>
+</div>
+<!-- 31. Replicate -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">alt_route</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Replicate</h4>
+<span class="text-[11px] text-on-surface-variant block">Serverless Models</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">vision</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">5 models</span>
+</div>
+</div>
+<!-- 32. DeepInfra -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">DeepInfra</h4>
+<span class="text-[11px] text-on-surface-variant block">Pay-per-token GPU</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">cheap</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">6 models</span>
+</div>
+</div>
+<!-- 33. Lepton AI -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">grain</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Lepton AI</h4>
+<span class="text-[11px] text-on-surface-variant block">Standard Inference API</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">fast</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">3 models</span>
+</div>
+</div>
+<!-- 34. OctoAI -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">all_inclusive</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">OctoAI</h4>
+<span class="text-[11px] text-on-surface-variant block">Compute Service</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">media</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">2 models</span>
+</div>
+</div>
+<!-- 35. Hyperbolic -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">share</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Hyperbolic</h4>
+<span class="text-[11px] text-on-surface-variant block">Decentralized GPU</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">cost-effective</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">4 models</span>
+</div>
+</div>
+<!-- 36. AWS Bedrock -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">corporate_fare</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">AWS Bedrock</h4>
+<span class="text-[11px] text-on-surface-variant block">Claude, Llama, Titan</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">IAM Role / Key</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">Multi-vendor</span>
+</div>
+</div>
+<!-- 37. Azure OpenAI Service -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">grid_view</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Azure OpenAI</h4>
+<span class="text-[11px] text-on-surface-variant block">Enterprise Deployment</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="pt-1">
+<span class="font-code-sm text-[10px] text-on-surface-variant truncate block">Azure Endpoint required</span>
+</div>
+</div>
+<!-- 38. Cloudflare Workers AI -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">cloud_sync</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Cloudflare AI</h4>
+<span class="text-[11px] text-on-surface-variant block">Workers AI Edge</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">edge</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">Edge inference</span>
+</div>
+</div>
+<!-- 39. Cerebras Inference -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">electric_bolt</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Cerebras</h4>
+<span class="text-[11px] text-on-surface-variant block">Ultra-fast CS-3 LPU</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">1800+ tps</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">2 models</span>
+</div>
+</div>
+<!-- 40. SambaNova Cloud -->
+<div class="p-3 bg-surface-container-low border border-outline-variant hover:border-outline rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">memory</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">SambaNova</h4>
+<span class="text-[11px] text-on-surface-variant block">DataScale SN40L</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-outline">Needs key</span>
+</div>
+<div class="flex items-center space-x-1.5 pt-1">
+<span class="px-1.5 py-0.2 rounded bg-surface text-on-surface-variant border border-outline-variant text-[10px] font-code-sm">full-precision</span>
+<span class="text-[10px] text-on-surface-variant font-code-sm ml-auto">3 models</span>
+</div>
+</div>
+<!-- 41. Custom OpenAI-compatible -->
+<div class="p-3 bg-surface-container border border-secondary/30 rounded flex flex-col justify-between space-y-2.5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[18px]">dns</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Custom Endpoint</h4>
+<span class="text-[11px] text-on-surface-variant block">OpenAI-compatible Reverse Proxy</span>
+</div>
+</div>
+<span class="text-[10px] font-mono text-secondary bg-secondary/10 px-1.5 py-0.5 rounded border border-secondary/20">Keyless</span>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-code-sm text-[10px] text-secondary truncate">Custom URL loopback / HTTPS</span>
+<span class="material-symbols-outlined text-[14px] text-secondary">link</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Bottom Grid: Mô hình mặc định (Auto) & Mô hình phụ trợ (Roadmap/11 luồng) (Screenshot 5 reference) -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+<!-- Left: Mô hình mặc định — Auto -->
+<div class="bg-surface-container-low border border-outline-variant rounded p-4 space-y-4">
+<div>
+<h3 class="text-headline-sm font-headline-sm text-on-surface font-semibold">Mô hình mặc định — Auto</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Chat mới dùng mô hình mặc định bên dưới. Chat đang mở đổi model qua model picker trong composer.</p>
+</div>
+<!-- Auto pointer card -->
+<div class="p-2.5 bg-surface border border-outline-variant rounded flex items-center justify-between">
+<span class="text-body-sm font-body-sm text-on-surface-variant">Auto đang trỏ tới</span>
+<span class="font-code-sm text-code-sm text-primary font-semibold">groq/openai/gpt-oss-120b</span>
+</div>
+<!-- Reasoning effort dropdown -->
+<div class="space-y-1.5">
+<label class="block text-label-md font-label-md text-on-surface">Reasoning effort</label>
+<p class="text-body-sm font-body-sm text-on-surface-variant">yana-rt hiện không nhận tham số reasoning effort — control này chỉ hiển thị, không lưu lựa chọn.</p>
+<div class="relative pt-1">
+<select class="w-full bg-surface-container border border-outline-variant rounded px-2.5 py-1.5 text-body-sm font-body-sm text-outline appearance-none cursor-not-allowed" disabled="">
+<option>Chưa khả dụng</option>
+</select>
+<span class="absolute inset-y-0 right-0 flex items-center pr-2 pt-1 pointer-events-none text-outline">
+<span class="material-symbols-outlined text-[18px]">expand_more</span>
+</span>
+</div>
+</div>
+</div>
+<!-- Right: Mô hình phụ trợ (11 auxiliary pipeline streams) -->
+<div class="bg-surface-container-low border border-outline-variant rounded p-4 space-y-3">
+<div>
+<h3 class="text-headline-sm font-headline-sm text-on-surface font-semibold">Mô hình phụ trợ</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant">11 luồng dưới đây chưa có nơi nào trong Yana Studio thực sự gọi tới — hiển thị làm roadmap, không có form cấu hình vì chưa ảnh hưởng được đến turn nào.</p>
+</div>
+<!-- Streams list -->
+<div class="divide-y divide-outline-variant text-body-sm font-body-sm">
+<div class="py-2 flex items-center justify-between">
+<div>
+<span class="font-semibold text-on-surface block">Phân tích ảnh</span>
+<span class="text-[11px] text-on-surface-variant">Chưa triển khai — không có luồng phân tích ảnh riêng trong Yana Studio.</span>
+</div>
+<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-container text-outline border border-outline-variant">Chưa khả dụng</span>
+</div>
+<div class="py-2 flex items-center justify-between">
+<div>
+<span class="font-semibold text-on-surface block">Nén context</span>
+<span class="text-[11px] text-on-surface-variant">Chưa triển khai — yana-rt chưa có bước nén context tách biệt gọi được từ Studio.</span>
+</div>
+<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-container text-outline border border-outline-variant">Chưa khả dụng</span>
+</div>
+<div class="py-2 flex items-center justify-between">
+<div>
+<span class="font-semibold text-on-surface block">Tìm skills</span>
+<span class="text-[11px] text-on-surface-variant">Chưa triển khai — không có công cụ tìm skill bằng model trong Studio.</span>
+</div>
+<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-container text-outline border border-outline-variant">Chưa khả dụng</span>
+</div>
+<div class="py-2 flex items-center justify-between">
+<div>
+<span class="font-semibold text-on-surface block">Phê duyệt thông minh</span>
+<span class="text-[11px] text-on-surface-variant">Chưa triển khai — phê duyệt hiện tại do người dùng quyết định thủ công, không qua model.</span>
+</div>
+<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-container text-outline border border-outline-variant">Chưa khả dụng</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Token Telemetry & Usage Preview (Screenshot 4 reference) -->
+<section class="bg-surface-container-low border border-outline-variant rounded p-4 space-y-4">
+<div class="flex items-center justify-between">
+<div>
+<span class="inline-block px-1.5 py-0.2 rounded text-[10px] tracking-widest font-mono text-secondary bg-secondary/10 border border-secondary/20 uppercase font-semibold mb-0.5">
+              RUNTIME TELEMETRY
+            </span>
+<h3 class="text-headline-md font-headline-md text-on-surface font-semibold">Sử dụng token</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Số token do chính provider báo về qua Yana runtime. Đây không phải hạn mức hay hóa đơn của nhà cung cấp.</p>
+</div>
+<button class="flex items-center space-x-1 px-2.5 py-1 bg-surface-container hover:bg-surface-container-high border border-outline-variant rounded text-body-sm font-body-sm text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[14px]">refresh</span>
+<span class="">Làm mới</span>
+</button>
+</div>
+<!-- Telemetry Summary Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+<div class="p-3 bg-surface border border-outline-variant rounded space-y-1">
+<span class="text-body-sm font-body-sm text-on-surface-variant">Workspace hiện tại</span>
+<div class="text-[26px] font-bold tracking-tight text-on-surface font-mono">21.066</div>
+<span class="text-[11px] text-on-surface-variant">8 vòng model đã ghi nhận</span>
+</div>
+<div class="p-3 bg-surface border border-outline-variant rounded space-y-1">
+<span class="text-body-sm font-body-sm text-on-surface-variant">Tất cả dự án</span>
+<div class="text-[26px] font-bold tracking-tight text-on-surface font-mono">21.066</div>
+<span class="text-[11px] text-on-surface-variant">8 vòng model đã ghi nhận</span>
+</div>
+</div>
+<!-- Detailed Ratio Bar Progress -->
+<div class="space-y-2.5 pt-1">
+<div class="space-y-1">
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<span class="text-on-surface">Token đầu vào</span>
+<div class="flex items-center space-x-3 font-code-sm">
+<span class="text-on-surface font-semibold">19.595</span>
+<span class="text-on-surface-variant text-[11px]">93%</span>
+</div>
+</div>
+<div class="w-full h-2 bg-surface rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 93%;"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<span class="text-on-surface">Token đầu ra</span>
+<div class="flex items-center space-x-3 font-code-sm">
+<span class="text-on-surface font-semibold">1.471</span>
+<span class="text-on-surface-variant text-[11px]">7%</span>
+</div>
+</div>
+<div class="w-full h-2 bg-surface rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 7%;"></div>
+</div>
+</div>
+</div>
+<!-- Breakdown by Provider & Model -->
+<div class="space-y-2 pt-2 border-t border-outline-variant">
+<h4 class="text-label-md font-label-md text-on-surface font-semibold uppercase tracking-wider">Theo provider và model</h4>
+<div class="space-y-2 text-body-sm font-body-sm">
+<div>
+<div class="flex items-center justify-between">
+<div>
+<span class="font-code-sm text-code-sm text-on-surface font-semibold">openai/gpt-oss-120b</span>
+<span class="text-[11px] text-on-surface-variant block font-code-sm">groq · 7 vòng model đã ghi nhận</span>
+</div>
+<span class="font-code-sm text-on-surface font-semibold">17.401</span>
+</div>
+<div class="w-full h-1.5 bg-surface rounded-full overflow-hidden mt-1">
+<div class="h-full bg-primary" style="width: 82%;"></div>
+</div>
+</div>
+<div>
+<div class="flex items-center justify-between">
+<div>
+<span class="font-code-sm text-code-sm text-on-surface font-semibold">gemma-4-26b-a4b-it</span>
+<span class="text-[11px] text-on-surface-variant block font-code-sm">turbofieldfare · 1 vòng model đã ghi nhận</span>
+</div>
+<span class="font-code-sm text-on-surface font-semibold">3.665</span>
+</div>
+<div class="w-full h-1.5 bg-surface rounded-full overflow-hidden mt-1">
+<div class="h-full bg-secondary" style="width: 18%;"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- External Tools, MCP & Terminal Bridges (Screenshot 2 reference) -->
+<section class="bg-surface-container-low border border-outline-variant rounded p-4 space-y-4">
+<div class="flex items-center justify-between">
+<div>
+<span class="inline-block px-1.5 py-0.2 rounded text-[10px] tracking-widest font-mono text-tertiary bg-tertiary/10 border border-tertiary/20 uppercase font-semibold mb-0.5">
+              HUMAN TERMINAL &amp; MCP PROTOCOL
+            </span>
+<h3 class="text-headline-md font-headline-md text-on-surface font-semibold">Remote &amp; external tools</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Dữ liệu đọc từ runtime, PATH và contract đang có trong Yana.</p>
+</div>
+<button class="flex items-center space-x-1 px-2.5 py-1 bg-surface-container hover:bg-surface-container-high border border-outline-variant rounded text-body-sm font-body-sm text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[14px]">refresh</span>
+<span class="">Làm mới</span>
+</button>
+</div>
+<!-- Remote Chat: Discord -->
+<div class="p-3 bg-surface border border-outline-variant rounded space-y-2">
+<div class="flex items-center justify-between">
+<div>
+<span class="text-[10px] font-mono tracking-wider text-outline uppercase block">REMOTE CHAT</span>
+<h4 class="text-headline-sm font-headline-sm text-on-surface font-semibold">Discord</h4>
+</div>
+<div class="flex items-center space-x-2">
+<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-container text-outline border border-outline-variant">Runtime feature absent</span>
+<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-container text-outline border border-outline-variant">Credential required</span>
+</div>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Plain authenticated chat only. Repository, Git, process and tool capabilities are never exposed to Discord.</p>
+<div class="flex items-center justify-between text-[11px] font-code-sm text-on-surface-variant pt-1 border-t border-outline-variant/40">
+<span class="">Allowed channels: 0 · Allowed users: 0</span>
+<span class="text-on-surface">Credential boundary: Managed outside renderer</span>
+</div>
+</div>
+<!-- Tool Protocol: MCP (stdio) -->
+<div class="p-3 bg-surface border border-outline-variant rounded space-y-2">
+<div class="flex items-center justify-between">
+<div>
+<span class="text-[10px] font-mono tracking-wider text-outline uppercase block">TOOL PROTOCOL</span>
+<h4 class="text-headline-sm font-headline-sm text-on-surface font-semibold">MCP</h4>
+</div>
+<div class="flex items-center space-x-2">
+<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-container text-outline border border-outline-variant">MCP not in this runtime</span>
+<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-container text-on-surface-variant border border-outline-variant">stdio</span>
+</div>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant">MCP is opt-in over stdio. Workspace mutations remain governed and approval-only operations stay denied.</p>
+<div class="font-code-sm text-code-sm text-primary bg-surface-container px-2 py-1 rounded inline-block">yana-rt mcp</div>
+</div>
+<!-- External Coding Tools Grid -->
+<div class="space-y-2 pt-1">
+<div class="flex items-center justify-between">
+<span class="text-label-md font-label-md text-on-surface font-semibold uppercase tracking-wider">External coding tools detection</span>
+<span class="text-[11px] text-on-surface-variant">Checked via desktop process PATH</span>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+<!-- Claude Code -->
+<div class="p-2.5 bg-surface border border-tertiary/40 rounded flex flex-col justify-between space-y-2">
+<div class="flex items-center justify-between">
+<span class="font-semibold text-on-surface text-body-sm">Claude Code</span>
+<span class="material-symbols-outlined text-[16px] text-tertiary">check_circle</span>
+</div>
+<div>
+<span class="font-code-sm text-[11px] text-primary block">claude</span>
+<span class="text-[9px] text-on-surface-variant font-code-sm truncate block">/usr/local/bin/claude</span>
+</div>
+</div>
+<!-- Codex -->
+<div class="p-2.5 bg-surface border border-outline-variant rounded flex flex-col justify-between space-y-2 opacity-75">
+<div class="flex items-center justify-between">
+<span class="font-semibold text-on-surface text-body-sm">Codex</span>
+<span class="material-symbols-outlined text-[16px] text-outline">cancel</span>
+</div>
+<div>
+<span class="font-code-sm text-[11px] text-on-surface-variant block">codex</span>
+<span class="text-[9px] text-outline font-code-sm block">Not found</span>
+</div>
+</div>
+<!-- Cursor -->
+<div class="p-2.5 bg-surface border border-outline-variant rounded flex flex-col justify-between space-y-2 opacity-75">
+<div class="flex items-center justify-between">
+<span class="font-semibold text-on-surface text-body-sm">Cursor</span>
+<span class="material-symbols-outlined text-[16px] text-outline">cancel</span>
+</div>
+<div>
+<span class="font-code-sm text-[11px] text-on-surface-variant block">cursor</span>
+<span class="text-[9px] text-outline font-code-sm block">Not found</span>
+</div>
+</div>
+<!-- Antigravity -->
+<div class="p-2.5 bg-surface border border-outline-variant rounded flex flex-col justify-between space-y-2 opacity-75">
+<div class="flex items-center justify-between">
+<span class="font-semibold text-on-surface text-body-sm">Antigravity</span>
+<span class="material-symbols-outlined text-[16px] text-outline">cancel</span>
+</div>
+<div>
+<span class="font-code-sm text-[11px] text-on-surface-variant block">antigravity</span>
+<span class="text-[9px] text-outline font-code-sm block">Not found</span>
+</div>
+</div>
+<!-- Gemini CLI -->
+<div class="p-2.5 bg-surface border border-tertiary/40 rounded flex flex-col justify-between space-y-2">
+<div class="flex items-center justify-between">
+<span class="font-semibold text-on-surface text-body-sm">Gemini CLI</span>
+<span class="material-symbols-outlined text-[16px] text-tertiary">check_circle</span>
+</div>
+<div>
+<span class="font-code-sm text-[11px] text-primary block">gemini</span>
+<span class="text-[9px] text-on-surface-variant font-code-sm truncate block">/opt/homebrew/bin/gemini</span>
+</div>
+</div>
+</div>
+<div class="pt-2">
+<button class="inline-flex items-center space-x-1.5 text-body-sm font-body-sm text-primary hover:underline">
+<span class="material-symbols-outlined text-[16px]">terminal</span>
+<span class="">Mở trong terminal</span>
+</button>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Sticky Footer Status Bar (IDE Cockpit) -->
+<footer class="fixed bottom-0 left-12 right-0 h-6 bg-surface-container-low border-t border-outline-variant flex items-center justify-between px-3 text-label-sm font-label-sm text-on-surface-variant z-40 select-none">
+<div class="flex items-center space-x-3">
+<div class="flex items-center space-x-1.5 text-tertiary">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
+<span class="font-code-sm text-[10px]">yana-rt v2.4 (active daemon)</span>
+</div>
+<span class="">•</span>
+<span class="font-code-sm text-[10px]">RAM: 4.2 / 64 GB</span>
+<span class="">•</span>
+<span class="font-code-sm text-[10px]">Active Model: gemma-4-26b-a4b-it (Local)</span>
+</div>
+<div class="flex items-center space-x-3">
+<span class="font-code-sm text-[10px]">TurnEngine: Deterministic L1</span>
+<span class="">•</span>
+<span class="text-secondary font-code-sm text-[10px]">UTF-8</span>
+<span class="">•</span>
+<button class="hover:text-on-surface flex items-center space-x-0.5">
+<span class="material-symbols-outlined text-[14px]">notifications</span>
+<span class="">0</span>
+</button>
+</div>
+</footer>
+
+
+<div id="snapdom-sandbox" data-snapdom-sandbox="true" aria-hidden="true" style="position: absolute; left: -9999px; top: -9999px; width: 0px; height: 0px; overflow: hidden;"></div></body></html>

@@ -20,6 +20,10 @@ export function Settings({
   projectRoot,
   onOpenTerminal,
   onShowOnboarding,
+  hiddenSections = [],
+  showBackup = true,
+  initialSection,
+  onSectionChange,
 }: {
   state: State;
   onState: (state: State) => void;
@@ -27,10 +31,25 @@ export function Settings({
   onError: (message: string) => void;
   projectRoot: string;
   onOpenTerminal: (command?: string) => void;
-  onShowOnboarding: () => void;
+  onShowOnboarding?: () => void;
+  // Hosts that cannot back a section yet (the Code-OSS IDE: no local account,
+  // its own theme picker, OAuth not ported) hide it instead of showing buttons
+  // that would only fail. Default: every section, as in the standalone app.
+  hiddenSections?: string[];
+  showBackup?: boolean;
+  // Host dựng lại màn khi dữ liệu đổi: truyền tab đang xem vào và nhận lại mỗi lần đổi tab.
+  initialSection?: string;
+  onSectionChange?: (section: string) => void;
 }) {
   const [busy, setBusy] = useState(false);
-  const [section, setSection] = useState("account");
+  const [section, setSectionState] = useState(
+    initialSection ??
+      (hiddenSections.includes("account") ? "models" : "account"),
+  );
+  const setSection = (next: string) => {
+    setSectionState(next);
+    onSectionChange?.(next);
+  };
   const t = translate(state.preferences.locale);
   const previewPreferences = (patch: Partial<State["preferences"]>) =>
     onState({
@@ -72,9 +91,11 @@ export function Settings({
       <div className="eyebrow">CONTROL PLANE</div>
       <h1>{t("settingsTitle")}</h1>
       <p className="muted">{t("settingsDescription")}</p>
-      <button className="settings-tour-button" onClick={onShowOnboarding}>
-        {t("showIntroduction")}
-      </button>
+      {onShowOnboarding && (
+        <button className="settings-tour-button" onClick={onShowOnboarding}>
+          {t("showIntroduction")}
+        </button>
+      )}
       <div className="button-row">
         {[
           ["account", t("account")],
@@ -86,15 +107,17 @@ export function Settings({
           ["tools", t("tools")],
           ["commands", t("commands")],
           ["privacy", t("privacy")],
-        ].map(([id, label]) => (
-          <button
-            key={id}
-            onClick={() => setSection(id)}
-            aria-pressed={section === id}
-          >
-            {label}
-          </button>
-        ))}
+        ]
+          .filter(([id]) => !hiddenSections.includes(id))
+          .map(([id, label]) => (
+            <button
+              key={id}
+              onClick={() => setSection(id)}
+              aria-pressed={section === id}
+            >
+              {label}
+            </button>
+          ))}
       </div>
       {section === "account" ? (
         <AccountSettings
@@ -223,12 +246,8 @@ export function Settings({
             value={state.preferences.liquidGlass.tintSaturation}
             min={0}
             max={1}
-            onPreview={(value) =>
-              previewLiquidGlass({ tintSaturation: value })
-            }
-            onCommit={(value) =>
-              persistLiquidGlass({ tintSaturation: value })
-            }
+            onPreview={(value) => previewLiquidGlass({ tintSaturation: value })}
+            onCommit={(value) => persistLiquidGlass({ tintSaturation: value })}
           />
           <h4>{t("lgSectionDepth")}</h4>
           <LiquidGlassRange
@@ -252,9 +271,7 @@ export function Settings({
             value={state.preferences.liquidGlass.shadowOpacity}
             min={0}
             max={0.75}
-            onPreview={(value) =>
-              previewLiquidGlass({ shadowOpacity: value })
-            }
+            onPreview={(value) => previewLiquidGlass({ shadowOpacity: value })}
             onCommit={(value) => persistLiquidGlass({ shadowOpacity: value })}
           />
           <LiquidGlassRange
@@ -293,9 +310,7 @@ export function Settings({
           <LiquidGlassToggle
             label={t("lgToggleGlow")}
             checked={state.preferences.liquidGlass.ambientGlow}
-            onChange={(checked) =>
-              persistLiquidGlass({ ambientGlow: checked })
-            }
+            onChange={(checked) => persistLiquidGlass({ ambientGlow: checked })}
           />
           <LiquidGlassToggle
             label={t("lgToggleAccessibility")}
@@ -326,9 +341,7 @@ export function Settings({
                 onPreview={(value) =>
                   previewLiquidGlass({ rippleSpeed: value })
                 }
-                onCommit={(value) =>
-                  persistLiquidGlass({ rippleSpeed: value })
-                }
+                onCommit={(value) => persistLiquidGlass({ rippleSpeed: value })}
               />
               <LiquidGlassRange
                 label={t("lgRippleOpacityLabel")}
@@ -353,9 +366,7 @@ export function Settings({
               onPreview={(value) =>
                 previewLiquidGlass({ parallaxDepth: value })
               }
-              onCommit={(value) =>
-                persistLiquidGlass({ parallaxDepth: value })
-              }
+              onCommit={(value) => persistLiquidGlass({ parallaxDepth: value })}
             />
           ) : null}
           <div className="button-row">
@@ -388,6 +399,7 @@ export function Settings({
       ) : section === "privacy" ? (
         <PrivacyData
           locale={state.preferences.locale}
+          showBackup={showBackup}
           onState={onState}
           onError={onError}
         />
@@ -410,9 +422,7 @@ export function Settings({
       ) : (
         <>
           <h2>Model & Runtime</h2>
-          <p className="muted">
-            Cloud và local cùng đi qua TurnEngine và RuntimeAuthority của Yana.
-          </p>
+          <p className="muted">{t("runtimeIntro")}</p>
           <ModelManager
             state={state}
             locale={state.preferences.locale}
@@ -421,10 +431,9 @@ export function Settings({
           />
           <div className="card settings-card runtime-settings-card">
             <h2>Yana runtime</h2>
-            <p>Studio gọi trực tiếp binary yana-rt, không dùng gateway cũ.</p>
+            <p>{t("runtimeDirect")}</p>
             <code className="path-block">
-              {state.runtime ||
-                "Chưa chọn yana-rt; editor và terminal vẫn dùng được."}
+              {state.runtime || t("runtimeMissing")}
             </code>
             <button
               disabled={busy}
@@ -435,19 +444,16 @@ export function Settings({
                 })
               }
             >
-              <FolderOpen size={15} /> Chọn yana-rt
+              <FolderOpen size={15} /> {t("chooseRuntime")}
             </button>
             <hr />
             <h3>
-              <Shield size={16} /> Ranh giới quyền hạn
+              <Shield size={16} /> {t("authorityBoundary")}
             </h3>
-            <p>
-              Chat → TurnEngine → RuntimeAuthority → Giám Thị. Terminal vẫn là
-              shell của người dùng và không phải đường thực thi AI.
-            </p>
+            <p>{t("authorityChain")}</p>
             <p className="muted">
-              Lưu key: {state.credentialStorage}. Key không được trả lại
-              renderer, không nằm trong localStorage hoặc workspace JSON.
+              {t("keyStorageLabel")} {state.credentialStorage}.{" "}
+              {t("keyStorageNote")}
             </p>
           </div>
           <ModelOrchestration

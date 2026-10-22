@@ -1,52 +1,401 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Download Yana Studio</title><meta name="description" content="Kênh cài đặt Yana Studio và trạng thái bộ cài macOS, Windows, Linux từ GitHub Releases."><link rel="icon" href="yana-mark.svg"><link rel="stylesheet" href="assets/ecosystem-pages.css?v=20260926a"><link rel="stylesheet" href="assets/sakura-site.css?v=20260926a"><link rel="stylesheet" href="assets/yana-white.css?v=20260930g"></head><body class="sakura-site"><div class="yana-opening yana-opening--inner" aria-label="Yana"><div class="opening-center"><div class="opening-mark"><img src="yana-mark.svg" alt="" width="58" height="58"></div><div class="opening-word" aria-hidden="true"><span>Y</span><span>a</span><span>n</span><span>a</span></div><p class="opening-caption">AI làm việc. Bạn giữ quyền.</p></div><button class="opening-skip" type="button">Bỏ qua <span aria-hidden="true">↗</span></button></div>
-<nav class="site-nav"></nav>
-<main>
-  <section class="page-hero"><p class="eyebrow">DESKTOP APPLICATION</p><h1>Tải Yana Studio.</h1><p class="hero-copy">Bộ cài ứng dụng Desktop cho macOS (Apple Silicon, M1 trở lên — chưa hỗ trợ Intel), Windows (x64 và ARM64) và Linux (x64). Website chỉ nhận release thuộc thế hệ Studio 1.5 trở lên; bản 1.4.8 không còn xuất hiện.</p></section>
-  <section class="section" style="padding-top:0">
-    <div class="section-head"><p class="eyebrow">BỘ CÀI ỨNG DỤNG</p><h2>Mở app như một workspace desktop.</h2><p>Có bản cho macOS, Windows và Linux trên GitHub Releases.</p></div>
-    <div class="download-panel">
-      <div data-release-download>
-        <p class="loading" data-release-loading>Đang kiểm tra bộ cài Yana Studio…</p>
-        <div class="download-grid">
-          <article class="os-card"><div class="os-title"><h3>macOS</h3></div><p class="meta">Apple Silicon (M1 trở lên)</p></article>
-          <article class="os-card"><div class="os-title"><h3>Windows</h3></div><p class="meta">x64 · ARM64</p></article>
-          <article class="os-card"><div class="os-title"><h3>Linux</h3></div><p class="meta">x64</p></article>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tải Yana Studio (v1.7.0) — IDE Native Code-OSS 2026</title>
+  <link rel="icon" type="image/svg+xml" href="yana-mark.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site26.css">
+  <link rel="stylesheet" href="assets/studio26.css">
+  <style>
+    .download-hero {
+      text-align: center;
+      padding: 120px 24px 40px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .dl-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      max-width: 1080px;
+      margin: 40px auto 60px;
+      padding: 0 24px;
+    }
+    .dl-card {
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: 28px;
+      padding: 32px 28px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.04);
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+    }
+    .dl-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px -12px rgba(37,99,235,0.12);
+      border-color: #bfdbfe;
+    }
+    .dl-card.featured {
+      border: 2px solid #2563eb;
+      background: linear-gradient(180deg, rgba(239,246,255,0.8) 0%, rgba(255,255,255,0.95) 100%);
+    }
+    .dl-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      margin-bottom: 16px;
+      width: fit-content;
+    }
+    .dl-card.featured .dl-badge {
+      background: #2563eb;
+      color: #fff;
+    }
+    .dl-card:not(.featured) .dl-badge {
+      background: #f1f5f9;
+      color: #475569;
+    }
+    .dl-os-title {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--ink-primary);
+      margin: 0 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .dl-os-desc {
+      font-size: 14.5px;
+      color: #64748b;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    .dl-btn-group {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .dl-main-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #2563eb;
+      color: #ffffff !important;
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
+      padding: 14px 20px;
+      border-radius: 16px;
+      text-decoration: none;
+      box-shadow: 0 6px 20px -4px rgba(37,99,235,0.4);
+      transition: all 0.15s ease;
+    }
+    .dl-main-btn:hover {
+      background: #1d4ed8;
+      transform: scale(1.02);
+    }
+    .dl-sub-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #334155 !important;
+      font-size: 13.5px;
+      font-weight: 600;
+      padding: 10px 16px;
+      border-radius: 14px;
+      text-decoration: none;
+      transition: background 0.15s ease;
+    }
+    .dl-sub-btn:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+    .device-preview-card {
+      max-width: 980px;
+      margin: 0 auto 80px;
+      padding: 0 24px;
+    }
+    .studio26-nav {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      width: calc(100% - 40px);
+      max-width: 1040px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      border-radius: 9999px;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 17px;
+      color: #0f172a;
+      text-decoration: none;
+    }
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .nav-menu a {
+      text-decoration: none;
+      color: #475569;
+      font-size: 14px;
+      font-weight: 600;
+      transition: color 0.15s;
+    }
+    .nav-menu a:hover {
+      color: #2563eb;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      max-width: 1080px;
+      margin: 0 auto 80px;
+      padding: 0 24px;
+    }
+    .info-card {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 24px;
+    }
+    .info-card h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0 0 8px;
+    }
+    .info-card p {
+      font-size: 14px;
+      color: #64748b;
+      line-height: 1.6;
+      margin: 0;
+    }
+  </style>
+</head>
+<body class="sakura-site home-page">
+  <div class="site26-bg-canvas" aria-hidden="true"></div>
+
+  <nav class="studio26-nav">
+    <a href="index.html" class="brand-link">
+      <img src="assets/yana-rabbit-app-icon.png" alt="Yana Logo" width="30" height="30">
+      <span>Yana <small style="font-weight:400;color:#64748b;">Studio</small></span>
+    </a>
+    <div class="nav-menu">
+      <a href="index.html">Trang chủ</a>
+      <a href="studio.html">Studio IDE</a>
+      <a href="wheelbot.html">Wheelbot</a>
+      <a href="updates.html">Cập nhật</a>
+      <a href="support.html">Hỗ trợ</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="download-en.html" style="font-size:12px;font-weight:700;color:#64748b;border:1px solid #cbd5e1;padding:4px 12px;border-radius:9999px;text-decoration:none;">English ↗</a>
+      <a href="#download" class="btn-spring-2026 btn-spring-primary" style="padding:8px 18px;font-size:13.5px;">Tải về ngay ↓</a>
+    </div>
+  </nav>
+
+  <main>
+    <section class="download-hero">
+      <div class="floating-hero-pill">
+        <span>✨ Yana Studio</span>
+        <span style="opacity: 0.4;">·</span>
+        <span style="color: #059669;">Code-OSS Core + Supervised Cockpit</span>
+      </div>
+      <h1 class="studio-hero-2026" style="padding:0;margin:16px 0 20px;">Mặt bàn làm việc của AI.<br><span class="text-rainbow-2026">Bộ cài Yana Studio chính thức.</span></h1>
+      <p class="lead-text" style="margin:0 auto 30px;">Kế thừa trọn vẹn extension của VS Code nhưng đặt bạn làm trung tâm kiểm soát: AI không thể tự ý chạy lệnh shell hay sửa file khi chưa có sự phê duyệt của bạn.</p>
+    </section>
+
+    <!-- Bảng Download Cards Hiện Đại 3D -->
+    <section class="dl-cards-grid perspective-container-2026" id="download">
+      
+      <!-- macOS (Trọng tâm Apple Silicon M1-M5) -->
+      <div class="dl-card featured has-glow-2026 card-3d-interactive">
+        <span class="organic-badge-pulse">Khuyên dùng · Apple Silicon</span>
+        <h2 class="dl-os-title">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 3.5c.62-.75 1.04-1.8 0.92-2.85-.9.04-2 .6-2.65 1.35-.58.67-.99 1.74-.86 2.78.99.08 2.01-.51 2.59-1.28z"/></svg>
+          macOS
+          <span class="hand-note-tag" style="font-size:16px;">M1 → M5 Native!</span>
+        </h2>
+        <p class="dl-os-desc">Bản build tối ưu riêng cho Apple Silicon M1/M2/M3/M4/M5 (macOS 12.0 trở lên).</p>
+        <div class="dl-btn-group">
+          <a href="https://github.com/yanacuti1121/Yana-AI/releases" class="btn-spring-2026 btn-spring-primary dl-main-btn">
+            Tải bộ cài .DMG (Apple Silicon) ↓
+          </a>
+          <a href="https://github.com/yanacuti1121/Yana-AI/releases" class="btn-spring-2026 btn-spring-secondary dl-sub-btn">
+            Tải tệp nén .ZIP di động
+          </a>
         </div>
       </div>
-      <div class="error-note" data-release-error>Không đọc được GitHub Releases. <a href="https://github.com/yanacuti1121/Yana-AI/releases">Kiểm tra trực tiếp tại GitHub</a></div>
+
+      <!-- Windows -->
+      <div class="dl-card has-glow-2026 card-3d-interactive">
+        <span class="organic-badge-pulse" style="background:#f0f9ff;border-color:#bae6fd;color:#0284c7;">Windows 10/11</span>
+        <h2 class="dl-os-title">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.901-1.799"/></svg>
+          Windows
+        </h2>
+        <p class="dl-os-desc">Hỗ trợ kiến trúc x64 và ARM64 cho máy Surface / Snapdragon X Elite.</p>
+        <div class="dl-btn-group">
+          <a href="https://github.com/yanacuti1121/Yana-AI/releases" class="btn-spring-2026 btn-spring-primary dl-main-btn" style="background:#0284c7;">
+            Tải User Installer (.exe) ↓
+          </a>
+          <a href="https://github.com/yanacuti1121/Yana-AI/releases" class="btn-spring-2026 btn-spring-secondary dl-sub-btn">
+            Tải bản ARM64 / Zip di động
+          </a>
+        </div>
+      </div>
+
+      <!-- Linux -->
+      <div class="dl-card has-glow-2026 card-3d-interactive">
+        <span class="organic-badge-pulse" style="background:#f8fafc;border-color:#e2e8f0;color:#334155;">Linux Distros</span>
+        <h2 class="dl-os-title">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12.001 2c-3.1 0-5.5 2.5-5.5 5.6 0 1.5.6 2.9 1.6 4-1.2.9-2.6 2.3-3.1 3.9-.6 1.8-.2 3.6 1.2 4.7 1.3 1 3.1 1.4 4.8 1.4h2c1.7 0 3.5-.4 4.8-1.4 1.4-1.1 1.8-2.9 1.2-4.7-.5-1.6-1.9-3-3.1-3.9 1-1.1 1.6-2.5 1.6-4 0-3.1-2.4-5.6-5.5-5.6z"/></svg>
+          Linux
+        </h2>
+        <p class="dl-os-desc">Đóng gói sẵn cho Ubuntu/Debian (.deb) và chạy độc lập qua AppImage.</p>
+        <div class="dl-btn-group">
+          <a href="https://github.com/yanacuti1121/Yana-AI/releases" class="btn-spring-2026 btn-spring-primary dl-main-btn" style="background:#0f172a;">
+            Tải gói .deb (Debian / Ubuntu) ↓
+          </a>
+          <a href="https://github.com/yanacuti1121/Yana-AI/releases" class="btn-spring-2026 btn-spring-secondary dl-sub-btn">
+            Tải tệp .AppImage (Chạy ngay)
+          </a>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Terminal Tools Section (PyPI & Crates.io) -->
+    <section style="max-width: 1080px; margin: 0 auto 80px; padding: 0 24px;">
+      <div style="text-align: center; margin-bottom: 32px;">
+        <p class="floating-hero-pill" style="margin-bottom: 12px;">CLI &amp; REPOSITORY TOOLS</p>
+        <h2 style="font-family: var(--font-display); font-size: clamp(24px, 3vw, 32px); font-weight: 800; color: #0f172a; margin: 8px 0;">
+          Cài đặt công cụ dòng lệnh (PyPI &amp; Cargo)
+        </h2>
+        <p style="color: #64748b; font-size: 15px; max-width: 680px; margin: 0 auto;">
+          Bộ công cụ dòng lệnh hoạt động độc lập, không bắt buộc cài ứng dụng Desktop Studio. Dùng để gắn quy tắc an toàn và giám sát cho repository của bạn.
+        </p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;" class="perspective-container-2026">
+        
+        <!-- PyPI yana-ai -->
+        <div class="has-glow-2026 card-3d-interactive" style="background: rgba(255, 255, 255, 0.92); border: 1px solid #e2e8f0; border-radius: 24px; padding: 30px; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.04);">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <span class="organic-badge-pulse">PYTHON PACKAGE INDEX</span>
+            <span style="font-family: var(--font-mono); font-size: 12.5px; color: #059669; font-weight: 600;">v1.5.2 · Live</span>
+          </div>
+          <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 8px;">
+            yana-ai — Lớp bảo vệ AI cho Repository
+          </h3>
+          <p style="font-size: 14px; color: #64748b; line-height: 1.6; margin-bottom: 20px;">
+            Cài đặt CLI Python để tích hợp các quy tắc an toàn (Truth Gate, Action Gate), 170 slash commands và hệ thống kiểm tra drift trước khi cho AI sửa code.
+          </p>
+          
+          <div style="background: #0f172a; border-radius: 16px; padding: 18px 20px; color: #f8fafc; font-family: var(--font-mono); font-size: 13.5px; position: relative;">
+            <button type="button" class="code-copy-floating" data-copy-text="pip install yana-ai && yana-ai install">Sao chép</button>
+            <div style="color: #94a3b8; margin-bottom: 8px;"># 1. Cài đặt từ PyPI chính thức:</div>
+            <div style="color: #38bdf8; font-weight: 700; font-size: 15px; margin-bottom: 12px;">pip install yana-ai</div>
+            <div style="color: #94a3b8; margin-bottom: 8px;"># 2. Khởi tạo trong thư mục dự án:</div>
+            <div style="color: #a78bfa;">cd your-project</div>
+            <div style="color: #34d399;">yana-ai install</div>
+          </div>
+          <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+            <a href="https://pypi.org/project/yana-ai/" target="_blank" rel="noopener" style="font-size: 13.5px; font-weight: 700; color: #2563eb; text-decoration: none;">
+              Xem trang gói PyPI ↗
+            </a>
+          </div>
+        </div>
+
+        <!-- Crates.io yana-rt -->
+        <div class="has-glow-2026 card-3d-interactive" style="background: rgba(255, 255, 255, 0.92); border: 1px solid #e2e8f0; border-radius: 24px; padding: 30px; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.04);">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <span class="organic-badge-pulse" style="background:#fef3c7;border-color:#fde68a;color:#d97706;">RUST CRATE</span>
+            <span style="font-family: var(--font-mono); font-size: 12.5px; color: #059669; font-weight: 600;">v1.5.1 · Native</span>
+          </div>
+          <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 8px;">
+            yana-rt — Rust TurnEngine &amp; Terminal
+          </h3>
+          <p style="font-size: 14px; color: #64748b; line-height: 1.6; margin-bottom: 20px;">
+            Bộ khung runtime thực thi cốt lõi của Yana Studio: Chạy streaming trực tiếp với mô hình AI On-device (Ollama) và điều phối các tác vụ phân tán.
+          </p>
+          
+          <div style="background: #0f172a; border-radius: 16px; padding: 18px 20px; color: #f8fafc; font-family: var(--font-mono); font-size: 13.5px; position: relative;">
+            <button type="button" class="code-copy-floating" data-copy-text="cargo install yana-rt && yana-ai-rt --provider ollama">Sao chép</button>
+            <div style="color: #94a3b8; margin-bottom: 8px;"># 1. Cài đặt runtime qua Cargo:</div>
+            <div style="color: #38bdf8; font-weight: 700; font-size: 15px; margin-bottom: 12px;">cargo install yana-rt</div>
+            <div style="color: #94a3b8; margin-bottom: 8px;"># 2. Mở terminal với mô hình local:</div>
+            <div style="color: #34d399;">yana-ai-rt --provider ollama</div>
+          </div>
+          <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+            <a href="https://crates.io/crates/yana-rt" target="_blank" rel="noopener" style="font-size: 13.5px; font-weight: 700; color: #d97706; text-decoration: none;">
+              Xem trang Crate ↗
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <div class="device-preview-card perspective-container-2026">
+      <div class="studio-macbook-device card-3d-interactive" data-tilt-on-scroll>
+        <div class="studio-macbook-screen">
+          <img src="assets/yana-studio-app-tam-welcome.png" alt="Yana Studio Welcome Screen" loading="lazy">
+        </div>
+        <img class="studio-macbook-bezel" src="assets/apple-macbook-pro-14-silver.png" alt="Apple MacBook Pro Bezel" width="1930" height="1270">
+      </div>
     </div>
-  </section>
-  <section class="section" style="padding-top:0">
-    <div class="section-head"><p class="eyebrow">HƯỚNG DẪN THEO HỆ ĐIỀU HÀNH</p><h2>Mỗi nền tảng có một trang riêng.</h2><p>Chỉ bộ cài đã xuất hiện trong GitHub Releases mới có nút tải hoạt động.</p></div>
-    <div class="route-grid"><a class="route-card" href="install-macos.html"><small>APPLE SILICON</small><h3>macOS</h3><p>Bộ cài công khai và hướng dẫn Gatekeeper.</p><b>Mở hướng dẫn ↗</b></a><a class="route-card" href="install-windows.html"><small>WINDOWS 10/11</small><h3>Windows</h3><p>Bộ cài .exe công khai và cách vượt cảnh báo SmartScreen.</p><b>Mở hướng dẫn ↗</b></a><a class="route-card" href="install-linux.html"><small>DEB · APPIMAGE</small><h3>Linux</h3><p>Bộ cài .deb/.AppImage công khai và các bước cài trên Debian/Ubuntu hoặc distro khác.</p><b>Mở hướng dẫn ↗</b></a></div>
-  </section>
-  <section class="section" style="padding-top:0">
-    <div class="section-head"><p class="eyebrow">TERMINAL TOOLS</p><h2>Công cụ dòng lệnh là kênh khác.</h2><p>Hai lệnh dưới đây thuộc về dự án Yana AI nói chung, không riêng Yana Studio — chúng không thay thế bộ cài ứng dụng Desktop, và cũng hoạt động độc lập không cần cài Studio.</p></div>
-    <div class="registry-row"><a class="registry" href="https://pypi.org/project/yana-ai/"><strong>Yana framework · PyPI</strong><small>Governance, agents, skills và memory cho repository.</small><code>pip install yana-ai</code></a><a class="registry" href="https://crates.io/crates/yana-rt"><strong>Yana Runtime · crates.io</strong><small>Canonical Rust TurnEngine và CLI.</small><code>cargo install yana-rt</code></a></div>
-    <div class="product-grid" style="margin-top:24px">
-      <article class="product-card"><div><p class="eyebrow">PIP · GIÁM SÁT REPOSITORY</p><h3>yana-ai — áp lớp governance vào project</h3><p>Cài CLI Python <code>yana-ai</code>, dùng để gắn rule, hook, agent, skill, command và kiểm tra tính toàn vẹn cho một project cụ thể — mọi thứ nằm gọn trong project đó, không đụng máy hay project khác.</p></div><div class="product-art"><code>pip install yana-ai
-cd your-project
-yana-ai install   # gắn hook, ~60 giây
-yana-ai doctor .  # kiểm tra tính toàn vẹn</code></div><p style="margin-top:12px">Sau khi <code>yana-ai install</code>, agent AI của anh (Claude Code, Cursor, Codex, Antigravity...) thử chạy lệnh nguy hiểm sẽ bị Yana chặn lại (chặn cứng trên Claude Code/Cursor, cảnh báo trên Codex/Antigravity) và ghi log lại — không cần gọi LLM nào để kiểm tra.</p></article>
-      <article class="product-card"><div><p class="eyebrow">CARGO · RUNTIME &amp; ĐIỀU PHỐI</p><h3>yana-rt — TurnEngine gốc và workspace terminal</h3><p>Cài CLI Rust <code>yana-rt</code> (binary gốc mà Yana Studio cũng dùng bên trong) — vừa là workspace terminal chạy model local, vừa là công cụ điều phối tác vụ và truy cập evidence/capability/memory trực tiếp từ dòng lệnh, không cần mở Studio.</p></div><div class="product-art"><code>cargo install yana-rt
-yana-ai-rt --provider ollama   # workspace terminal, model local
-yana-rt route classify "fix auth"
-yana-rt mission create "add-auth"</code></div><p style="margin-top:12px">Workspace terminal có streaming, hủy giữa chừng, nhiều tab, nhiều phiên và đổi model ngay trong lúc chạy. <code>route</code>/<code>mission</code> dùng để phân loại và tạo tác vụ có phụ thuộc lẫn nhau qua cùng runtime mà Studio dùng.</p></article>
+
+    <!-- Thông tin bổ sung hữu ích -->
+    <div class="info-grid perspective-container-2026">
+      <div class="info-card has-glow-2026 card-3d-interactive">
+        <h3>⚡ Cập nhật Runtime độc lập</h3>
+        <p>Binary lõi <code>yana-rt</code> được biên dịch bằng Rust và có thể cập nhật qua <code>cargo install yana-rt</code> mà không bắt buộc cài lại ứng dụng Studio.</p>
+      </div>
+      <div class="info-card has-glow-2026 card-3d-interactive">
+        <h3>🔒 100% An toàn trên macOS</h3>
+        <p>Lần đầu mở ứng dụng trên Mac, vui lòng chuột phải (Control-click) vào <strong>Yana Studio</strong> → chọn <strong>Open</strong> để hệ thống Gatekeeper cấp quyền.</p>
+      </div>
+      <div class="info-card has-glow-2026 card-3d-interactive">
+        <h3>🦙 Hỗ trợ AI On-Device</h3>
+        <p>Tương thích nguyên bản với Ollama (Llama 3.2, Qwen 2.5, DeepSeek R1) giúp anh lập trình hoàn toàn offline không cần internet.</p>
+      </div>
     </div>
-  </section>
-  <section class="section" style="padding-top:0">
-    <div class="section-head"><p class="eyebrow">HƯỚNG DẪN CÀI ĐẶT</p><h2>Sau khi tải bộ cài Studio.</h2><p>Yana Studio hiện chưa có chứng chỉ code-signing trả phí trên nền tảng nào — macOS chưa được Apple notarize, Windows chưa ký số qua Microsoft. Lần đầu mở app, macOS và Windows sẽ hiện cảnh báo (Linux thì không). Đây là điều bình thường — không có nghĩa app hỏng hay không an toàn, chỉ là chưa có ai (Apple/Microsoft) tự tay duyệt riêng bản build này.</p></div>
-    <div class="product-grid">
-      <article class="product-card"><div><p class="eyebrow">VÌ SAO CÓ CẢNH BÁO</p><h3>Ký (signed) khác với được duyệt (notarized)</h3><p>Gatekeeper kiểm tra 2 điều trước khi cho app chạy không hỏi: app có ký bằng Developer ID đáng tin không, và Apple đã notarize riêng bản build đó chưa (một lượt quét malware tự động). Yana Studio có ký (ad-hoc) nhưng chưa notarize, nên Gatekeeper hiện cảnh báo thay vì chặn hẳn hoặc mở thẳng.</p></div></article>
-      <article class="product-card"><div><p class="eyebrow">CÁCH 1 — KHUYÊN DÙNG</p><h3>Control-click → Open</h3><ol><li>Mở file <code>.dmg</code> rồi kéo <strong>Yana Studio</strong> vào <strong>Applications</strong>.</li><li>Vào <strong>Applications</strong>, <strong>Control-click</strong> (hoặc chuột phải) vào <strong>Yana Studio</strong> → chọn <strong>Open</strong> — đừng double-click thẳng.</li><li>macOS hiện hộp thoại nói không xác minh được nhà phát triển. Bấm <strong>Open</strong> trong hộp thoại đó.</li><li>App mở bình thường. Từ lần sau, double-click thẳng cũng chạy được — macOS đã nhớ app này.</li></ol></div></article>
-      <article class="product-card"><div><p class="eyebrow">CÁCH 2 — NẾU ĐÃ BỊ CHẶN</p><h3>System Settings → Privacy &amp; Security</h3><p>Dùng khi đã lỡ double-click và macOS từ chối mở ("không thể mở vì Apple không thể kiểm tra phần mềm độc hại" / "không xác minh được nhà phát triển").</p><ol><li>Mở <strong>System Settings</strong> → <strong>Privacy &amp; Security</strong>.</li><li>Kéo xuống mục <strong>Security</strong>, sẽ thấy dòng kiểu "Yana Studio" đã bị chặn vì không phải từ nhà phát triển xác định.</li><li>Bấm <strong>Open Anyway</strong>.</li><li>macOS có thể hỏi xác nhận thêm lần nữa (Touch ID hoặc mật khẩu) — xác nhận.</li><li>Mở lại <strong>Yana Studio</strong>, giờ chạy bình thường.</li></ol></div></article>
-      <article class="product-card"><div><p class="eyebrow">ĐỪNG LÀM</p><h3>Không cần, và không nên, làm điều này</h3><p>Một số hướng dẫn trên mạng bảo tắt hẳn Gatekeeper (<code>sudo spctl --master-disable</code>) hoặc xoá cờ quarantine bằng Terminal (<code>xattr -cr</code>). <strong>Đừng làm cả hai.</strong> Chúng tắt một lớp bảo vệ thật của macOS cho <em>toàn bộ</em> app trên máy, không chỉ riêng app này — và không cần thiết, Cách 1 hoặc Cách 2 ở trên là đủ, chỉ áp dụng cho đúng một app.</p></div></article>
-      <article class="product-card"><div><p class="eyebrow">"KÝ AD-HOC" NGHĨA LÀ GÌ</p><h3>Có ký, nhưng chưa có Developer ID</h3><p>"Ký ad-hoc" nghĩa là code của app được niêm phong bằng mật mã (để macOS phát hiện nếu file bị hỏng/bị sửa sau khi build) bằng một chữ ký không gắn với danh tính nhà phát triển đã đăng ký nào — khác với <strong>không ký</strong>, nhưng không mang theo độ tin cậy mà chứng chỉ Developer ID của Apple mang lại. Đây là cơ chế ký hợp lệ, được Apple tài liệu hoá (<code>codesign --sign -</code>), dùng ở đây chỉ để app chạy được trên Apple Silicon (Mac dòng M yêu cầu mọi file thực thi phải có chữ ký hợp lệ nào đó), không hàm ý Apple đã duyệt hay bảo chứng.</p></div></article>
-      <article class="product-card"><div><p class="eyebrow">WINDOWS</p><h3>SmartScreen cũng sẽ cảnh báo tương tự</h3><p>Bản cài Windows (<code>.exe</code>) hiện <strong>chưa được ký số</strong> — dự án chưa có chứng chỉ code-signing trả phí của Microsoft. Lần đầu chạy <code>.exe</code>, Windows SmartScreen sẽ hiện "Windows protected your PC". Bấm <strong>More info</strong> → <strong>Run anyway</strong> để tiếp tục. Đây là cảnh báo tiêu chuẩn cho ứng dụng chưa có chứng chỉ, không phải dấu hiệu app lỗi hay nguy hiểm.</p></div></article>
-      <article class="product-card"><div><p class="eyebrow">LINUX</p><h3>AppImage cần cấp quyền chạy trước</h3><p>Với <code>.AppImage</code>: cấp quyền thực thi rồi chạy trực tiếp — <code>chmod +x Yana-Studio-*.AppImage &amp;&amp; ./Yana-Studio-*.AppImage</code>. Với <code>.deb</code>: cài bằng <code>sudo dpkg -i Yana-Studio-*.deb</code> hoặc mở bằng trình quản lý gói của distro. Linux không có lớp cảnh báo notarize/SmartScreen như macOS/Windows, nhưng cùng nguyên tắc: chỉ tải từ trang Release chính thức và luôn xác minh checksum.</p></div></article>
-      <article class="product-card"><div><p class="eyebrow">KIỂM TRA FILE TẢI VỀ</p><h3>Xác minh checksum</h3><p>Mỗi release đều công bố SHA-256 của các file cài đặt. Để xác nhận file tải về không bị hỏng hoặc bị can thiệp trên đường truyền, mở Terminal và chạy:</p><div class="product-art"><code>shasum -a 256 ~/Downloads/Yana-Studio-*</code></div><p>...rồi so với checksum công bố trên <a href="https://github.com/yanacuti1121/Yana-AI/releases">trang release</a>. Đây là kiểm tra toàn vẹn dữ liệu, không thay thế cho việc ký số/notarize — chỉ xác nhận file khớp với bản đã công bố, không xác nhận Apple/Microsoft đã duyệt nó.</p></article>
-    </div>
-    <p class="meta" style="margin-top:24px;text-align:center">Khi nào không cần trang này nữa: một khi dự án có chứng chỉ code-signing thật (Apple Developer Program cho macOS, chứng chỉ Authenticode cho Windows), các bản build sau sẽ được ký đầy đủ — Gatekeeper và SmartScreen sẽ mở app không cảnh báo, trang này sẽ được cập nhật lại. Xem thêm <a href="https://github.com/yanacuti1121/Yana-AI/blob/main/docs/MACOS_INSTALL.md">hướng dẫn macOS đầy đủ trên GitHub</a>.</p>
-  </section>
-</main>
-<footer class="site-footer"><div class="footer-inner"><div><a class="brand" href="index.html"><img src="yana-mark.svg" alt=""><span>Yana</span></a><p>Hệ điều hành cá nhân cho công việc AI có kiểm soát.</p></div><div class="footer-links"><strong>Sản phẩm</strong><a href="studio.html">Studio</a><a href="runtime.html">Runtime</a><a href="wheelbot.html">Wheelbot</a></div><div class="footer-links"><strong>Nguồn</strong><a href="https://github.com/yanacuti1121/Yana-AI">GitHub</a><a href="https://gitlab.com/yana-ai-group/Yana-AI-project">GitLab mirror</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ROADMAP.md">Roadmap</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/SECURITY.md">Security</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ACKNOWLEDGEMENTS.md">Acknowledgements</a></div><div class="footer-links"><strong>Liên hệ</strong><a href="mailto:phamlongh230@gmail.com">phamlongh230@gmail.com</a><a href="https://yana.vutam.link">yana.vutam.link</a><a href="https://github.com/yanacuti1121/Yana-AI">yanacuti1121/Yana-AI</a></div></div><div class="footer-ack"><strong>Acknowledgements</strong><p>Yana AI is built on top of ideas, patterns, and tooling from the open-source community, including projects licensed under Apache 2.0, MIT, and other permissive licenses. All third-party sources are used in compliance with their respective licenses. This project has no intent to copy, misrepresent, or infringe upon the intellectual property of any individual or organization. Where specific projects have directly influenced design decisions, they are credited in the relevant source files and rule documentation.</p></div><div class="footer-bottom">© 2026 Yana AI · Apache 2.0</div></footer><script src="assets/ecosystem-pages.js?v=20260928b"></script><script src="assets/sakura-site.js?v=20261001a"></script><script src="assets/yana-motion.js?v=20260929b"></script></body></html>
+  </main>
+
+  <footer style="text-align:center;padding:40px;color:#64748b;font-size:14px;border-top:1px solid #e2e8f0;background:#f8fafc;">
+    <p>© 2026 Yana AI. Bản quyền thuộc về Vũ Văn Tâm. AI làm việc · Bạn giữ quyền.</p>
+  </footer>
+
+  <script src="assets/site26.js"></script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+import{r as e}from"./shared-ide-theme.js";const i=()=>window.studio.on;function u(o){const[t,n]=e.useState(0);return e.useEffect(()=>i()("yana:changed",s=>{Array.isArray(s)&&s.some(r=>o.includes(String(r)))&&n(r=>r+1)}),[]),t}export{u};

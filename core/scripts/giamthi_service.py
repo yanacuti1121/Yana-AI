@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Manage the OS-level Yana Giám thị supervisor for one project."""
+"""Manage the OS-level Yana Giám thị supervisor for one project.
+
+COMPLEXITY-EXCEPTION: ~515 lines, over the 300-line limit (under 2x), and install() is over 50 lines because it has one
+branch per platform (launchd, systemd, Task Scheduler). This file is copied as a single script by install_project.py and
+loaded by path in tests, so a split needs a packaging change; deferred, not forgotten. Reviewed 2026-10-14.
+"""
 
 from __future__ import annotations
 
@@ -33,6 +38,56 @@ def service_id(target: Path) -> str:
 
 def watch_script(target: Path) -> Path:
     return target / ".claude" / "scripts" / "giamthi-watch.sh"
+
+
+WATCH_TARGET_ENV = "YANA_WATCH_TARGET"
+# schtasks /TR rejects anything longer than this.
+WINDOWS_TASK_ACTION_LIMIT = 261
+TRUSTED_WATCH_PARTS = ("pack", "core", "scripts", "giamthi-watch.sh")
+TRUSTED_VERIFY_PARTS = ("pack", "core", "scripts", "verify-audit-chain.sh")
+
+
+@dataclass(frozen=True)
+class WatchSpec:
+    """Which watcher copy the supervisor runs, and whether it is the trusted one."""
+
+    script: Path
+    trusted: bool
+
+    def environment(self, target: Path) -> dict[str, str]:
+        return {WATCH_TARGET_ENV: str(target)} if self.trusted else {}
+
+
+def yana_home(home: Path) -> Path:
+    override = os.environ.get("YANA_HOME")
+    return Path(override).expanduser() if override else home / ".yana"
+
+
+def _plain_file(root: Path, parts: tuple[str, ...]) -> Path | None:
+    """Return root/parts when it is a regular file reached without any symlink below root."""
+    current = root.resolve()
+    for part in parts:
+        current = current / part
+        if current.is_symlink():
+            return None
+    return current if current.is_file() else None
+
+
+def project_watch(target: Path) -> WatchSpec:
+    return WatchSpec(watch_script(target), False)
+
+
+def select_watch(target: Path, home: Path | None = None) -> WatchSpec:
+    """Prefer the watcher kept in the Yana home (outside the project's writable tree).
+
+    Both the watcher and its audit-chain verifier must be plain files there;
+    otherwise fall back to the copy inside the project, as before.
+    """
+    root = yana_home(home or Path.home())
+    script = _plain_file(root, TRUSTED_WATCH_PARTS)
+    if script is not None and _plain_file(root, TRUSTED_VERIFY_PARTS) is not None:
+        return WatchSpec(script, True)
+    return WatchSpec(watch_script(target), False)
 
 
 def state_dir(target: Path) -> Path:
@@ -156,24 +211,33 @@ def service_paths(target: Path, home: Path, platform: str) -> ServicePaths:
     raise RuntimeError(f"unsupported platform: {platform}")
 
 
-def launchd_payload(target: Path, bash: str) -> dict[str, object]:
+def launchd_payload(target: Path, bash: str, watch: WatchSpec | None = None) -> dict[str, object]:
+    watch = watch or project_watch(target)
     log = state_dir(target) / "giamthi-runner.log"
-    return {
+    payload: dict[str, object] = {
         "Label": service_id(target),
-        "ProgramArguments": [bash, str(watch_script(target))],
+        "ProgramArguments": [bash, str(watch.script)],
         "RunAtLoad": True,
         "StartInterval": INTERVAL_SECONDS,
         "StandardOutPath": str(log),
         "StandardErrorPath": str(log),
         "WorkingDirectory": str(target),
     }
+    environment = watch.environment(target)
+    if environment:
+        payload["EnvironmentVariables"] = environment
+    return payload
 
 
 def _systemd_quote(value: str) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
-def systemd_service(target: Path, bash: str) -> str:
+def systemd_service(target: Path, bash: str, watch: WatchSpec | None = None) -> str:
+    watch = watch or project_watch(target)
+    environment = [
+        "Environment=" + _systemd_quote(name + "=" + value) for name, value in watch.environment(target).items()
+    ]
     return "\n".join(
         [
             "[Unit]",
@@ -183,7 +247,8 @@ def systemd_service(target: Path, bash: str) -> str:
             "[Service]",
             "Type=oneshot",
             f"WorkingDirectory={_systemd_quote(str(target))}",
-            f"ExecStart={_systemd_quote(bash)} {_systemd_quote(str(watch_script(target)))}",
+            *environment,
+            f"ExecStart={_systemd_quote(bash)} {_systemd_quote(str(watch.script))}",
             "NoNewPrivileges=true",
             "PrivateTmp=true",
             "ProtectSystem=strict",
@@ -212,12 +277,20 @@ def systemd_timer(identifier: str) -> str:
     )
 
 
-def windows_action(target: Path, bash: str) -> str:
-    return subprocess.list2cmdline([bash, str(watch_script(target))])
+def windows_action(target: Path, bash: str, watch: WatchSpec | None = None) -> str:
+    watch = watch or project_watch(target)
+    command = subprocess.list2cmdline([bash, str(watch.script)])
+    environment = watch.environment(target)
+    if not environment:
+        return command
+    # schtasks has no environment field, so cmd.exe sets the variable for the
+    # one command it runs. Not exercised on a real Windows host yet.
+    assignments = "".join('set "' + name + "=" + value + '"&& ' for name, value in environment.items())
+    return 'cmd.exe /d /c "' + assignments + command + '"'
 
 
-def validate_target(target: Path) -> str:
-    script = watch_script(target)
+def validate_target(target: Path, home: Path | None = None, watch: WatchSpec | None = None) -> str:
+    script = (watch or select_watch(target, home)).script
     if not script.is_file():
         raise RuntimeError(
             f"watcher missing: {script}. Run `yana-ai install {target}` before installing the supervisor."
@@ -244,7 +317,8 @@ def install(
             "Move the checkout under ~/Projects, or grant Full Disk Access and retry with "
             "--allow-protected-path."
         )
-    bash = validate_target(target)
+    watch = select_watch(target, home)
+    bash = validate_target(target, home, watch)
     paths = service_paths(target, home, platform)
     if not dry_run:
         state_dir(target).mkdir(parents=True, exist_ok=True)
@@ -253,7 +327,7 @@ def install(
         if not dry_run:
             paths.primary.parent.mkdir(parents=True, exist_ok=True)
         if not dry_run:
-            paths.primary.write_bytes(plistlib.dumps(launchd_payload(target, bash), sort_keys=False))
+            paths.primary.write_bytes(plistlib.dumps(launchd_payload(target, bash, watch), sort_keys=False))
         domain = f"gui/{os.getuid()}"
         run_command(["launchctl", "bootout", domain, str(paths.primary)], dry_run=dry_run)
         result = run_command(["launchctl", "bootstrap", domain, str(paths.primary)], dry_run=dry_run)
@@ -271,7 +345,7 @@ def install(
         if not dry_run:
             paths.primary.parent.mkdir(parents=True, exist_ok=True)
         if not dry_run:
-            paths.secondary.write_text(systemd_service(target, bash), encoding="utf-8")
+            paths.secondary.write_text(systemd_service(target, bash, watch), encoding="utf-8")
             paths.primary.write_text(systemd_timer(paths.service_id), encoding="utf-8")
         require_success(run_command(["systemctl", "--user", "daemon-reload"], dry_run=dry_run), "systemd daemon-reload")
         require_success(
@@ -281,7 +355,12 @@ def install(
     elif platform == "win32":
         if not dry_run:
             paths.primary.parent.mkdir(parents=True, exist_ok=True)
-        metadata = {"target": str(target), "task": paths.service_id, "action": windows_action(target, bash)}
+        metadata = {"target": str(target), "task": paths.service_id, "action": windows_action(target, bash, watch)}
+        if len(metadata["action"]) > WINDOWS_TASK_ACTION_LIMIT:
+            raise RuntimeError(
+                f"Scheduled Task command is {len(metadata['action'])} characters, over the "
+                f"{WINDOWS_TASK_ACTION_LIMIT} limit of schtasks. Use a shorter Yana home or project path."
+            )
         if not dry_run:
             paths.primary.write_text(json.dumps(metadata, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         command = [
@@ -318,7 +397,11 @@ def _launchd_targets(home: Path) -> list[dict[str, str]]:
             data = plistlib.loads(candidate.read_bytes())
             args = data.get("ProgramArguments", [])
             script = Path(args[1]) if len(args) > 1 else Path("")
-            records.append({"path": str(candidate), "label": str(data.get("Label", "")), "target": str(script.parent.parent.parent)})
+            # A trusted-home service keeps its script outside the project and
+            # names the project explicitly; otherwise derive it from the script.
+            named = (data.get("EnvironmentVariables") or {}).get(WATCH_TARGET_ENV)
+            watched = str(named) if named else str(script.parent.parent.parent)
+            records.append({"path": str(candidate), "label": str(data.get("Label", "")), "target": watched})
         except (OSError, plistlib.InvalidFileException, TypeError, ValueError):
             records.append({"path": str(candidate), "label": "", "target": "invalid plist"})
     return records
@@ -326,6 +409,7 @@ def _launchd_targets(home: Path) -> list[dict[str, str]]:
 
 def status(target: Path, home: Path, platform: str) -> dict[str, object]:
     paths = service_paths(target, home, platform)
+    watch = select_watch(target, home)
     installed = paths.primary.is_file() and (paths.secondary is None or paths.secondary.is_file())
     result: dict[str, object] = {
         "platform": platform,
@@ -333,8 +417,10 @@ def status(target: Path, home: Path, platform: str) -> dict[str, object]:
         "service_id": paths.service_id,
         "installed": installed,
         "definition": str(paths.primary),
-        "watcher_exists": watch_script(target).is_file(),
-        "lock_exists": (state_dir(target) / "GIAMTHI_HALT.lock").is_file(),
+        "watcher": str(watch.script),
+        "watcher_trusted": watch.trusted,
+        "watcher_exists": watch.script.is_file(),
+        "halt_lock_active": (state_dir(target) / "GIAMTHI_HALT.lock").is_file(),
         "protected_path": platform == "darwin" and macos_protected_path(target, home),
     }
     heartbeat = state_dir(target) / "giamthi-heartbeat.log"
@@ -364,9 +450,12 @@ def status(target: Path, home: Path, platform: str) -> dict[str, object]:
     return result
 
 
-def run_once(target: Path) -> int:
-    bash = validate_target(target)
-    return subprocess.run([bash, str(watch_script(target))], cwd=target, check=False).returncode
+def run_once(target: Path, home: Path | None = None) -> int:
+    watch = select_watch(target, home)
+    bash = validate_target(target, home, watch)
+    environment = {key: value for key, value in os.environ.items() if key != WATCH_TARGET_ENV}
+    environment.update(watch.environment(target))
+    return subprocess.run([bash, str(watch.script)], cwd=target, env=environment, check=False).returncode
 
 
 def parse_args() -> argparse.Namespace:
@@ -409,13 +498,14 @@ def main() -> int:
             return run_once(target)
         report = status(target, home, platform)
         if args.json_output:
-            print(json.dumps(report, indent=2, ensure_ascii=False))
+            safe_report = {k: v for k, v in report.items() if not str(k).lower().startswith("secret")}
+            print(json.dumps(safe_report, indent=2, ensure_ascii=False))
         else:
             print(f"Target: {report['target']}")
             print(f"Supervisor: {'installed' if report['installed'] else 'not installed'}")
             print(f"Runtime: {report['runtime_state']}")
             print(f"Watcher: {'present' if report['watcher_exists'] else 'missing'}")
-            print(f"HALT: {'active' if report['lock_exists'] else 'clear'}")
+            print(f"HALT: {'active' if report.get('halt_lock_active') or report.get('lock_exists') else 'clear'}")
             if report["heartbeat_age_seconds"] is not None:
                 print(f"Heartbeat age: {report['heartbeat_age_seconds']}s")
             for stale in report.get("stale_services", []):

@@ -205,6 +205,7 @@ fn build_request_body(
         "stream": true,
         "messages": built_messages,
     });
+    super::gen_options::apply_anthropic(&mut body, super::gen_options::active());
     if let Some(sys) = system {
         body["system"] = if cache {
             serde_json::json!([{"type": "text", "text": sys, "cache_control": cache_marker()}])

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "yana-ai"
-version = "1.5.1"
+version = "1.5.2"
 description = "Audits your AI coding agent setup before it can damage your repo. Scan first. Guard later."
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -57,7 +57,29 @@ packages = ["src/yana_ai"]
 # file after a normal `pip install`, not just in an editable/dev checkout.
 [tool.hatch.build.targets.wheel.force-include]
 "bin" = "yana_ai/bin"
-"core" = "yana_ai/core"
+"core/adapters" = "yana_ai/core/adapters"
+"core/agents" = "yana_ai/core/agents"
+"core/bus" = "yana_ai/core/bus"
+"core/ci" = "yana_ai/core/ci"
+"core/commands" = "yana_ai/core/commands"
+"core/config" = "yana_ai/core/config"
+"core/gates" = "yana_ai/core/gates"
+"core/hooks" = "yana_ai/core/hooks"
+"core/knowledge" = "yana_ai/core/knowledge"
+"core/lib" = "yana_ai/core/lib"
+"core/mcp" = "yana_ai/core/mcp"
+"core/monitor" = "yana_ai/core/monitor"
+"core/rules" = "yana_ai/core/rules"
+"core/sandbox" = "yana_ai/core/sandbox"
+"core/scripts" = "yana_ai/core/scripts"
+"core/skills" = "yana_ai/core/skills"
+"core/templates" = "yana_ai/core/templates"
+"core/tests" = "yana_ai/core/tests"
+# core/memory: only the two code files ship. L2_session/, agent-journals/, audit/ and trust-ledger.json are per-user
+# state (session summaries, agent journals, audit log, trust scores) and must never go into a published package.
+# Do not map "core" as a whole here: force-include ignores exclude rules, which is how that state reached PyPI in 1.5.1.
+"core/memory/secure-logger.js" = "yana_ai/core/memory/secure-logger.js"
+"core/memory/trust-ledger.js" = "yana_ai/core/memory/trust-ledger.js"
 ".claude-plugin" = "yana_ai/.claude-plugin"
 "gates" = "yana_ai/gates"
 "scanner" = "yana_ai/scanner"
@@ -82,4 +104,11 @@ include = [
   "CHANGELOG.md",
   "LICENSE",
   "pyproject.toml",
+]
+# `python -m build` builds the wheel FROM this sdist, so the sdist must not carry per-user state either.
+exclude = [
+  "core/memory/L2_session",
+  "core/memory/agent-journals",
+  "core/memory/audit",
+  "core/memory/trust-ledger.json",
 ]

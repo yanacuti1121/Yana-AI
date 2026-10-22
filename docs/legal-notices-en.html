@@ -1,1 +1,261 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Legal Notices — Yana</title><meta name="description" content="Product, AI, safety, local-first, third-party, hardware and availability notices for Yana."><link rel="icon" href="yana-mark.svg"><link rel="stylesheet" href="assets/ecosystem-pages.css?v=20260926a"><link rel="stylesheet" href="assets/sakura-site.css?v=20260926a"><link rel="stylesheet" href="assets/yana-white.css?v=20260930g"></head><body class="sakura-site"><div class="yana-opening yana-opening--inner" aria-label="Yana"><div class="opening-center"><div class="opening-mark"><img src="yana-mark.svg" alt="" width="58" height="58"></div><div class="opening-word" aria-hidden="true"><span>Y</span><span>a</span><span>n</span><span>a</span></div><p class="opening-caption">AI works. You hold authority.</p></div><button class="opening-skip" type="button">Skip intro <span aria-hidden="true">↗</span></button></div><nav class="site-nav"></nav><main><section class="chapter narrow legal-copy"><div class="chapter-header"><p class="eyebrow">LEGAL NOTICES</p><h1>Scope, limitations and third-party rights.</h1><p class="lead">These notices apply according to the product, feature, version and context in which the corresponding marker appears.</p></div><section><h2><span class="legal-mark">*</span>Scope of “Yana”</h2><p>Yana refers collectively to the Yana ecosystem and its officially published software, applications, developer tools, runtimes, websites, documentation, AI and automation systems, robotics and hardware projects, APIs, services and experimental projects. Individual products may carry additional terms, licenses or requirements.</p></section><section><h2><span class="legal-mark">**</span>Availability</h2><p>Features, compatibility, system requirements, supported platforms and release status may vary by version and change over time. Features may be experimental, optional or dependent on compatible hardware, software, networks or third-party services.</p></section><section><h2><span class="legal-mark">†</span>Artificial intelligence</h2><p>Generated or automated results may be inaccurate, incomplete, unexpected or unsuitable for a purpose. Required human review depends on the nature and risk of the operation.</p></section><section><h2><span class="legal-mark">‡</span>Safety and security</h2><p>Permission, authorization, policy enforcement, sandboxing, auditing and guardrails are designed to reduce risk; they do not guarantee every harmful, unauthorized or unintended operation will be prevented or recovered.</p></section><section><h2><span class="legal-mark">§</span>Local-first</h2><p>“Local” and “local-first” do not necessarily mean every operation is offline. Data may be transmitted when external providers, APIs, connectors, updates or cloud services are enabled.</p></section><section><h2><span class="legal-mark">¶</span>User responsibility</h2><p>Users are responsible for appropriate permissions, environments, safeguards, backups and supervision when Yana interacts with files, repositories, terminals, networks, services, connected devices or hardware.</p></section><section><h2><span class="legal-mark">Δ</span>Third parties</h2><p>Third-party services, models, APIs, libraries and trademarks remain subject to their owners' terms, licenses, availability, pricing and privacy practices. Reference does not imply affiliation or endorsement.</p></section><section><h2><span class="legal-mark">◊</span>Open source and brand</h2><p>Open-source components follow the licenses accompanying their repositories or distributions. Source availability does not grant rights to Yana names, logos, artwork or other brand assets.</p></section><section><h2><span class="legal-mark">※</span>Robotics and hardware</h2><p>Robotics and embedded projects depend on physical components, manufacturing tolerances, environmental conditions and configuration. Demonstrations and reference implementations do not guarantee identical behavior.</p></section><section><h2><span class="legal-mark">¤</span>Measurements and imagery</h2><p>Figures, compatibility information, screenshots, diagrams and demonstrations reflect stated versions and conditions where applicable. Actual results and current software may differ.</p></section><section><h2>Changes, warranties and intellectual property</h2><p>Yana projects may change, merge, be renamed or discontinued. Except where required by law or agreement, availability and compatibility are not guaranteed. Yana materials are provided without guarantees of uninterrupted or error-free operation. Third-party names and trademarks belong to their owners.</p></section></section></main><footer class="site-footer"></footer><script src="assets/ecosystem-pages.js?v=20260928b"></script><script src="assets/sakura-site.js?v=20261001a"></script><script src="assets/yana-motion.js?v=20260929b"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Legal Notices & Copyright — Yana AI</title>
+  <meta name="description" content="Official copyright notices, Apache 2.0 open source license, intellectual property rights, and human-in-the-loop governance for Yana AI & Yana Studio.">
+  <link rel="icon" type="image/svg+xml" href="yana-mark.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site26.css">
+  <link rel="stylesheet" href="assets/studio26.css">
+  <style>
+    .legal-hero {
+      text-align: center;
+      padding: 120px 24px 30px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .legal-bento {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      max-width: 1040px;
+      margin: 30px auto 80px;
+      padding: 0 24px;
+    }
+    .legal-card {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 4px 20px -2px rgba(0,0,0,0.03);
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .legal-card:hover {
+      transform: translateY(-3px);
+      border-color: #2563eb;
+      box-shadow: 0 16px 36px -8px rgba(37,99,235,0.12);
+    }
+    .legal-card.featured {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(239, 246, 255, 0.8));
+      border: 1px solid #bfdbfe;
+    }
+    .legal-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .legal-badge-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: #eff6ff;
+      color: #2563eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .legal-card h2 {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0;
+    }
+    .legal-card p, .legal-card ul {
+      font-size: 14.5px;
+      color: #475569;
+      line-height: 1.65;
+      margin: 0 0 12px;
+    }
+    .legal-card ul {
+      padding-left: 20px;
+      margin-bottom: 0;
+    }
+    .legal-card li {
+      margin-bottom: 8px;
+    }
+    .legal-card code {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #0f172a;
+    }
+    .studio26-nav {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      width: calc(100% - 40px);
+      max-width: 1040px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      border-radius: 9999px;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 17px;
+      color: #0f172a;
+      text-decoration: none;
+    }
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .nav-menu a {
+      text-decoration: none;
+      color: #475569;
+      font-size: 14px;
+      font-weight: 600;
+      transition: color 0.15s;
+    }
+    .nav-menu a:hover {
+      color: #2563eb;
+    }
+  </style>
+</head>
+<body class="sakura-site home-page">
+  <div class="site26-bg-canvas" aria-hidden="true"></div>
+
+  <nav class="studio26-nav">
+    <a href="en.html" class="brand-link">
+      <img src="assets/yana-rabbit-app-icon.png" alt="Yana Logo" width="30" height="30">
+      <span>Yana <small style="font-weight:400;color:#64748b;">Legal</small></span>
+    </a>
+    <div class="nav-menu">
+      <a href="en.html">Home</a>
+      <a href="studio-en.html">Studio IDE</a>
+      <a href="wheelbot-en.html">Wheelbot</a>
+      <a href="updates-en.html">Updates</a>
+      <a href="support-en.html">Support</a>
+      <a href="legal-notices-en.html" style="color:#2563eb;">Legal</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="legal-notices.html" style="font-size:12px;font-weight:700;color:#64748b;border:1px solid #cbd5e1;padding:4px 12px;border-radius:9999px;text-decoration:none;">Tiếng Việt ↗</a>
+      <a href="download-en.html" class="btn-spring-2026 btn-spring-primary" style="padding:8px 18px;font-size:13.5px;">Download</a>
+    </div>
+  </nav>
+
+  <main>
+    <section class="legal-hero">
+      <div class="floating-hero-pill">
+        <span>⚖️ Legal & Intellectual Property</span>
+        <span style="opacity: 0.4;">·</span>
+        <span style="color: #059669;">Open Source Transparency</span>
+      </div>
+      <h1 class="studio-hero-2026" style="padding:0;margin:16px 0 20px;">Copyright &<br><span class="text-rainbow-2026">Official Legal Notices.</span></h1>
+      <p class="lead-text" style="margin:0 auto 20px;">Clear terms on authorship, Apache 2.0 open source licensing, third-party trademarks, and human-in-the-loop safety commitments across the Yana AI ecosystem.</p>
+    </section>
+
+    <!-- Bento Grid Legal & Copyright 3D Depth -->
+    <section class="legal-bento perspective-container-2026">
+      
+      <!-- Authorship & Copyright -->
+      <article class="legal-card featured has-glow-2026 card-3d-interactive">
+        <div class="legal-header">
+          <div class="legal-badge-icon">©</div>
+          <h2>Authorship & Ownership (Copyright)</h2>
+        </div>
+        <p><strong>Copyright © 2026 Vu Van Tam (Pham Long). All rights reserved regarding Yana brand identity and creative assets.</strong></p>
+        <p>The names <strong>Yana</strong>, <strong>Yana AI</strong>, <strong>Yana Studio</strong>, <strong>Yana Wheelbot</strong>, the three-branch sprout mark, and the Yana Rabbit App Icon are original creative assets owned by Vu Van Tam. Open source licensing of the code does not grant rights to use proprietary trademarks for misleading commercial purposes.</p>
+      </article>
+
+      <!-- Open Source Apache 2.0 License -->
+      <article class="legal-card has-glow-2026 card-3d-interactive">
+        <div class="legal-header">
+          <div class="legal-badge-icon">📜</div>
+          <h2>Apache 2.0 & Code-OSS Licensing</h2>
+        </div>
+        <p>The <strong>Yana AI</strong> repository and associated runtime modules are published under the <strong>Apache License 2.0</strong>:</p>
+        <ul>
+          <li>You are free to use, modify, distribute, and sublicense the code under Apache 2.0 terms.</li>
+          <li><strong>Yana Studio</strong> is built upon Code-OSS (Microsoft VS Code upstream). The <code>yana-agent</code> extension adheres to official extension APIs.</li>
+          <li>All forks and derivative works must preserve original copyright notices and the root LICENSE file.</li>
+        </ul>
+      </article>
+
+      <!-- AI Responsibility & Human Control -->
+      <article class="legal-card has-glow-2026 card-3d-interactive">
+        <div class="legal-header">
+          <div class="legal-badge-icon">🛡️</div>
+          <h2>AI Governance & Human Authority</h2>
+        </div>
+        <p>Yana's core axiom is <em>"AI works · You hold authority"</em>:</p>
+        <ul>
+          <li>Generative outputs proposed by AI models (cloud or local LLMs) may contain hallucinations, errors, or unexpected results.</li>
+          <li>The user retains ultimate authority and responsibility when granting capability approval (ALLOW) for file modifications or shell executions.</li>
+          <li>ActionGate and cryptographic audit logs reduce risk, but do not replace careful human judgment.</li>
+        </ul>
+      </article>
+
+      <!-- Privacy & Local-First Architecture -->
+      <article class="legal-card has-glow-2026 card-3d-interactive">
+        <div class="legal-header">
+          <div class="legal-badge-icon">🔒</div>
+          <h2>Privacy & Data Security</h2>
+        </div>
+        <p>Yana is architected with a strict <strong>Local-First</strong> principle:</p>
+        <ul>
+          <li>Your source code, API keys, and execution telemetry remain stored locally on your personal machine.</li>
+          <li>When utilizing on-device models (Ollama, LM Studio), 100% of your telemetry and prompts never leave your hardware.</li>
+          <li>When choosing to connect external cloud LLMs (OpenAI, Anthropic, Google Gemini), prompts transmit directly from your client under the respective provider's terms.</li>
+        </ul>
+      </article>
+
+      <!-- Third-Party Trademarks -->
+      <article class="legal-card has-glow-2026 card-3d-interactive">
+        <div class="legal-header">
+          <div class="legal-badge-icon">🏷️</div>
+          <h2>Third-Party Trademarks & Attributions</h2>
+        </div>
+        <p>All cited trademarks belong to their respective owners:</p>
+        <ul>
+          <li><strong>Apple, Mac, macOS, MacBook Pro, iMac, Apple Silicon:</strong> are registered trademarks of Apple Inc. in the U.S. and other regions.</li>
+          <li><strong>Visual Studio Code, VS Code:</strong> are trademarks of Microsoft Corporation.</li>
+          <li><strong>Rust, Python, ESP32, PyPI:</strong> are trademarks of their respective organizations.</li>
+          <li>References to third-party hardware or software platforms are strictly descriptive for technical compatibility purposes.</li>
+        </ul>
+      </article>
+
+      <!-- Wheelbot Physical Hardware -->
+      <article class="legal-card has-glow-2026 card-3d-interactive">
+        <div class="legal-header">
+          <div class="legal-badge-icon">🤖</div>
+          <h2>Yana Wheelbot Hardware Project</h2>
+        </div>
+        <p>The <strong>Yana Wheelbot</strong> robotics branch is an open-source and open-hardware initiative:</p>
+        <ul>
+          <li>3D printable files (Bambu Studio <code>.3mf</code> / <code>.stl</code>) and ESP32-S3 firmware are provided "as is".</li>
+          <li>Makers and assemblers assume responsibility for electrical safety, lithium battery handling, and mechanical testing during real-world operation.</li>
+        </ul>
+      </article>
+
+    </section>
+  </main>
+
+  <footer style="text-align:center;padding:40px;color:#64748b;font-size:14px;border-top:1px solid #e2e8f0;background:#f8fafc;">
+    <p>© 2026 Yana AI. Created by Vu Van Tam. AI works · You hold authority.</p>
+  </footer>
+
+  <script src="assets/site26.js"></script>
+</body>
+</html>

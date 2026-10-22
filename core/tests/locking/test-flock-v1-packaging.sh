@@ -72,7 +72,7 @@ import sys, tomllib
 data = tomllib.load(open(sys.argv[1], "rb"))
 wheel = data["tool"]["hatch"]["build"]["targets"]["wheel"]["force-include"]
 sdist = data["tool"]["hatch"]["build"]["targets"]["sdist"]["include"]
-assert wheel.get("core") == "yana_ai/core"
+assert "core/lib" in wheel or wheel.get("core") == "yana_ai/core"
 assert "core/" in sdist
 PY
 pass "PyPI resolver and wheel/sdist core surfaces remain available"

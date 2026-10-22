@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500" fill="none">
+  <!-- Background with dark surface tone matching Yana Cockpit theme -->
+  <rect width="500" height="500" rx="32" fill="#111317"/>
+  
+  <defs>
+    <!-- Neon electric blue and cyan gradients matching Yana Autonomous Cockpit -->
+    <linearGradient id="yanaGlow" x1="50" y1="50" x2="450" y2="450" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4f80ff"/>
+      <stop offset="50%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+    <linearGradient id="cyberEarLeft" x1="160" y1="80" x2="220" y2="280" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4f80ff"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="cyberEarRight" x1="340" y1="80" x2="280" y2="280" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="subtleGlow" x1="250" y1="120" x2="250" y2="380" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4f80ff" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </linearGradient>
+    <!-- Outer ambient bloom filter -->
+    <filter id="bloom" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Ambient background glow behind logo -->
+  <circle cx="250" cy="250" r="140" fill="url(#subtleGlow)"/>
+
+  <!-- YANA Cybernetic Rabbit Emblem (Yana AI 🐰 Autonomous Cockpit Identity) -->
+  <g filter="url(#bloom)">
+    <!-- Left Rabbit Cyber Ear -->
+    <path d="M 175 250 C 150 200, 140 100, 185 85 C 215 75, 230 145, 220 220 Z" 
+          fill="url(#cyberEarLeft)" 
+          stroke="#4f80ff" 
+          stroke-width="5" 
+          stroke-linejoin="round"/>
+    
+    <!-- Right Rabbit Cyber Ear -->
+    <path d="M 325 250 C 350 200, 360 100, 315 85 C 285 75, 270 145, 280 220 Z" 
+          fill="url(#cyberEarRight)" 
+          stroke="#38bdf8" 
+          stroke-width="5" 
+          stroke-linejoin="round"/>
+
+    <!-- Inner Ear Neon Core Lines -->
+    <path d="M 185 120 C 175 160, 180 200, 195 230" 
+          stroke="#38bdf8" 
+          stroke-width="4" 
+          stroke-linecap="round" 
+          opacity="0.8"/>
+    <path d="M 315 120 C 325 160, 320 200, 305 230" 
+          stroke="#4f80ff" 
+          stroke-width="4" 
+          stroke-linecap="round" 
+          opacity="0.8"/>
+
+    <!-- Geometric Faceted Head Structure (Merging Rabbit Face & Stylized 'Y' Monogram) -->
+    <!-- Forehead & Eye Brow Ridge -->
+    <path d="M 190 225 L 250 260 L 310 225 L 345 285 L 250 380 L 155 285 Z" 
+          fill="#161922" 
+          stroke="url(#yanaGlow)" 
+          stroke-width="6" 
+          stroke-linejoin="round"/>
+
+    <!-- Stylized 'Y' Vector Spine (The Yana Monogram Core) -->
+    <path d="M 195 240 L 250 285 L 305 240 M 250 285 L 250 370" 
+          stroke="url(#yanaGlow)" 
+          stroke-width="7" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"/>
+
+    <!-- Cyber Eyes / Optical Sensors -->
+    <polygon points="205,275 225,282 210,290" fill="#38bdf8"/>
+    <polygon points="295,275 275,282 290,290" fill="#38bdf8"/>
+
+    <!-- Muzzle / Quantum Core Point -->
+    <circle cx="250" cy="325" r="4.5" fill="#4f80ff"/>
+  </g>
+
+  <!-- Typography: YANA AI -->
+  <text x="250" y="435" 
+        text-anchor="middle" 
+        font-family="system-ui, -apple-system, sans-serif" 
+        font-size="28" 
+        font-weight="800" 
+        letter-spacing="9" 
+        fill="#ffffff">YANA AI</text>
+
+  <!-- Subtitle: Autonomous Runtime -->
+  <text x="250" y="462" 
+        text-anchor="middle" 
+        font-family="system-ui, -apple-system, sans-serif" 
+        font-size="11" 
+        font-weight="600" 
+        letter-spacing="3" 
+        fill="#71747d">AUTONOMOUS RUNTIME</text>
+</svg>

@@ -1,7 +1,7 @@
 {
   "name": "yana-studio",
   "productName": "Yana Studio",
-  "version": "1.6.2",
+  "version": "1.7.0",
   "description": "Yana Studio — AI coding workspace",
   "homepage": "https://yana.vutam.link",
   "author": {
@@ -27,9 +27,13 @@
     "format": "prettier --write host renderer test scripts *.json *.ts *.html",
     "format:check": "prettier --check host renderer test scripts *.json *.ts *.html",
     "dist:mac": "npm run write:secrets && npm run build && electron-builder --mac --arm64",
-    "dist:win": "npm run write:secrets && npm run build && electron-builder --win --x64",
-    "dist:win-arm64": "npm run write:secrets && npm run build && electron-builder --win --arm64",
-    "dist:linux": "npm run write:secrets && npm run build && electron-builder --linux --x64"
+    "dist:mac-x64": "npm run write:secrets && npm run build && electron-builder --mac --x64",
+    "dist:mac:all": "npm run write:secrets && npm run build && electron-builder --mac --arm64 --x64",
+    "dist:win": "npm run write:secrets && npm run build && electron-builder --win --x64 -c.npmRebuild=false",
+    "dist:win-arm64": "npm run write:secrets && npm run build && electron-builder --win --arm64 -c.npmRebuild=false",
+    "dist:win:all": "npm run write:secrets && npm run build && electron-builder --win --x64 --arm64 -c.npmRebuild=false",
+    "dist:linux": "npm run write:secrets && npm run build && electron-builder --linux --x64 -c.npmRebuild=false",
+    "dist:all": "npm run dist:mac:all && npm run dist:win:all && npm run dist:linux"
   },
   "build": {
     "appId": "com.yana-ai.studio",
@@ -67,6 +71,7 @@
     ],
     "mac": {
       "category": "public.app-category.developer-tools",
+      "icon": "build/icon.icns",
       "target": [
         {
           "target": "dmg",
@@ -87,7 +92,30 @@
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist"
     },
+    "dmg": {
+      "title": "${productName} ${version}",
+      "background": "build/background.tiff",
+      "iconSize": 128,
+      "window": {
+        "width": 640,
+        "height": 420
+      },
+      "contents": [
+        {
+          "x": 160,
+          "y": 215,
+          "type": "file"
+        },
+        {
+          "x": 480,
+          "y": 215,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
     "linux": {
+      "icon": "build/icon.png",
       "target": [
         "AppImage",
         "deb"
@@ -95,6 +123,7 @@
       "category": "Development"
     },
     "win": {
+      "icon": "build/icon.png",
       "target": [
         {
           "target": "nsis"

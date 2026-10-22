@@ -431,6 +431,7 @@ impl ChatProvider for OpenAiCompatProvider {
             // elsewhere in this repo) depend on it.
             "stream_options": { "include_usage": true },
         });
+        super::gen_options::apply_openai_compat(&mut body, super::gen_options::active());
         if !tools.is_empty() {
             body["tools"] = serde_json::Value::Array(
                 tools

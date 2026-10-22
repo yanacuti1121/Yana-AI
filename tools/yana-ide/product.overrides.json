@@ -1,0 +1,33 @@
+{
+	"nameShort": "Yana Studio",
+	"nameLong": "Yana Studio",
+	"applicationName": "yana-studio",
+	"dataFolderName": ".yana-studio",
+	"sharedDataFolderName": ".yana-studio-shared",
+	"win32MutexName": "yanastudio",
+	"win32DirName": "Yana Studio",
+	"win32NameVersion": "Yana Studio",
+	"win32RegValueName": "YanaStudio",
+	"win32AppUserModelId": "VuTam.YanaStudio",
+	"win32ShellNameShort": "&Yana Studio",
+	"win32TunnelServiceMutex": "yanastudio-tunnelservice",
+	"win32TunnelMutex": "yanastudio-tunnel",
+	"darwinBundleIdentifier": "link.vutam.yana.studio",
+	"linuxDesktopName": "link.vutam.YanaStudio",
+	"linuxIconName": "yana-studio",
+	"urlProtocol": "yana-studio",
+	"serverApplicationName": "yana-studio-server",
+	"serverDataFolderName": ".yana-studio-server",
+	"tunnelApplicationName": "yana-studio-tunnel",
+	"reportIssueUrl": "https://github.com/yanacuti1121/Yana-AI/issues/new",
+	"extensionsGallery": {
+		"serviceUrl": "https://open-vsx.org/vscode/gallery",
+		"itemUrl": "https://open-vsx.org/vscode/item",
+		"extensionUrlTemplate": "https://open-vsx.org/vscode/gallery/{publisher}/{name}/latest",
+		"controlUrl": "",
+		"nlsBaseUrl": ""
+	},
+	"linkProtectionTrustedDomains": [
+		"https://open-vsx.org"
+	]
+}

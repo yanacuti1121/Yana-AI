@@ -1,0 +1,21 @@
+/* Nền webview và phông chữ theo theme đang bật của IDE. Màu riêng của Design Canvas cũ giữ nguyên ở
+   bước thử nghiệm này; lớp phủ màu tối sẽ thêm sau khi xác nhận màn cũ chạy đúng trong IDE. */
+html, body, #app { height: 100%; margin: 0; }
+body { background: var(--vscode-editor-background, #12151c); font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif); }
+
+/* Màn Settings cũ chạy ở chế độ tối của nó (data-theme="dark"); các biến màu được lấy từ theme đang bật
+   của IDE (Yana Dark mặc định) để không lệch màu, giá trị sau dấu phẩy là màu Yana Dark khi thiếu biến. */
+:root[data-theme="dark"] {
+	color: var(--vscode-foreground, #d7dde8);
+	background: var(--vscode-editor-background, #12151c);
+	--surface: var(--vscode-sideBar-background, #161a22);
+	--card: var(--vscode-editorWidget-background, #1b202a);
+	--border: var(--vscode-panel-border, #2a3140);
+	--muted: var(--vscode-descriptionForeground, #9aa4b5);
+	--accent: var(--vscode-button-background, #3461d6);
+	--accent-soft: var(--vscode-list-activeSelectionBackground, #24345c);
+}
+:root[data-theme="dark"] body {
+	color: var(--vscode-foreground, #d7dde8);
+	background: var(--vscode-editor-background, #12151c);
+}
