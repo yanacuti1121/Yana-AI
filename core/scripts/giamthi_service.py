@@ -420,7 +420,7 @@ def status(target: Path, home: Path, platform: str) -> dict[str, object]:
         "watcher": str(watch.script),
         "watcher_trusted": watch.trusted,
         "watcher_exists": watch.script.is_file(),
-        "halt_lock_active": (state_dir(target) / "GIAMTHI_HALT.lock").is_file(),
+        "lock_exists": (state_dir(target) / "GIAMTHI_HALT.lock").is_file(),
         "protected_path": platform == "darwin" and macos_protected_path(target, home),
     }
     heartbeat = state_dir(target) / "giamthi-heartbeat.log"
@@ -498,14 +498,13 @@ def main() -> int:
             return run_once(target)
         report = status(target, home, platform)
         if args.json_output:
-            safe_report = {k: v for k, v in report.items() if not str(k).lower().startswith("secret")}
-            print(json.dumps(safe_report, indent=2, ensure_ascii=False))
+            print(json.dumps(report, indent=2, ensure_ascii=False))
         else:
             print(f"Target: {report['target']}")
             print(f"Supervisor: {'installed' if report['installed'] else 'not installed'}")
             print(f"Runtime: {report['runtime_state']}")
             print(f"Watcher: {'present' if report['watcher_exists'] else 'missing'}")
-            print(f"HALT: {'active' if report.get('halt_lock_active') or report.get('lock_exists') else 'clear'}")
+            print(f"HALT: {'active' if report['lock_exists'] else 'clear'}")
             if report["heartbeat_age_seconds"] is not None:
                 print(f"Heartbeat age: {report['heartbeat_age_seconds']}s")
             for stale in report.get("stale_services", []):
