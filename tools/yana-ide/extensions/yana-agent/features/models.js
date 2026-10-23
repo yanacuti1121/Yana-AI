@@ -198,7 +198,7 @@ async function pickModel() {
 	});
 	const qp = vscode.window.createQuickPick();
 	qp.items = items;
-	qp.placeholder = `Select Provider (41 available · current: ${config().provider})`;
+	qp.placeholder = `Select Provider (${items.length} available · current: ${config().provider})`;
 	qp.matchOnDescription = true;
 	qp.matchOnDetail = true;
 	const current = items.find(item => item.id === config().provider);
