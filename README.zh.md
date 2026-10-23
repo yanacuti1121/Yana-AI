@@ -44,7 +44,7 @@
     <td align="center" width="25%"><h3>19</h3><sub>模型 provider<br>云端 13，本地 6</sub></td>
     <td align="center" width="25%"><h3>40</h3><sub>运行时子命令<br>同一个 Rust 二进制</sub></td>
     <td align="center" width="25%"><h3>66</h3><sub>工具调用 hook<br>Pre、Post、Stop</sub></td>
-    <td align="center" width="25%"><h3>287</h3><sub>核心文件<br>以 SHA-256 锁定</sub></td>
+    <td align="center" width="25%"><h3>288</h3><sub>核心文件<br>以 SHA-256 锁定</sub></td>
   </tr>
   <tr>
     <td align="center"><h3>4</h3><sub>agent 宿主<br>Claude Code、Codex、Cursor、Antigravity</sub></td>
@@ -133,7 +133,7 @@ core/
 ├── skills/   # 2,026 个 skill
 ├── commands/ # 170 个 Claude Code 斜杠命令
 └── config/
-    └── core-lock.json    # SHA-256 清单，锁定 287 个核心文件
+    └── core-lock.json    # SHA-256 清单，锁定 288 个核心文件
 ```
 
 ## Yana Studio
@@ -240,7 +240,7 @@ systemd timer、Windows 的任务计划程序）每 6 小时运行一次。
 | **Claude Code** | `.claude/` 中的原生 hook 和规则 | 每次工具调用都在运行时拦截，哈希链审计 |
 | **Codex** | `AGENTS.md`、`.codex/` hook、同步的 skill 和 agent（`yana-ai install --engine codex`） | 项目范围的 hook |
 | **Cursor** | `.cursorrules`、`.cursor/rules`、`beforeShellExecution` hook | 检查 shell 命令；不覆盖 MCP 工具调用 |
-| **Antigravity** | `.agent/rules/yana-ai.md` | 仅为建议，不在 shell 层执行 |
+| **Antigravity** | `.agents/rules/yana-ai.md` 与 `.agents/hooks.json` 中的 `PreToolUse` hook（`yana-ai install --engine antigravity`） | shell 命令由 `guard-destructive.sh` 检查；Giám Thị 的 HALT 锁阻止所有工具调用；使用 `agy --dangerously-skip-permissions` 时会被跳过 |
 
 详情和切换命令：[adapters/README.md](adapters/README.md)。170 个 Claude Code 斜杠命令（`/plan`、
 `/verify`、`/code-review` 等）位于 `core/commands/`，在会话内运行。
@@ -256,7 +256,7 @@ systemd timer、Windows 的任务计划程序）每 6 小时运行一次。
 | **规则与 hook** | hook 在运行时拦截。 | `core/rules` 中大多数文件描述的是 agent 自行遵守的行为，只有接入 hook 的部分才被强制执行。没有代码签名流程。 |
 | **破坏性命令 guard** | `guard-destructive.sh` 拦截 `rm -rf`、force-push、`DROP TABLE` 等。 | 匹配的是命令字符串而非完整的 shell 解析，刻意构造的命令可能绕过。 |
 
-Antigravity 仅为建议，Cursor 不检查 MCP 调用，没有 Rust 运行时的纯浏览器 Web 部署未被完全管控。
+Antigravity 只检查 shell 命令，且在 `agy --dangerously-skip-permissions` 下会被绕过；Cursor 不检查 MCP 调用，没有 Rust 运行时的纯浏览器 Web 部署未被完全管控。
 详情：[已知限制](docs/reference/known-limitations.md)。
 
 ## 版本

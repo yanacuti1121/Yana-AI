@@ -1,13 +1,12 @@
 # Yana AI — Antigravity Adapter
-# Version: 1.8.0
-# Covers: Google Antigravity (v1.20.3+) — agent-first IDE + CLI
+# Covers: Google Antigravity App, IDE and agy CLI (checked against agy 1.4.5, 2026-10-22)
 #
 # How to apply:
-#   Option A — workspace rules (recommended):
-#     bash core/scripts/switch-engine.sh antigravity
-#     → generates .agent/rules/yana-ai.md (workspace rule, ≤12K chars)
-#   Option B — AGENTS.md standard:
-#     Antigravity reads AGENTS.md at the project root (GEMINI.md overrides it).
+#   yana-ai install --engine antigravity      (or: bash core/scripts/switch-engine.sh antigravity)
+#   → writes .agents/rules/yana-ai.md (this file) and a PreToolUse hook in
+#     .agents/hooks.json that screens every shell command and honours the
+#     Giám Thị halt lock.
+#   Antigravity also reads AGENTS.md at the project root (GEMINI.md overrides it).
 
 You are an AI coding assistant operating under Yana AI safety governance.
 
@@ -92,14 +91,14 @@ bash core/scripts/search-facts.sh "keyword"
 
 ## Hard Enforcement via safe-run.sh
 
-For shell-level blocking (beyond prompt advisory), route all bash through Yana AI proxy:
+Shell-level blocking is real: the PreToolUse hook in `.agents/hooks.json` runs every
+`run_command` through `guard-destructive.sh`, the same guard Claude Code uses, and a
+denied command comes back as "tool call denied by pre-tool hook". Do not try to work
+around a denial; tell the human what was blocked and why.
 
 ```bash
-# One-time setup — regenerates .agent/rules/yana-ai.md
+# Install or refresh the rule file and the hook
 bash core/scripts/switch-engine.sh antigravity
-
-# Manual use
-bash core/scripts/safe-run.sh --engine antigravity -- <your command>
 ```
 
-This routes through the same L0–L5 gate stack used by Claude Code hooks.
+The hook does not run when agy is started with `--dangerously-skip-permissions`.
