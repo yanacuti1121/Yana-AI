@@ -445,7 +445,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 134,
+      "count": 135,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -578,6 +578,7 @@
         "core/scripts/verify-required-checks-drift.sh",
         "core/scripts/verify-rules.sh",
         "core/scripts/verify-skills-lock.sh",
+        "core/scripts/verify_audit_chain.py",
         "core/scripts/verify_hooks.py",
         "core/scripts/view-audit.sh",
         "core/scripts/watch.py"
@@ -2794,7 +2795,7 @@
   "skills_stubs_archived": 88,
   "agents_count": 100,
   "hooks_count": 66,
-  "scripts_count": 134,
+  "scripts_count": 135,
   "commands_count": 170,
   "rules_count": 71
 }

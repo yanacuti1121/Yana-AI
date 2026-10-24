@@ -161,7 +161,7 @@ def should_install_supervisor(mode: str) -> bool:
 
 
 def install_supervisor_assets(target: Path, dry_run: bool) -> int:
-    assets = ("giamthi-watch.sh", "verify-audit-chain.sh")
+    assets = ("giamthi-watch.sh", "verify-audit-chain.sh", "verify_audit_chain.py")
     written = 0
     for name in assets:
         source = Path(REPO_ROOT) / "core/scripts" / name
