@@ -445,7 +445,7 @@
     },
     "scripts": {
       "status": "imported",
-      "count": 134,
+      "count": 136,
       "actual_present": [
         "core/scripts/add-fact.sh",
         "core/scripts/add-session-fact.sh",
@@ -508,6 +508,7 @@
         "core/scripts/import_skills_flat.py",
         "core/scripts/init_policy.py",
         "core/scripts/init_wizard.py",
+        "core/scripts/install_antigravity.py",
         "core/scripts/install_project.py",
         "core/scripts/lint_rules.py",
         "core/scripts/log-rotate.sh",
@@ -578,14 +579,16 @@
         "core/scripts/verify-required-checks-drift.sh",
         "core/scripts/verify-rules.sh",
         "core/scripts/verify-skills-lock.sh",
+        "core/scripts/verify_audit_chain.py",
         "core/scripts/verify_hooks.py",
         "core/scripts/view-audit.sh",
         "core/scripts/watch.py"
       ]
     },
     "tests": {
-      "count": 21,
+      "count": 22,
       "actual_present": [
+        "core/tests/adapters/antigravity",
         "core/tests/adapters/cursor",
         "core/tests/adversarial",
         "core/tests/codex",
@@ -2794,7 +2797,7 @@
   "skills_stubs_archived": 88,
   "agents_count": 100,
   "hooks_count": 66,
-  "scripts_count": 134,
+  "scripts_count": 136,
   "commands_count": 170,
   "rules_count": 71
 }

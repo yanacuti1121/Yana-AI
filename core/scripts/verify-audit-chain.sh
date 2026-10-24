@@ -9,6 +9,32 @@
 
 set -uo pipefail
 
+PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+STATE_DIR="$PROJECT_ROOT/.claude/state"
+LOG_FILE="${1:-$STATE_DIR/audit-chain.log}"
+KNOWN_BREAKS_FILE="$PROJECT_ROOT/core/config/audit-chain-known-breaks.json"
+
+if [[ ! -f "$LOG_FILE" ]]; then
+  echo "INFO: No audit chain log found at $LOG_FILE"
+  exit 0
+fi
+
+# Fast path: one python process walks the whole chain. The loop below spawns
+# about eleven processes per entry (~27 ms), which made a 16,000-entry log take
+# over seven minutes. The helper is looked up next to this script, must be a
+# regular file (not a symlink), and runs in isolated mode (-I) so PYTHON*
+# variables and user site-packages cannot change what it executes. Set
+# YANA_AUDIT_VERIFY_BASH=1 to force the shell loop (used to cross-check both).
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PY_VERIFIER="$SCRIPT_DIR/verify_audit_chain.py"
+# The probe makes sure python3 really starts (a macOS Command Line Tools stub or
+# a pyenv shim with no version passes `command -v` but cannot run); otherwise we
+# fall through to the shell loop instead of dying here.
+if [[ "${YANA_AUDIT_VERIFY_BASH:-0}" != "1" && -f "$PY_VERIFIER" && ! -L "$PY_VERIFIER" ]] \
+  && python3 -I -c 'import hashlib, json' >/dev/null 2>&1; then
+  exec python3 -I "$PY_VERIFIER" "$LOG_FILE" "$KNOWN_BREAKS_FILE"
+fi
+
 command -v jq >/dev/null 2>&1 || { echo "ERROR: jq required"; exit 2; }
 
 # macOS ships neither sha256sum nor an alias for it; `shasum -a 256` is the
@@ -19,16 +45,6 @@ elif command -v shasum >/dev/null 2>&1; then
   SHA256=(shasum -a 256)
 else
   echo "ERROR: sha256sum or shasum required"; exit 2
-fi
-
-PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(pwd)}"
-STATE_DIR="$PROJECT_ROOT/.claude/state"
-LOG_FILE="${1:-$STATE_DIR/audit-chain.log}"
-KNOWN_BREAKS_FILE="$PROJECT_ROOT/core/config/audit-chain-known-breaks.json"
-
-if [[ ! -f "$LOG_FILE" ]]; then
-  echo "INFO: No audit chain log found at $LOG_FILE"
-  exit 0
 fi
 
 # A documented, human-reviewed exception list for entries whose prev_hash
