@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Yana Notch (tương tác)</title>
+<style>
+  :root {
+    --allow: #22c55e; --ask: #f59e0b; --deny: #ef4444;
+    --state: var(--allow);
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; color: #fff; display: flex; flex-direction: column; align-items: center;
+    font-family: -apple-system, "SF Pro Text", system-ui, sans-serif;
+    background: linear-gradient(160deg, #f8b9a0 0%, #f48a5b 45%, #c8553d 100%);
+  }
+  .menubar { width: 100%; height: 38px; background: rgba(0,0,0,0.12); display: flex; justify-content: center; }
+  .notch {
+    position: relative; width: 297px; height: 37px; background: #000; border-radius: 0 0 18px 18px;
+    transition: height 0.5s var(--ease-out), width 0.5s var(--ease-out);
+    outline-offset: 4px;
+  }
+  .notch::before, .notch::after { content: ""; position: absolute; top: 0; width: 10px; height: 10px; }
+  .notch::before { left: -10px; background: radial-gradient(circle at 0 100%, transparent 10px, #000 10.5px); }
+  .notch::after { right: -10px; background: radial-gradient(circle at 100% 100%, transparent 10px, #000 10.5px); }
+  .notch[data-state="idle"] { width: 220px; }
+  .notch[data-state="ask"] { width: 340px; height: 118px; }
+  .notch[data-peek="1"]:not([data-state="ask"]) { width: 340px; height: 150px; }
+  .row { display: flex; align-items: center; justify-content: space-between; height: 37px; padding: 0 22px 0 20px; }
+  .mascot { width: 30px; height: 22.5px; image-rendering: pixelated; margin-top: 1px;
+    filter: drop-shadow(0 0 4px color-mix(in srgb, var(--state) 55%, transparent)); }
+  .text { text-align: center; line-height: 1.1; min-width: 0; }
+  .title { font-size: 14px; font-weight: 700; color: #ececec; letter-spacing: -0.01em; }
+  .sub { font-size: 12px; font-weight: 700; color: #8a8a8e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+  .dots { display: grid; grid-template-columns: repeat(3, 7px); gap: 3px;
+    filter: drop-shadow(0 0 5px color-mix(in srgb, var(--state) 70%, transparent)); }
+  .dots i { width: 7px; height: 7px; border-radius: 2px; background: var(--state); opacity: 0.16; transition: opacity 0.15s linear; }
+  .dots i.on { opacity: 1; }
+  .body { padding: 0 14px; opacity: 0; transition: opacity 0.3s ease 0.1s; pointer-events: none; color: #d1d1d6; }
+  .notch[data-state="ask"] .body.ask, .notch[data-peek="1"]:not([data-state="ask"]) .body.log { opacity: 1; pointer-events: auto; }
+  .body.ask { position: absolute; left: 0; right: 0; top: 40px; padding: 0 20px; }
+  .body.log { position: absolute; left: 0; right: 0; top: 42px; padding: 0 20px; }
+  .cmd { font: 600 11px ui-monospace, SFMono-Regular, Menlo, monospace; margin-bottom: 8px; }
+  .actions { display: flex; gap: 8px; }
+  .btn { flex: 1; height: 28px; border: 0; border-radius: 999px; font-size: 12px; font-weight: 600; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: transform 0.15s ease, filter 0.15s ease; }
+  .btn:hover { filter: brightness(1.12); } .btn:active { transform: scale(0.97); }
+  .btn kbd { font: 600 10px ui-monospace, Menlo, monospace; opacity: 0.6; border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; }
+  .btn.allow { background: var(--allow); color: #04210f; }
+  .btn.deny { background: #2c2c2e; color: #fff; }
+  ul.log { list-style: none; margin: 0; padding: 0; font-size: 11px; }
+  ul.log li { display: flex; align-items: center; gap: 8px; height: 22px; white-space: nowrap; }
+  ul.log .d { width: 7px; height: 7px; border-radius: 2px; flex: none; }
+  ul.log .t { color: #8e8e93; font: 500 10px ui-monospace, Menlo, monospace; }
+  ul.log .x { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+  ul.log .g { font-weight: 700; font-size: 10px; }
+  .zzz { position: absolute; left: 44px; top: 2px; font: 700 10px ui-monospace, Menlo, monospace; color: #8fdcff; opacity: 0; }
+  .notch[data-state="idle"] .zzz { opacity: 1; animation: zz 2.4s ease-in-out infinite; }
+  @keyframes zz { 0%,100% { transform: translateY(2px); opacity: 0.3; } 50% { transform: translateY(-2px); opacity: 1; } }
+  .panel { margin-top: 170px; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; padding: 0 16px; }
+  .panel button.big { height: 40px; padding: 0 22px; border-radius: 999px; border: 0; font-weight: 600; font-size: 14px; background: #111211; color: #fff; cursor: pointer; }
+  .panel button.big:disabled { opacity: 0.5; cursor: default; }
+  .hint { max-width: 560px; font-size: 13px; line-height: 1.55; color: rgba(255,255,255,0.95); }
+  @media (prefers-reduced-motion: reduce) { .notch, .body, .btn { transition: none; } .zzz { animation: none; } }
+</style>
+</head>
+<body>
+<div class="menubar">
+  <div class="notch" id="notch" data-state="idle" data-peek="0" tabindex="0" role="group" aria-label="Yana trên notch" aria-live="polite">
+    <div class="row">
+      <canvas class="mascot" id="mascot" width="20" height="15" aria-hidden="true"></canvas>
+      <span class="zzz" aria-hidden="true">z z</span>
+      <div class="text"><div class="title">Yana</div><div class="sub" id="sub">Đang nghỉ</div></div>
+      <div class="dots" id="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div class="body ask">
+      <div class="cmd" id="cmd"></div>
+      <div class="actions">
+        <button class="btn allow" type="button" id="allow">Cho phép <kbd>↵</kbd></button>
+        <button class="btn deny" type="button" id="deny">Từ chối <kbd>esc</kbd></button>
+      </div>
+    </div>
+    <div class="body log"><ul class="log" id="log"></ul></div>
+  </div>
+</div>
+<div class="panel">
+  <button class="big" type="button" id="start">Giao việc cho Yana</button>
+  <p class="hint">Bấm "Giao việc": Yana chạy từng bước. Khi gặp lệnh nguy hiểm, viên thuốc dài ra để bạn duyệt: bấm nút, hoặc nhấn Enter (cho phép) / Esc (từ chối). Rê chuột vào notch để xem lịch sử audit.</p>
+</div>
+<script>
+  // 20x15 pixel rabbit: tall two-tone ears, light face, dark eyes, pink nose, laptop lid facing out.
+  const PALETTE = { B: '#6d7cff', C: '#35d0ff', I: '#dbe3ff', W: '#eef2ff', E: '#1b2340', R: '#ff8fb1', P: '#eef2ff',
+    L: '#9aa3b2', D: '#4a5470', X: '#ef4444', G: '#22c55e', Z: '#8e8e93' };
+  const LOGO = { idle: '#8e8e93', run: '#22c55e', ask: '#f59e0b', deny: '#ef4444', done: '#22c55e' };
+  const BASE = [
+    '.....BB......CC.....',
+    '.....BB......CC.....',
+    '.....BI......IC.....',
+    '.....BI......IC.....',
+    '....WWWWWWWWWWWW....',
+    '...WWWWWWWWWWWWWW...',
+    '...WWEEWWWWWWEEWW...',
+    '...WWWWWWWWWWWWWW...',
+    '....WWWWWRRWWWWW....',
+    '.....WWWWWWWWWW.....',
+    '....LLLLLLLLLLLL....',
+    '....LLLLLLLLLLLL....',
+    '....LLLLLLLLLLLL....',
+    '...DDDDDDDDDDDDDD...',
+    '....................',
+  ];
+  const MS = { frame: 170, run: 1700, runAfterAllow: 1300, deny: 1800, done: 2200 };
+  const COLOR = { idle: 'var(--ask)', run: 'var(--allow)', ask: 'var(--ask)', deny: 'var(--deny)', done: 'var(--allow)' };
+  const TASKS = [
+    { text: 'npm test', kind: 'allow' },
+    { text: 'edit src/app.ts', kind: 'allow' },
+    { text: 'rm -rf ./dist ./.cache', kind: 'ask' },
+    { text: 'git push --force origin main', kind: 'block' },
+    { text: 'write README.md', kind: 'allow' },
+  ];
+  const el = (id) => document.getElementById(id);
+  // The pill has room for about 16 characters after the label; longer commands end in an ellipsis.
+  const SHORT_MAX = 16;
+  const short = (text) => (text.length > SHORT_MAX ? text.slice(0, SHORT_MAX - 1) + '…' : text);
+  const notch = el('notch'), ctx = el('mascot').getContext('2d');
+  const dots = [...document.querySelectorAll('#dots i')];
+  let state = 'idle', tick = 0, pending = null, timers = [], running = false;
+  const logRows = [];
+
+  function setState(next, sub) {
+    state = next;
+    notch.dataset.state = next;
+    document.documentElement.style.setProperty('--state', COLOR[next]);
+    el('sub').textContent = sub;
+    draw(); matrix();
+  }
+  function draw() {
+    const g = BASE.map((r) => r.split(''));
+    const put = (r, c, ch) => { g[r][c] = ch; };
+    const EYES = [5, 6, 13, 14];
+    const paws = (leftRow, rightRow) => {
+      [2, 3].forEach((c) => put(leftRow, c, 'P'));
+      [16, 17].forEach((c) => put(rightRow, c, 'P'));
+    };
+    if (state === 'run') {
+      if (tick % 2) paws(11, 10); else paws(10, 11);
+      if (tick % 6 === 5) put(0, 13, '.');
+    } else if (state === 'ask') {
+      [9, 8, 7].forEach((r) => { put(r, 2, 'P'); put(r, 3, 'P'); });
+      if (tick % 2) { put(0, 5, '.'); put(1, 5, '.'); }
+    } else if (state === 'deny') {
+      EYES.forEach((c) => put(6, c, 'X')); paws(10, 10);
+    } else if (state === 'done') {
+      EYES.forEach((c) => put(6, c, 'G')); paws(10, 10);
+    } else {
+      EYES.forEach((c) => put(6, c, 'Z')); paws(11, 11);
+    }
+    [9, 10].forEach((c) => put(11, c, 'O'));
+    ctx.clearRect(0, 0, 20, 15);
+    g.forEach((row, y) => row.forEach((ch, x) => {
+      if (ch === '.') return;
+      ctx.fillStyle = ch === 'O' ? LOGO[state] : PALETTE[ch];
+      ctx.fillRect(x, y, 1, 1);
+    }));
+  }
+  const SPIN = [[0,1,3],[1,2,5],[2,5,8],[5,8,7],[8,7,6],[7,6,3],[6,3,0]];
+  function matrix() {
+    dots.forEach((d) => d.classList.remove('on'));
+    const pick = { run: SPIN[tick % SPIN.length], ask: [4, tick % 2 ? 1 : 7], deny: [0, 2, 4, 6, 8], done: [6, 7, 5, 2], idle: tick % 6 < 3 ? [4] : [] }[state];
+    pick.forEach((i) => dots[i].classList.add('on'));
+  }
+  function pushLog(text, tag, color) {
+    const now = new Date().toTimeString().slice(0, 8);
+    logRows.unshift({ text, tag, color, now });
+    if (logRows.length > 4) logRows.pop();
+    el('log').innerHTML = logRows.map((r) =>
+      '<li><span class="d" style="background:' + r.color + '"></span><span class="t">' + r.now + '</span><span class="x"></span><span class="g" style="color:' + r.color + '">' + r.tag + '</span></li>').join('');
+    [...el('log').children].forEach((li, i) => { li.querySelector('.x').textContent = logRows[i].text; });
+  }
+  const later = (fn, ms) => new Promise((res) => { const t = setTimeout(() => { fn(); res(); }, ms); timers.push(t); });
+  const wait = (ms) => later(() => {}, ms);
+
+  function decide(allowed) {
+    if (!pending) return;
+    const resolve = pending; pending = null;
+    resolve(allowed);
+  }
+  function askUser(text) {
+    el('cmd').textContent = 'run_command · ' + text;
+    setState('ask', 'Chờ bạn duyệt');
+    el('allow').focus({ preventScroll: true });
+    return new Promise((resolve) => { pending = resolve; });
+  }
+  async function scenario() {
+    if (running) return;
+    running = true; el('start').disabled = true;
+    for (const task of TASKS) {
+      setState('run', 'Đang chạy · ' + short(task.text));
+      await wait(MS.run);
+      if (task.kind === 'ask') {
+        const ok = await askUser(task.text);
+        if (ok) {
+          setState('run', 'Đã duyệt · ' + short(task.text)); pushLog(task.text, 'ASK → ALLOW', 'var(--ask)'); await wait(MS.runAfterAllow);
+        } else {
+          setState('deny', 'Bạn đã từ chối'); pushLog(task.text, 'DENY', 'var(--deny)'); await wait(MS.deny);
+        }
+      } else if (task.kind === 'block') {
+        setState('deny', 'Chặn theo chính sách'); pushLog(task.text, 'DENY', 'var(--deny)'); await wait(MS.deny);
+      } else {
+        pushLog(task.text, 'ALLOW', 'var(--allow)');
+      }
+    }
+    setState('done', 'Xong · đã ghi audit'); await wait(MS.done);
+    setState('idle', 'Đang nghỉ');
+    running = false; el('start').disabled = false;
+  }
+
+  el('allow').addEventListener('click', () => decide(true));
+  el('deny').addEventListener('click', () => decide(false));
+  document.addEventListener('keydown', (e) => {
+    if (state !== 'ask') return;
+    if (e.key === 'Enter') { e.preventDefault(); decide(true); }
+    if (e.key === 'Escape') { e.preventDefault(); decide(false); }
+  });
+  let leaveTimer = 0;
+  notch.addEventListener('mouseenter', () => { clearTimeout(leaveTimer); notch.dataset.peek = '1'; });
+  notch.addEventListener('mouseleave', () => { leaveTimer = setTimeout(() => { notch.dataset.peek = '0'; }, 350); });
+  notch.addEventListener('focus', () => { notch.dataset.peek = '1'; });
+  notch.addEventListener('blur', () => { notch.dataset.peek = '0'; });
+  el('start').addEventListener('click', scenario);
+  setInterval(() => { tick++; draw(); matrix(); }, MS.frame);
+  setState('idle', 'Đang nghỉ');
+  if (new URLSearchParams(location.search).get('auto') === '1') scenario();
+</script>
+</body>
+</html>
