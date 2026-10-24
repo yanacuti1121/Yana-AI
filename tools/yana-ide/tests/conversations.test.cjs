@@ -149,6 +149,36 @@ const check = (name, ok, extra = '') => { (ok ? pass++ : fail++); console.log(ok
 	check('model context carries only role and content', context.every(m => Object.keys(m).sort().join() === 'content,role'));
 	check('old messages without events still work', c.contextMessages({ messages: [{ role: 'user', content: 'q' }, { role: 'assistant', content: 'a' }] }).length === 2);
 
+	// Màn hình Lịch sử trong panel: danh sách gọn, ghim, mở bằng panel thay cho Quick Pick.
+	storage.clear();
+	c = boot();
+	const older = await c.create('');
+	await c.appendTurn(older.id, 'first question', 'first answer');
+	await new Promise(resolve => setTimeout(resolve, 5));
+	const newer = await c.create('');
+	await c.appendTurn(newer.id, 'second question', '', { events: [{ type: 'error', message: 'boom' }], status: 'error' });
+	let list = c.summaries();
+	check('summaries list newest first', list.length === 2 && list[0].id === newer.id);
+	check('summaries carry turns, preview and active flag', list[1].turns === 1 && list[1].preview === 'first answer' && list[0].active && !list[1].active);
+	check('preview falls back to the question when the reply is empty', list[0].preview === 'second question');
+	check('summaries do not leak messages or the system prompt', list.every(item => !('messages' in item) && !('system' in item)));
+	await c.pin(older.id, true);
+	list = c.summaries();
+	check('a pinned conversation goes to the top', list[0].id === older.id && list[0].pinned === true);
+	c = boot();
+	check('pin survives a restart', c.summaries()[0].pinned === true);
+	await c.pin(older.id, false);
+	check('unpin restores date order', c.summaries()[0].id === newer.id);
+	await c.pin('does-not-exist', true);
+	check('pin of an unknown id changes nothing', c.summaries().every(item => !item.pinned));
+	check('empty store gives an empty list', (storage.clear(), boot().summaries().length === 0));
+	c = boot();
+	let opened = 0;
+	c.setHistoryOpener(() => { opened++; });
+	shown.items = undefined;
+	await registered['yana.chat.history']();
+	check('history command uses the panel opener when one is set', opened === 1 && shown.items === undefined);
+
 	console.log(`${pass} passed, ${fail} failed`);
 	process.exit(fail ? 1 : 0);
 })();

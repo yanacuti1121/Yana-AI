@@ -115,6 +115,45 @@ function contextMessages(conversation) {
 	return out;
 }
 
+const PREVIEW_LENGTH = 140; // một dòng xem trước trong màn hình Lịch sử
+
+function previewOf(messages) {
+	for (let i = messages.length - 1; i >= 0; i--) {
+		const text = String(messages[i].content || '').replace(/\s+/g, ' ').trim();
+		if (text) return text.slice(0, PREVIEW_LENGTH);
+	}
+	return '';
+}
+
+// Danh sách gọn cho màn hình Lịch sử trong panel: không gửi nguyên nội dung hội thoại sang webview.
+// Hội thoại ghim đứng đầu, còn lại mới nhất trước.
+function summaries() {
+	const state = load();
+	return state.list
+		.map(c => ({
+			id: c.id,
+			title: c.title,
+			updatedAt: c.updatedAt,
+			turns: Math.floor(c.messages.length / 2),
+			preview: previewOf(c.messages),
+			pinned: Boolean(c.pinned),
+			active: c.id === state.activeId,
+		}))
+		.sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt - a.updatedAt);
+}
+
+async function pin(id, pinned) {
+	const state = load();
+	if (!state.list.some(c => c.id === id)) return;
+	await save({ ...state, list: state.list.map(c => (c.id === id ? { ...c, pinned: Boolean(pinned) } : c)) });
+}
+
+// Panel đăng ký cách mở Lịch sử ngay trong khung chat; khi chưa có panel thì lệnh dùng Quick Pick.
+let historyOpener;
+function setHistoryOpener(opener) {
+	historyOpener = opener;
+}
+
 async function rename(id, title) {
 	const clean = String(title || '').replace(/\s+/g, ' ').trim().slice(0, 120);
 	if (!clean) return;
@@ -137,6 +176,7 @@ function conversationItem(conversation, activeId) {
 }
 
 async function pickConversation() {
+	if (historyOpener) return historyOpener();
 	const state = load();
 	const picked = await vscode.window.showQuickPick(
 		state.list.map(c => ({ label: c.title, description: `${c.messages.length / 2} turns`, detail: new Date(c.updatedAt).toLocaleString(), id: c.id })),
@@ -181,4 +221,7 @@ function activate(extensionContext) {
 	);
 }
 
-module.exports = { id: 'conversations', activate, active, create, ensureActive, appendTurn, contextMessages, onDidChange: changed.event };
+module.exports = {
+	id: 'conversations', activate, active, create, ensureActive, appendTurn, contextMessages,
+	summaries, select, pin, rename, remove, setHistoryOpener, onDidChange: changed.event,
+};
