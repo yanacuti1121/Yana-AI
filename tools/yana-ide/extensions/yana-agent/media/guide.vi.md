@@ -37,7 +37,7 @@ Dưới cùng, chạy suốt chiều ngang:  [5] Thanh trạng thái
 
 1. **Mở một thư mục dự án.** Trang chủ có nút **Open Folder**. Yana làm việc trong thư mục anh mở và không đụng tới chỗ khác.
 2. **Tin cậy thư mục (nếu app hỏi).** Khi thấy thanh vàng "Restricted Mode", bấm **Manage** rồi **Trust**. Chưa tin cậy thì Yana từ chối làm việc, vì yana-rt có thể chạy lệnh trong thư mục này.
-3. **Chọn model.** Ở khung chat bấm vào ô tên model (hiện dạng `ollama · default`), hoặc Cmd+Shift+P rồi gõ **Yana: Choose Provider and Model**. Danh sách có 41 nhà cung cấp, chia hai loại: chạy trên máy (ghi "On-device") và đám mây (ghi "No key" hoặc "key saved").
+3. **Chọn model.** Ở khung chat bấm vào ô tên model (hiện dạng `ollama · default`), hoặc Cmd+Shift+P rồi gõ **Yana: Choose Provider and Model**. Danh sách có 19 nhà cung cấp, chia hai loại: chạy trên máy (ghi "On-device") và đám mây (ghi "No key" hoặc "key saved").
 4. **Cho Yana một "bộ não":**
    - **Cách miễn phí, chạy trên máy:** cài và bật Ollama, chọn nhà cung cấp **Ollama**. Không cần key.
    - **Cách đám mây:** chọn nhà cung cấp (ví dụ Claude hoặc OpenAI), bấm nút **Key** ở khung chat, dán API key. Key được cất trong **Keychain** của máy, không hiện lại và không nằm trong file nào.
@@ -181,7 +181,7 @@ Màn cài đặt tự cập nhật khi anh đổi model hoặc key ở nơi khá
 
 ## 9. Model và API key
 
-- **41 nhà cung cấp**, chia hai loại: **Local** (Ollama, LM Studio, llama.cpp... chạy trên máy anh, riêng tư, miễn phí, nhưng nặng máy) và **Cloud** (Claude, OpenAI, Gemini, Groq... cần key, tính tiền, nhanh và thông minh hơn).
+- **19 nhà cung cấp**, chia hai loại: **Local** (Ollama, LM Studio, llama.cpp... chạy trên máy anh, riêng tư, miễn phí, nhưng nặng máy) và **Cloud** (Claude, OpenAI, Gemini, Groq... cần key, tính tiền, nhanh và thông minh hơn).
 - **Key được lưu trong Keychain** của máy, không nằm trong file nào, không hiện lại, và **chỉ gửi tới đúng nhà cung cấp** của nó.
 - **Xoá key:** trong nhóm **Models & Runtime** ở cột Yana, rê chuột vào nhà cung cấp rồi bấm biểu tượng thùng rác.
 - **Tự đăng nhập bằng tài khoản ChatGPT hay Claude thuê bao:** **không làm được**. Nhà cung cấp chặn hoặc có rủi ro khoá tài khoản. Chỉ dùng API key.

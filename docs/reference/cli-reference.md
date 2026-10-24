@@ -136,7 +136,7 @@ Yana AI adapts to whichever tool you use:
 ```bash
 bash core/scripts/switch-engine.sh cursor      # .cursorrules + real beforeShellExecution hook
 bash core/scripts/switch-engine.sh codex       # AGENTS.md
-bash core/scripts/switch-engine.sh antigravity # .agent/rules/yana-ai.md
+bash core/scripts/switch-engine.sh antigravity # .agents/rules/yana-ai.md + real PreToolUse hook
 bash core/scripts/switch-engine.sh status      # check all 4 adapters
 ```
 

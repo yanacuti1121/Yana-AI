@@ -44,7 +44,7 @@
     <td align="center" width="25%"><h3>19</h3><sub>model providers<br>13 cloud, 6 local</sub></td>
     <td align="center" width="25%"><h3>40</h3><sub>runtime subcommands<br>in one Rust binary</sub></td>
     <td align="center" width="25%"><h3>66</h3><sub>tool-call hooks<br>Pre, Post and Stop</sub></td>
-    <td align="center" width="25%"><h3>287</h3><sub>core files<br>pinned by SHA-256</sub></td>
+    <td align="center" width="25%"><h3>288</h3><sub>core files<br>pinned by SHA-256</sub></td>
   </tr>
   <tr>
     <td align="center"><h3>4</h3><sub>agent hosts<br>Claude Code, Codex, Cursor, Antigravity</sub></td>
@@ -134,7 +134,7 @@ core/
 ├── skills/   # 2,027 skills
 ├── commands/ # 170 Claude Code slash commands
 └── config/
-    └── core-lock.json    # SHA-256 manifest — 287 core files pinned
+    └── core-lock.json    # SHA-256 manifest — 288 core files pinned
 ```
 
 ## Yana Studio (v1.7.0)
@@ -247,7 +247,7 @@ on `SessionStart` and `UserPromptSubmit` for Codex.
 | **Claude Code** | Native hooks and rules in `.claude/` | Runtime blocking on every tool call, hash-chained audit |
 | **Codex** | `AGENTS.md`, `.codex/` hooks, synced skills and agents (`yana-ai install --engine codex`) | Project-scoped hooks |
 | **Cursor** | `.cursorrules`, `.cursor/rules`, a `beforeShellExecution` hook | Shell commands screened; MCP tool calls are not covered |
-| **Antigravity** | `.agent/rules/yana-ai.md` | Advisory only, not enforced at the shell |
+| **Antigravity** | `.agents/rules/yana-ai.md` and a `PreToolUse` hook in `.agents/hooks.json` (`yana-ai install --engine antigravity`) | Shell commands screened by `guard-destructive.sh`; a Giám Thị halt blocks every tool call; skipped by `agy --dangerously-skip-permissions` |
 
 Details and switching commands: [adapters/README.md](adapters/README.md). The 170 Claude Code
 slash commands (`/plan`, `/verify`, `/code-review` and others) live in `core/commands/`
@@ -264,7 +264,7 @@ and run inside a session.
 | **Rules and hooks** | Hooks block at runtime. | Most files in `core/rules` describe behaviour the agent applies to itself; only what a hook wires in is enforced. There is no code-signing pipeline. |
 | **Destructive guard** | `guard-destructive.sh` blocks `rm -rf`, force-push, `DROP TABLE` and similar. | Matches command strings, not a full shell parse, so a crafted command can slip past. |
 
-Antigravity is advisory, Cursor does not screen MCP calls, and browser-only web
+Antigravity screens shell commands only and is bypassed by `agy --dangerously-skip-permissions`, Cursor does not screen MCP calls, and browser-only web
 deployments without the Rust runtime are not fully governed. Details:
 [known limitations](docs/reference/known-limitations.md).
 
