@@ -134,7 +134,7 @@ core/
 ├── skills/   # 2,027 skills
 ├── commands/ # 170 Claude Code slash commands
 └── config/
-    └── core-lock.json    # SHA-256 manifest — 288 core files pinned
+    └── core-lock.json    # SHA-256 manifest — 289 core files pinned
 ```
 
 ## Yana Studio (v1.7.0)
