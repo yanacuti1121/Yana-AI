@@ -46,7 +46,7 @@
       if (navigator.clipboard && textToCopy) {
         navigator.clipboard.writeText(textToCopy).then(() => {
           const origText = btn.textContent;
-          btn.textContent = 'Đã chép! ✓';
+          btn.textContent = { vi: 'Đã chép! ✓', ko: '복사됨! ✓' }[document.documentElement.lang.slice(0, 2)] || 'Copied! ✓';
           btn.style.color = '#10b981';
           setTimeout(() => {
             btn.textContent = origText;
