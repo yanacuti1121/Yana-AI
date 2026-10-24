@@ -17,6 +17,11 @@
   const GATE_RESET_MS = 3500; // the approval card asks again this long after an answer
   const SCREEN_LEAN = 10; // px the screen picture leans with the pointer
   const PHOTO_AT = 0.98; // lid value at which the photographed MacBook takes over (timed fade)
+  const GATE_RESULT = {
+    vi: { allow: '✓ Đã chạy · đã ghi vào audit', deny: '✕ Đã chặn · đã ghi vào audit' },
+    en: { allow: '✓ Ran · recorded in audit', deny: '✕ Blocked · recorded in audit' },
+    ko: { allow: '✓ 실행됨 · 감사에 기록됨', deny: '✕ 차단됨 · 감사에 기록됨' }
+  };
   const LID_OPEN_SHARE = 0.75; // the hero Mac is fully open three quarters of the way through its pause
 
   // 2 · discovery: a glass knob follows the current step (aria-current set by yana-discovery.js).
@@ -183,7 +188,8 @@
       const choice = event.target.closest('[data-gate]')?.dataset.gate;
       if (!choice) return;
       gate.dataset.state = choice;
-      result.textContent = choice === 'allow' ? '✓ Đã chạy · đã ghi vào audit' : '✕ Đã chặn · đã ghi vào audit';
+      const text = GATE_RESULT[document.documentElement.lang.slice(0, 2)] || GATE_RESULT.en;
+      result.textContent = choice === 'allow' ? text.allow : text.deny;
       clearTimeout(resetTimer);
       resetTimer = setTimeout(() => { gate.dataset.state = 'ask'; result.textContent = ''; }, GATE_RESET_MS);
     });
