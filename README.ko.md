@@ -44,7 +44,7 @@
     <td align="center" width="25%"><h3>19</h3><sub>모델 provider<br>클라우드 13, 로컬 6</sub></td>
     <td align="center" width="25%"><h3>40</h3><sub>런타임 하위 명령<br>Rust 바이너리 하나</sub></td>
     <td align="center" width="25%"><h3>66</h3><sub>도구 호출 hook<br>Pre, Post, Stop</sub></td>
-    <td align="center" width="25%"><h3>287</h3><sub>핵심 파일<br>SHA-256으로 고정</sub></td>
+    <td align="center" width="25%"><h3>288</h3><sub>핵심 파일<br>SHA-256으로 고정</sub></td>
   </tr>
   <tr>
     <td align="center"><h3>4</h3><sub>에이전트 호스트<br>Claude Code, Codex, Cursor, Antigravity</sub></td>
@@ -134,7 +134,7 @@ core/
 ├── skills/   # 2,026개 스킬
 ├── commands/ # 170개 Claude Code 슬래시 명령
 └── config/
-    └── core-lock.json    # SHA-256 manifest, 핵심 파일 287개 고정
+    └── core-lock.json    # SHA-256 manifest, 핵심 파일 288개 고정
 ```
 
 ## Yana Studio
@@ -244,7 +244,7 @@ AI 세션 밖에서, 운영체제 자체의 스케줄러(macOS의 launchd, Linux
 | **Claude Code** | `.claude/`의 네이티브 hook과 rule | 모든 도구 호출을 런타임에서 차단, 해시 체인 감사 |
 | **Codex** | `AGENTS.md`, `.codex/` hook, 동기화된 스킬과 에이전트 (`yana-ai install --engine codex`) | 프로젝트 범위 hook |
 | **Cursor** | `.cursorrules`, `.cursor/rules`, `beforeShellExecution` hook | 셸 명령 검사; MCP 도구 호출은 미포함 |
-| **Antigravity** | `.agent/rules/yana-ai.md` | 권고만, 셸에서 집행하지 않음 |
+| **Antigravity** | `.agents/rules/yana-ai.md`와 `.agents/hooks.json`의 `PreToolUse` hook (`yana-ai install --engine antigravity`) | 셸 명령을 `guard-destructive.sh`가 검사; Giám Thị HALT 잠금은 모든 도구 호출을 차단; `agy --dangerously-skip-permissions`에서는 건너뜀 |
 
 자세한 내용과 전환 명령: [adapters/README.md](adapters/README.md). Claude Code 슬래시 명령 170개
 (`/plan`, `/verify`, `/code-review` 등)는 `core/commands/`에 있으며 세션 안에서 실행됩니다.
@@ -260,7 +260,7 @@ AI 세션 밖에서, 운영체제 자체의 스케줄러(macOS의 launchd, Linux
 | **Rule과 hook** | hook은 런타임에서 차단합니다. | `core/rules`의 파일 대부분은 에이전트가 스스로 따르는 행동을 적은 것이고, hook에 연결된 부분만 집행됩니다. 코드 서명 파이프라인은 없습니다. |
 | **파괴적 명령 guard** | `guard-destructive.sh`가 `rm -rf`, force-push, `DROP TABLE` 등을 막습니다. | 셸 문법 전체가 아니라 명령 문자열을 대조하므로, 의도적으로 만든 명령은 빠져나갈 수 있습니다. |
 
-Antigravity는 권고만 하고, Cursor는 MCP 호출을 검사하지 않으며, Rust 런타임 없이 브라우저에서만
+Antigravity는 셸 명령만 검사하고 `agy --dangerously-skip-permissions`에서는 우회되며, Cursor는 MCP 호출을 검사하지 않으며, Rust 런타임 없이 브라우저에서만
 도는 웹 배포는 완전히 통제되지 않습니다. 자세한 내용: [알려진 한계](docs/reference/known-limitations.md).
 
 ## 버전

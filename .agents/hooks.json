@@ -1,0 +1,16 @@
+{
+  "yana-ai-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ../core/adapters/antigravity/pre-tool-use.js",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -153,7 +153,10 @@ Cursor ──────── .cursorrules (legacy) ────────�
 
 Codex ───────── adapters/codex.md → AGENTS.md ────────► Advisory (prompt layer)
 
-Antigravity ─── adapters/antigravity.md → .agent/rules/yana-ai.md ──► Advisory (prompt layer)
+Antigravity ─── adapters/antigravity.md → .agents/rules/yana-ai.md ─► Advisory (prompt layer)
+             └─ .agents/hooks.json → core/adapters/antigravity/pre-tool-use.js
+                  real PreToolUse hook, screens run_command and
+                  honours the Giám Thị halt lock                    ► Hard enforcement
 
 Any MCP client ─ yana-rt mcp (Program J spike) ───────► Hard enforcement
              │    exposes check_command() as an MCP tool         (per-call, opt-in
@@ -176,7 +179,7 @@ Claude Code's native hooks or Cursor's `beforeShellExecution`.
 ```bash
 bash core/scripts/switch-engine.sh cursor      # .cursorrules + real beforeShellExecution hook
 bash core/scripts/switch-engine.sh codex       # generates AGENTS.md
-bash core/scripts/switch-engine.sh antigravity # generates .agent/rules/yana-ai.md
+bash core/scripts/switch-engine.sh antigravity # .agents/rules/yana-ai.md + real PreToolUse hook
 bash core/scripts/switch-engine.sh claude      # reset to native hooks
 bash core/scripts/switch-engine.sh status      # show current adapter state
 ```

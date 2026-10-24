@@ -44,7 +44,7 @@
     <td align="center" width="25%"><h3>19</h3><sub>provider model<br>13 cloud, 6 local</sub></td>
     <td align="center" width="25%"><h3>40</h3><sub>subcommand runtime<br>trong một binary Rust</sub></td>
     <td align="center" width="25%"><h3>66</h3><sub>hook cho tool call<br>Pre, Post và Stop</sub></td>
-    <td align="center" width="25%"><h3>287</h3><sub>file lõi<br>được ghim bằng SHA-256</sub></td>
+    <td align="center" width="25%"><h3>288</h3><sub>file lõi<br>được ghim bằng SHA-256</sub></td>
   </tr>
   <tr>
     <td align="center"><h3>4</h3><sub>host agent<br>Claude Code, Codex, Cursor, Antigravity</sub></td>
@@ -137,7 +137,7 @@ core/
 ├── skills/   # 2.027 skill
 ├── commands/ # 170 slash command của Claude Code
 └── config/
-    └── core-lock.json    # manifest SHA-256, ghim 287 file lõi
+    └── core-lock.json    # manifest SHA-256, ghim 288 file lõi
 ```
 
 ## Yana Studio (v1.7.0)
@@ -247,7 +247,7 @@ chạy theo lịch nên có khoảng trễ tối đa 6 giờ giữa lúc thay đ
 | **Claude Code** | Hook và rule native trong `.claude/` | Chặn ở runtime trên mọi tool call, nhật ký kiểm toán nối băm |
 | **Codex** | `AGENTS.md`, hook `.codex/`, đồng bộ skill và agent (`yana-ai install --engine codex`) | Hook theo phạm vi dự án |
 | **Cursor** | `.cursorrules`, `.cursor/rules`, hook `beforeShellExecution` | Kiểm tra lệnh shell; tool call MCP chưa được bao phủ |
-| **Antigravity** | `.agent/rules/yana-ai.md` | Chỉ mang tính khuyến nghị, không thực thi ở shell |
+| **Antigravity** | `.agents/rules/yana-ai.md` và hook `PreToolUse` trong `.agents/hooks.json` (`yana-ai install --engine antigravity`) | Lệnh shell được `guard-destructive.sh` kiểm tra; khóa HALT của Giám Thị chặn mọi tool call; bị bỏ qua khi chạy `agy --dangerously-skip-permissions` |
 
 Chi tiết và lệnh chuyển đổi: [adapters/README.md](adapters/README.md). 170 slash command của
 Claude Code (`/plan`, `/verify`, `/code-review` và các lệnh khác) nằm trong `core/commands/` và
@@ -264,7 +264,7 @@ chạy bên trong một phiên.
 | **Rule và hook** | Hook chặn ở runtime. | Phần lớn file trong `core/rules` mô tả hành vi agent tự áp dụng; chỉ phần được nối vào hook mới bị thực thi. Chưa có quy trình ký code. |
 | **Guard lệnh phá hủy** | `guard-destructive.sh` chặn `rm -rf`, force-push, `DROP TABLE` và tương tự. | So khớp chuỗi lệnh, không phân tích cú pháp shell đầy đủ, nên một lệnh cố tình tạo ra có thể lọt qua. |
 
-Antigravity chỉ khuyến nghị, Cursor không kiểm tra lệnh MCP, và bản web chạy trên trình duyệt
+Antigravity chỉ kiểm tra lệnh shell và bị bỏ qua khi chạy `agy --dangerously-skip-permissions`, Cursor không kiểm tra lệnh MCP, và bản web chạy trên trình duyệt
 không có Rust runtime chưa được quản trị đầy đủ. Chi tiết:
 [giới hạn đã biết](docs/reference/known-limitations.md).
 

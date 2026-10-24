@@ -56,19 +56,22 @@ If you only have time for one file, read `gates/truth_gate.md`.
 
 ## Commit attribution
 
-End every commit you author in this repo with a trailer crediting yourself,
-the same way this repo's Claude Code sessions already do:
+End every commit you author in this repo with a trailer naming the engine
+that actually wrote it, the same way this repo's Claude Code sessions already
+do. Several agents read this file, so use your own name, never another
+engine's:
 
 ```
-Co-Authored-By: Codex <noreply@openai.com>
+Co-Authored-By: Codex <noreply@openai.com>      # Codex
+Co-Authored-By: Gemini <gemini@google.com>      # Antigravity / Gemini
 ```
 
 Why: commits land under anh's own GitHub identity regardless of which AI
-wrote them — git has no separate "Codex" account, so without this trailer
+wrote them — git has no separate account per engine, so without this trailer
 there's no record in `git log`/`git blame`/a PR page of which engine did
 the work. This isn't about GitHub's Contributors graph (a trailer alone
 doesn't add an avatar there — that needs a real linked account, which
-Codex doesn't have and shouldn't fake) — it's an honest, verifiable record
+an engine doesn't have and shouldn't fake) — it's an honest, verifiable record
 of authorship in the one place that's actually true regardless of UI:
 the commit itself.
 
