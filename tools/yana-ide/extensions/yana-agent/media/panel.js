@@ -778,20 +778,24 @@
 	let isUserSelecting = false;
 	let renderPending = false;
 
+	function endUserSelection() {
+		if (!isUserSelecting) return;
+		isUserSelecting = false;
+		if (renderPending) {
+			renderPending = false;
+			renderReply();
+		}
+	}
 	document.addEventListener('mousedown', e => {
 		if (ui.reply && ui.reply.contains(e.target)) {
 			isUserSelecting = true;
 		}
 	});
-	document.addEventListener('mouseup', () => {
-		if (isUserSelecting) {
-			isUserSelecting = false;
-			if (renderPending) {
-				renderPending = false;
-				renderReply();
-			}
-		}
-	});
+	document.addEventListener('mouseup', endUserSelection);
+	// Thả chuột ra ngoài khung webview thì mouseup không bao giờ tới đây. Nếu cờ không được gỡ, mọi câu trả lời
+	// sau đó (kể cả của phiên cũ mở lại) bị hoãn vĩnh viễn và khung chat chỉ còn các thẻ lời hỏi.
+	document.addEventListener('mouseleave', endUserSelection);
+	window.addEventListener('blur', endUserSelection);
 
 	function getSelectionRangeInfo(container) {
 		const sel = window.getSelection();
@@ -850,9 +854,10 @@
 		} catch (_) {}
 	}
 
-	function renderReply() {
+	// force: vẽ lại phiên đã lưu thì luôn vẽ, kể cả khi cờ bôi đen đang bật.
+	function renderReply(force) {
 		renderTimer = 0;
-		if (isUserSelecting) {
+		if (isUserSelecting && !force) {
 			renderPending = true;
 			return;
 		}
@@ -902,17 +907,47 @@
 		if (!renderTimer) renderTimer = setTimeout(renderReply, STREAM_RENDER_MS);
 	}
 
+	const STORED_STATUS_LABELS = {
+		done: ['● Done', 'ok'],
+		cancelled: ['● Cancelled', 'muted'],
+		error: ['● Failed', 'bad'],
+	};
+
+	// Phát lại một lượt đã lưu: diễn biến công cụ (lệnh, diff, quyết định duyệt) rồi tới câu trả lời.
+	function renderStoredReply(message) {
+		const events = Array.isArray(message.events) ? message.events : [];
+		for (const event of events) {
+			try {
+				renderEvent(event);
+			} catch (error) {
+				console.warn('[yana] cannot replay a stored event', error);
+			}
+		}
+		if (events.length > 0) {
+			const [label, cls] = STORED_STATUS_LABELS[message.status] || STORED_STATUS_LABELS.done;
+			finishTrace(label, cls);
+		}
+		if (message.eventsTruncated) append(el('div', 'card muted', 'Only the first events of this turn were kept.'));
+		ui.replyText = message.content || '';
+		if (ui.replyText) renderReply(true);
+		ui.reply = null;
+		ui.trace = null;
+		ui.replyText = '';
+		ui.pendingCall = null; // một lời xin duyệt của phiên cũ không được thành "đang chờ" của phiên này
+		ui.approval = null;
+	}
+
 	function renderConversation(data) {
 		resetFeed();
+		isUserSelecting = false;
+		renderPending = false;
 		conversationTitle.textContent = data.title || 'New conversation';
 		const messages = Array.isArray(data.messages) ? data.messages : [];
 		for (const message of messages) {
 			if (message.role === 'user') {
 				renderIntent(message.content, '');
 			} else if (message.role === 'assistant') {
-				ui.replyText = message.content || '';
-				renderReply();
-				ui.reply = null;
+				renderStoredReply(message);
 			}
 		}
 	}
