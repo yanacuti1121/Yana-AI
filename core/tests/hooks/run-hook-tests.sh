@@ -3277,6 +3277,36 @@ else
     fi
 fi
 
+# Antigravity's PreToolUse bridge speaks its own {decision, reason} contract.
+echo ""
+echo "--- core/adapters/antigravity/pre-tool-use.js (via its own suite) ---"
+_AGY_ADAPTER_TEST="$CLAUDE_DIR/tests/adapters/antigravity/test-pre-tool-use.sh"
+if [[ ! -f "$_AGY_ADAPTER_TEST" ]]; then
+    echo "FAIL: Suite not found: $_AGY_ADAPTER_TEST"
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+else
+    _agy_output=$(bash "$_AGY_ADAPTER_TEST" 2>&1)
+    _agy_exit=$?
+    echo "$_agy_output"
+    _agy_plain=$(printf '%s\n' "$_agy_output" | sed -E $'s/\x1b\\[[0-9;]*m//g')
+    _agy_total=$(printf '%s\n' "$_agy_plain" | grep -oE 'Total tests: [0-9]+' | grep -oE '[0-9]+' || echo "")
+    _agy_failed=$(printf '%s\n' "$_agy_plain" | grep -oE '^Failed: [0-9]+' | grep -oE '[0-9]+' || echo "")
+    if [[ -n "$_agy_total" && -n "$_agy_failed" ]]; then
+        TOTAL_COUNT=$((TOTAL_COUNT + _agy_total))
+        FAIL_COUNT=$((FAIL_COUNT + _agy_failed))
+    else
+        echo "WARNING: could not parse pass/fail counts from the Antigravity suite — counting as 1 failure."
+        TOTAL_COUNT=$((TOTAL_COUNT + 1))
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+    if [[ "$_agy_exit" -ne 0 && -n "$_agy_total" && "${_agy_failed:-0}" -eq 0 ]]; then
+        echo "WARNING: Antigravity suite exited $_agy_exit but reported 0 failures — counting as 1 failure."
+        TOTAL_COUNT=$((TOTAL_COUNT + 1))
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+fi
+
 # ── sandbox-wrap.sh ──────────────────────────────────────────────────────────
 # Rewrites (not allow/deny) — the generic test_hook() helper only inspects
 # permissionDecision, which stays "allow" whether or not a rewrite happened,
