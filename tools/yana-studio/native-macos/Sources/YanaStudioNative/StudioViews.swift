@@ -5,13 +5,7 @@ struct StudioRootView: View {
     @EnvironmentObject private var store: StudioStore
 
     var body: some View {
-        Group {
-            if store.requiresAuthentication {
-                AccountEntrySurface()
-            } else {
-                workspace
-            }
-        }
+        workspace
         .background(Color.yanaCanvas)
         .tint(Color.yanaAccent)
         .preferredColorScheme(preferredColorScheme)
@@ -552,167 +546,6 @@ private struct RuntimeTaskRow: View {
     }
 }
 
-private struct AccountEntrySurface: View {
-    @EnvironmentObject private var store: StudioStore
-    @State private var displayName = ""
-    @State private var email = ""
-    @State private var password = ""
-    @State private var confirmation = ""
-
-    var body: some View {
-        HStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 22) {
-                HStack(spacing: 10) {
-                    Text("Y")
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
-                        .frame(width: 38, height: 38)
-                        .background(LinearGradient(colors: [Color.yanaAccent, Color.yanaPink], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .clipShape(RoundedRectangle(cornerRadius: 11))
-                    Text("Yana Studio")
-                        .font(.title3.weight(.bold))
-                }
-
-                Spacer()
-
-                Text("Không gian làm việc\nlocal-first cho AI\ncó kiểm soát.")
-                    .font(.system(size: 42, weight: .bold, design: .rounded))
-                    .tracking(-1.2)
-                Text("Project, chat và thông tin runtime ở trên máy anh. Yana không cần Yana cloud để bắt đầu.")
-                    .foregroundStyle(Color.yanaMuted)
-                    .frame(maxWidth: 470, alignment: .leading)
-
-                Spacer()
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            .padding(64)
-            .background(
-                LinearGradient(
-                    colors: [Color.yanaCanvas, Color.yanaSelection.opacity(0.26)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-
-            VStack(alignment: .leading, spacing: 18) {
-                Text(store.accountStatus.locked ? "Mở khóa Yana Studio" : "Đăng nhập để bắt đầu")
-                    .font(.title2.weight(.bold))
-                Text(accountDetail)
-                    .font(.subheadline)
-                    .foregroundStyle(Color.yanaMuted)
-
-                if let error = store.accountError {
-                    Text(error)
-                        .font(.subheadline)
-                        .foregroundStyle(Color.yanaDanger)
-                        .padding(12)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.yanaDanger.opacity(0.12))
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                }
-
-                if store.accountStatus.locked, store.accountStatus.mode == "google" {
-                    Text(store.accountStatus.displayName)
-                        .font(.headline)
-                    Text(store.accountStatus.email)
-                        .font(.caption)
-                        .foregroundStyle(Color.yanaMuted)
-                    Button(store.isAuthenticating ? "Đang mở Google…" : "Tiếp tục với Google", action: store.signInWithGoogle)
-                        .buttonStyle(NativePrimaryButton())
-                        .disabled(store.isAuthenticating || !GoogleOAuthSignIn.isConfigured)
-                } else if store.accountStatus.locked {
-                    Text(store.accountStatus.displayName)
-                        .font(.headline)
-                    SecureField("Mật khẩu", text: $password)
-                        .textFieldStyle(.roundedBorder)
-                        .onSubmit(unlock)
-                    Button(store.isAuthenticating ? "Đang mở khóa…" : "Mở khóa", action: unlock)
-                        .buttonStyle(NativePrimaryButton())
-                        .disabled(store.isAuthenticating || password.isEmpty)
-                } else {
-                    Button(store.isAuthenticating ? "Đang mở Google…" : "Tiếp tục với Google", action: store.signInWithGoogle)
-                        .buttonStyle(NativePrimaryButton())
-                        .disabled(store.isAuthenticating || !GoogleOAuthSignIn.isConfigured)
-                    Text("Chỉ dùng danh tính Google: tên và email đã xác minh. Không cấp quyền Gmail, Drive hoặc Calendar.")
-                        .font(.caption)
-                        .foregroundStyle(Color.yanaMuted)
-                    HStack(spacing: 10) {
-                        Rectangle().fill(Color.yanaLine).frame(height: 1)
-                        Text("hoặc").font(.caption).foregroundStyle(Color.yanaMuted)
-                        Rectangle().fill(Color.yanaLine).frame(height: 1)
-                    }
-                    TextField("Tên hiển thị", text: $displayName)
-                        .textFieldStyle(.roundedBorder)
-                    TextField("Email", text: $email)
-                        .textFieldStyle(.roundedBorder)
-                    SecureField("Mật khẩu", text: $password)
-                        .textFieldStyle(.roundedBorder)
-                    SecureField("Nhập lại mật khẩu", text: $confirmation)
-                        .textFieldStyle(.roundedBorder)
-                        .onSubmit(createAccount)
-                    if !confirmation.isEmpty, password != confirmation {
-                        Text("Mật khẩu nhập lại chưa khớp.")
-                            .font(.caption)
-                            .foregroundStyle(Color.yanaDanger)
-                    }
-                    Text("Tối thiểu 10 ký tự, nhập lại đúng khớp. Mật khẩu không được lưu ở dạng có thể đọc.")
-                        .font(.caption)
-                        .foregroundStyle(Color.yanaMuted)
-                    Button(store.isAuthenticating ? "Đang tạo hồ sơ…" : "Tạo hồ sơ local", action: createAccount)
-                        .buttonStyle(NativePrimaryButton())
-                        .disabled(store.isAuthenticating || !canCreate)
-                }
-
-                Divider().overlay(Color.yanaLine)
-                Text(footerDetail)
-                    .font(.caption)
-                    .foregroundStyle(Color.yanaMuted)
-            }
-            .frame(width: 410)
-            .frame(maxHeight: .infinity, alignment: .center)
-            .padding(44)
-            .background(Color.yanaSidebar)
-        }
-    }
-
-    private var accountDetail: String {
-        if store.accountStatus.locked, store.accountStatus.mode == "google" {
-            "Xác nhận lại đúng tài khoản Google để mở khóa Yana Studio trên máy này."
-        } else if store.accountStatus.locked {
-            "Hồ sơ local của anh đang được khóa trên máy này."
-        } else {
-            "Hồ sơ dùng để khóa/mở khóa Yana Studio trên máy này."
-        }
-    }
-
-    private var footerDetail: String {
-        if GoogleOAuthSignIn.isConfigured {
-            return "Google mở trong trình duyệt và quay về ứng dụng bằng PKCE. Yana không lưu access token hoặc client secret."
-        }
-        return "Google chưa được cấu hình cho bản app này."
-    }
-
-    private var canCreate: Bool {
-        !displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && password.count >= 10
-            && password == confirmation
-    }
-
-    private func createAccount() {
-        guard password == confirmation else { return }
-        store.createLocalAccount(displayName: displayName, email: email, password: password)
-        if !store.requiresAuthentication {
-            password = ""
-            confirmation = ""
-        }
-    }
-
-    private func unlock() {
-        store.unlockStudio(password: password)
-        if !store.requiresAuthentication { password = "" }
-    }
-}
-
 private struct NativeSidebar: View {
     @EnvironmentObject private var store: StudioStore
 
@@ -794,9 +627,9 @@ private struct NativeSidebar: View {
 
             Spacer()
             VStack(alignment: .leading, spacing: 5) {
-                Label(store.accountStatus.displayName, systemImage: "person.crop.circle")
+                Label("Chạy trên máy này", systemImage: "desktopcomputer")
                     .font(.caption.weight(.semibold))
-                Text("Hồ sơ local · Apple Silicon")
+                Text("Local-first · Apple Silicon")
                     .font(.caption2)
                     .foregroundStyle(Color.yanaMuted)
             }
@@ -1427,16 +1260,7 @@ private struct SettingsSurface: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 30) {
                 SurfaceHeader(title: "Cài đặt", subtitle: "Kết nối runtime local, không có Yana cloud")
-                SettingsBlock(title: "Hồ sơ local", detail: "\(store.accountStatus.displayName) · \(store.accountStatus.email)") {
-                    HStack {
-                        Label("Được bảo vệ bằng mật khẩu local", systemImage: "lock.shield")
-                            .foregroundStyle(Color.yanaSuccess)
-                        Spacer()
-                        Button("Khóa Studio", action: store.lockStudio)
-                        .buttonStyle(NativeSecondaryButton())
-                    }
-                }
-                SettingsBlock(title: "Sẵn sàng để thử", detail: "Kiểm tra cục bộ trạng thái hồ sơ, project, runtime và model trước khi gửi yêu cầu đầu tiên.") {
+                SettingsBlock(title: "Sẵn sàng để thử", detail: "Kiểm tra cục bộ project, runtime và model trước khi gửi yêu cầu đầu tiên.") {
                     VStack(alignment: .leading, spacing: 10) {
                         ForEach(store.readinessChecks) { check in
                             HStack(alignment: .top, spacing: 10) {

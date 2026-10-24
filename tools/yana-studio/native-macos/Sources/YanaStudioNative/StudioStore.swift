@@ -443,9 +443,6 @@ struct RuntimeHistoryItem: Sendable {
 @MainActor
 final class StudioStore: ObservableObject {
     @Published var selectedSurface: StudioSurface = .home
-    @Published private(set) var accountStatus = StudioAccountStatus.empty
-    @Published private(set) var accountError: String?
-    @Published private(set) var isAuthenticating = false
     @Published private(set) var projects: [StudioProject] = []
     @Published var selectedProjectID: String?
     @Published private(set) var workspaceFiles: [WorkspaceFile] = []
@@ -520,7 +517,6 @@ final class StudioStore: ObservableObject {
     private let maxRuntimeHistoryBytes = 400_000
     private let maxChatAttachments = 4
     private let maxChatAttachmentBytes = 8 * 1024
-    private var localAccountStore: LocalAccountStore?
     private var selectedFileRevision: WorkspaceFileRevision?
     private var terminalProcess: Process?
     private var terminalSessionProcess: Process?
@@ -538,22 +534,11 @@ final class StudioStore: ObservableObject {
     private var chatWatchdog: DispatchWorkItem?
 
     init() {
-        do {
-            let accountStore = try LocalAccountStore()
-            localAccountStore = accountStore
-            accountStatus = accountStore.status
-        } catch {
-            accountError = error.localizedDescription
-        }
         appearance = StudioAppearance(rawValue: UserDefaults.standard.string(forKey: appearanceKey) ?? "") ?? .system
         glassStrength = UserDefaults.standard.object(forKey: glassStrengthKey) as? Double ?? 0.62
         loadRuntimeConfiguration()
         loadProjects()
         refreshReadiness()
-    }
-
-    var requiresAuthentication: Bool {
-        !accountStatus.configured || accountStatus.locked
     }
 
     var selectedProject: StudioProject? {
@@ -573,72 +558,6 @@ final class StudioStore: ObservableObject {
 
     var canSaveSelectedFile: Bool {
         selectedFileIsEditable && hasUnsavedFileChanges && selectedFileRevision != nil
-    }
-
-    func createLocalAccount(displayName: String, email: String, password: String) {
-        guard let localAccountStore else {
-            accountError = "Hồ sơ local không khả dụng trên máy này."
-            return
-        }
-        isAuthenticating = true
-        defer { isAuthenticating = false }
-        do {
-            accountStatus = try localAccountStore.create(
-                displayName: displayName,
-                email: email,
-                password: password
-            )
-            accountError = nil
-            notice = "Đã tạo hồ sơ local. Dữ liệu vẫn ở trên máy anh."
-            refreshReadiness()
-        } catch {
-            accountError = error.localizedDescription
-        }
-    }
-
-    func unlockStudio(password: String) {
-        guard let localAccountStore else {
-            accountError = "Hồ sơ local không khả dụng trên máy này."
-            return
-        }
-        isAuthenticating = true
-        defer { isAuthenticating = false }
-        do {
-            accountStatus = try localAccountStore.unlock(password: password)
-            accountError = nil
-            notice = "Yana Studio đã được mở khóa."
-            refreshReadiness()
-        } catch {
-            accountError = error.localizedDescription
-        }
-    }
-
-    func signInWithGoogle() {
-        guard let localAccountStore else {
-            accountError = "Hồ sơ local không khả dụng trên máy này."
-            return
-        }
-        guard !isAuthenticating else { return }
-        isAuthenticating = true
-        accountError = nil
-        Task {
-            defer { isAuthenticating = false }
-            do {
-                let identity = try await GoogleOAuthSignIn.authenticate()
-                accountStatus = try localAccountStore.useGoogle(identity: identity)
-                notice = "Đã xác nhận hồ sơ Google trên máy này."
-                refreshReadiness()
-            } catch {
-                accountError = error.localizedDescription
-            }
-        }
-    }
-
-    func lockStudio() {
-        guard let localAccountStore else { return }
-        accountStatus = localAccountStore.lock()
-        selectedSurface = .home
-        refreshReadiness()
     }
 
     func refreshHostProfile() {
@@ -679,14 +598,6 @@ final class StudioStore: ObservableObject {
 
         let modelReady = !model.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         readinessChecks = [
-            StudioReadinessCheck(
-                id: "profile",
-                title: "Hồ sơ trên máy",
-                detail: accountStatus.configured
-                    ? (accountStatus.locked ? "Hồ sơ đang khóa." : "\(accountStatus.displayName) · \(accountStatus.mode == "google" ? "Google" : "local") · đã mở khóa.")
-                    : "Đăng nhập Google hoặc tạo một hồ sơ local để tiếp tục.",
-                isReady: accountStatus.configured && !accountStatus.locked
-            ),
             StudioReadinessCheck(id: "project", title: "Project", detail: projectDetail, isReady: projectReady),
             StudioReadinessCheck(id: "runtime", title: "Yana Runtime", detail: runtimeDetail, isReady: runtimeReady),
             StudioReadinessCheck(
@@ -699,11 +610,13 @@ final class StudioStore: ObservableObject {
     }
 
     func revealLocalData() {
-        guard let localAccountStore else {
+        guard let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
             notice = "Không tìm được thư mục dữ liệu local."
             return
         }
-        NSWorkspace.shared.activateFileViewerSelecting([localAccountStore.storageDirectoryURL])
+        let directory = support.appendingPathComponent("Yana Studio Native", isDirectory: true)
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        NSWorkspace.shared.activateFileViewerSelecting([directory])
     }
 
     func chooseProject() {

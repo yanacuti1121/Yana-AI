@@ -4,7 +4,6 @@ Native macOS foundation for Yana Studio, built with SwiftUI for Apple Silicon.
 
 ## What it currently does
 
-- Creates and unlocks a local profile stored only on the Mac, or signs in through Google Desktop OAuth with PKCE. Google only returns a verified name and email; the app never stores a Google access token, refresh token, or client secret.
 - Opens and remembers local project folders.
 - Browses project files, searches by path, edits safe UTF-8 text files, and saves atomically.
 - Highlights common Swift, Rust, JavaScript, TypeScript, Python, JSON, and shell syntax in the editor.
@@ -16,15 +15,12 @@ Native macOS foundation for Yana Studio, built with SwiftUI for Apple Silicon.
 - Shows a read-only profile of the current Mac, including chip, memory, cores, uptime, workspace, and configured runtime path.
 - Reads capability leases and pending approval requests from Yana Runtime. A human can explicitly allow or deny a pending request; the runtime records the decision and re-checks policy before it resumes the turn.
 - Runs one-shot terminal commands and a basic persistent PTY shell in the selected project. Full-screen terminal programs still need a dedicated terminal renderer.
-- Offers system, light, and dark appearances with an adjustable glass strength and a local readiness check for profile, project, runtime, and model.
+- Offers system, light, and dark appearances with an adjustable glass strength and a local readiness check for project, runtime, and model.
 
 ## Not yet replaced
 
-The Electron application remains the functional version for GitHub OAuth,
+The Electron application remains the functional version for
 full terminal emulation, connector integrations, and Git write operations.
-Google sign-in still needs a Google Cloud **Desktop app** client and every
-tester added to the OAuth consent screen while it is in testing; this package
-shows Google errors instead of pretending that external Console setup succeeded.
 
 ## Run locally
 
@@ -52,3 +48,5 @@ It is an internal test app, not a notarized public release.
 GitHub Actions runs the same build, unit-test, package, signature, and arm64
 checks for native changes on pushes and pull requests, then stores the resulting
 app as a test artifact.
+
+There is no account or sign-in: the app opens straight into the workspace and keeps everything on this Mac. It needs macOS 26 or later (Liquid Glass).
