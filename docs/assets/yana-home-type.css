@@ -1,0 +1,15 @@
+/*
+ * Home page voice for inner pages: rounded Nunito headings, the same rule the home
+ * page gets from yana-hero.css (body.home-page :is(h1,h2,h3)), without the hero layout.
+ * Loaded after yana-nav.css; pairs with the Nunito Google Fonts link in each page head.
+ */
+body.home-page {
+  --sans: "Nunito", "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --display: "Nunito", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+body.home-page :is(h1, h2, h3) {
+  font-family: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -.025em;
+}
