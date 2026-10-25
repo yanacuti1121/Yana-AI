@@ -166,6 +166,23 @@ fn base_descriptors() -> Vec<CapabilityDescriptor> {
             availability: always_available,
         },
         CapabilityDescriptor {
+            name: "harness.audit",
+            tool_name: "harness_audit",
+            description: "Audit the agent and skill files under the session root: removed APIs, reviewer agents holding write tools, duplicate names, oversized skills, mirror drift, bad frontmatter. Read-only.",
+            access_mode: AccessMode::ReadOnly,
+            risk_tier: RiskTier::Low,
+            approval: ApprovalRequirement::None,
+            input_schema: json!({"type": "object", "properties": {}}),
+            output_schema: json!({
+                "type": "object",
+                "properties": {
+                    "capability": {"const": "harness.audit"},
+                    "data": {"type": "object"}
+                }
+            }),
+            availability: always_available,
+        },
+        CapabilityDescriptor {
             name: "process.list",
             tool_name: "list_processes",
             description: "List bounded local processes sorted by cpu or memory; read-only.",

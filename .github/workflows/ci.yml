@@ -205,6 +205,11 @@ jobs:
       - name: Run integration tests
         run: cargo test --test integration_runtime -- --test-threads=4
 
+      # Harness core, Phase 1 (.planning/yana-harness-core/DESIGN.md): the real binary's
+      # `harness audit` exit codes and JSON contract.
+      - name: Run harness audit integration tests
+        run: cargo test --test integration_harness -- --test-threads=4
+
       # Workstream B / B1 (Feature matrix): the `discord` feature (Cargo.
       # toml) — the Discord remote adapter shipped in PR #205/#206, ~2200
       # lines, with real regression tests protecting a panic-isolation fix

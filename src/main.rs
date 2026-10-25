@@ -15,6 +15,7 @@ mod filescan;
 mod fix;
 mod graph;
 mod guard;
+mod harness;
 mod hunt;
 mod init;
 mod map;
@@ -172,6 +173,12 @@ enum Commands {
     SkillQuality {
         #[command(subcommand)]
         action: skill_quality::SkillQualityAction,
+    },
+    /// Harness core: audit the agents and skills a project carries (read-only).
+    /// Design: .planning/yana-harness-core/DESIGN.md
+    Harness {
+        #[command(subcommand)]
+        action: harness::HarnessAction,
     },
     /// Active security scanner — secrets, code vulns, deps, supply-chain
     Hunt {
@@ -1041,6 +1048,7 @@ fn main() {
         Commands::Research { action } => research::dispatch(action),
         Commands::Connector { action } => connector::dispatch(action),
         Commands::Route { action } => route::dispatch(action),
+        Commands::Harness { action } => std::process::exit(harness::dispatch(action)),
         Commands::Hunt { action } => hunt::dispatch(action),
         Commands::Ci { action } => ci::dispatch(action),
         Commands::Map { action } => map::dispatch(action),
