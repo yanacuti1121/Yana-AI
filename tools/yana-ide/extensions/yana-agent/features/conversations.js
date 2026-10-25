@@ -16,6 +16,12 @@ const TITLE_LENGTH = 45; // tiêu đề tạm lấy từ tin nhắn đầu, như
 // làm mỗi lần ghi nặng hàng chục MB.
 const MAX_MESSAGE_CHARS = 64 * 1024;
 const EMPTY = { activeId: '', list: [] };
+// Diễn biến công cụ của mỗi lượt được lưu cùng hội thoại để mở lại được như lúc nó chạy (lệnh, diff, quyết định
+// duyệt). Chỉ lưu phần cần để vẽ lại; chữ của câu trả lời nằm trong `content`, token nằm trong `tokens`.
+const MAX_EVENTS_PER_TURN = 200;
+const MAX_EVENT_FIELD_CHARS = 8 * 1024; // một diff khổng lồ không được làm phình kho workspaceState
+const STORED_RUNTIME_KINDS_EXCLUDED = new Set(['turn_completed']);
+const STORED_EVENT_TYPES = new Set(['runtime_event', 'authority_denied', 'error']);
 
 let context;
 let tree;
@@ -57,17 +63,56 @@ async function select(id) {
 	await save({ ...state, activeId: id });
 }
 
-async function appendTurn(id, userText, assistantText) {
+function capFields(event) {
+	const copy = {};
+	for (const [key, value] of Object.entries(event)) {
+		copy[key] = typeof value === 'string' && value.length > MAX_EVENT_FIELD_CHARS ? value.slice(0, MAX_EVENT_FIELD_CHARS) : value;
+	}
+	return copy;
+}
+
+// Giữ các sự kiện đủ để phát lại phiên; bỏ text_delta, metrics và lời xin duyệt đang chờ (nút duyệt của phiên cũ
+// không được phép còn bấm được).
+function storableEvents(events) {
+	const kept = (Array.isArray(events) ? events : [])
+		.filter(event => event && STORED_EVENT_TYPES.has(event.type) && !(event.type === 'runtime_event' && STORED_RUNTIME_KINDS_EXCLUDED.has(event.kind)));
+	return { events: kept.slice(0, MAX_EVENTS_PER_TURN).map(capFields), truncated: kept.length > MAX_EVENTS_PER_TURN };
+}
+
+// `details`: { events, status ('done' | 'cancelled' | 'error'), tokens }. Một lượt chỉ dùng công cụ, bị huỷ hoặc
+// báo lỗi cũng được lưu (trước đây mất vì không có chữ trả lời); lượt không có gì để xem lại thì bỏ.
+async function appendTurn(id, userText, assistantText, details = {}) {
+	const { events, truncated } = storableEvents(details.events);
+	if (!assistantText && events.length === 0) return;
 	const state = load();
 	const list = state.list.map(c => {
 		if (c.id !== id) return c;
-		const messages = [...c.messages,
-			{ role: 'user', content: userText.slice(0, MAX_MESSAGE_CHARS) },
-			{ role: 'assistant', content: assistantText.slice(0, MAX_MESSAGE_CHARS) }].slice(-MAX_MESSAGES);
+		const reply = {
+			role: 'assistant',
+			content: assistantText.slice(0, MAX_MESSAGE_CHARS),
+			...(details.status ? { status: details.status } : {}),
+			...(details.tokens ? { tokens: { input: details.tokens.input || 0, output: details.tokens.output || 0 } } : {}),
+			...(events.length ? { events } : {}),
+			...(truncated ? { eventsTruncated: true } : {}),
+		};
+		const messages = [...c.messages, { role: 'user', content: userText.slice(0, MAX_MESSAGE_CHARS) }, reply].slice(-MAX_MESSAGES);
 		const title = c.titleSet ? c.title : userText.replace(/\s+/g, ' ').trim().slice(0, TITLE_LENGTH) || c.title;
 		return { ...c, messages, title, titleSet: true, updatedAt: Date.now() };
 	});
 	await save({ ...state, list });
+}
+
+// Ngữ cảnh gửi cho model: chỉ các cặp hỏi–đáp có chữ trả lời, chỉ role và content (không lộ events/status).
+function contextMessages(conversation) {
+	const messages = conversation?.messages || [];
+	const out = [];
+	for (let i = 0; i + 1 < messages.length; i += 2) {
+		const [question, answer] = [messages[i], messages[i + 1]];
+		if (question.role === 'user' && answer.role === 'assistant' && answer.content) {
+			out.push({ role: question.role, content: question.content }, { role: answer.role, content: answer.content });
+		}
+	}
+	return out;
 }
 
 async function rename(id, title) {
@@ -136,4 +181,4 @@ function activate(extensionContext) {
 	);
 }
 
-module.exports = { id: 'conversations', activate, active, create, ensureActive, appendTurn, onDidChange: changed.event };
+module.exports = { id: 'conversations', activate, active, create, ensureActive, appendTurn, contextMessages, onDidChange: changed.event };
