@@ -172,6 +172,10 @@ impl YanaRuntime {
     fn host_summary(&self) -> Result<CallToolResult, McpError> {
         observe(crate::capability::host_summary(&self.repo_root).map_err(Into::into))
     }
+    #[tool(description = "Audit the agent and skill files under the repo root (removed APIs, reviewer agents with write tools, duplicate names, oversized skills, mirror drift, bad frontmatter); read-only.")]
+    fn harness_audit(&self) -> Result<CallToolResult, McpError> {
+        observe(crate::capability::harness_audit(&self.repo_root).map_err(Into::into))
+    }
     #[tool(description = "List bounded local processes sorted by cpu or memory; read-only.")]
     fn list_processes(
         &self,
