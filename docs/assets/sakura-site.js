@@ -264,6 +264,44 @@
   }
 
 
+  /* Terms of use under the footer. One source for every page (vi / en / ko); the pages carry no copy of it. */
+  if(footer&&!document.querySelector(".site-legal")){
+    const L={
+      vi:{title:"Điều khoản sử dụng trang này",items:[
+        ["Bản quyền và giấy phép.","Mã nguồn của Yana theo giấy phép Apache 2.0. Nội dung và giao diện trên trang © 2026 Yana. Các thành phần nguồn mở giữ nguyên giấy phép tương ứng."],
+        ["Thương hiệu.","Tên Yana, logo và nhận diện của Yana không nằm trong giấy phép mã nguồn (xem Apache 2.0, mục 6). Không dùng chúng theo cách khiến người khác hiểu nhầm sản phẩm của bạn là Yana, hoặc được Yana bảo trợ, khi chưa có sự đồng ý bằng văn bản."],
+        ["Ví dụ minh hoạ.","Màn hình, lệnh và hộp duyệt trên trang chạy trong trình duyệt để minh hoạ; không có lệnh nào chạy trên máy của bạn."],
+        ["Nhãn hiệu Apple.","Apple, iMac, MacBook và macOS là nhãn hiệu của Apple Inc., đã đăng ký tại Hoa Kỳ và các quốc gia khác. Khung máy iMac và MacBook Pro lấy từ Apple Design Resources. Yana không liên kết với Apple và không được Apple bảo trợ."],
+        ["Hình ảnh.","Hình nền trên màn hình máy là hình nền iMac thuộc bản quyền của Apple Inc."],
+        ["Phông chữ.","Nunito, Plus Jakarta Sans, Patrick Hand, Caveat và JetBrains Mono từ Google Fonts, theo giấy phép SIL Open Font License."]],
+        more:"Đọc đầy đủ:",links:[["legal-notices","Thông báo pháp lý"],["privacy","Quyền riêng tư"],["acknowledgements","Lời cảm ơn"]]},
+      en:{title:"Terms of use for this site",items:[
+        ["Copyright and license.","Yana's source code is under the Apache 2.0 license. The content and interface of this site are © 2026 Yana. Open-source components keep their respective licenses."],
+        ["Trademarks.","The Yana name, logo and identity are not covered by the source-code license (see Apache 2.0, section 6). Do not use them in a way that suggests your product is Yana, or is endorsed by Yana, without written permission."],
+        ["Illustrative examples.","The screens, commands and approval boxes on this site run in the browser for illustration; no command runs on your machine."],
+        ["Apple trademarks.","Apple, iMac, MacBook and macOS are trademarks of Apple Inc., registered in the U.S. and other countries. The iMac and MacBook Pro frames come from Apple Design Resources. Yana is not affiliated with or endorsed by Apple."],
+        ["Images.","The wallpaper on the device screens is an iMac wallpaper copyrighted by Apple Inc."],
+        ["Fonts.","Nunito, Plus Jakarta Sans, Patrick Hand, Caveat and JetBrains Mono from Google Fonts, under the SIL Open Font License."]],
+        more:"Read in full:",links:[["legal-notices","Legal notices"],["privacy","Privacy"],["acknowledgements","Acknowledgements"]]},
+      ko:{title:"이 사이트 이용 약관",items:[
+        ["저작권 및 라이선스.","Yana의 소스 코드는 Apache 2.0 라이선스를 따릅니다. 사이트의 콘텐츠와 인터페이스 © 2026 Yana. 오픈소스 구성 요소는 각자의 라이선스를 그대로 따릅니다."],
+        ["상표.","Yana 이름, 로고, 브랜드 식별 요소는 소스 코드 라이선스에 포함되지 않습니다(Apache 2.0 6항 참조). 서면 동의 없이 귀하의 제품이 Yana이거나 Yana의 후원을 받는 것으로 오해하게 하는 방식으로 사용할 수 없습니다."],
+        ["예시 안내.","이 사이트의 화면, 명령, 승인 상자는 설명을 위해 브라우저 안에서 동작하며, 어떤 명령도 내 컴퓨터에서 실행되지 않습니다."],
+        ["Apple 상표.","Apple, iMac, MacBook, macOS는 미국 및 기타 국가에 등록된 Apple Inc.의 상표입니다. iMac과 MacBook Pro 프레임은 Apple Design Resources에서 가져왔습니다. Yana는 Apple과 제휴하거나 Apple의 후원을 받지 않습니다."],
+        ["이미지.","기기 화면의 배경화면은 Apple Inc.가 저작권을 가진 iMac 배경화면입니다."],
+        ["글꼴.","Google Fonts의 Nunito, Plus Jakarta Sans, Patrick Hand, Caveat, JetBrains Mono이며, SIL Open Font License를 따릅니다."]],
+        more:"전문 보기:",links:[["legal-notices","법적 고지"],["privacy","개인정보 처리방침"],["acknowledgements","감사의 말"]]}
+    }[vi?"vi":ko?"ko":"en"];
+    if(!document.getElementById("site-legal-style")){
+      const style=document.createElement("style");style.id="site-legal-style";
+      style.textContent=".site-legal{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:36px 24px 48px;border-top:1px solid #e3e8ef;color:#4b5563;font:500 .92rem/1.65 var(--sans)}.site-legal h2{margin:0 0 12px;color:#17181c;font:800 1.05rem var(--sans);letter-spacing:-.01em}.site-legal ul{margin:0;padding-left:1.1em;display:grid;gap:6px}.site-legal b{color:#17181c}.site-legal-links{margin:16px 0 0;display:flex;flex-wrap:wrap;gap:6px 18px}.site-legal-links a{color:#3b6fe0;font-weight:700;text-decoration:underline;text-underline-offset:3px}";
+      document.head.appendChild(style);
+    }
+    const legal=document.createElement("section");legal.className="site-legal";legal.setAttribute("aria-labelledby","site-legal-title");
+    legal.innerHTML=`<h2 id="site-legal-title">${L.title}</h2><ul>${L.items.map(i=>`<li><b>${i[0]}</b> ${i[1]}</li>`).join("")}</ul><p class="site-legal-links">${L.more} ${L.links.map(l=>`<a href="${route(l[0])}">${l[1]}</a>`).join("")}</p>`;
+    footer.insertAdjacentElement("afterend",legal);
+  }
+
   /* Reveal sections once. No continuous render or per-scroll transforms. */
   if(!matchMedia("(prefers-reduced-motion: reduce)").matches){
     const targets=document.querySelectorAll(".showcase-scene,.chapter,.section,.quote-band");
