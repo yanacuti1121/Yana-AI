@@ -21,7 +21,7 @@ usage() {
   echo "  claude   — default (no adapter needed, uses .claude/ hooks natively)"
   echo "  cursor   — activates .cursorrules + .cursor/rules/*.mdc"
   echo "  codex    — synchronizes Codex agents, skills, commands, and hooks"
-  echo "  antigravity — generates .agent/rules/yana-ai.md (workspace rule, ≤12K chars)"
+  echo "  antigravity — .agents/rules/yana-ai.md + PreToolUse hook in .agents/hooks.json (shell commands enforced)"
   echo "  status     — show which adapters are currently active"
   echo ""
   echo "Options:"
@@ -340,43 +340,38 @@ CURSOREOF
     ;;
 
   antigravity)
-    ADAPTER="adapters/antigravity.md"
-    DEST=".agent/rules/yana-ai.md"
-    READER="Google Antigravity"
-    if [[ ! -f "$ADAPTER" ]]; then
-      echo -e "${RED}✗ $ADAPTER missing${NC}"
+    # Rule file, PreToolUse hook and hooks.json merge all live in
+    # core/scripts/install_antigravity.py, shared with `yana-ai install
+    # --engine antigravity`, so the two entry points cannot drift.
+    INSTALLER="core/scripts/install_antigravity.py"
+    if [[ ! -f "$INSTALLER" ]]; then
+      echo -e "${RED}✗ $INSTALLER missing${NC}"
+      exit 1
+    fi
+    if ! command -v node >/dev/null 2>&1; then
+      echo -e "${RED}✗ node not found — the Antigravity PreToolUse hook needs Node to run.${NC}"
       exit 1
     fi
 
     if [[ "$DRY_RUN" -eq 1 ]]; then
-      [[ -f "$DEST" ]] && echo -e "${CYAN}[dry-run] Would backup $DEST before overwrite${NC}"
-      echo -e "${CYAN}[dry-run] Would copy $ADAPTER → $DEST${NC}"
+      python3 "$INSTALLER" . --dry-run
     else
-      mkdir -p "$(dirname "$DEST")"
-      if [[ -f "$DEST" ]]; then
-        BACKUP="${DEST}.bak.$(date +%Y%m%d_%H%M%S)"
-        cp "$DEST" "$BACKUP"
-        echo -e "${YELLOW}↩ Backup created:${NC} $BACKUP"
-      fi
-      cp "$ADAPTER" "$DEST"
-      echo -e "${GREEN}✓ Generated:${NC} $DEST ($(wc -l < "$DEST") lines)"
+      python3 "$INSTALLER" . || exit 1
+      echo -e "${GREEN}✓ Antigravity rule and PreToolUse hook installed${NC}"
 
       LOGGER="core/scripts/secure-logger.sh"
       if [[ -x "$LOGGER" ]]; then
-        bash "$LOGGER" engine_switch "to_engine=$ENGINE from_engine=$_FROM_ENGINE mode=advisory source_adapter=$ADAPTER generated_file=$DEST operator=$_OPERATOR" 2>/dev/null || true
-        bash "$LOGGER" advisory_gap_start "engine=$ENGINE from_engine=$_FROM_ENGINE" 2>/dev/null || true
+        bash "$LOGGER" engine_switch "to_engine=$ENGINE from_engine=$_FROM_ENGINE mode=hooks source=$INSTALLER generated_file=.agents/hooks.json operator=$_OPERATOR" 2>/dev/null || true
       fi
     fi
 
     echo ""
-    echo -e "${YELLOW}Advisory gap active.${NC} $DEST loaded by $READER natively."
-    echo "  Yana AI safety hooks are NOT enforced at the OS level in $READER."
-    echo "  Rules are advisory via the generated rules file only."
-    echo ""
-    echo "  Key constraints active:"
-    echo "    • No rm -rf, no force push, no pipe-to-shell, no eval dynamic code"
-    echo "    • Evidence required before completion claims"
-    echo "    • Surgical changes only"
+    echo "  Enforced in Google Antigravity (App, IDE and agy CLI):"
+    echo "    • Every shell command (run_command) is screened by guard-destructive.sh"
+    echo "    • A Giám thị halt lock or quarantine blocks every tool call"
+    echo "  Not covered:"
+    echo "    • agy --dangerously-skip-permissions skips hooks entirely"
+    echo "    • Other rules in .agents/rules/yana-ai.md stay advisory"
     ;;
 
   status)
@@ -400,9 +395,12 @@ CURSOREOF
     [[ -f ".cursor/hooks.json" ]] \
       && echo -e "  ${GREEN}✓${NC} Cursor    .cursor/hooks.json (real beforeShellExecution enforcement)" \
       || echo -e "  ${YELLOW}✗${NC} Cursor    .cursor/hooks.json missing"
-    [[ -f ".agent/rules/yana-ai.md" ]] \
-      && echo -e "  ${GREEN}✓${NC} Antigrav  .agent/rules/yana-ai.md" \
-      || echo -e "  ${YELLOW}✗${NC} Antigrav  .agent/rules/yana-ai.md missing"
+    [[ -f ".agents/rules/yana-ai.md" ]] \
+      && echo -e "  ${GREEN}✓${NC} Antigrav  .agents/rules/yana-ai.md" \
+      || echo -e "  ${YELLOW}✗${NC} Antigrav  .agents/rules/yana-ai.md missing"
+    grep -q '"yana-ai-guard"' .agents/hooks.json 2>/dev/null \
+      && echo -e "  ${GREEN}✓${NC} Antigrav  .agents/hooks.json (real PreToolUse enforcement)" \
+      || echo -e "  ${YELLOW}✗${NC} Antigrav  .agents/hooks.json yana-ai-guard missing"
     echo ""
     echo -e "  ${GREEN}✓${NC} Claude    native (hooks in core/hooks/)"
     ;;

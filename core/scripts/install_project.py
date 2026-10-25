@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 
 from sync_codex import sync_codex
+from install_antigravity import install_antigravity
 
 REPO_ROOT     = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 TEMPLATES_DIR = os.path.join(REPO_ROOT, "policy", "templates")
@@ -161,7 +162,7 @@ def should_install_supervisor(mode: str) -> bool:
 
 
 def install_supervisor_assets(target: Path, dry_run: bool) -> int:
-    assets = ("giamthi-watch.sh", "verify-audit-chain.sh")
+    assets = ("giamthi-watch.sh", "verify-audit-chain.sh", "verify_audit_chain.py")
     written = 0
     for name in assets:
         source = Path(REPO_ROOT) / "core/scripts" / name
@@ -190,9 +191,10 @@ def main():
                         help="Also install runtime guards (yana-ai guard install all)")
     parser.add_argument(
         "--engine",
-        choices=("all", "claude", "codex"),
+        choices=("all", "claude", "codex", "antigravity"),
         default="all",
-        help="Capability surfaces to install (default: all)",
+        help="Capability surfaces to install (default: all = claude + codex). "
+             "antigravity is opt-in: its PreToolUse hook needs Node and bash",
     )
     parser.add_argument(
         "--supervisor",
@@ -205,7 +207,11 @@ def main():
     target = os.path.abspath(args.target)
     install_claude = args.engine in ("all", "claude")
     install_codex = args.engine in ("all", "codex")
-    total = 4 + (2 if install_claude else 0) + (1 if install_codex else 0)
+    install_agy = args.engine == "antigravity"
+    if install_agy and shutil.which("node") is None:
+        print(c(RED, "  node not found: the Antigravity PreToolUse hook needs Node to run."))
+        sys.exit(1)
+    total = 4 + (2 if install_claude else 0) + (1 if install_codex else 0) + (1 if install_agy else 0)
     total += 1 if args.guards else 0
     install_supervisor = should_install_supervisor(args.supervisor)
     total += 1 if install_supervisor else 0
@@ -278,6 +284,17 @@ def main():
         action = "would update" if args.dry_run else "updated"
         print(f"     {c(YELLOW if args.dry_run else GREEN, action)} {codex_written} Codex files")
 
+    if install_agy:
+        next_step("Antigravity rule and PreToolUse hook")
+        try:
+            agy_actions = install_antigravity(Path(target), dry_run=args.dry_run)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            print(f"     {c(RED, '✗')} Antigravity setup stopped: {exc}")
+            sys.exit(1)
+        for agy_action in agy_actions:
+            prefix = "would " if args.dry_run else ""
+            print(f"     {c(YELLOW if args.dry_run else GREEN, prefix + agy_action)}")
+
     # Runtime guards (optional)
     if args.guards:
         next_step("runtime guards (yana-ai guard install all)")
@@ -343,6 +360,10 @@ def main():
         next_number += 1
     if install_codex:
         print(f"    {next_number}. Codex support is project-scoped in .codex/ and .agents/skills/")
+        next_number += 1
+    if install_agy:
+        print(f"    {next_number}. Antigravity: shell commands are screened by .agents/hooks.json "
+              "(not when agy runs with --dangerously-skip-permissions)")
         next_number += 1
     print(f"    {next_number}. Review .mcp.recommended.json → rename to .mcp.json")
     next_number += 1
