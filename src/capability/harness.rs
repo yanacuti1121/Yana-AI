@@ -10,8 +10,11 @@ use crate::harness::audit::{Finding, Severity};
 use std::path::Path;
 
 /// Warnings returned to a caller; the full list stays available through `yana-rt harness audit --all`.
+// Only the MCP server calls `harness_audit`; a build without that feature has no caller.
+#[cfg_attr(not(feature = "mcp"), allow(dead_code))]
 const MAX_WARNINGS: usize = 100;
 
+#[cfg_attr(not(feature = "mcp"), allow(dead_code))]
 pub fn harness_audit(root: &Path) -> Result<String, CapabilityError> {
     let report =
         crate::harness::audit_project(root).map_err(|detail| CapabilityError::Io { detail })?;

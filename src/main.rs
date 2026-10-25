@@ -176,6 +176,10 @@ enum Commands {
     },
     /// Harness core: audit the agents and skills a project carries (read-only).
     /// Design: .planning/yana-harness-core/DESIGN.md
+    /// DOCTOR_DISPATCH_EXEMPT: core/scripts/harness_export.py is canonical for
+    /// `yana-ai harness` via bin/yana (it generates the cursor/opencode/zed adapter
+    /// files), a different feature from this read-only audit. The audit is reached
+    /// as `yana-rt harness audit` and as the `harness_audit` MCP tool.
     Harness {
         #[command(subcommand)]
         action: harness::HarnessAction,
