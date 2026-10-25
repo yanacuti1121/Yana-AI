@@ -112,6 +112,43 @@ const check = (name, ok, extra = '') => { (ok ? pass++ : fail++); console.log(ok
 	check('conversations capped at 100', storage.get('yana.conversations.v1').list.length === 100);
 	await c.appendTurn('does-not-exist', 'q', 'a');
 	check('turn for an unknown id changes nothing', storage.get('yana.conversations.v1').list.length === 100);
+
+	// Phiên đầy đủ: lưu cả diễn biến công cụ để mở lại được như lúc nó chạy.
+	const session = await c.create('');
+	const sessionMsgs = () => storage.get('yana.conversations.v1').list.find(entry => entry.id === session.id).messages;
+	const trace = [
+		{ type: 'runtime_event', kind: 'tool_requested', call_id: 'c1', tool: 'run_command', summary: 'npm test' },
+		{ type: 'runtime_event', kind: 'human_approval_required', call_id: 'c1', tool: 'run_command', summary: 'npm test' },
+		{ type: 'runtime_event', kind: 'tool_completed', call_id: 'c1', ok: true, summary: 'npm test', diff: 'x'.repeat(20000) },
+		{ type: 'text_delta', text: 'partial' },
+		{ type: 'metrics', input_tokens: 5, output_tokens: 7 },
+		{ type: 'awaiting_approval', approval_id: 'a1' },
+		{ type: 'completed', message: 'done' },
+	];
+	await c.appendTurn(session.id, 'run the tests', 'All green.', { events: trace, status: 'done', tokens: { input: 5, output: 7 } });
+	const turn = sessionMsgs()[1];
+	check('assistant message keeps status and tokens', turn.status === 'done' && turn.tokens.input === 5 && turn.tokens.output === 7);
+	check('tool events are stored for replay', turn.events.some(e => e.kind === 'tool_requested') && turn.events.some(e => e.kind === 'tool_completed'));
+	check('text deltas, metrics and live approval prompts are not stored', turn.events.every(e => !['text_delta', 'metrics', 'awaiting_approval'].includes(e.type)));
+	check('a huge diff inside an event is capped', turn.events.find(e => e.kind === 'tool_completed').diff.length <= 8192);
+	c = boot();
+	const afterRestart = c.active().messages[1];
+	check('stored events survive a restart', afterRestart.events.length === turn.events.length && afterRestart.status === 'done');
+
+	await c.appendTurn(session.id, 'delete the cache', '', { events: [{ type: 'runtime_event', kind: 'tool_denied', call_id: 'c2', reason: 'blocked by policy' }], status: 'done' });
+	check('a tool-only turn with no reply text is still saved', sessionMsgs().length === 4 && sessionMsgs()[3].content === '' && sessionMsgs()[3].events.length === 1);
+	await c.appendTurn(session.id, 'try again', '', { events: [{ type: 'error', message: 'boom' }], status: 'error' });
+	check('a failed turn is saved with its error', sessionMsgs().length === 6 && sessionMsgs()[5].status === 'error' && sessionMsgs()[5].events[0].message === 'boom');
+	await c.appendTurn(session.id, 'nothing happened', '', {});
+	check('a turn with no reply and no events is not saved', sessionMsgs().length === 6);
+	await c.appendTurn(session.id, 'x', 'y', { events: Array.from({ length: 300 }, (_, i) => ({ type: 'runtime_event', kind: 'tool_started', call_id: `k${i}` })), status: 'done' });
+	check('events per turn are capped and the cut is flagged', sessionMsgs()[7].events.length === 200 && sessionMsgs()[7].eventsTruncated === true);
+
+	const context = c.contextMessages(c.active());
+	check('model context drops turns without a reply and keeps order', context.length === 4 && context[0].role === 'user' && context[1].role === 'assistant');
+	check('model context carries only role and content', context.every(m => Object.keys(m).sort().join() === 'content,role'));
+	check('old messages without events still work', c.contextMessages({ messages: [{ role: 'user', content: 'q' }, { role: 'assistant', content: 'a' }] }).length === 2);
+
 	console.log(`${pass} passed, ${fail} failed`);
 	process.exit(fail ? 1 : 0);
 })();

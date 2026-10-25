@@ -16,6 +16,7 @@ const auditLog = require('./features/audit-log');
 const changes = require('./features/changes');
 const edits = require('./features/edits');
 const { EDIT_INSTRUCTIONS } = require('./features/edit-protocol');
+const MAX_RAW_EVENTS_PER_TURN = 2000; // trần số sự kiện giữ trong bộ nhớ trong một lượt (lưu bền chỉ giữ 200 đầu)
 const MAX_HISTORY_MESSAGES = 40; // 20 lượt hỏi đáp gần nhất gửi kèm làm ngữ cảnh
 // Chỉ dùng khi yana-rt quá cũ để chặn ghi thật: lúc đó Plan chỉ là lời nhờ model.
 const PLAN_HINT = '[Plan Mode - Do not edit any files or execute write commands. Only analyze and provide a step-by-step plan]';
@@ -576,7 +577,7 @@ class YanaPanel {
 			task = (task || 'Please review and process the attached file(s).') + filesContext;
 		}
 
-		const payload = { task: task || 'Analyze the attached image(s)', history: conversation.messages.slice(-MAX_HISTORY_MESSAGES), session_id: conversation.id };
+		const payload = { task: task || 'Analyze the attached image(s)', history: conversations.contextMessages(conversation).slice(-MAX_HISTORY_MESSAGES), session_id: conversation.id };
 		if (ready.key) {
 			payload.api_key = ready.key;
 		}
@@ -613,13 +614,16 @@ class YanaPanel {
 		// Tiếp tục đúng lượt đang chờ duyệt, để phần trả lời sau khi duyệt được lưu chung với câu hỏi gốc.
 		const pending = this.pendingTurn || {};
 		this.pendingTurn = undefined;
-		this.run({ ...ready, resume: true, payload, conversationId: pending.conversationId, priorReply: pending.reply }, pending.task || '');
+		this.run({ ...ready, resume: true, payload, conversationId: pending.conversationId, priorReply: pending.reply, priorEvents: pending.events }, pending.task || '');
 	}
 
 	run(options, task) {
 		let reply = options.priorReply || '';
 		let paused = false;
+		let status = 'done';
 		const tokens = { input: 0, output: 0 };
+		// Diễn biến công cụ của lượt này (không gồm chữ đang stream và số token) để lưu cùng hội thoại và phát lại sau.
+		const events = Array.isArray(options.priorEvents) ? [...options.priorEvents] : [];
 		this.active = startTurn(
 			{ binary: this.binary, cwd: options.cwd, provider: options.provider, model: options.model, resume: options.resume, payload: options.payload },
 			event => {
@@ -633,6 +637,9 @@ class YanaPanel {
 				if (event.type === 'awaiting_approval') {
 					paused = true;
 				}
+				if (event.type === 'cancelled') status = 'cancelled';
+				if (event.type === 'error') status = 'error';
+				if (event.type !== 'text_delta' && event.type !== 'metrics' && events.length < MAX_RAW_EVENTS_PER_TURN) events.push(event);
 				if (event.type === 'error' && /cannot persist pending approval/.test(event.message || '')) {
 					approvalStore.offer(options.cwd);
 				}
@@ -644,11 +651,12 @@ class YanaPanel {
 					.catch(() => undefined); // thống kê không được làm hỏng lượt chat
 
 				if (paused) {
-					this.pendingTurn = { conversationId: options.conversationId, task, reply };
-				} else if (task && reply && options.conversationId) {
-					conversations.appendTurn(options.conversationId, task, reply)
+					this.pendingTurn = { conversationId: options.conversationId, task, reply, events };
+				} else if (task && options.conversationId && (reply || events.length > 0)) {
+					// Lưu cả lượt chỉ dùng công cụ, bị huỷ hoặc báo lỗi (không có chữ trả lời) để mở lại phiên thấy đủ.
+					conversations.appendTurn(options.conversationId, task, reply, { events, status, tokens })
 						.catch(error => vscode.window.showErrorMessage(`Yana: could not save the conversation: ${error.message}`));
-					if (options.cwd) {
+					if (reply && options.cwd) {
 						try {
 							const items = edits.propose(reply, options.cwd);
 							if (items && items.length > 0) {
