@@ -156,6 +156,6 @@
     }
   },
   "allowScripts": {
-    "electron@43.4.1": true
+    "electron@43.8.1": true
   }
 }
