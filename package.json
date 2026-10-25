@@ -86,5 +86,8 @@
     "framer-motion": "^14.3.0",
     "lucide-react": "^1.58.0",
     "tailwind-merge": "^3.7.0"
+  },
+  "overrides": {
+    "undici": "7.30.1"
   }
 }
