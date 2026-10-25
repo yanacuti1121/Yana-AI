@@ -37,14 +37,24 @@ Mọi bất biến có test riêng. Vi phạm một cái thì tính năng không
 - **I8. Quyền ghi đi qua chuỗi thẩm quyền hiện có** (`RuntimeAuthority`, lease). Qua MCP chỉ lộ phần chỉ đọc và phần tạo đề xuất; `apply` chỉ có trên CLI.
 - **I9. Chống đua tay:** đề xuất ghi `base_sha256` của file đích; `apply` thất bại nếu file đã đổi sau đó.
 
-## 4. Kiến trúc
+## 4. Lõi và thân
+
+Tách theo một đường ranh giới rõ, theo yêu cầu của chủ dự án:
+
+- **Lõi, chỉ Rust (`src/harness/`).** Mọi thứ giữ bất biến I1 đến I9: quét, kiểm tra, danh sách vùng cấm, kiểm tra đề xuất, áp dụng, lưu trữ, sổ lịch sử, biên nhận bằng chứng. Lõi không phụ thuộc vào thân, không import Python, không gọi mô hình.
+- **Thân, Rust hoặc Python.** Mọi thứ không giữ bất biến: soạn đề xuất từ phản hồi, định dạng báo cáo, nối với các module `hermes_adapted` đã có, chạy thử đề xuất bằng `eval judge`, công cụ cho người dùng. Thân hỏng hoặc bị đánh lừa cũng không làm yếu lõi.
+- **Hợp đồng giữa hai bên** là JSON có phiên bản (`schema_version`), đi qua CLI `yana-rt harness ... --json` hoặc capability. Thân không ghi thẳng vào `.yana-ai/harness/`, không sửa file đích; chỉ lõi ghi, sau khi kiểm tra.
+- **Quy tắc kiểm tra tách bạch:** mọi kiểm tra an toàn nằm ở lõi và có test Rust. Thân có thể kiểm tra thêm cho tiện, nhưng lõi không tin kết quả đó.
+- Thư mục dự kiến: `src/harness/` (lõi), `harness/` ở gốc dùng cho thân bằng Python (tương tự cách `hermes_adapted` đang đặt), thân bằng Rust đặt ở `src/harness_ext/` nếu cần.
+
+## 5. Kiến trúc của lõi
 
 Module mới `src/harness/`, mỗi file dưới 300 dòng:
 
 | File | Việc |
 |---|---|
 | `inventory.rs` | Quét `core/` và `.claude/` lấy agent, skill, rule; đọc frontmatter (`name`, `description`, `tools`, `model`); tính sha256 |
-| `audit.rs` | Các kiểm tra ở mục 5; trả danh sách phát hiện có mức độ |
+| `audit.rs` | Các kiểm tra ở mục 6; trả danh sách phát hiện có mức độ |
 | `lifecycle.rs` | Tính trạng thái active, stale, archived, pinned từ `skill_quality` và `audit-chain.log` |
 | `protected.rs` | Danh sách vùng cấm, một nguồn duy nhất |
 | `proposal.rs` | Định dạng đề xuất, kiểm tra, kiểm tra đảo ngược, áp dụng nguyên tử |
@@ -57,22 +67,22 @@ Capability (đăng ký vào `capability::registry`, dùng chung cho chat và MCP
 - `harness.propose`: ghi duy nhất vào `.yana-ai/harness/proposals/`, mỗi lần gọi cần người duyệt (`HumanApprovalPerCall`).
 - `apply`, `archive`, `restore`: không đăng ký capability, chỉ CLI.
 
-## 5. Các kiểm tra của `harness audit` (Giai đoạn 1)
+## 6. Các kiểm tra của `harness audit` (Giai đoạn 1)
+
+Danh sách đã chỉnh sau khi đối chiếu với dữ liệu thật của repo: không có `CLAUDE.md` ở gốc nên bỏ kiểm tra đối chiếu ghi chú; "ghim model không lý do" và "sai giấy phép" không phán đoán được bằng máy nên bỏ.
 
 | Mã | Kiểm tra | Mức |
 |---|---|---|
-| H001 | Agent hoặc skill thật khác với danh sách ghi trong `CLAUDE.md` | cảnh báo |
-| H002 | Nhắc API đã chết (`TeamCreate`, `TeamDelete`, cờ `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`) | lỗi |
-| H003 | Agent chỉ đọc theo `subagent-policy.md` nhưng `tools` có `Write`, `Edit` hoặc `MultiEdit` | lỗi |
-| H004 | Agent ghim cứng một model mà không có ghi chú lý do | cảnh báo |
-| H005 | Hai skill trùng tên hoặc trùng từ khoá kích hoạt (theo `rule-consistency-policy.md`) | cảnh báo |
-| H006 | Skill dài quá 220 dòng hoặc thiếu mục bắt buộc (`Output Contract` khi có số liệu) | cảnh báo |
-| H007 | Bản sao `core/` và `.claude/` lệch nhau (đã có `verify-hook-mirrors.sh`, tái dùng logic) | cảnh báo |
-| H008 | Skill có `source`/giấy phép ghi sai so với `LICENSE` của nguồn đã vendor | cảnh báo |
+| H002 | Nhắc API đã chết (`TeamCreate`, `TeamDelete`, cờ `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`); dòng có `harness-allow: H002` được miễn | lỗi |
+| H003 | Agent loại "người duyệt" (tên kết thúc `-auditor` hoặc `-reviewer`, hoặc có trong bảng của `54-bft-consensus-law.md`) mà `tools` có `Write`, `Edit` hoặc `MultiEdit` | cảnh báo |
+| H005 | Hai agent hoặc hai skill cùng `name` trong cùng một cây | lỗi |
+| H006 | `SKILL.md` dài quá 220 dòng (ngưỡng của `rule-consistency-policy.md`) | cảnh báo |
+| H007 | File cùng đường dẫn tương đối có ở cả `core/` và `.claude/` nhưng nội dung khác | cảnh báo |
+| H009 | Frontmatter thiếu hoặc hỏng: thiếu `name` hoặc `description`; `name` của skill khác tên thư mục | lỗi |
 
-Mã thoát: 0 sạch, 1 có lỗi, 2 không đọc được dữ liệu. Kết quả có dạng `--json` ổn định để dùng trong CI.
+(H001, H004, H008 giữ chỗ, chưa dùng.) Mã thoát: 0 sạch hoặc chỉ có cảnh báo, 1 có lỗi, 2 không đọc được dữ liệu. Có `--json` ổn định (`schema_version: 1`) để dùng trong CI và cho thân đọc.
 
-## 6. Vòng đời (Giai đoạn 2)
+## 7. Vòng đời (Giai đoạn 2)
 
 - **Active:** có dùng trong 14 ngày gần nhất theo `audit-chain.log` (ngưỡng 14 và 30 ngày lấy theo Hermes, đặt ở hằng số có tên).
 - **Stale:** không dùng trong 14 ngày. Chỉ hiện trong báo cáo.
@@ -81,7 +91,7 @@ Mã thoát: 0 sạch, 1 có lỗi, 2 không đọc được dữ liệu. Kết q
 - Skill đã `Trusted` mà gặp chuỗi FAIL thì hạ bậc tự động (hành vi hiện có của `skill_quality.rs`, giữ nguyên).
 - Hạn chế đã biết: gán skill cho tác vụ theo cửa sổ thời gian, không theo danh tính (nêu trong `skill_quality.rs`); báo cáo ghi rõ.
 
-## 7. Đề xuất và áp dụng (Giai đoạn 3)
+## 8. Đề xuất và áp dụng (Giai đoạn 3)
 
 Đề xuất là một file JSON:
 
@@ -95,40 +105,40 @@ Luồng: agent gọi `harness.propose` → lõi kiểm tra (schema, vùng cấm 
 
 Với đường dẫn nằm trong `core/` bị `core-lock` ghim, `apply` dừng và in lệnh cập nhật khoá để người tự chạy; lõi không tự chạy `update-core-lock.sh`.
 
-## 8. Bằng chứng
+## 9. Bằng chứng
 
 Mỗi lần `apply` ghi một biên nhận HMAC bằng cơ chế `src/evidence/` hiện có (khoá `YANA_EVIDENCE_KEY` mà mô hình không thấy), gồm sha256 trước và sau, mã đề xuất, người duyệt. Khi có `ObservationEvidence` (đề xuất riêng cho khả năng "mổ"), sổ này dùng lại cùng định dạng.
 
-## 9. Kế hoạch kiểm thử
+## 10. Kế hoạch kiểm thử
 
-- Mỗi kiểm tra H001 đến H008: một ca đúng, một ca sai, một ca biên (tên có dấu, frontmatter hỏng, tệp rỗng).
+- Mỗi kiểm tra H002, H003, H005, H006, H007, H009: một ca đúng, một ca sai, một ca biên (tên có dấu, frontmatter hỏng, tệp rỗng).
 - I3: đề xuất sửa `src/guard/x`, `core/hooks/x`, đường dẫn `..`, symlink trỏ vào vùng cấm, tên viết khác hoa thường: đều bị từ chối.
 - I2: không có đường nào để một lời gọi MCP làm `apply` hoặc `archive`.
 - I7: đề xuất đảo ngược lần sửa trước bị gắn cờ.
 - I9: sửa file đích sau khi có đề xuất, `apply` phải từ chối.
 - Kiểm thử đầu cuối bằng `tests/integration_harness.rs`, chạy trong CI; ca đỏ trước, xanh sau theo `verification.md`.
 
-## 10. Giai đoạn và tiêu chí xong
+## 11. Giai đoạn và tiêu chí xong
 
-1. **Giai đoạn 1:** `inventory`, `audit` (H001 đến H008), lệnh `harness audit`, capability `harness.audit`, test, bước CI. Chỉ đọc.
+1. **Giai đoạn 1:** `inventory`, `audit` (H002, H003, H005, H006, H007, H009), lệnh `harness audit`, capability `harness.audit`, test, bước CI. Chỉ đọc.
 2. **Giai đoạn 2:** `lifecycle`, `harness status`, báo cáo stale, `pin`.
 3. **Giai đoạn 3:** `propose`, `review`, `apply`, `archive`, `restore`, sổ lịch sử.
 4. **Giai đoạn 4 (tuỳ chọn, sau cùng):** thử đề xuất trên một nhánh tạm bằng `eval judge`, so trước và sau.
 
 Mỗi giai đoạn là một PR riêng, có thể dừng ở bất kỳ giai đoạn nào mà không để lại nửa tính năng.
 
-## 11. Ngoài phạm vi (cố ý)
+## 12. Ngoài phạm vi (cố ý)
 
 Tiến trình nền tự chạy; gọi mô hình trong lõi; sửa vùng cấm I3; truy cập mạng; tự nâng bậc skill; sinh hàng loạt agent từ mô tả lĩnh vực.
 
-## 12. Câu hỏi cần chủ dự án quyết
+## 13. Câu hỏi cần chủ dự án quyết
 
 1. Ngưỡng 14 và 30 ngày có hợp với nhịp dùng của anh không?
 2. Thư mục `.yana-ai/harness/` nằm ngoài git (như `skill_quality.json`) hay được theo dõi để có lịch sử trong repo?
 3. `harness.propose` có hiện ra qua MCP cho các client khác không, hay chỉ dùng trong `yana chat`?
 4. Có làm riêng một PR sửa các skill lỗi thời trước (không phụ thuộc thiết kế này) không?
 
-## 13. Tác động tới quy tắc hiện có
+## 14. Tác động tới quy tắc hiện có
 
 - Thêm `src/harness/` và đăng ký capability: cần cập nhật `registry_data.rs`, bảng trong `docs/` và số liệu `MANIFEST.json` nếu có thay đổi đếm.
 - Không đổi hook, không đổi `guard`, không đổi `core-lock` ở các giai đoạn 1 và 2.
