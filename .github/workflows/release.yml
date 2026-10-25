@@ -131,8 +131,12 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
+      # The `mcp` feature (the `yana-rt mcp` server for Cursor, Claude Code and other MCP clients) is
+      # not in the default feature set, because it pulls in tokio and rmcp and the default set is also
+      # what the WASM library builds with. Shipped binaries opt in here; the smoke test below
+      # requires the subcommand to answer, so a build that forgets this flag cannot publish.
       - name: Build
-        run: cargo build --release --target ${{ matrix.target }}
+        run: cargo build --release --target ${{ matrix.target }} --features cli,mcp
 
       # Workstream B / B1 (Release artifact assurance): before this,
       # nothing verified the binary this job is about to publish to a
@@ -168,6 +172,8 @@ jobs:
       - name: Smoke test the built binary
         if: matrix.target != 'x86_64-apple-darwin'
         shell: bash
+        env:
+          YANA_SMOKE_REQUIRE_MCP: "1"
         run: bash core/scripts/release-smoke-test.sh target/${{ matrix.target }}/release/${{ matrix.binary }}
 
       # Workstream B / B3 (A8 Release & Supply Chain): the program
@@ -229,7 +235,7 @@ jobs:
             "yana_rt_version": "$YANA_RT_VERSION",
             "target": "${{ matrix.target }}",
             "rust_toolchain": "$RUST_TOOLCHAIN",
-            "feature_flags": "default",
+            "feature_flags": "cli,mcp",
             "cargo_lock_sha256": "$CARGO_LOCK_SHA256",
             "artifact_sha256": "$ARTIFACT_SHA256",
             "build_timestamp_utc": "$BUILD_TIMESTAMP",

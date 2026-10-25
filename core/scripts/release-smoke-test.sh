@@ -97,6 +97,32 @@ check "revoked lease shows as revoked" bash -c "'$BINARY' lease list --json | py
 #    call.
 check "authority receipts CLI works" bash -c "'$BINARY' authority receipts --json >/dev/null"
 
+# 7. MCP server answers a real stdio session: initialize, tools/list, and one
+#    tool call, using only the shipped binary. Required when
+#    YANA_SMOKE_REQUIRE_MCP=1 (release.yml sets it); otherwise skipped for a
+#    binary built without the `mcp` feature. Input goes through a file so no
+#    pipe or timeout utility is needed (macOS has no `timeout`); the server
+#    exits at end of input.
+MCP_IN="$WORKDIR/mcp-in.jsonl"
+MCP_OUT="$WORKDIR/mcp-out.jsonl"
+printf '%s\n' \
+  '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"release-smoke-test","version":"0"}}}' \
+  '{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}' \
+  '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
+  '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"check_command","arguments":{"command":"ls"}}}' \
+  '{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"check_command","arguments":{"command":"rm -rf /tmp/release-smoke-test"}}}' \
+  > "$MCP_IN"
+if "$BINARY" mcp --help >/dev/null 2>&1; then
+  check "mcp server completes a stdio session" bash -c "'$BINARY' mcp < '$MCP_IN' > '$MCP_OUT' 2>/dev/null"
+  check "mcp tools/list names check_command" grep -q '"check_command"' "$MCP_OUT"
+  check "mcp check_command allows a plain command" grep -q 'permission.*allow' "$MCP_OUT"
+  check "mcp check_command denies rm -rf" grep -q 'permission.*deny' "$MCP_OUT"
+elif [[ "${YANA_SMOKE_REQUIRE_MCP:-0}" == "1" ]]; then
+  check "binary was built with the mcp feature (YANA_SMOKE_REQUIRE_MCP=1)" false
+else
+  echo "--- mcp checks skipped: this binary has no 'mcp' subcommand (set YANA_SMOKE_REQUIRE_MCP=1 to require it) ---"
+fi
+
 echo ""
 if [[ "$FAILED" -eq 1 ]]; then
   echo "[release-smoke-test] FAIL — one or more checks failed against $BINARY"
