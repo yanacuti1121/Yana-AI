@@ -4155,6 +4155,46 @@
       "localPath": ".claude/skills/grpc-streaming-rpc",
       "addedAt": "2026-07-11T02:57:12Z"
     },
+    "gsap-core": {
+      "computedHash": "8adec73756644ae2e6347160bf2cd0d0aec58c140dcdd4823dd9365251175ca1",
+      "localPath": ".claude/skills/gsap-core",
+      "addedAt": "2026-10-25T00:00:00Z"
+    },
+    "gsap-frameworks": {
+      "computedHash": "7b3faf7cc36cbe19f096019992e07e7c5abca4181e2ee299830f04eba596b134",
+      "localPath": ".claude/skills/gsap-frameworks",
+      "addedAt": "2026-10-25T00:00:00Z"
+    },
+    "gsap-performance": {
+      "computedHash": "f3846859c657eec1f3d7c6100aa7c1c424818995065270e33a6d39d98c7d3719",
+      "localPath": ".claude/skills/gsap-performance",
+      "addedAt": "2026-10-25T00:00:00Z"
+    },
+    "gsap-plugins": {
+      "computedHash": "f115b7fcd7cd2db444e5c57f2f404f6c631cd9337c9feb6f583696d70f7d0f5b",
+      "localPath": ".claude/skills/gsap-plugins",
+      "addedAt": "2026-10-25T00:00:00Z"
+    },
+    "gsap-react": {
+      "computedHash": "64fa9dbd52515bb54e77e180b257f4e9f9f0817fdb24441501afc1bdbd5224e0",
+      "localPath": ".claude/skills/gsap-react",
+      "addedAt": "2026-10-25T00:00:00Z"
+    },
+    "gsap-scrolltrigger": {
+      "computedHash": "b682418754634509838ce39d1a2f55a6afafa0a15e9fa05073f03628b2e9a51f",
+      "localPath": ".claude/skills/gsap-scrolltrigger",
+      "addedAt": "2026-10-25T00:00:00Z"
+    },
+    "gsap-timeline": {
+      "computedHash": "b9adef227e3ae7b89ca0317414e02051bddc72e3a906b18a0808904f52a91ca6",
+      "localPath": ".claude/skills/gsap-timeline",
+      "addedAt": "2026-10-25T00:00:00Z"
+    },
+    "gsap-utils": {
+      "computedHash": "896f6fcab409078a4a5c2061e5d8356b67cd71568268b48d0d84b7bb024d6b0f",
+      "localPath": ".claude/skills/gsap-utils",
+      "addedAt": "2026-10-25T00:00:00Z"
+    },
     "gw360--agent-client-security": {
       "addedAt": "2026-06-11T13:34:37Z",
       "computedHash": "7abd6aa544d8cae3e4a2952dc8cc2b1f2cbe158f2db1abe64226a75b5c68f158",
@@ -4329,6 +4369,11 @@
       "computedHash": "a566510488c95ddc10fc71926c4286e5790f0a4056c6904969019c5f6b30f307",
       "localPath": ".claude/skills/hadriansecurity--openhack",
       "addedAt": "2026-07-11T02:57:12Z"
+    },
+    "hallmark": {
+      "computedHash": "19e336be5f4d989a5de8b0b98e4a53831c597e029881481cb1c2fd5781c3cfbe",
+      "localPath": ".claude/skills/hallmark",
+      "addedAt": "2026-10-25T00:00:00Z"
     },
     "handoff": {
       "computedHash": "1341d0faf1137a8ef3ae53c157c2d0a837c645f4301fa59eb06df811e36031fe",
@@ -4751,7 +4796,7 @@
       "localPath": ".claude/skills/immutable-identity-patterns"
     },
     "impeccable": {
-      "computedHash": "a1ebe012536ce4528f0788126d93a165f37382a0c3fe0d2bca5cf4364be3bf54",
+      "computedHash": "444ef97d98af78101dcdd3199710da2b644aad5757903bf118456ee0f9d063b6",
       "localPath": ".claude/skills/impeccable",
       "addedAt": "2026-07-11T02:57:14Z"
     },
@@ -10130,7 +10175,7 @@
       "localPath": ".claude/skills/zombie-process-cleanup"
     },
     "viettranx--3dviz-pro-max": {
-      "computedHash": "1baebf50b426c665e342bf7adfc011ded8e6768f573ab88a79dea63a5f3112ab",
+      "computedHash": "121a0b817d732bcda1e405e9abfc8002e4718cf287c453e89541670362dc5d16",
       "localPath": ".claude/skills/viettranx--3dviz-pro-max",
       "addedAt": "2026-09-11T00:00:00Z"
     }
