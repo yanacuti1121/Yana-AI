@@ -1,0 +1,32 @@
+{
+  "name": "yana-promo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "studio": "remotion studio src/index.ts --port=3107",
+    "typecheck": "tsc --noEmit",
+    "render": "remotion render src/index.ts YanaDemo out/yana-demo-vi.mp4 --codec=h264 --crf=18 --concurrency=3",
+    "teaser": "remotion render src/index.ts YanaTeaser out/yana-teaser-vi.mp4 --codec=h264 --crf=18 --concurrency=3",
+    "poster": "remotion still src/index.ts YanaPoster out/yana-poster.png",
+    "test": "node --test scripts/*.test.mjs",
+    "score": "node scripts/generate-score.mjs && node scripts/prepare-audio.mjs",
+    "verify": "node scripts/verify-media.mjs"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.538",
+    "@remotion/fonts": "4.0.538",
+    "remotion": "4.0.538",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "lucide-react": "0.577.0"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "@types/react": "19.2.0",
+    "@types/react-dom": "19.2.0"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  }
+}
