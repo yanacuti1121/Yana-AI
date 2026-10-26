@@ -488,7 +488,7 @@
   font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 700;
-  color: #3b82f6;
+  color: #2563eb;
   margin-bottom: 14px;
   display: block;
 }
@@ -560,7 +560,7 @@
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.1em;
-  color: #3b82f6;
+  color: #2563eb;
   display: block;
   margin-bottom: 4px;
 }
@@ -605,7 +605,7 @@
 
 .status-tag.ready {
   background: rgba(16, 185, 129, 0.1);
-  color: #059669;
+  color: #047857;
   border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
@@ -1421,7 +1421,8 @@
   position: relative;
   z-index: 10;
   max-width: 720px;
-  margin: 0 auto;
+  /* heading, text and buttons sit a little lower, clear of the emblem and the first orbit ring */
+  margin: 56px auto 0;
 }
 
 /* Lõi Yana Trung Tâm (Pulsing Neon Core) */

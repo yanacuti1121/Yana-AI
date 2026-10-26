@@ -157,7 +157,7 @@ function testRuntimeDiscovery() {
   fs.writeFileSync(binaryPath, '#!/bin/sh\nexit 0\n');
   fs.chmodSync(binaryPath, 0o755);
   assert.strictEqual(
-    resolveGovernedRuntime({ rootDir, env: { PATH: '' } }),
+    resolveGovernedRuntime({ explicitPath: '', rootDir, env: { PATH: '' } }),
     fs.realpathSync(binaryPath),
   );
 

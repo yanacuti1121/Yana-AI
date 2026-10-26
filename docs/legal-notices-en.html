@@ -95,72 +95,15 @@
       border-radius: 6px;
       color: #0f172a;
     }
-    .studio26-nav {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 100;
-      width: calc(100% - 40px);
-      max-width: 1040px;
-      background: rgba(255, 255, 255, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.95);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-      border-radius: 9999px;
-      padding: 10px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .brand-link {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 700;
-      font-size: 17px;
-      color: #0f172a;
-      text-decoration: none;
-    }
-    .nav-menu {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-    .nav-menu a {
-      text-decoration: none;
-      color: #475569;
-      font-size: 14px;
-      font-weight: 600;
-      transition: color 0.15s;
-    }
-    .nav-menu a:hover {
-      color: #2563eb;
-    }
   </style>
 </head>
 <body class="sakura-site home-page">
   <div class="site26-bg-canvas" aria-hidden="true"></div>
 
-  <nav class="studio26-nav">
-    <a href="en.html" class="brand-link">
-      <img src="yana-mark.svg" alt="Yana Logo" width="30" height="30">
-      <span>Yana <small style="font-weight:400;color:#64748b;">Legal</small></span>
-    </a>
-    <div class="nav-menu">
-      <a href="en.html">Home</a>
-      <a href="studio-en.html">Studio IDE</a>
-      <a href="wheelbot-en.html">Wheelbot</a>
-      <a href="updates-en.html">Updates</a>
-      <a href="support-en.html">Support</a>
-      <a href="legal-notices-en.html" style="color:#2563eb;">Legal</a>
-    </div>
-    <div style="display:flex;align-items:center;gap:12px;">
-      <a href="legal-notices.html" style="font-size:12px;font-weight:700;color:#64748b;border:1px solid #cbd5e1;padding:4px 12px;border-radius:9999px;text-decoration:none;">Tiếng Việt ↗</a>
-      <a href="download-en.html" class="btn-spring-2026 btn-spring-primary" style="padding:8px 18px;font-size:13.5px;">Download</a>
-    </div>
-  </nav>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <nav class="site-nav"></nav>
 
-  <main>
+  <main id="main">
     <section class="legal-hero">
       <div class="floating-hero-pill">
         <span>⚖️ Legal & Intellectual Property</span>

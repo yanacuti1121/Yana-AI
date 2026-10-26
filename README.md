@@ -124,7 +124,7 @@ Skills teach an agent how to work. Only a capability can grant permission to act
 `Live` means shipped and in use. `In development` means real code exists but is not
 feature-complete. `Experimental` means opt-in and not independently verified.
 
-`yana-rt` has 40 subcommands. Zero Python dependency. This is the source-defined count across feature builds, including feature-gated ones.
+`yana-rt` has 41 subcommands. Zero Python dependency. This is the source-defined count across feature builds, including feature-gated ones.
 
 ```text
 core/
@@ -140,7 +140,7 @@ core/
 ## Yana Studio (v1.7.0)
 
 <p align="center">
-  <img src="docs/studio-screen-1.png" alt="Yana Studio workspace with chat, project inspector and governance status" width="900">
+  <img src="docs/studio-screen-1.webp" alt="Yana Studio workspace with chat, project inspector and governance status" width="900">
 </p>
 
 One window for the things you switch between when working with AI on a project.

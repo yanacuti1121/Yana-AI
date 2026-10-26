@@ -54,7 +54,7 @@ for (const requiredFile of new Set([...localRequires, ...bridgeRequires])) {
   assert.ok(packagedFiles.has(requiredFile), `${requiredFile} must be included in build.files`);
 }
 assert.strictEqual(packageJson.engines.node, '>=24');
-assert.strictEqual(packageJson.devDependencies.electron, '43.4.1');
+assert.strictEqual(packageJson.devDependencies.electron, '43.8.1');
 assert.strictEqual(packageJson.devDependencies['electron-builder'], '26.15.3');
 assert.strictEqual(extraFiles.get('../../target/desktop-runtime/bin'), 'Resources/bin');
 assert.strictEqual(extraFiles.get('../../target/desktop-runtime/pty-bridge'), 'Resources/pty-bridge');

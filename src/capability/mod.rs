@@ -21,6 +21,7 @@ pub mod evidence;
 pub mod file_mutation;
 pub mod file_patch;
 pub mod git;
+pub mod harness;
 pub mod lease;
 pub mod lsp_config;
 pub mod lsp_disclosure;
@@ -49,6 +50,8 @@ pub use file_mutation::{apply_file_write, propose_file_write, FileMutationDiff, 
 // Only the checkpoint hook tests name this type through `capability`; keep the path without a dead-code warning.
 #[cfg(test)]
 pub use file_mutation::FileMutationOutcome;
+#[cfg_attr(not(feature = "mcp"), allow(unused_imports))]
+pub use harness::harness_audit;
 pub use git::{git_commit, git_diff, git_diff_path, git_stage, git_status, git_unstage};
 pub use registry::{ApprovalRequirement, Manifest};
 pub use repo::{

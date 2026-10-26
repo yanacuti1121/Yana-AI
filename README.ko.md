@@ -140,7 +140,7 @@ core/
 ## Yana Studio
 
 <p align="center">
-  <img src="docs/studio-screen-1.png" alt="채팅, 프로젝트 인스펙터, 거버넌스 상태가 보이는 Yana Studio 작업 공간" width="900">
+  <img src="docs/studio-screen-1.webp" alt="채팅, 프로젝트 인스펙터, 거버넌스 상태가 보이는 Yana Studio 작업 공간" width="900">
 </p>
 
 프로젝트에서 AI와 함께 일할 때 오가야 하는 것들을 한 창에 모았습니다. Studio는 `yana-rt`를
