@@ -1,0 +1,49 @@
+/*
+ * Polish layer for the four 2026 core pages (home, Yana AI, Studio, Wheelbot).
+ * Loaded last. It only fixes defects found by measuring the rendered pages; it does not
+ * change the layout concept, copy, or the Nunito / floating-nav identity of the home page.
+ */
+
+/* Headings break into even lines instead of stranding one word ("thực / thi."). */
+body.home-page :is(h1, h2, h3) { text-wrap: balance; }
+body.home-page :is(p, li) { text-wrap: pretty; }
+
+/*
+ * Card groups. sakura-site.css draws .route-grid as one hairline panel (1px gap, outer border,
+ * clipped corners) while yana-white.css gives every .route-card its own border and shadow, so the
+ * two outlines stacked. Keep the cards, drop the panel.
+ */
+.sakura-site .route-grid {
+  gap: 16px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  overflow: visible;
+}
+
+/*
+ * Small labels. Measured at 9.9 to 11.8px and 2.9 to 3.9:1 against white; floor is 12px and
+ * 4.5:1. Darkening the label's own colour keeps each hue (indigo stays indigo, grey stays grey).
+ */
+body.home-page small,
+.sakura-site .eyebrow {
+  font-size: max(12px, 1em);
+  color: color-mix(in srgb, currentColor 72%, #000);
+}
+.sakura-site .eyebrow { font-size: .75rem; }
+body.home-page .external-indicator {
+  color: color-mix(in srgb, currentColor 70%, #000);
+}
+
+/* Browser surfaces that otherwise keep default styling. */
+body.home-page ::selection {
+  background: rgba(97, 116, 243, .22);
+  color: inherit;
+}
+html {
+  scrollbar-color: rgba(20, 20, 24, .28) transparent;
+  scrollbar-width: thin;
+}
+
+/* Diagram labels were 11.5px. */
+body.home-page .platform-node span { font-size: max(12px, 1em); }

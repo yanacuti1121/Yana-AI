@@ -140,7 +140,7 @@ core/
 ## Yana Studio (v1.7.0)
 
 <p align="center">
-  <img src="docs/studio-screen-1.png" alt="Yana Studio workspace with chat, project inspector and governance status" width="900">
+  <img src="docs/studio-screen-1.webp" alt="Yana Studio workspace with chat, project inspector and governance status" width="900">
 </p>
 
 One window for the things you switch between when working with AI on a project.
