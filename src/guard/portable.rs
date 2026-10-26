@@ -5,6 +5,12 @@
 
 use std::sync::LazyLock;
 
+// Remote and encoded code execution plus `chmod 777`. Declared here with an explicit path (not in
+// guard/mod.rs) because src/lib.rs also compiles this file on its own for the WASM surface; a nested
+// `#[path]` resolves next to this file in both builds.
+#[path = "remote_exec.rs"]
+mod remote_exec;
+
 /// (pattern, case_insensitive, deny reason) — ported 1:1 from the grep -E /
 /// grep -qiE checks in core/hooks/guard-destructive.sh, same wording.
 /// `git reset --hard` and direct push-to-main moved OUT of this table (see
@@ -498,5 +504,5 @@ pub fn check_command(command: &str) -> Option<&'static str> {
         );
     }
 
-    None
+    remote_exec::check(command)
 }
