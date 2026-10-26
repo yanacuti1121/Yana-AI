@@ -43,7 +43,19 @@ const SHELLS: [&str; 13] = [
     "xonsh",
 ];
 /// Interpreters. A name matches exactly or with a version suffix: `python3.11`, `node22`, `perl5`.
-const LANGS: [&str; 15] = [
+const LANGS: [&str; 27] = [
+    "nodejs",
+    "pypy",
+    "luajit",
+    "irb",
+    "gdb",
+    "expect",
+    "vim",
+    "vi",
+    "emacs",
+    "ex",
+    "ed",
+    "r",
     "rscript",
     "julia",
     "groovy",
@@ -68,7 +80,7 @@ const MAX_DEPTH: usize = 4;
 const FETCH_PIPE: &str = "Blocked: downloaded content is piped straight into a shell or interpreter (curl/wget ... | bash). The code is never reviewed before it runs. Download to a file, read it, then run it, or ask the human to confirm.";
 const DECODE_PIPE: &str = "Blocked: decoded content is piped into, or executed by, a shell or interpreter (base64 -d / xxd -r / openssl enc -d / printf escapes ... | bash). A command that cannot be read before it runs is not allowed. Run the readable command directly.";
 const FETCH_EXEC: &str = "Blocked: the output of curl/wget is executed as code (bash <(curl ...), source <(curl ...), eval \"$(curl ...)\", bash -c \"$(curl ...)\", bash <<< \"$(curl ...)\"). Download to a file, read it, then run it, or ask the human to confirm.";
-const WORLD_WRITABLE: &str = "Blocked: 'chmod 777' (also a=rwx, a+rwx, ugo+rwx, o+rwx) makes files writable by every user. Grant the narrowest mode that works, for example 755 or 644.";
+const WORLD_WRITABLE: &str = "Blocked: 'chmod 777' (also 666, 757, a+w, o+w, a=rwx) makes files writable by every user. Grant the narrowest mode that works, for example 755 or 644.";
 const TOO_DEEP: &str = "Blocked: scripts are nested too deeply (sh -c inside sh -c inside ...) for this guard to read. Run the inner command directly, or ask the human to confirm.";
 
 fn base(word: &str) -> &str {

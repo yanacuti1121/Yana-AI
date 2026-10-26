@@ -20,14 +20,21 @@ const STDIN_PATHS: [&str; 4] = [
     "/proc/self/fd/0/",
 ];
 
-/// Words in an interpreter's inline script that read standard input.
-const STDIN_WORDS: [&str; 8] = [
-    "stdin", "gets", "readline", "argf", "<>", "readfile", "input(", "fgets",
-];
-
-/// Words in an inline script that run text as code.
-const EXEC_WORDS: [&str; 7] = [
-    "exec", "eval", "system", "popen", "spawn", "compile", "source",
+/// Words in an inline script that run text or start programs. An interpreter fed by a download that uses
+/// any of them is refused: there are too many ways to reach stdin to list them (`open(0)`, `readFileSync(0)`).
+const EXEC_WORDS: [&str; 12] = [
+    "exec",
+    "eval",
+    "system",
+    "popen",
+    "spawn",
+    "compile",
+    "dofile",
+    "include",
+    "subprocess",
+    "new function",
+    "interact",
+    "do \"",
 ];
 
 /// `deno run -` and `bun run -` start with a subcommand.
@@ -92,6 +99,13 @@ pub(super) fn reads_program_from_stdin(stage: &Stage) -> bool {
     let name = base(word);
     if is_shell(name) {
         shell_reads_stdin(args)
+    } else if matches!(name, "source" | ".") {
+        args.iter().any(|a| STDIN_PATHS.contains(&a.as_str()))
+    } else if matches!(name, "awk" | "gawk" | "mawk" | "nawk") {
+        args.iter().any(|a| a == "-f" || a.contains("system"))
+    } else if name == "sed" {
+        args.iter()
+            .any(|a| a == "e" || a.ends_with("/e") || a.ends_with("/ge") || a.ends_with(";e"))
     } else {
         is_lang(name) && lang_reads_stdin(name, args)
     }
@@ -137,9 +151,9 @@ pub(super) fn fed_inline_reads_stdin(
     let scripts = inline_scripts(stage);
     if is_lang(name) {
         // Reading stdin as data (`json.load(sys.stdin)`) is fine; reading it and running it is not.
-        return scripts.iter().any(|s| {
-            STDIN_WORDS.iter().any(|w| s.contains(w)) && EXEC_WORDS.iter().any(|w| s.contains(w))
-        });
+        return scripts
+            .iter()
+            .any(|s| EXEC_WORDS.iter().any(|w| s.contains(w)));
     }
     scripts.iter().any(|s| shell_script_reads(s))
 }

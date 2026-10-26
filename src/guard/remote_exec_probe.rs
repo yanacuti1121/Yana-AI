@@ -65,6 +65,16 @@ pub(super) fn feeds_decoded(stage: &Stage) -> bool {
     *stage.decode_cache.get_or_init(|| decodes_deep(stage, 0))
 }
 
+/// Inside an inline shell script that may inherit stdin: anything that can turn input into code
+/// (`bash`, `eval`, `source`, `read` loops that eval, `xargs`). Fails closed on purpose.
+fn inner_runs_text(stage: &Stage) -> bool {
+    reads_program_from_stdin(stage)
+        || opaque(stage)
+        || name_of(stage).is_some_and(|name| {
+            matches!(name, "eval" | "source" | "." | "xargs") || super::is_shell(name)
+        })
+}
+
 /// The stage, or an inline script it hands to a shell, reads a program from stdin.
 pub(super) fn consumes_stdin_program(stage: &Stage) -> bool {
     reads_program_from_stdin(stage)
@@ -73,7 +83,7 @@ pub(super) fn consumes_stdin_program(stage: &Stage) -> bool {
             parse::pipelines(inner)
                 .iter()
                 .flatten()
-                .any(|s| reads_program_from_stdin(s) || opaque(s))
+                .any(inner_runs_text)
         })
 }
 

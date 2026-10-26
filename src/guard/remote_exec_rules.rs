@@ -9,8 +9,8 @@ const TRANSFORMS: [&str; 6] = ["rev", "gunzip", "zcat", "gzcat", "bunzip2", "unx
 const ESCAPE_LEN: usize = 4;
 /// The sticky, world-writable mode every system `/tmp` has; the one `7xx`-ending mode that is not a finding.
 const STICKY_TMP_MODE: &str = "1777";
-/// Octal digits that give every user read, write and execute.
-const WORLD_RWX_SUFFIX: &str = "777";
+/// The write bit of an octal permission digit.
+const OTHERS_WRITE_BIT: u8 = 2;
 
 fn has_escape(word: &str) -> bool {
     word.as_bytes().windows(ESCAPE_LEN).any(|w| {
@@ -35,26 +35,30 @@ pub(super) fn decodes(stage: &Stage) -> bool {
         "openssl" => {
             args.iter().any(|a| a == "enc" || a == "base64") && args.iter().any(|a| a == "-d")
         }
+        "gzip" | "bzip2" | "xz" | "zstd" | "lzma" | "uncompress" => flag(&['d']),
+        "tr" => args.iter().any(|a| a.contains("n-za-m")), // rot13
         "printf" | "echo" => stage.ansi_c || args.iter().any(|a| has_escape(a)),
         other => TRANSFORMS.contains(&other),
     }
 }
 
-/// Only modes that name the `others` class explicitly count: without a class (`+rwx`, `=rwx`) the shell
-/// applies the umask, so the result is not world-writable on a normal system.
+/// The mode gives the `others` class write access. Only modes that name that class explicitly count in
+/// symbolic form: without a class (`+w`, `=rwx`) the shell applies the umask, so a normal system does not
+/// make the file world-writable.
 pub(super) fn mode_is_world_writable(mode: &str) -> bool {
-    if !mode.is_empty() && mode.bytes().all(|b| (b'0'..=b'7').contains(&b)) {
-        let digits = mode.trim_start_matches('0');
-        return digits.len() >= WORLD_RWX_SUFFIX.len()
-            && digits.ends_with(WORLD_RWX_SUFFIX)
-            && digits != STICKY_TMP_MODE;
+    if let Some(last) = mode
+        .bytes()
+        .last()
+        .filter(|_| mode.bytes().all(|b| (b'0'..=b'7').contains(&b)))
+    {
+        return (last - b'0') & OTHERS_WRITE_BIT != 0 && mode != STICKY_TMP_MODE;
     }
     mode.split(',').any(|clause| {
         let Some(split) = clause.find(['+', '=']) else {
             return false;
         };
         let (who, perms) = (&clause[..split], &clause[split + 1..]);
-        who.contains(['a', 'o']) && ['r', 'w', 'x'].iter().all(|p| perms.contains(*p))
+        who.contains(['a', 'o']) && perms.contains('w')
     })
 }
 

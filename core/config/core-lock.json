@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-10-26T12:56:50+00:00",
+  "generated": "2026-10-26T13:02:43+00:00",
   "count": 300,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -290,17 +290,17 @@
     "src/guard/lock.rs": "991a285a179f96b35d133b4db9723ba9d4941ac03f92ad758b81a928438e1702",
     "src/guard/mod.rs": "e3dc9b02204cda2915523805f07b138338ae41e731f27adb6571251da8ecfe46",
     "src/guard/portable.rs": "0bd7137fdddb3cd70d5f12e1e198090008892d8c645867fa19d00f21a385af6d",
-    "src/guard/remote_exec.rs": "586336e55e272a6d7b24f336b1ea356376a9fc57920cfafd674f32419ea22063",
-    "src/guard/remote_exec_classify.rs": "ae79219620e542417a5dec116e4fa89510ae30f41c45c3067c0175cc6e9eeae8",
+    "src/guard/remote_exec.rs": "b3c63f26ef410e0d81d57d0dfe4545bee43d1ee4f547e16d68a0491a3ef14ea1",
+    "src/guard/remote_exec_classify.rs": "a814723a7db32a045373112786a15a9a1093409f392876c873e4b61a38ae1e06",
     "src/guard/remote_exec_heredoc.rs": "7bf79f42e35832f8aa98a1a4bd0c60adc966308be34657b056f0d88d316d0aad",
     "src/guard/remote_exec_parse.rs": "4e9dd8d5574e0b41e475aa8f7d8e763918f4139bffb41446babf03f4b5725d65",
-    "src/guard/remote_exec_probe.rs": "26cc34a9a43cf0c28250df64aba8b5b744417cdfa4e8f3287afb825a83e0b3cd",
+    "src/guard/remote_exec_probe.rs": "c2f7c03a83245531a96d002be0425ff949565d20b51d70e5e81d1d9916f9b0ef",
     "src/guard/remote_exec_quotes.rs": "d53b940a93d36e6db193bff0661eba64e9afcb17572330bb88a4e60789695495",
-    "src/guard/remote_exec_rules.rs": "7d370b082d1b976ffc022c04cce70f3b50aa7d4c05bd515278dc837aa76fbe2b",
-    "src/guard/remote_exec_stage.rs": "2e4498e1ae31b686ae4a8a2341e9b88ee23e519613391717f379f6b5ee9c0fdd",
+    "src/guard/remote_exec_rules.rs": "013ffcfb9af8895d835130997e50d61f7ddabf41a91a0e5af93a0ea285bcdbb4",
+    "src/guard/remote_exec_stage.rs": "52a320d97fbbc57e8fce8448ba33fb2bc3f51d40c8a13a6eeb60a63e2eba5a9d",
     "src/guard/remote_exec_tests.rs": "d36d3b2a9ab74caf6d5d045541b5b0732e86ac7f7d0a3ef5a79f6fd57e0edeb6",
-    "src/guard/remote_exec_tests_edge.rs": "73bda1572af332fe7b820f7a8f30867d4cfce6a77aa7afd254a781484f0223d7",
-    "src/guard/remote_exec_tests_round2.rs": "2a34a1604a6ef58a18689cdfd0c1eb5a10601c619fab8a28667ec30d025dcbba",
+    "src/guard/remote_exec_tests_edge.rs": "6b2953f20b61333ec9435375612d84a145db66dfb77cf9c182d4f55cbec13c82",
+    "src/guard/remote_exec_tests_round2.rs": "5334f6049109d5c6f09b543edb4f7ff33112a14bd79cef4e9ff7f7b2386ed83b",
     "src/guard/self_mod.rs": "3b6ad8a80535c9ff9366627d0b5b34d2ce15b297207193ef69cfbef346c82dc2",
     "src/guard/token_budget.rs": "f752712145b37897d10d3e5ab1de6da2345abb262efe1c54f7700fb7b119d5a2"
   }

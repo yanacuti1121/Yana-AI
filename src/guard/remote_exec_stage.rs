@@ -5,14 +5,25 @@ use super::Stage;
 /// A word that prefixes a command without being it: the options that take a value, and how many plain
 /// arguments (a duration, a lock file, a mask, a new root) come before the command.
 type Prefix = (&'static str, &'static [&'static str], usize);
-const PREFIXES: [Prefix; 20] = [
+const PREFIXES: [Prefix; 31] = [
+    ("chrt", &[], 1),
+    ("arch", &[], 0),
+    ("caffeinate", &["-t"], 0),
+    ("xcrun", &[], 0),
+    ("numactl", &[], 0),
+    ("unbuffer", &[], 0),
+    ("script", &[], 1),
+    ("strace", &["-e", "-o", "-p", "-s"], 0),
+    ("watch", &["-n"], 0),
+    ("parallel", &[], 0),
+    ("sandbox-exec", &["-p", "-f"], 0),
     ("pkexec", &["--user"], 0),
     ("chroot", &[], 1),
     (
         "sudo",
         &[
-            "-u", "-g", "-h", "-p", "-r", "-t", "-c", "-d", "--user", "--group", "--host",
-            "--prompt", "--role", "--type", "--chdir",
+            "-u", "-g", "-r", "-t", "-c", "-d", "--user", "--group", "--host", "--prompt",
+            "--role", "--type", "--chdir",
         ],
         0,
     ),
