@@ -1,0 +1,88 @@
+{
+  "project": "Yana demo video",
+  "created": "2026-10-24",
+  "visual_basis": "V1/V2 archived reconstructed UI; YanaFast uses direct native-app screenshots captured 2026-10-24, animated in Remotion. Not continuous screen recording or verified AI execution.",
+  "assets": [
+    {
+      "file": "public/branding/yana-mark.svg",
+      "source": "../../docs/yana-mark.svg",
+      "rights": "User-provided project branding; no OneNotch branding reused"
+    },
+    {
+      "file": "public/stills/studio-workspace.png",
+      "source": "../../docs/studio-screen-1.png",
+      "rights": "User-provided project screenshot; original unmodified asset, animated cropping in composition"
+    },
+    {
+      "file": "public/stills/studio-home.png",
+      "source": "../../docs/studio-screen-2.png",
+      "rights": "User-provided project screenshot; archived input, not used in current main composition"
+    },
+    {
+      "file": "public/fonts/nunito-*.ttf",
+      "source": "https://fonts.google.com/specimen/Nunito",
+      "license": "SIL OFL 1.1; public/fonts/nunito-OFL.txt"
+    },
+    {
+      "file": "public/fonts/patrick-hand.ttf",
+      "source": "https://fonts.google.com/specimen/Patrick+Hand",
+      "license": "SIL OFL 1.1; public/fonts/patrickhand-OFL.txt"
+    },
+    {
+      "file": "public/audio/main.* and teaser.*",
+      "source": "scripts/generate-score.mjs",
+      "rights": "Original synthesized arrangement created for this project; deterministic tones/noise, no external recordings"
+    },
+    {
+      "file": "Lucide vector icons",
+      "source": "lucide-react 0.577.0",
+      "license": "ISC; node_modules/lucide-react/LICENSE"
+    }
+  ],
+  "illustrations": [
+    "approval: illustrative npm test request, no command executed",
+    "evidence: conceptual decision pipeline, not a real session audit log",
+    "models: conceptual provider connections, not live model switching"
+  ],
+  "no_reused_reference_assets": true,
+  "real_app_capture": {
+    "release": "https://github.com/yanacuti1121/Yana-AI/releases/tag/studio-v1.7.0",
+    "asset": "Yana-Studio-IDE-1.7.0-mac-arm64.dmg",
+    "bundle": "link.vutam.yana.studio",
+    "bundle_short_version": "1.141.0",
+    "extension_reported_version": "1.6.2",
+    "directory": "public/real-app",
+    "method": "Native app opened from official release DMG; screenshots via cua API",
+    "state": "Restricted workspace; yana-rt not found; providers unconfigured. Draft prompt pasted progressively, never submitted. Workspace trust prompt captured and cancelled.",
+    "excluded": [
+      "permissions.png: missing runtime error",
+      "commands.png: COMMANDS.md not packaged"
+    ],
+    "music": "Fast compositions muted pending later sound edit"
+  },
+  "claude_motion_test": {
+    "composition": "YanaClaudeTest",
+    "durationFrames": 600,
+    "fps": 60,
+    "source": "src/claude-test",
+    "producer": "Claude Code claude-fable-5-1",
+    "coordinator": "Codex: computer-use QA, render, headline/cursor geometry corrections",
+    "visuals": "idealized illustrative UI authored in React; no native screenshot assets used",
+    "audio": "none",
+    "userReview": "Approved 2026-10-24 10:01 Asia/Saigon; remove shrinking opening text in full version"
+  },
+  "current_delivery": "YanaClaudeFilm: 42-second idealized UI animation, silent, approved visual direction from 10-second test",
+  "claude_full_film": {
+    "composition": "YanaClaudeFilm",
+    "durationFrames": 2520,
+    "fps": 60,
+    "source": "src/claude-film",
+    "producer": "Claude Code2.1.280, claude-fable-5-1",
+    "coordinator": "Codex: opening correction, scoped delegation, source integration, computer-use and render QA",
+    "visuals": "Original illustrated UI in React, user explicitly waived exact live-app screenshots",
+    "audio": "none, deferred by user",
+    "opening_change": "112px opening text exits before frame110, never becomes a tiny composer placeholder",
+    "artifact": "out/yana-claude-full.mp4",
+    "poster": "out/yana-claude-full-poster.png"
+  }
+}

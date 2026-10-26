@@ -1,0 +1,1 @@
+export const copy = {"governance": "Giao đúng quyền. Làm đúng phạm vi.", "audit": "Mỗi quyết định đều có dấu vết.", "connectors": "Kết nối riêng. Quyền truy cập riêng.", "continuity": "Đổi phiên làm việc. Giữ mạch dự án."} as const;
