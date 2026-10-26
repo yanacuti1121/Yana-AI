@@ -138,47 +138,6 @@
       margin: 0 auto 80px;
       padding: 0 24px;
     }
-    .studio26-nav {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 100;
-      width: calc(100% - 40px);
-      max-width: 1040px;
-      background: rgba(255, 255, 255, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.95);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-      border-radius: 9999px;
-      padding: 10px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .brand-link {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 700;
-      font-size: 17px;
-      color: #0f172a;
-      text-decoration: none;
-    }
-    .nav-menu {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-    .nav-menu a {
-      text-decoration: none;
-      color: #475569;
-      font-size: 14px;
-      font-weight: 600;
-      transition: color 0.15s;
-    }
-    .nav-menu a:hover {
-      color: #2563eb;
-    }
     .info-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -210,25 +169,10 @@
 <body class="sakura-site home-page">
   <div class="site26-bg-canvas" aria-hidden="true"></div>
 
-  <nav class="studio26-nav">
-    <a href="index.html" class="brand-link">
-      <img src="yana-mark.svg" alt="Yana Logo" width="30" height="30">
-      <span>Yana <small style="font-weight:400;color:#64748b;">Studio</small></span>
-    </a>
-    <div class="nav-menu">
-      <a href="index.html">Trang chủ</a>
-      <a href="studio.html">Studio IDE</a>
-      <a href="wheelbot.html">Wheelbot</a>
-      <a href="updates.html">Cập nhật</a>
-      <a href="support.html">Hỗ trợ</a>
-    </div>
-    <div style="display:flex;align-items:center;gap:12px;">
-      <a href="download-en.html" style="font-size:12px;font-weight:700;color:#64748b;border:1px solid #cbd5e1;padding:4px 12px;border-radius:9999px;text-decoration:none;">English ↗</a>
-      <a href="#download" class="btn-spring-2026 btn-spring-primary" style="padding:8px 18px;font-size:13.5px;">Tải về ngay ↓</a>
-    </div>
-  </nav>
+  <a class="skip-link" href="#main">Đi đến nội dung</a>
+  <nav class="site-nav"></nav>
 
-  <main>
+  <main id="main">
     <section class="download-hero">
       <div class="floating-hero-pill">
         <span>✨ Yana Studio</span>
@@ -344,9 +288,9 @@
     <div class="device-preview-card perspective-container-2026">
       <div class="studio-macbook-device card-3d-interactive" data-tilt-on-scroll>
         <div class="studio-macbook-screen">
-          <img src="assets/yana-studio-app-tam-welcome.png" alt="Yana Studio Welcome Screen" loading="lazy">
+          <img src="assets/yana-studio-app-tam-welcome.webp" alt="Yana Studio Welcome Screen" loading="lazy">
         </div>
-        <img class="studio-macbook-bezel" src="assets/apple-macbook-pro-14-silver.png" alt="Apple MacBook Pro Bezel" width="1930" height="1270">
+        <img class="studio-macbook-bezel" src="assets/apple-macbook-pro-14-silver.webp" alt="Apple MacBook Pro Bezel" width="1930" height="1270">
       </div>
     </div>
 

@@ -196,3 +196,16 @@ body.home-page .site-nav.lg { background: rgba(255, 255, 255, .92) !important }
     font-size: 0.95rem !important;
   }
 }
+
+/*
+ * Legibility floor for the shared nav (measured: mega-menu labels 11.5 to 11.8px, language label
+ * 9.9px, external-link arrow 9.9px, all under 4.5:1). Same hue, darker, never below 12px.
+ */
+body.home-page .site-nav :is(.global-mega-panel, .nav-language-panel) small {
+  font-size: 12px;
+  color: color-mix(in srgb, currentColor 66%, #000);
+}
+body.home-page .site-nav .external-indicator {
+  font-size: 12px;
+  color: color-mix(in srgb, currentColor 66%, #000);
+}

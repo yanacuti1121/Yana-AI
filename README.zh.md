@@ -139,7 +139,7 @@ core/
 ## Yana Studio
 
 <p align="center">
-  <img src="docs/studio-screen-1.png" alt="Yana Studio 工作区，显示聊天、项目检查器和治理状态" width="900">
+  <img src="docs/studio-screen-1.webp" alt="Yana Studio 工作区，显示聊天、项目检查器和治理状态" width="900">
 </p>
 
 把在项目中与 AI 协作时需要来回切换的东西放进一个窗口。Studio 只通过 `yana-rt` 与模型通信，

@@ -143,7 +143,7 @@ core/
 ## Yana Studio (v1.7.0)
 
 <p align="center">
-  <img src="docs/studio-screen-1.png" alt="Yana Studio với khung chat, bảng thông tin dự án và trạng thái quản trị" width="900">
+  <img src="docs/studio-screen-1.webp" alt="Yana Studio với khung chat, bảng thông tin dự án và trạng thái quản trị" width="900">
 </p>
 
 Một cửa sổ cho những thứ bạn hay phải chuyển qua lại khi làm việc với AI trên một dự án.
