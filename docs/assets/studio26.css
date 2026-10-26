@@ -1421,7 +1421,8 @@
   position: relative;
   z-index: 10;
   max-width: 720px;
-  margin: 0 auto;
+  /* heading, text and buttons sit a little lower, clear of the emblem and the first orbit ring */
+  margin: 56px auto 0;
 }
 
 /* Lõi Yana Trung Tâm (Pulsing Neon Core) */
