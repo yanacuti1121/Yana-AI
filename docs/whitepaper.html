@@ -172,6 +172,11 @@
           </div>
         </div>
 
+        <figure class="wp-figure">
+          <img src="assets/fig-1-decision-flow.png" alt="Hình 1. Luồng quyết định cho mọi mô hình" loading="lazy">
+          <figcaption class="wp-figure-caption"><strong>Hình 1.</strong> Luồng quyết định cho mọi mô hình. Kỹ năng (Skill) dạy cách làm việc và không nằm trên đường thực thi; chỉ các cổng bảo vệ và nhật ký kiểm toán mới quyết định một hành động có được chạy hay không.</figcaption>
+        </figure>
+
         <h3 class="wp-subsec-title">3.2 Kiến trúc hệ sinh thái (Ecosystem Architecture)</h3>
         <div class="wp-prose">
           <ul>
@@ -182,6 +187,11 @@
             <li><strong>Động cơ Mô hình (Model Engine):</strong> Bộ định tuyến hợp nhất kết nối 13 cloud API (Anthropic, OpenAI, Gemini, Groq, DeepSeek, OpenRouter, xAI, Kimi) và 6 runtime cục bộ (Ollama, LM Studio, llama.cpp, TurboFieldfare, AirLLM, 9Router).</li>
           </ul>
         </div>
+
+        <figure class="wp-figure">
+          <img src="assets/fig-2-ecosystem.png" alt="Hình 2. Các thành phần của hệ sinh thái Yana AI" loading="lazy">
+          <figcaption class="wp-figure-caption"><strong>Hình 2.</strong> Các thành phần của hệ sinh thái. Nét đứt biểu thị ranh giới độc lập của các tác nhân AI; mọi lời gọi tài nguyên hệ thống đều hội tụ về lõi kiểm soát tập trung.</figcaption>
+        </figure>
 
         <h3 class="wp-subsec-title">3.3 Phân bổ cấu trúc mã nguồn (Codebase Distribution)</h3>
         <div class="wp-code-block">
@@ -206,7 +216,23 @@
         <div class="wp-prose">
           <h3 class="wp-subsec-title">4.1 Giao diện người dùng & Yana Studio IDE</h3>
           <p>Yana Studio IDE tích hợp trọn vẹn bộ công cụ của nhà phát triển trong một môi trường quen thuộc: ngăn bên trái là cây thư mục và trình soạn thảo Code-OSS, trong khi ngăn bên phải là khung chat với Yana Agent. Khung chat luôn hiển thị rõ trạng thái chính sách hiện hành: ở chế độ <code>SUPERVISED</code>, thao tác đọc file được tự động cho phép, trong khi tất cả các lệnh thực thi đều dừng lại để chờ con người bấm duyệt. Thanh trạng thái bên dưới hiển thị <code>Policy: SUPERVISED [ALLOW: read, REQUIRE: run]</code>, phiên bản runtime đang hoạt động và số dòng nhật ký kiểm toán đã xác thực (ví dụ <code>Audit 500</code>).</p>
-          
+        </div>
+
+        <figure class="wp-figure">
+          <img src="assets/fig-yana-studio-ide.jpg" alt="Hình 4. Yana Studio IDE trên nền Code-OSS" loading="lazy">
+          <figcaption class="wp-figure-caption"><strong>Hình 4.</strong> Yana Studio IDE trên nền Code-OSS. Khung chat bên phải hiển thị chế độ SUPERVISED; thanh trạng thái hiển thị "Policy: SUPERVISED [ALLOW: read, REQUIRE: run]" và "Audit 500" (số dòng nhật ký đã kiểm chứng).</figcaption>
+        </figure>
+
+        <div class="wp-prose">
+          <p>Màn hình đầu tiên khi mở Studio (Hình 5) dẫn người dùng qua ba bước: mở thư mục dự án, cấp quyền tin cậy cho thư mục để agent được đọc mã và chạy lệnh an toàn, rồi chọn mô hình (hoặc dùng Ollama cục bộ miễn phí, hoặc nhập khóa API). Giao diện có ba ngôn ngữ: Việt, Anh, Hàn. Bên dưới là danh sách tính năng và tình trạng các runtime cục bộ như 9Router, Ollama, LM Studio, llama.cpp.</p>
+        </div>
+
+        <figure class="wp-figure">
+          <img src="assets/fig-yana-home.jpg" alt="Hình 5. Màn hình Yana Home" loading="lazy">
+          <figcaption class="wp-figure-caption"><strong>Hình 5.</strong> Màn hình Yana Home: ba bước bắt đầu, lựa chọn ngôn ngữ và tình trạng các runtime cục bộ.</figcaption>
+        </figure>
+
+        <div class="wp-prose">
           <h3 class="wp-subsec-title">4.2 Kiểm chứng bộ lọc lệnh thực tế (Command Guard Evaluation)</h3>
           <p>Bảng 1 ghi lại 4 lệnh shell thực tế được đánh giá trực tiếp bởi runtime guard (<code>yana-rt guard destructive</code>). Khi một câu lệnh bị chặn, agent nhận lại thông báo lý do chi tiết kèm theo hướng dẫn an toàn thay thế, đồng thời sự kiện được ghi vào nhật ký kiểm toán.</p>
         </div>
@@ -409,8 +435,13 @@
       <section class="wp-section" id="timeline">
         <h2 class="wp-sec-title"><span class="wp-sec-num">9.</span> Quỹ đạo Kỹ thuật & Mốc thời gian</h2>
         <div class="wp-prose">
-          <p>Kho lưu trữ bắt đầu từ một commit trống vào ngày <strong>17/05/2026</strong>. Đến ngày 26/10/2026, lịch sử Git đã ghi nhận <strong>2.488 commits</strong>, <strong>426 pull requests đã gộp</strong>, <strong>41 bản phát hành phần mềm</strong> và <strong>72 thẻ phiên bản (tags)</strong>:</p>
+          <p>Kho lưu trữ bắt đầu từ một commit trống vào ngày <strong>17/05/2026</strong>. Đến ngày 26/10/2026, lịch sử Git đã ghi nhận <strong>2.488 commits</strong>, <strong>426 pull requests đã gộp</strong>, <strong>41 bản phát hành phần mềm</strong> và <strong>72 thẻ phiên bản (tags)</strong>. Hình 6 cho thấy nhịp commit theo từng tháng; tháng 6 đạt đỉnh với 740 commits trong đợt nhập hàng loạt skill và xây dựng website.</p>
         </div>
+
+        <figure class="wp-figure">
+          <img src="assets/fig-commits-chart.png" alt="Hình 6. Số commit theo tháng, 17/05 đến 26/10/2026" loading="lazy">
+          <figcaption class="wp-figure-caption"><strong>Hình 6.</strong> Số commit theo tháng từ 17/05 đến 26/10/2026. Nguồn: Lịch sử git chính thức của kho Yana-AI.</figcaption>
+        </figure>
 
         <div class="wp-timeline">
           <div class="wp-timeline-item">

@@ -173,6 +173,11 @@
           </div>
         </div>
 
+        <figure class="wp-figure">
+          <img src="assets/fig-1-decision-flow.png" alt="Figure 1. Deterministic Decision Flow" loading="lazy">
+          <figcaption class="wp-figure-caption"><strong>Figure 1.</strong> Deterministic decision flow for all models. Skills educate and do not sit on the execution critical path; only guard gates and audit ledgers govern whether an action executes.</figcaption>
+        </figure>
+
         <h3 class="wp-subsec-title">3.2 Ecosystem Architecture</h3>
         <div class="wp-prose">
           <ul>
@@ -183,6 +188,11 @@
             <li><strong>Model Engine:</strong> Unified router connecting 13 cloud APIs (Anthropic, OpenAI, Gemini, Groq, DeepSeek, OpenRouter, xAI, Kimi) and 6 local runtimes (Ollama, LM Studio, llama.cpp, TurboFieldfare, AirLLM, 9Router).</li>
           </ul>
         </div>
+
+        <figure class="wp-figure">
+          <img src="assets/fig-2-ecosystem.png" alt="Figure 2. Components of the Yana AI Ecosystem" loading="lazy">
+          <figcaption class="wp-figure-caption"><strong>Figure 2.</strong> Components of the Yana AI ecosystem. Dotted perimeters represent agent host boundaries; all resource invocations converge at the centralized governance engine.</figcaption>
+        </figure>
 
         <h3 class="wp-subsec-title">3.3 Codebase Distribution</h3>
         <div class="wp-code-block">
@@ -207,7 +217,23 @@
         <div class="wp-prose">
           <h3 class="wp-subsec-title">4.1 User Interface & Studio IDE</h3>
           <p>Yana Studio IDE embeds full developer tooling within an integrated development environment. The left pane provides the standard VS Code file tree, while the right pane houses the Yana Agent chat. The chat interface continuously surfaces the active governance posture: in <code>SUPERVISED</code> mode, read operations proceed automatically, whereas all execution commands pause for explicit operator sign-off. The status bar reflects <code>Policy: SUPERVISED [ALLOW: read, REQUIRE: run]</code>, the active runtime version, and the verified audit log count (<code>Audit 500</code>).</p>
-          
+        </div>
+
+        <figure class="wp-figure">
+          <img src="assets/fig-yana-studio-ide.jpg" alt="Figure 4. Yana Studio IDE on Code-OSS" loading="lazy">
+          <figcaption class="wp-figure-caption"><strong>Figure 4.</strong> Yana Studio IDE built on Code-OSS. The right-hand chat pane operates under SUPERVISED policy; the status bar reports read allowances and command sign-off requirements with the verified audit ledger count.</figcaption>
+        </figure>
+
+        <div class="wp-prose">
+          <p>The initial launch screen (Figure 5) guides operators through three foundational steps: open a project workspace, bestow workspace trust so agents can inspect code safely, and select an inference backend (either local Ollama or cloud API credentials). It provides tri-lingual switching (English, Vietnamese, Korean) and real-time engine health telemetry.</p>
+        </div>
+
+        <figure class="wp-figure">
+          <img src="assets/fig-yana-home.jpg" alt="Figure 5. Yana Home Interface" loading="lazy">
+          <figcaption class="wp-figure-caption"><strong>Figure 5.</strong> Yana Home launch experience: 3-step rapid onboarding, multi-language interface switcher, and local runtime service health monitors.</figcaption>
+        </figure>
+
+        <div class="wp-prose">
           <h3 class="wp-subsec-title">4.2 Real-World Command Guard Evaluation</h3>
           <p>Table 1 demonstrates four actual CLI commands evaluated directly by the runtime guard (<code>yana-rt guard destructive</code>). When an invocation is intercepted, the agent receives an explanatory reason along with recommended safe alternatives, while the incident is committed to the audit trail.</p>
         </div>
@@ -410,8 +436,13 @@
       <section class="wp-section" id="timeline">
         <h2 class="wp-sec-title"><span class="wp-sec-num">9.</span> Engineering Trajectory & Timeline</h2>
         <div class="wp-prose">
-          <p>The Git repository began with an empty commit on <strong>May 17, 2026</strong>. By October 26, 2026, the history recorded <strong>2,488 commits</strong>, <strong>426 merged pull requests</strong>, <strong>41 software releases</strong>, and <strong>72 tags</strong>:</p>
+          <p>The Git repository began with an empty commit on <strong>May 17, 2026</strong>. By October 26, 2026, the history recorded <strong>2,488 commits</strong>, <strong>426 merged pull requests</strong>, <strong>41 software releases</strong>, and <strong>72 tags</strong>. Figure 6 details the commit velocity across months, peaking in June during the bulk ingestion of operational skills and web portal launch.</p>
         </div>
+
+        <figure class="wp-figure">
+          <img src="assets/fig-commits-chart.png" alt="Figure 6. Commits per month, May 17 to Oct 26, 2026" loading="lazy">
+          <figcaption class="wp-figure-caption"><strong>Figure 6.</strong> Monthly commit cadence from May 17 to October 26, 2026. Source: Yana-AI repository Git history.</figcaption>
+        </figure>
 
         <div class="wp-timeline">
           <div class="wp-timeline-item">

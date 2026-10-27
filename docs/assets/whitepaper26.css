@@ -636,3 +636,38 @@ body.whitepaper-page .site-nav {
     padding: 20px;
   }
 }
+
+/* Figures & Diagrams from Report */
+.wp-figure {
+  margin: 32px 0;
+  background: var(--wp-canvas-alt);
+  border: 1px solid var(--wp-border);
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.wp-figure img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+  margin: 0 auto;
+  border: 1px solid var(--wp-border);
+  background: #ffffff;
+}
+
+.wp-figure-caption {
+  margin-top: 12px;
+  font-size: 0.88rem;
+  color: var(--wp-ink-soft);
+  font-style: italic;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.wp-figure-caption strong {
+  color: var(--wp-ink);
+  font-style: normal;
+}
