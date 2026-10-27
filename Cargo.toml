@@ -44,7 +44,7 @@ default = ["cli"]
 cli = [
   "clap", "uuid", "chrono", "shell-words", "glob", "walkdir",
   "anyhow", "unicode-normalization", "liteparse", "ureq", "serde_yml", "sha2",
-  "ratatui", "crossterm",
+  "ratatui", "crossterm", "url",
   "tree-sitter", "tree-sitter-rust", "tree-sitter-typescript",
   "tree-sitter-javascript", "tree-sitter-python", "tree-sitter-go",
   "flock-v1",
@@ -97,6 +97,7 @@ ureq       = { version = "3", features = ["json"],   optional = true }
 serde_yml  = { version = "0.0.13",                   optional = true }
 sha2       = { version = "0.10",                     optional = true }
 libc       = { version = "0.2",                      optional = true }
+url        = { version = "2",                        optional = true }
 # TUI for `yana chat` — synchronous poll/read API only, deliberately not
 # opting into crossterm's `event-stream` feature (would pull in async/
 # futures plumbing this crate has nowhere else).

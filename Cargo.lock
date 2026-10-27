@@ -4130,6 +4130,7 @@ dependencies = [
  "tungstenite",
  "unicode-normalization",
  "ureq",
+ "url",
  "uuid",
  "walkdir",
  "wasm-bindgen",

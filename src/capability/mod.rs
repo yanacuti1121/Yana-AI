@@ -9,6 +9,7 @@
 
 pub mod archive;
 pub mod archive_create;
+pub mod browser_fetch;
 pub mod cli;
 pub mod command;
 pub mod config_write;
