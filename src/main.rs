@@ -362,6 +362,10 @@ enum Commands {
         /// demo scripts have a high false-positive rate.
         #[arg(long)]
         include_skills: bool,
+        /// 3-Tier scan preset (1 = fast static agent-config check,
+        /// 2 = incremental --diff HEAD check, 3 = deep scan with --include-skills).
+        #[arg(long)]
+        tier: Option<u8>,
     },
     /// On-demand malware check for a downloaded file (VirusTotal hash lookup —
     /// no file content uploaded). Not real-time/background protection — see
@@ -563,6 +567,26 @@ enum BusAction {
     },
     /// Show inbox for an agent
     Inbox { agent: String },
+    /// Register an active peer session in `.yana-ai/peers.json`
+    RegisterPeer {
+        #[arg(long)]
+        session_id: String,
+        #[arg(long)]
+        name: String,
+    },
+    /// List registered peer sessions
+    Peers {
+        #[arg(long)]
+        json: bool,
+    },
+    /// Send a cross-session peer message with hard-capped auto-hop count (`MAX_AUTO_HOPS = 3`)
+    SendPeer {
+        from: String,
+        to: String,
+        message: String,
+        #[arg(long, default_value_t = 0)]
+        auto_hop: u32,
+    },
 }
 
 #[derive(Subcommand)]
@@ -628,6 +652,14 @@ enum MemoryAction {
     Import {
         #[arg(long, default_value = "memory/L2_session")]
         l2_dir: String,
+    },
+    /// Copy-on-Write L3 memory consolidation (deduplicate & merge into `.yana-ai/l3.dream.jsonl`)
+    Dream {
+        /// Apply the consolidated draft back to `.yana-ai/l3.jsonl`
+        #[arg(long)]
+        apply: bool,
+        #[arg(long)]
+        json: bool,
     },
 }
 
@@ -900,6 +932,16 @@ fn main() {
                 payload,
             } => bus::cmd_bus_reply(original_id, from, payload),
             BusAction::Inbox { agent } => bus::cmd_bus_inbox(agent),
+            BusAction::RegisterPeer { session_id, name } => {
+                bus::cmd_bus_register_peer(session_id, name)
+            }
+            BusAction::Peers { json } => bus::cmd_bus_peers(json),
+            BusAction::SendPeer {
+                from,
+                to,
+                message,
+                auto_hop,
+            } => bus::cmd_bus_send_peer(from, to, message, auto_hop),
         },
         Commands::Memory { action } => match action {
             MemoryAction::Store {
@@ -922,6 +964,7 @@ fn main() {
             MemoryAction::List { tag, agent, last } => memory::cmd_memory_list(tag, agent, last),
             MemoryAction::Promote { key, l1_dir } => memory::cmd_memory_promote(key, l1_dir),
             MemoryAction::Import { l2_dir } => memory::cmd_memory_import(l2_dir),
+            MemoryAction::Dream { apply, json } => memory::cmd_memory_dream(apply, json),
         },
         Commands::Config { action } => match action {
             ConfigAction::Show { dir } => config::cmd_config_show(dir),
@@ -946,15 +989,36 @@ fn main() {
             markdown,
             sarif,
             fail_on,
-            only,
+            mut only,
             ignore_ids,
-            diff,
+            mut diff,
             no_color,
             quiet,
             scanner_dir,
-            include_skills,
+            mut include_skills,
+            tier,
         } => {
             use std::collections::HashSet;
+            match tier {
+                Some(1) => {
+                    if only.is_none() {
+                        only = Some("agent-config".to_string());
+                    }
+                }
+                Some(2) => {
+                    if diff.is_none() {
+                        diff = Some("HEAD".to_string());
+                    }
+                }
+                Some(3) => {
+                    include_skills = true;
+                }
+                Some(other) => {
+                    eprintln!("[audit] invalid --tier {other}: expected 1, 2, or 3");
+                    std::process::exit(2);
+                }
+                None => {}
+            }
             let diff_files: Option<HashSet<String>> = match diff.as_deref() {
                 Some(base) => match scanner::files::get_diff_files(base, &target) {
                     Ok(files) => Some(files),

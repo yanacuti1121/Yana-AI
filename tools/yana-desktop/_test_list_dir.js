@@ -4,7 +4,15 @@ const assert = require('assert');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
-const { listDir } = require('./list-dir');
+const {
+  listDir,
+  workspaceRefresh,
+  workspaceStat,
+  checkpointSnapshot,
+  checkpointList,
+  checkpointDiff,
+  checkpointRewind,
+} = require('./list-dir');
 const { binaryName } = require('./runtime-paths');
 
 // Locates a real compiled yana-rt binary — same dev-mode search
@@ -60,5 +68,31 @@ const missingBinary = listDir({ repoRoot: repo, yanaRtBin: path.join(repo, 'no-s
 assert.strictEqual(missingBinary.ok, false);
 assert.ok(missingBinary.error.includes('not found'));
 
+// Canonical ProjectWorkspace + CheckpointStore Rewind wiring
+const refreshed = workspaceRefresh({ repoRoot: repo, yanaRtBin });
+assert.strictEqual(refreshed.ok, true, JSON.stringify(refreshed));
+assert.strictEqual(refreshed.capability, 'workspace.refresh');
+assert.ok(Array.isArray(refreshed.entries));
+
+const stat = workspaceStat({ repoRoot: repo, yanaRtBin, relPath: 'src/main.rs' });
+assert.strictEqual(stat.ok, true, JSON.stringify(stat));
+assert.strictEqual(stat.capability, 'workspace.stat');
+assert.strictEqual(stat.stat.size_bytes, 12);
+
+const snap = checkpointSnapshot({ repoRoot: repo, yanaRtBin, label: 'initial' });
+assert.strictEqual(snap.ok, true, JSON.stringify(snap));
+assert.strictEqual(snap.id, 1);
+
+fs.writeFileSync(path.join(repo, 'README.md'), '# modified');
+const dry = checkpointRewind({ repoRoot: repo, yanaRtBin, id: 1, dryRun: true });
+assert.strictEqual(dry.ok, true, JSON.stringify(dry));
+assert.strictEqual(dry.dry_run, true);
+assert.strictEqual(fs.readFileSync(path.join(repo, 'README.md'), 'utf8'), '# modified');
+
+const rewound = checkpointRewind({ repoRoot: repo, yanaRtBin, id: 1, dryRun: false });
+assert.strictEqual(rewound.ok, true, JSON.stringify(rewound));
+assert.strictEqual(rewound.dry_run, false);
+assert.strictEqual(fs.readFileSync(path.join(repo, 'README.md'), 'utf8'), '# hi');
+
 fs.rmSync(repo, { recursive: true, force: true });
-console.log('list-dir tests passed: 8');
+console.log('list-dir tests passed: 14');

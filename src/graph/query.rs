@@ -236,5 +236,100 @@ fn count_layers(nodes: &[Node]) -> std::collections::HashMap<String, usize> {
     map
 }
 
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct WikiCards {
+    pub architecture_md: String,
+    pub modules_md: String,
+    pub tech_stack_md: String,
+}
+
+/// Builds three structured Knowledge Cards (`architecture.md`, `modules.md`,
+/// `tech-stack.md`) from the AST knowledge graph.
+pub fn build_wiki_cards(data: &GraphData) -> WikiCards {
+    let architecture_md = render_onboard(data);
+
+    // Group files by top-level directory / module
+    let mut by_module: std::collections::BTreeMap<String, Vec<&Node>> =
+        std::collections::BTreeMap::new();
+    for node in data.nodes.iter().filter(|n| n.node_type == "file") {
+        let module = node
+            .file_path
+            .split('/')
+            .next()
+            .unwrap_or("root")
+            .to_string();
+        by_module.entry(module).or_default().push(node);
+    }
+    let mut modules_md = format!("# {} — Module Knowledge Card\n\n", data.meta.project);
+    for (module, files) in &by_module {
+        modules_md.push_str(&format!("## `{module}` ({} files)\n\n", files.len()));
+        for f in files.iter().take(15) {
+            modules_md.push_str(&format!("- `{}` ({})\n", f.file_path, f.language));
+        }
+        if files.len() > 15 {
+            modules_md.push_str(&format!("- … and {} more\n", files.len() - 15));
+        }
+        modules_md.push('\n');
+    }
+
+    // Category & language breakdown
+    let mut by_cat: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
+    for node in data.nodes.iter().filter(|n| n.node_type == "file") {
+        let cat = crate::graph::types::category_from_path(&node.file_path, &node.language);
+        *by_cat.entry(cat.to_string()).or_default() += 1;
+    }
+    let mut tech_stack_md = format!("# {} — Tech Stack Knowledge Card\n\n", data.meta.project);
+    tech_stack_md.push_str(&format!(
+        "- **Languages**: {}\n- **Frameworks**: {}\n- **Total Files**: {}\n\n## File Categories\n\n",
+        data.meta.languages.join(", "),
+        if data.meta.frameworks.is_empty() {
+            "-".to_string()
+        } else {
+            data.meta.frameworks.join(", ")
+        },
+        data.meta.total_files
+    ));
+    for (cat, count) in &by_cat {
+        tech_stack_md.push_str(&format!("- **{cat}**: {count} files\n"));
+    }
+
+    WikiCards {
+        architecture_md,
+        modules_md,
+        tech_stack_md,
+    }
+}
+
+pub fn cmd_wiki(data: &GraphData, out_dir: &str, as_json: bool) -> Result<()> {
+    let cards = build_wiki_cards(data);
+    let dir = std::path::Path::new(out_dir);
+    std::fs::create_dir_all(dir)?;
+    let arch_path = dir.join("architecture.md");
+    let mod_path = dir.join("modules.md");
+    let stack_path = dir.join("tech-stack.md");
+    std::fs::write(&arch_path, &cards.architecture_md)?;
+    std::fs::write(&mod_path, &cards.modules_md)?;
+    std::fs::write(&stack_path, &cards.tech_stack_md)?;
+
+    if as_json {
+        let out = serde_json::json!({
+            "project": data.meta.project,
+            "out_dir": out_dir,
+            "cards": [
+                arch_path.to_string_lossy(),
+                mod_path.to_string_lossy(),
+                stack_path.to_string_lossy(),
+            ]
+        });
+        println!("{}", serde_json::to_string_pretty(&out)?);
+    } else {
+        println!(
+            "[graph] RepoWiki Knowledge Cards written to {} (architecture.md, modules.md, tech-stack.md)",
+            out_dir
+        );
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests;

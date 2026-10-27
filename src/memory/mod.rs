@@ -240,6 +240,107 @@ pub fn cmd_memory_import(l2_dir: String) {
     println!("✓ imported {imported} facts L2 → L3");
 }
 
+// ── Copy-on-Write Memory Consolidation (`Dream` — Wave 4) ────────────────────
+
+#[derive(Debug, Clone, Serialize)]
+pub struct DreamReport {
+    pub input_count: usize,
+    pub output_count: usize,
+    pub deduplicated: usize,
+    pub draft_path: String,
+    pub applied: bool,
+}
+
+fn confidence_rank(c: &str) -> u8 {
+    match c.to_lowercase().as_str() {
+        "high" | "verified" => 3,
+        "medium" => 2,
+        _ => 1,
+    }
+}
+
+/// Pure Copy-on-Write consolidation over L3 facts: deduplicates facts sharing
+/// the same normalized key or identical value, merges their tag sets without
+/// duplicates, and preserves the highest confidence tier (`high > medium > low`).
+pub fn consolidate_facts_cow(facts: &[L3Fact]) -> Vec<L3Fact> {
+    let mut out: Vec<L3Fact> = Vec::new();
+    for fact in facts {
+        if fact.key.trim().is_empty() || fact.value.trim().is_empty() {
+            continue;
+        }
+        let norm_key = fact.key.trim().to_lowercase();
+        let norm_val = fact.value.trim().to_lowercase();
+        if let Some(existing) = out.iter_mut().find(|e| {
+            e.key.trim().to_lowercase() == norm_key || e.value.trim().to_lowercase() == norm_val
+        }) {
+            for tag in &fact.tags {
+                if !existing.tags.contains(tag) {
+                    existing.tags.push(tag.clone());
+                }
+            }
+            if confidence_rank(&fact.confidence) > confidence_rank(&existing.confidence) {
+                existing.confidence = fact.confidence.clone();
+            }
+            if fact.value.len() >= existing.value.len() {
+                existing.value = fact.value.clone();
+            }
+            existing.promoted |= fact.promoted;
+            if fact.updated_at > existing.updated_at {
+                existing.updated_at = fact.updated_at.clone();
+            }
+        } else {
+            out.push(fact.clone());
+        }
+    }
+    out
+}
+
+pub fn cmd_memory_dream(apply: bool, as_json: bool) {
+    let facts = l3_read_all();
+    let consolidated = consolidate_facts_cow(&facts);
+    let draft_path = l3_path().with_file_name("l3.dream.jsonl");
+    if let Some(p) = draft_path.parent() {
+        fs::create_dir_all(p).ok();
+    }
+    let content = consolidated
+        .iter()
+        .map(|f| serde_json::to_string(f).unwrap())
+        .collect::<Vec<_>>()
+        .join("\n");
+    fs::write(&draft_path, format!("{content}\n")).expect("write l3.dream.jsonl failed");
+
+    if apply {
+        l3_write_all(&consolidated);
+    }
+
+    let report = DreamReport {
+        input_count: facts.len(),
+        output_count: consolidated.len(),
+        deduplicated: facts.len().saturating_sub(consolidated.len()),
+        draft_path: draft_path.to_string_lossy().to_string(),
+        applied: apply,
+    };
+
+    if as_json {
+        println!("{}", serde_json::to_string_pretty(&report).unwrap());
+    } else {
+        println!(
+            "✓ memory dream complete ({} → {} facts, {} deduplicated)",
+            report.input_count, report.output_count, report.deduplicated
+        );
+        println!("  draft:   {}", report.draft_path);
+        println!(
+            "  applied: {} {}",
+            report.applied,
+            if report.applied {
+                "(live l3.jsonl updated)"
+            } else {
+                "(Copy-on-Write draft only; pass --apply to commit)"
+            }
+        );
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -264,5 +365,41 @@ mod tests {
         // hex strings for the same object, confusing for anyone debugging it.
         let checkpoint = checkpoint_fact("t".into(), "s".into(), vec![], vec![]).unwrap();
         assert_eq!(checkpoint.key, format!("checkpoint-{}", &checkpoint.id[..8]));
+    }
+
+    #[test]
+    fn consolidate_facts_cow_deduplicates_and_merges_tags() {
+        let f1 = L3Fact {
+            id: "11111111".into(),
+            key: "auth-rule".into(),
+            value: "Always verify JWT signature".into(),
+            tags: vec!["security".into()],
+            agent: Some("claude".into()),
+            confidence: "low".into(),
+            scope: "both".into(),
+            created_at: "2026-10-01T00:00:00Z".into(),
+            updated_at: "2026-10-01T00:00:00Z".into(),
+            promoted: false,
+        };
+        let f2 = L3Fact {
+            id: "22222222".into(),
+            key: "AUTH-RULE".into(),
+            value: "Always verify JWT signature before decoding claims".into(),
+            tags: vec!["jwt".into()],
+            agent: Some("gemini".into()),
+            confidence: "high".into(),
+            scope: "both".into(),
+            created_at: "2026-10-02T00:00:00Z".into(),
+            updated_at: "2026-10-02T00:00:00Z".into(),
+            promoted: true,
+        };
+        let consolidated = consolidate_facts_cow(&[f1, f2]);
+        assert_eq!(consolidated.len(), 1);
+        assert_eq!(consolidated[0].confidence, "high");
+        assert!(consolidated[0].promoted);
+        assert_eq!(
+            consolidated[0].tags,
+            vec!["security".to_string(), "jwt".to_string()]
+        );
     }
 }

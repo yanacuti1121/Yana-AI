@@ -265,3 +265,15 @@ fn languages_layers_and_categories_follow_the_path() {
         assert_eq!(category_from_path(path, lang), cat, "{path}");
     }
 }
+
+#[test]
+fn cmd_wiki_generates_three_knowledge_cards() {
+    let dir = tempdir().unwrap();
+    let d = graph(vec![file("src/main.rs"), file("docs/README.md")], vec![]);
+    cmd_wiki(&d, dir.path().to_str().unwrap(), false).unwrap();
+    assert!(dir.path().join("architecture.md").exists());
+    assert!(dir.path().join("modules.md").exists());
+    assert!(dir.path().join("tech-stack.md").exists());
+    let modules = fs::read_to_string(dir.path().join("modules.md")).unwrap();
+    assert!(modules.contains("## `src` (1 files)"));
+}

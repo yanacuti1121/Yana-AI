@@ -96,6 +96,39 @@ pub enum MissionAction {
         /// Mission ID (or prefix)
         mission: String,
     },
+    /// Bind an autonomous goal & dynamic-pacing policy (clamped to [60s, 3600s])
+    /// with single-session ownership lock (`--take` required to steal ownership).
+    Goal {
+        /// Mission ID (or prefix)
+        mission: String,
+        /// High-level objective statement
+        #[arg(long)]
+        objective: String,
+        /// Session ID claiming ownership of this goal
+        #[arg(long, default_value = "default-session")]
+        owner_session: String,
+        /// Maximum autonomous turns allowed
+        #[arg(long, default_value_t = 25)]
+        max_turns: u32,
+        /// Maximum USD cost ceiling for this goal
+        #[arg(long, default_value_t = 5.0)]
+        max_cost_usd: f64,
+        /// Dynamic pacing interval in seconds (clamped to [60, 3600])
+        #[arg(long, default_value_t = 120)]
+        interval_secs: u64,
+        /// Force ownership transfer if another session currently owns the goal
+        #[arg(long)]
+        take: bool,
+    },
+    /// Execute one bounded autonomous loop tick (checks `.yana-ai/HALT`,
+    /// verifies session ownership, and computes next dynamic-pacing interval).
+    Tick {
+        /// Mission ID (or prefix)
+        mission: String,
+        /// Session ID executing this tick
+        #[arg(long, default_value = "default-session")]
+        session_id: String,
+    },
     /// List all missions
     List,
 }
@@ -113,6 +146,24 @@ pub fn dispatch(action: MissionAction) {
         MissionAction::Status { mission }               => cmd_status(mission),
         MissionAction::Report { mission }               => cmd_report(mission),
         MissionAction::Checkpoint { mission }           => cmd_checkpoint(mission),
+        MissionAction::Goal {
+            mission,
+            objective,
+            owner_session,
+            max_turns,
+            max_cost_usd,
+            interval_secs,
+            take,
+        } => cmd_goal(
+            mission,
+            objective,
+            owner_session,
+            max_turns,
+            max_cost_usd,
+            interval_secs,
+            take,
+        ),
+        MissionAction::Tick { mission, session_id }     => cmd_tick(mission, session_id),
         MissionAction::List                             => cmd_list(),
     }
 }
@@ -881,6 +932,168 @@ fn truncate(s: &str, max: usize) -> String {
     }
 }
 
+// ── Autonomous Goal & Dynamic-Pacing Loop (Wave 3) ────────────────────────────
+
+pub const MIN_LOOP_INTERVAL_SECS: u64 = 60;
+pub const MAX_LOOP_INTERVAL_SECS: u64 = 3600;
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct MissionGoal {
+    pub mission_id: String,
+    pub objective: String,
+    pub owner_session_id: String,
+    pub max_turns: u32,
+    pub turns_used: u32,
+    pub max_cost_usd: f64,
+    pub interval_secs: u64,
+    pub updated_at: String,
+}
+
+/// Clamps dynamic-pacing intervals to `[60, 3600]` seconds so an autonomous
+/// loop can never busy-spin faster than once per minute or stall longer than
+/// an hour.
+pub fn clamp_loop_interval(secs: u64) -> u64 {
+    secs.clamp(MIN_LOOP_INTERVAL_SECS, MAX_LOOP_INTERVAL_SECS)
+}
+
+/// Single-session ownership guard: if an existing goal is owned by a different
+/// session, `take` must be true to transfer ownership.
+pub fn apply_goal_ownership(
+    existing: Option<&MissionGoal>,
+    new_owner: &str,
+    take: bool,
+) -> Result<(), String> {
+    if let Some(prev) = existing {
+        if prev.owner_session_id != new_owner && !take {
+            return Err(format!(
+                "mission goal is already owned by session '{}' — pass --take to transfer ownership to '{}'",
+                prev.owner_session_id, new_owner
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn goal_path(mission_id: &str) -> PathBuf {
+    missions_dir().join(format!("{mission_id}.goal.json"))
+}
+
+fn load_goal(mission_id: &str) -> Option<MissionGoal> {
+    let data = std::fs::read_to_string(goal_path(mission_id)).ok()?;
+    serde_json::from_str(&data).ok()
+}
+
+fn save_goal(goal: &MissionGoal) {
+    ensure_dir();
+    let json = serde_json::to_string_pretty(goal).expect("serialize goal");
+    let final_path = goal_path(&goal.mission_id);
+    let tmp_path = final_path.with_extension(format!("goal.tmp.{}", std::process::id()));
+    std::fs::write(&tmp_path, json).expect("write goal (temp)");
+    std::fs::rename(&tmp_path, &final_path).expect("atomically publish goal");
+}
+
+fn cmd_goal(
+    prefix: String,
+    objective: String,
+    owner_session: String,
+    max_turns: u32,
+    max_cost_usd: f64,
+    interval_secs: u64,
+    take: bool,
+) {
+    let clamped = clamp_loop_interval(interval_secs);
+    let result = with_mission_locked(&prefix, |m| {
+        let existing = load_goal(&m.id);
+        apply_goal_ownership(existing.as_ref(), &owner_session, take)?;
+        let turns_used = existing.map(|g| g.turns_used).unwrap_or(0);
+        let goal = MissionGoal {
+            mission_id: m.id.clone(),
+            objective: objective.clone(),
+            owner_session_id: owner_session.clone(),
+            max_turns,
+            turns_used,
+            max_cost_usd,
+            interval_secs: clamped,
+            updated_at: now(),
+        };
+        save_goal(&goal);
+        Ok(())
+    });
+    match result {
+        Ok(m) => {
+            println!("✓ mission goal bound to '{}'", m.name);
+            println!("  owner_session: {owner_session}");
+            println!("  pacing:        {clamped}s (clamped to [60, 3600])");
+            println!("  budget:        {max_turns} turns / ${max_cost_usd:.2}");
+        }
+        Err(e) => {
+            eprintln!("error: {e}");
+            std::process::exit(1);
+        }
+    }
+}
+
+fn cmd_tick(prefix: String, session_id: String) {
+    if Path::new(".yana-ai/HALT").exists() {
+        eprintln!("✗ HALT switch active (.yana-ai/HALT) — refusing autonomous tick");
+        std::process::exit(2);
+    }
+    let mut tick_json: Option<serde_json::Value> = None;
+    let result = with_mission_locked(&prefix, |m| {
+        let mut goal = load_goal(&m.id).ok_or_else(|| {
+            format!(
+                "mission '{}' has no bound goal — run `yana-rt mission goal {} --objective ...` first",
+                m.name, m.id
+            )
+        })?;
+        if goal.owner_session_id != session_id {
+            return Err(format!(
+                "session '{}' does not own mission '{}' (owner: '{}') — use `mission goal --take` to claim",
+                session_id, m.name, goal.owner_session_id
+            ));
+        }
+        if goal.turns_used >= goal.max_turns {
+            return Err(format!(
+                "autonomous turn budget exhausted ({}/{})",
+                goal.turns_used, goal.max_turns
+            ));
+        }
+        goal.turns_used += 1;
+        goal.updated_at = now();
+        save_goal(&goal);
+
+        let ready_count = m.tasks.iter().filter(|t| is_ready(t, m)).count();
+        let running_count = m.tasks.iter().filter(|t| t.status == TaskStatus::Running).count();
+        let done_count = m.tasks.iter().filter(|t| t.status == TaskStatus::Done).count();
+        let next_interval = if ready_count > 0 {
+            clamp_loop_interval(goal.interval_secs)
+        } else {
+            clamp_loop_interval(goal.interval_secs.saturating_mul(2))
+        };
+
+        tick_json = Some(serde_json::json!({
+            "mission_id": m.id,
+            "mission_status": m.status,
+            "owner_session_id": goal.owner_session_id,
+            "turns_used": goal.turns_used,
+            "max_turns": goal.max_turns,
+            "ready_tasks": ready_count,
+            "running_tasks": running_count,
+            "done_tasks": done_count,
+            "next_interval_secs": next_interval,
+        }));
+        Ok(())
+    });
+
+    match result {
+        Ok(_) => println!("{}", serde_json::to_string_pretty(&tick_json.unwrap()).unwrap()),
+        Err(e) => {
+            eprintln!("error: {e}");
+            std::process::exit(1);
+        }
+    }
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 #[cfg(test)]
@@ -1096,5 +1309,30 @@ mod tests {
             harness_path: None, tasks: vec![], created_at: now(), updated_at: now(),
         };
         assert_eq!(build_instructions(&t, &m), "do exactly this");
+    }
+
+    #[test]
+    fn clamp_loop_interval_enforces_60_to_3600_seconds() {
+        assert_eq!(clamp_loop_interval(0), 60);
+        assert_eq!(clamp_loop_interval(15), 60);
+        assert_eq!(clamp_loop_interval(120), 120);
+        assert_eq!(clamp_loop_interval(99_999), 3600);
+    }
+
+    #[test]
+    fn goal_ownership_requires_take_to_transfer_between_sessions() {
+        let existing = MissionGoal {
+            mission_id: "m1".into(),
+            objective: "ship wave 3".into(),
+            owner_session_id: "session-a".into(),
+            max_turns: 10,
+            turns_used: 2,
+            max_cost_usd: 5.0,
+            interval_secs: 120,
+            updated_at: now(),
+        };
+        assert!(apply_goal_ownership(Some(&existing), "session-a", false).is_ok());
+        assert!(apply_goal_ownership(Some(&existing), "session-b", false).is_err());
+        assert!(apply_goal_ownership(Some(&existing), "session-b", true).is_ok());
     }
 }

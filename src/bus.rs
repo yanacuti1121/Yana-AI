@@ -219,3 +219,132 @@ pub fn cmd_bus_inbox(agent: String) {
         );
     }
 }
+
+// ── Cross-Session Peer Coordination (Wave 3: Bounded 3-Hop Auto-Send) ────────
+
+/// Hard ceiling on consecutive automated cross-session peer replies without
+/// fresh human input (anti-infinite-ping-pong circuit breaker).
+pub const MAX_AUTO_HOPS: u32 = 3;
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub struct PeerSession {
+    pub session_id: String,
+    pub name: String,
+    pub pid: u32,
+    pub cwd: String,
+    pub registered_at: String,
+}
+
+fn peers_path() -> PathBuf {
+    std::env::current_dir()
+        .unwrap_or_else(|_| PathBuf::from("."))
+        .join(".yana-ai")
+        .join("peers.json")
+}
+
+fn peers_read_all() -> Vec<PeerSession> {
+    let path = peers_path();
+    if !path.exists() {
+        return Vec::new();
+    }
+    fs::read_to_string(&path)
+        .ok()
+        .and_then(|s| serde_json::from_str(&s).ok())
+        .unwrap_or_default()
+}
+
+fn peers_write_all(peers: &[PeerSession]) {
+    let path = peers_path();
+    if let Some(p) = path.parent() {
+        fs::create_dir_all(p).ok();
+    }
+    let json = serde_json::to_string_pretty(peers).expect("serialize peers");
+    fs::write(&path, json).expect("write peers.json");
+}
+
+pub fn check_auto_hop_budget(auto_hop: u32) -> Result<u32, String> {
+    if auto_hop > MAX_AUTO_HOPS {
+        return Err(format!(
+            "cross-session auto-hop limit exceeded (hop {auto_hop} > MAX_AUTO_HOPS={MAX_AUTO_HOPS}) — human input required before continuing peer loop"
+        ));
+    }
+    Ok(auto_hop)
+}
+
+pub fn cmd_bus_register_peer(session_id: String, name: String) {
+    let mut peers = peers_read_all();
+    peers.retain(|p| p.session_id != session_id && p.name != name);
+    let cwd = std::env::current_dir()
+        .unwrap_or_else(|_| PathBuf::from("."))
+        .to_string_lossy()
+        .to_string();
+    peers.push(PeerSession {
+        session_id: session_id.clone(),
+        name: name.clone(),
+        pid: std::process::id(),
+        cwd,
+        registered_at: now(),
+    });
+    peers_write_all(&peers);
+    println!("✓ peer registered: {name} (session: {session_id})");
+}
+
+pub fn cmd_bus_peers(as_json: bool) {
+    let peers = peers_read_all();
+    if as_json {
+        println!("{}", serde_json::to_string_pretty(&peers).unwrap());
+        return;
+    }
+    if peers.is_empty() {
+        println!("No active peer sessions registered.");
+        return;
+    }
+    println!("{:<18} {:<24} {:<10} CWD", "NAME", "SESSION_ID", "PID");
+    println!("{}", "─".repeat(72));
+    for p in peers {
+        println!(
+            "{:<18} {:<24} {:<10} {}",
+            p.name, p.session_id, p.pid, p.cwd
+        );
+    }
+}
+
+pub fn cmd_bus_send_peer(from: String, to: String, message: String, auto_hop: u32) {
+    if let Err(err) = check_auto_hop_budget(auto_hop) {
+        eprintln!("error: {err}");
+        std::process::exit(2);
+    }
+    let payload = serde_json::json!({
+        "message": message,
+        "auto_hop": auto_hop,
+        "max_auto_hops": MAX_AUTO_HOPS,
+    });
+    let event = BusEvent {
+        id: Uuid::new_v4().to_string(),
+        ts: now(),
+        from: from.clone(),
+        to: to.clone(),
+        event_type: "peer_message".into(),
+        payload,
+        reply_to: None,
+    };
+    bus_append(&event);
+    println!(
+        "✓ peer message sent  {}  ({from} → {to}, hop {auto_hop}/{MAX_AUTO_HOPS})",
+        &event.id[..8]
+    );
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn auto_hop_budget_allows_up_to_three_and_blocks_fourth() {
+        for hop in 0..=MAX_AUTO_HOPS {
+            assert_eq!(check_auto_hop_budget(hop), Ok(hop));
+        }
+        let err = check_auto_hop_budget(MAX_AUTO_HOPS + 1).unwrap_err();
+        assert!(err.contains("MAX_AUTO_HOPS=3"));
+    }
+}
