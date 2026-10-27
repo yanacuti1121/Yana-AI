@@ -1,9 +1,9 @@
 //! `AgentRun::run`: one run of the agent on a saved session.
 
-use super::record::{to_chat, Recorder};
+use super::record::{repair_dangling_call, to_chat, Recorder};
 use super::watchdog::{Watchdog, POLL};
 use super::{Clock, Limit, RunError, RunLimits, RunReport, RunStatus};
-use crate::model::provider::{ChatProvider, ChatUsage};
+use crate::model::provider::{ChatMessage, ChatProvider, ChatUsage, Role};
 use crate::model::tool::ToolSpec;
 use crate::runtime::{
     reason_with_disclosure, CancellationToken, LimitKind, PendingApprovalStore, RuntimeAuthority, RuntimeEvent, ToolExecutor, TurnContext,
@@ -11,11 +11,11 @@ use crate::runtime::{
 };
 use crate::session_db::{EndReason, SessionDbError, SessionRow, SessionStore, SqliteSessionStore};
 use chrono::Utc;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
-/// How long a pending approval made by a run stays open, in minutes.
+/// How long a pending approval made by a run stays open, in minutes (one day).
 const APPROVAL_TTL_MINUTES: u64 = 60 * 24;
 
 /// What one run needs.
@@ -43,11 +43,46 @@ pub(crate) struct AgentRun {
     poll: Duration,
 }
 
+/// What the run has seen so far, kept for every way it can end.
+#[derive(Default)]
+struct Progress {
+    usage: ChatUsage,
+    rounds: usize,
+    text: String,
+}
+
 fn store_error(error: SessionDbError) -> RunError {
     match error {
         SessionDbError::Busy(id) => RunError::Busy(id),
         other => RunError::Store(other.to_string()),
     }
+}
+
+fn new_session_row(input: &RunInput<'_>, provider: &str) -> SessionRow {
+    let now = Utc::now().to_rfc3339();
+    SessionRow {
+        id: input.session_id.clone(),
+        title: input.title.clone(),
+        provider: provider.to_string(),
+        model: input.model.clone(),
+        cwd: Some(input.context.session.repo_root.display().to_string()),
+        created_at: now.clone(),
+        updated_at: now,
+        ended_at: None,
+        end_reason: None,
+        message_count: 0,
+        input_tokens: 0,
+        output_tokens: 0,
+        cache_read_tokens: 0,
+        cache_write_tokens: 0,
+    }
+}
+
+fn add_usage(total: &mut ChatUsage, more: &ChatUsage) {
+    total.input_tokens = total.input_tokens.saturating_add(more.input_tokens);
+    total.output_tokens = total.output_tokens.saturating_add(more.output_tokens);
+    total.cache_read_tokens = total.cache_read_tokens.saturating_add(more.cache_read_tokens);
+    total.cache_write_tokens = total.cache_write_tokens.saturating_add(more.cache_write_tokens);
 }
 
 impl AgentRun {
@@ -61,54 +96,33 @@ impl AgentRun {
         self
     }
 
-    /// Run one user message to a stopping point. Every event is passed to `sink` after it
-    /// has been saved. Nothing is run when the session cannot be locked or opened.
+    /// Run one user message to a stopping point. Every event is saved, then passed to
+    /// `sink`. Nothing is run when the session cannot be locked or opened.
     pub(crate) fn run(&self, input: RunInput<'_>, sink: &mut dyn FnMut(RuntimeEvent)) -> Result<RunReport, RunError> {
         let _lock = input.store.lock_session(&input.session_id).map_err(store_error)?;
-        let now = Utc::now().to_rfc3339();
-        input
-            .store
-            .create_session(&SessionRow {
-                id: input.session_id.clone(),
-                title: input.title.clone(),
-                provider: self.provider.name().to_string(),
-                model: input.model.clone(),
-                cwd: Some(input.context.session.repo_root.display().to_string()),
-                created_at: now.clone(),
-                updated_at: now,
-                ended_at: None,
-                end_reason: None,
-                message_count: 0,
-                input_tokens: 0,
-                output_tokens: 0,
-                cache_read_tokens: 0,
-                cache_write_tokens: 0,
-            })
-            .map_err(store_error)?;
-        let saved = input.store.load_messages(&input.session_id).map_err(store_error)?;
-        let mut history: Vec<_> = saved.iter().map(to_chat).collect();
-        let mut recorder = Recorder::new(input.store, &input.session_id, u32::try_from(saved.len()).unwrap_or(u32::MAX));
+        input.store.create_session(&new_session_row(&input, self.provider.name())).map_err(store_error)?;
+        let mut saved = input.store.load_messages(&input.session_id).map_err(store_error)?;
+        // A call left waiting (for approval, or by a run that stopped) gets a result before
+        // anything new is added, so the model is never sent a call that has no answer.
+        if let Some(row) = repair_dangling_call(input.store, &saved).map_err(RunError::Store)? {
+            saved.push(row);
+        }
+        let mut history: Vec<ChatMessage> = saved.iter().map(to_chat).collect();
+        let mut recorder = Recorder::new(input.store, &input.session_id, saved.iter().map(|m| m.seq).max().unwrap_or(0));
         recorder.user(&input.user_message);
         if let Some(error) = recorder.error.take() {
             return Err(RunError::Store(error));
         }
-        history.push(crate::model::provider::ChatMessage::text(crate::model::provider::Role::User, input.user_message.clone()));
-
+        history.push(ChatMessage::text(Role::User, input.user_message.clone()));
         let token = input.cancellation.child();
         let last_event = Arc::new(AtomicU64::new(self.clock.now_ms()));
-        let watchdog = Watchdog::spawn(Arc::clone(&self.clock), &input.limits, token.clone(), Arc::clone(&last_event), self.poll);
-        let mut request = TurnRequest::new(input.context.clone(), input.model.clone(), history)
-            .with_tools(input.tools.clone())
-            .with_limits(TurnLimits { max_input_tokens: input.limits.max_input_tokens, max_output_tokens: input.limits.max_output_tokens });
-        if let Some(system) = &input.system {
-            request = request.with_system(system.clone());
-        }
-        if let Some(key) = &input.api_key {
-            request = request.with_api_key(key.clone());
-        }
+        let in_tool = Arc::new(AtomicBool::new(false));
+        let watchdog = Watchdog::spawn(Arc::clone(&self.clock), &input.limits, token.clone(), Arc::clone(&last_event), Arc::clone(&in_tool), self.poll);
+        let request = self.request(&input, history);
         let engine = TurnEngine::new(Arc::clone(&self.provider), Arc::clone(&self.authority), Arc::clone(&self.executor)).with_max_tool_rounds(input.limits.max_tool_rounds);
+        let mut progress = Progress::default();
         let mut emit = |event: RuntimeEvent| {
-            last_event.store(self.clock.now_ms(), Ordering::Release);
+            note_progress(&mut progress, &event, &last_event, &in_tool, self.clock.now_ms());
             recorder.on_event(&event);
             if recorder.error.is_some() {
                 token.cancel();
@@ -117,28 +131,54 @@ impl AgentRun {
         };
         let outcome = engine.run(request, &token, &mut emit);
         let fired = watchdog.finish();
+        let caller_cancelled = input.cancellation.is_cancelled();
         if let Some(error) = recorder.error.take() {
             let _ = input.store.finish_session(&input.session_id, EndReason::Crashed);
-            return Ok(report(RunStatus::Failed(format!("could not save the conversation: {error}")), String::new(), ChatUsage::default(), 0, &input.session_id));
+            let status = RunStatus::Failed(format!("could not save the conversation: {error}"));
+            return Ok(report(status, progress, &input.session_id));
         }
-        let (status, message, usage, rounds, end) = match outcome {
-            Ok(TurnOutcome::Completed { message, usage, tool_rounds, .. }) => (RunStatus::Completed, message, usage, tool_rounds, EndReason::Completed),
-            Ok(TurnOutcome::Cancelled { partial }) => {
-                let status = fired.map_or(RunStatus::Cancelled, RunStatus::LimitReached);
-                (status, partial, ChatUsage::default(), 0, EndReason::Cancelled)
+        let (status, end) = self.status_of(outcome, fired.filter(|_| !caller_cancelled), &input, &mut recorder, &mut progress);
+        let _ = input.store.finish_session(&input.session_id, end);
+        Ok(report(status, progress, &input.session_id))
+    }
+
+    fn request(&self, input: &RunInput<'_>, history: Vec<ChatMessage>) -> TurnRequest {
+        let limits = TurnLimits { max_input_tokens: input.limits.max_input_tokens, max_output_tokens: input.limits.max_output_tokens };
+        let mut request = TurnRequest::new(input.context.clone(), input.model.clone(), history).with_tools(input.tools.clone()).with_limits(limits);
+        if let Some(system) = &input.system {
+            request = request.with_system(system.clone());
+        }
+        if let Some(key) = &input.api_key {
+            request = request.with_api_key(key.clone());
+        }
+        request
+    }
+
+    /// How the engine's outcome becomes a status, and how the session is marked. A paused run
+    /// is marked cancelled: it did stop, and a session left open with nobody holding its lock
+    /// would be taken for a crash by WS4's `recover`.
+    fn status_of(&self, outcome: Result<TurnOutcome, TurnError>, fired: Option<Limit>, input: &RunInput<'_>, recorder: &mut Recorder<'_>, progress: &mut Progress) -> (RunStatus, EndReason) {
+        match outcome {
+            Ok(TurnOutcome::Completed { message, tool_rounds, .. }) => {
+                progress.text = message;
+                progress.rounds = tool_rounds;
+                (RunStatus::Completed, EndReason::Completed)
             }
-            Ok(TurnOutcome::AwaitingApproval { call, continuation_messages, usage, tool_rounds }) => {
-                let reason = reason_with_disclosure(&input.context.session.repo_root, &call, recorder.approval_reason.take());
-                let made = reason.map_err(|e| e.to_string()).and_then(|reason| {
-                    PendingApprovalStore::for_root(&input.context.session.repo_root)
+            Ok(TurnOutcome::Cancelled { partial }) => {
+                progress.text = partial;
+                (fired.map_or(RunStatus::Cancelled, RunStatus::LimitReached), EndReason::Cancelled)
+            }
+            Ok(TurnOutcome::AwaitingApproval { call, continuation_messages, tool_rounds, .. }) => {
+                progress.rounds = tool_rounds;
+                let root = &input.context.session.repo_root;
+                let made = reason_with_disclosure(root, &call, recorder.approval_reason.take()).map_err(|e| e.to_string()).and_then(|reason| {
+                    PendingApprovalStore::for_root(root)
                         .create(input.context.clone(), input.model.clone(), input.system.clone(), continuation_messages, tool_rounds, call, reason, APPROVAL_TTL_MINUTES)
                         .map_err(|e| e.to_string())
                 });
-                // A paused session is recorded as cancelled: the run did stop, and a session
-                // left open with no lock holder would be taken for a crash (WS4 `recover`).
                 match made {
-                    Ok(pending) => (RunStatus::AwaitingApproval(pending.approval_id), String::new(), usage, tool_rounds, EndReason::Cancelled),
-                    Err(why) => (RunStatus::Failed(format!("cannot ask for approval: {why}")), String::new(), usage, tool_rounds, EndReason::Cancelled),
+                    Ok(pending) => (RunStatus::AwaitingApproval(pending.approval_id), EndReason::Cancelled),
+                    Err(why) => (RunStatus::Failed(format!("cannot ask for approval: {why}")), EndReason::Cancelled),
                 }
             }
             Err(error) => {
@@ -148,15 +188,29 @@ impl AgentRun {
                     TurnError::BudgetExceeded { kind: LimitKind::OutputTokens, .. } => Some(Limit::OutputTokens),
                     _ => None,
                 };
-                let status = limit.map_or_else(|| RunStatus::Failed(error.to_string()), RunStatus::LimitReached);
-                (status, String::new(), ChatUsage::default(), 0, EndReason::Cancelled)
+                (limit.map_or_else(|| RunStatus::Failed(error.to_string()), RunStatus::LimitReached), EndReason::Cancelled)
             }
-        };
-        let _ = input.store.finish_session(&input.session_id, end);
-        Ok(report(status, message, usage, rounds, &input.session_id))
+        }
     }
 }
 
-fn report(status: RunStatus, final_message: String, usage: ChatUsage, tool_rounds: usize, session_id: &str) -> RunReport {
-    RunReport { status, final_message, usage, tool_rounds, session_id: session_id.to_string() }
+/// Keep the running totals and the clock for the watcher. An empty chunk is not progress, so
+/// a model that keeps sending nothing cannot hold a run open; time spent inside a tool is
+/// not counted as idle (the tool has its own limits).
+fn note_progress(progress: &mut Progress, event: &RuntimeEvent, last_event: &AtomicU64, in_tool: &AtomicBool, now: u64) {
+    match event {
+        RuntimeEvent::Metrics(usage) => add_usage(&mut progress.usage, usage),
+        RuntimeEvent::ToolRequested(_) => progress.rounds += 1,
+        RuntimeEvent::MessageCompleted(text) => progress.text = text.clone(),
+        RuntimeEvent::ToolStarted { .. } => in_tool.store(true, Ordering::Release),
+        RuntimeEvent::ToolCompleted(_) => in_tool.store(false, Ordering::Release),
+        _ => {}
+    }
+    if !matches!(event, RuntimeEvent::TextDelta(chunk) if chunk.is_empty()) {
+        last_event.store(now, Ordering::Release);
+    }
+}
+
+fn report(status: RunStatus, progress: Progress, session_id: &str) -> RunReport {
+    RunReport { status, final_message: progress.text, usage: progress.usage, tool_rounds: progress.rounds, session_id: session_id.to_string() }
 }
