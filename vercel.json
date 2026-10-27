@@ -1,6 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "ignoreCommand": "pwd; git log --oneline -2; git diff --quiet HEAD^ HEAD -- ':/docs' ':/vercel.json' || exit 1",
+  "rewrites": [
+    { "source": "/whitepaper", "destination": "/whitepaper.html" },
+    { "source": "/whitepaper-en", "destination": "/whitepaper-en.html" },
+    { "source": "/report", "destination": "/whitepaper.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

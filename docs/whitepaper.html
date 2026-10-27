@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Báo cáo Kỹ thuật Yana AI · Technical Whitepaper 2026</title>
+  <meta name="description" content="Yana AI: Lớp điều khiển cục bộ giữa mô hình AI và quyền thực thi trên máy. Báo cáo kiến trúc kỹ thuật và kết quả phát triển qua 2.488 commit.">
+  <link rel="canonical" href="https://yana.vutam.link/whitepaper.html">
+  <link rel="alternate" hreflang="vi" href="https://yana.vutam.link/whitepaper.html">
+  <link rel="alternate" hreflang="en" href="https://yana.vutam.link/whitepaper-en.html">
+  <link rel="icon" href="yana-mark.svg">
+  
+  <link rel="stylesheet" href="assets/ecosystem-pages.css?v=20260926a">
+  <link rel="stylesheet" href="assets/sakura-site.css?v=20260926a">
+  <link rel="stylesheet" href="assets/yana-white.css?v=20260930g">
+  <link rel="stylesheet" href="assets/yana-nav.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap&subset=vietnamese">
+  <link rel="stylesheet" href="assets/yana-home-type.css">
+  <link rel="stylesheet" href="assets/whitepaper26.css">
+</head>
+<body class="sakura-site whitepaper-page">
+  <div class="yana-opening yana-opening--inner" aria-label="Yana">
+    <div class="opening-center">
+      <div class="opening-mark"><img src="yana-mark.svg" alt="" width="58" height="58"></div>
+      <div class="opening-word" aria-hidden="true"><span>Y</span><span>a</span><span>n</span><span>a</span></div>
+      <p class="opening-caption">AI làm việc. Bạn giữ quyền.</p>
+    </div>
+    <button class="opening-skip" type="button">Bỏ qua <span aria-hidden="true">↗</span></button>
+  </div>
+
+  <nav class="site-nav"></nav>
+
+  <main id="main">
+    <div class="wp-container">
+      
+      <!-- Action Bar: Download PDF & Switch language -->
+      <div class="wp-action-bar">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <a class="wp-btn-download" href="whitepaper.pdf" download="Yana_AI_Technical_Whitepaper_2026_EN.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Tải Whitepaper (PDF)
+          </a>
+          <span style="font-size:0.85rem;color:var(--wp-text-dim);">Bản chính thức · 6 Trang (84 KB)</span>
+        </div>
+        <div class="wp-lang-nav">
+          <a href="whitepaper.html" class="is-active">Tiếng Việt</a>
+          <a href="whitepaper-en.html">English</a>
+        </div>
+      </div>
+
+      <!-- Header & Document Metadata -->
+      <header class="wp-header">
+        <div class="wp-badge-row">
+          <span class="wp-badge wp-badge--primary">BÁO CÁO DỰ ÁN · BẢN CÔNG BỐ LẦN ĐẦU</span>
+          <span class="wp-badge wp-badge--accent">CONTROL · VERIFY · PROTECT</span>
+          <span class="wp-badge wp-badge--tag">Yana Studio IDE 1.7</span>
+        </div>
+        <h1 class="wp-title">Yana AI: Lớp điều khiển cục bộ giữa mô hình AI và quyền thực thi trên máy</h1>
+        <p class="wp-subtitle">Sáu tháng xây dựng: Từ một kho mã trống đến Yana Studio IDE 1.7</p>
+
+        <dl class="wp-meta-grid">
+          <div class="wp-meta-item">
+            <dt>Tác giả & Sáng lập</dt>
+            <dd>Vũ Văn Tâm (Founder)</dd>
+          </div>
+          <div class="wp-meta-item">
+            <dt>Thành viên tham gia</dt>
+            <dd>Nguyễn Nam Long (Mới tham gia)</dd>
+          </div>
+          <div class="wp-meta-item">
+            <dt>Ngày công bố & Giấy phép</dt>
+            <dd>26 tháng 10, 2026 · Apache 2.0</dd>
+          </div>
+          <div class="wp-meta-item">
+            <dt>Mã nguồn & Cổng thông tin</dt>
+            <dd><a href="https://github.com/yanacuti1121/Yana-AI" target="_blank" rel="noopener">GitHub</a> · <a href="https://yana.vutam.link">yana.vutam.link</a></dd>
+          </div>
+        </dl>
+      </header>
+
+      <!-- Abstract Section -->
+      <section class="wp-abstract">
+        <div class="wp-abstract-title">Tóm tắt (Abstract)</div>
+        <p>Các agent lập trình hiện nay có thể xóa thư mục, đẩy mã lên kho chung hoặc đọc khóa API chỉ bằng một dòng lệnh, còn lời dặn <em>"hãy cẩn thận"</em> trong prompt không đủ để ngăn điều đó. Yana AI tách hai việc: <strong>kỹ năng (skills)</strong> dạy agent cách làm, còn <strong>quyền hành động (capabilities)</strong> chỉ đến từ một lớp riêng chạy trực tiếp trên máy người dùng. Mô hình đề xuất, Yana quyết định, con người luôn giữ quyền dừng.</p>
+        <p>Báo cáo này trình bày thiết kế, hiện thực và quá trình phát triển trong <strong>2.488 commit</strong> (từ 17/05 đến 26/10/2026), các số đo hiệu năng thực nghiệm, cách chúng tôi kiểm chứng tính an toàn, và những giới hạn còn lại. Sản phẩm hiện hành là <strong>Yana Studio IDE 1.7</strong> cho macOS (Apple Silicon), dựng trên nền Code-OSS và giao tiếp với 19 nhà cung cấp mô hình qua một runtime Rust duy nhất (<code>yana-rt</code>).</p>
+        <div class="wp-keywords">
+          <strong>Từ khóa:</strong> An toàn agent AI, kiểm soát quyền (capability governance), nhật ký nối băm (hash-chained audit logs), Model Context Protocol (MCP), Rust, Code-OSS.
+        </div>
+      </section>
+
+      <!-- Section 1: Problem Statement -->
+      <section class="wp-section" id="problem">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">1.</span> Đặt vấn đề</h2>
+        <div class="wp-prose">
+          <p>Khi một agent tự chủ được cấp quyền thực thi lệnh shell trên terminal, mọi sai lệch ngẫu nhiên (stochastic deviation) hay ảo giác (hallucination) của mô hình đều lập tức biến thành hành động phá hủy thật trên máy của người dùng. Hai phương pháp phòng thủ truyền thống hiện nay đều bộc lộ nhược điểm cấu trúc căn bản:</p>
+          <ul>
+            <li><strong>Lời dặn trong System Prompt (Advisory Prompt Rules):</strong> Những chỉ thị kiểu "hãy cẩn thận", "không được xóa file" thực chất chỉ là chuỗi token mà chính mô hình đọc. Mô hình hoàn toàn có thể quên, diễn giải sai hoặc bị vượt qua bởi kỹ thuật prompt injection.</li>
+            <li><strong>Hộp cát kín & Container (Hermetic Containers & Sandboxes):</strong> Chạy cách ly tuyệt đối trong máy ảo hoặc Docker đảm bảo an toàn, nhưng làm tê liệt tính hữu dụng trong thực tế vì cắt đứt agent khỏi công cụ bản địa, trình biên dịch, công cụ gỡ lỗi và chu trình dự án sống của nhà phát triển.</li>
+          </ul>
+          <p>Yana chọn hướng đi thứ ba có chủ đích: <strong>giữ agent làm việc trực tiếp trên máy thật</strong>, nhưng buộc mọi thao tác phải đi qua một lớp kiểm soát nằm hoàn toàn bên ngoài không gian của mô hình. Lớp này tách bạch rõ ràng giữa <em>tri thức</em> và <em>quyền hạn</em>: một <code>skill</code> chỉ là văn bản hướng dẫn và không có quyền gì; chỉ một <code>capability</code> được cấp phép minh bạch mới cho phép một thao tác can thiệp hệ thống.</p>
+        </div>
+      </section>
+
+      <!-- Section 2: Vision and Core Principles -->
+      <section class="wp-section" id="principles">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">2.</span> Tầm nhìn và các nguyên tắc cốt lõi</h2>
+        <div class="wp-prose">
+          <p>Tài liệu tầm nhìn nền tảng của dự án (viết ngày 07/06/2026) định nghĩa Yana là <strong>lớp điều phối mỏng (lean orchestration layer)</strong> làm trung gian giữa ý định của con người và trí tuệ AI. Dự án xác định rành mạch những gì Yana không phải:</p>
+          <ul>
+            <li>Không phải một agent đơn lẻ.</li>
+            <li>Không phải một chatbot thông thường.</li>
+            <li>Không phải một framework vô tận để nhồi nhét agent chồng chất.</li>
+            <li>Không phải một hệ thống cần LLM chỉ để tự vận hành bản thân.</li>
+          </ul>
+          <p>Lõi Yana chỉ tập trung vào 4 nhiệm vụ tất định (deterministic) với độ chuẩn xác tuyệt đối: định tuyến yêu cầu, thực thi an toàn tại runtime, điều phối vòng đời đa mô hình và quản lý ngữ cảnh. Mọi thứ khác đều thuộc lớp ứng dụng modular, có thể thay thế mà không cần viết lại lõi.</p>
+          <p>Bảy nguyên tắc cốt lõi đã được kiểm chứng qua các sự cố thực tế:</p>
+          <ol>
+            <li><strong>Con người trước tự động hóa (Human before automation):</strong> Mọi thao tác thực thi quan trọng đều cần người chịu trách nhiệm.</li>
+            <li><strong>An toàn trước tốc độ (Safety before speed):</strong> Khi phải đánh đổi, luôn chọn an toàn vô điều kiện.</li>
+            <li><strong>Bằng chứng trước sự tự tin (Evidence before confidence):</strong> Mọi tuyên bố hoàn thành phải có nhật ký băm, biên nhận kiểm toán hoặc kiểm tra tất định đi kèm.</li>
+            <li><strong>Xây ít hơn, xây tốt hơn (Build less, build better):</strong> Mọi tính năng phải chứng minh được giá trị sinh tồn, phần còn lại sẽ bị cắt bỏ.</li>
+            <li><strong>Thiết kế cho thất bại (Designed for failure):</strong> Mọi sự cố đều là bài học để tạo ra các bất biến kiến trúc (architectural invariants) vững chắc hơn.</li>
+            <li><strong>Mở, trung thực, minh bạch (Open, honest, transparent):</strong> Xây dựng công khai, tài liệu hóa sai lầm và nói rõ các giới hạn đánh đổi.</li>
+            <li><strong>Không ngừng cải thiện (Continuous improvement):</strong> Không có phần mềm nào là hoàn thành tuyệt đối.</li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- Section 3: Architecture & Design -->
+      <section class="wp-section" id="architecture">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">3.</span> Kiến trúc và Thiết kế</h2>
+        
+        <h3 class="wp-subsec-title">3.1 Luồng quyết định tất định 5 bước (The Deterministic Decision Pipeline)</h3>
+        <p class="wp-prose">Mọi thao tác riêng rẽ do agent đề xuất — dù đến từ Claude, GPT, Gemini, DeepSeek hay mô hình cục bộ — đều phải tuần tự đi qua 5 cổng kiểm tra bắt buộc (Hình 1). Mọi quyết định cho phép hoặc chặn đều được ghi vĩnh viễn vào sổ cái kiểm toán để xem xét lại sau này.</p>
+
+        <!-- Pipeline Diagram Card -->
+        <div class="wp-pipeline-card">
+          <div class="wp-pipeline-flow">
+            <div class="wp-step-box">
+              <div class="wp-step-num">Cổng 01</div>
+              <div class="wp-step-name">Model Proposal</div>
+              <div class="wp-step-desc">Mô hình đề xuất một hành động</div>
+            </div>
+            <div class="wp-step-box">
+              <div class="wp-step-num">Cổng 02</div>
+              <div class="wp-step-name">Authority Gate</div>
+              <div class="wp-step-desc">Agent này có được hỏi không?</div>
+            </div>
+            <div class="wp-step-box">
+              <div class="wp-step-num">Cổng 03</div>
+              <div class="wp-step-name">Capability Filter</div>
+              <div class="wp-step-desc">Có đúng quyền hạn được cấp?</div>
+            </div>
+            <div class="wp-step-box">
+              <div class="wp-step-num">Cổng 04</div>
+              <div class="wp-step-name">Policy & Human Gate</div>
+              <div class="wp-step-desc">Luật hệ thống, rồi tới người duyệt</div>
+            </div>
+            <div class="wp-step-box">
+              <div class="wp-step-num">Cổng 05</div>
+              <div class="wp-step-name">Deterministic Executor</div>
+              <div class="wp-step-desc">Chỉ thực thi thao tác đã duyệt</div>
+            </div>
+          </div>
+          <div class="wp-ledger-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <div><strong>Nhật ký nối băm (Cryptographic SHA-256 Ledger):</strong> Mỗi dòng mang mã băm của dòng trước đó. Bất kỳ hành vi chỉnh sửa hay xóa dòng nào trong lịch sử đều bị phát hiện ngay lập tức.</div>
+          </div>
+        </div>
+
+        <h3 class="wp-subsec-title">3.2 Kiến trúc hệ sinh thái (Ecosystem Architecture)</h3>
+        <div class="wp-prose">
+          <ul>
+            <li><strong>Agent Hosts (Bộ chuyển đổi thích ứng):</strong> Interceptor chặn cuộc gọi công cụ tại runtime cho Claude Code, hook theo dự án cho Codex, bộ lọc lệnh shell cho Cursor và Antigravity.</li>
+            <li><strong>Yana Applications (tools/):</strong> Yana Studio IDE 1.7 (macOS trên Code-OSS 1.141), Studio Electron tiền thân, CLI <code>yana-ai</code> (Python) và 14 máy chủ MCP bản địa.</li>
+            <li><strong>Lớp Quản trị (core/):</strong> Runtime <code>yana-rt</code> (Rust) cung cấp 40 lệnh con không phụ thuộc Python; <code>core-lock.json</code> ghim mã băm SHA-256 của ~290 tệp lõi; cổng duyệt người dùng; và <strong>Giám Thị (Supervisor)</strong> — daemon độc lập chạy trên trình lập lịch OS (launchd, systemd) ngoài tiến trình AI, khóa thực thi ngay khi phát hiện lệch cấu hình.</li>
+            <li><strong>Lớp Tri thức (Knowledge Layer):</strong> 60 role agents, 2.027 skills, 170 slash commands, 71 behavioral rules và 66 pre/post-tool hooks. Tri thức chỉ hướng dẫn agent cách làm, tuyệt đối không tự trao quyền thực thi.</li>
+            <li><strong>Động cơ Mô hình (Model Engine):</strong> Bộ định tuyến hợp nhất kết nối 13 cloud API (Anthropic, OpenAI, Gemini, Groq, DeepSeek, OpenRouter, xAI, Kimi) và 6 runtime cục bộ (Ollama, LM Studio, llama.cpp, TurboFieldfare, AirLLM, 9Router).</li>
+          </ul>
+        </div>
+
+        <h3 class="wp-subsec-title">3.3 Phân bổ cấu trúc mã nguồn (Codebase Distribution)</h3>
+        <div class="wp-code-block">
+<pre><code><span class="c-tree">Yana-AI/</span>
+├── <span class="c-cmd">src/</span> <span class="c-comment">yana-rt runtime: 313 file Rust, 82.133 dòng</span>
+│   ├── <span class="c-arg">capability/</span> <span class="c-comment">hệ thống quyền, thực thi dùng chung cho chat và MCP</span>
+│   ├── <span class="c-arg">guard/</span>      <span class="c-comment">chặn lệnh nguy hiểm, pipe-to-shell, quyền ghi</span>
+│   ├── <span class="c-arg">model/</span>      <span class="c-comment">19 nhà cung cấp mô hình, failover, xoay vòng API key</span>
+│   ├── <span class="c-arg">session_db/</span> <span class="c-comment">kho phiên SQLite, tìm kiếm toàn văn, checkpoint rollback</span>
+│   ├── <span class="c-arg">os/</span>         <span class="c-comment">Yana OS: danh tính agent, hạn mức tài nguyên, giám sát</span>
+│   └── <span class="c-comment">chat/, mission/, memory/, doctor/, scanner/, … (50 mô-đun cấp cao)</span>
+├── <span class="c-cmd">core/</span> <span class="c-comment">lớp quản trị và tri thức (66 hooks, 71 rules, 2.027 skills)</span>
+├── <span class="c-cmd">tools/</span> <span class="c-comment">yana-ide (Code-OSS 1.141), studio electron cũ, cầu nối desktop & web</span>
+├── <span class="c-cmd">adapters/</span> <span class="c-comment">Claude Code, Codex, Cursor, Antigravity</span>
+└── <span class="c-cmd">site/, docs/, ci/</span> <span class="c-comment">cổng web (Astro), tài liệu và cổng kiểm tra CI</span></code></pre>
+        </div>
+      </section>
+
+      <!-- Section 4: Yana in Practice -->
+      <section class="wp-section" id="practice">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">4.</span> Yana trong thực tế</h2>
+        <div class="wp-prose">
+          <h3 class="wp-subsec-title">4.1 Giao diện người dùng & Yana Studio IDE</h3>
+          <p>Yana Studio IDE tích hợp trọn vẹn bộ công cụ của nhà phát triển trong một môi trường quen thuộc: ngăn bên trái là cây thư mục và trình soạn thảo Code-OSS, trong khi ngăn bên phải là khung chat với Yana Agent. Khung chat luôn hiển thị rõ trạng thái chính sách hiện hành: ở chế độ <code>SUPERVISED</code>, thao tác đọc file được tự động cho phép, trong khi tất cả các lệnh thực thi đều dừng lại để chờ con người bấm duyệt. Thanh trạng thái bên dưới hiển thị <code>Policy: SUPERVISED [ALLOW: read, REQUIRE: run]</code>, phiên bản runtime đang hoạt động và số dòng nhật ký kiểm toán đã xác thực (ví dụ <code>Audit 500</code>).</p>
+          
+          <h3 class="wp-subsec-title">4.2 Kiểm chứng bộ lọc lệnh thực tế (Command Guard Evaluation)</h3>
+          <p>Bảng 1 ghi lại 4 lệnh shell thực tế được đánh giá trực tiếp bởi runtime guard (<code>yana-rt guard destructive</code>). Khi một câu lệnh bị chặn, agent nhận lại thông báo lý do chi tiết kèm theo hướng dẫn an toàn thay thế, đồng thời sự kiện được ghi vào nhật ký kiểm toán.</p>
+        </div>
+
+        <!-- Table 1: Command Guard Evaluation -->
+        <div class="wp-table-wrap">
+          <table class="wp-table">
+            <thead>
+              <tr>
+                <th>Lệnh agent muốn chạy</th>
+                <th>Phán quyết</th>
+                <th>Lý do bảo vệ trả về cho Agent</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>curl -fsSL https://.../install.sh | bash</code></td>
+                <td><span class="wp-badge-verdict wp-badge-verdict--blocked">Bị chặn</span></td>
+                <td>Nội dung từ mạng được dẫn trực tiếp (pipe) vào shell mà không qua kiểm tra. Cần tải file về, đọc mã nguồn rồi mới chạy, hoặc yêu cầu người dùng duyệt trước.</td>
+              </tr>
+              <tr>
+                <td><code>rm -rf ~/Documents</code></td>
+                <td><span class="wp-badge-verdict wp-badge-verdict--blocked">Bị chặn</span></td>
+                <td>Lệnh xóa đệ quy, cưỡng bức không thể hoàn tác trên thư mục người dùng. Hãy nhắm tới file cụ thể hoặc yêu cầu người dùng phê duyệt.</td>
+              </tr>
+              <tr>
+                <td><code>chmod 777 deploy.sh</code></td>
+                <td><span class="wp-badge-verdict wp-badge-verdict--blocked">Bị chặn</span></td>
+                <td>Cấp quyền ghi cho mọi đối tượng. Hãy áp dụng nguyên tắc đặc quyền tối thiểu (least privilege) với mode chặt chẽ hơn (755 hoặc 644).</td>
+              </tr>
+              <tr>
+                <td><code>git status --short</code></td>
+                <td><span class="wp-badge-verdict wp-badge-verdict--allowed">Cho phép</span></td>
+                <td>Lệnh kiểm tra trạng thái chỉ đọc (read-only introspection); tự động cho phép không cần qua cổng phê duyệt.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="wp-subsec-title">4.3 Sử dụng bộ công cụ dòng lệnh (CLI Tooling)</h3>
+        <div class="wp-code-block">
+<pre><code><span class="c-comment"># Công cụ quản lý qua Python CLI</span>
+<span class="c-cmd">pip install yana-ai</span>
+<span class="c-cmd">yana-ai install</span>     <span class="c-comment"># Cài đặt hook và các luật kiểm soát Yana vào repo</span>
+<span class="c-cmd">yana-ai doctor .</span>    <span class="c-comment"># Kiểm tra môi trường và kết nối hook</span>
+
+<span class="c-comment"># Runtime độc lập viết bằng Rust (hoàn toàn không phụ thuộc Python)</span>
+<span class="c-cmd">cargo install yana-rt</span></code></pre>
+        </div>
+      </section>
+
+      <!-- Section 5: Component Statuses -->
+      <section class="wp-section" id="components">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">5.</span> Hiện trạng các thành phần hệ thống</h2>
+        <div class="wp-table-wrap">
+          <table class="wp-table">
+            <thead>
+              <tr>
+                <th>Thành phần</th>
+                <th>Trách nhiệm & Nhiệm vụ</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Yana Studio IDE 1.7</strong></td>
+                <td>Môi trường desktop chuẩn mực trên macOS (Code-OSS 1.141). Loại bỏ telemetry độc quyền của Microsoft, tích hợp sẵn Yana Chat, cổng duyệt quyền, tasks có bằng chứng, 19 model providers và design canvas.</td>
+                <td><span class="wp-badge-status wp-badge-status--prod">Production</span></td>
+              </tr>
+              <tr>
+                <td><strong>Runtime yana-rt</strong></td>
+                <td>Động cơ Rust cốt lõi: vòng lặp lượt (turn loops), hợp đồng quyền hạn (capability contracts), cơ sở dữ liệu phiên SQLite, checkpoint rollback, MCP & LSP clients.</td>
+                <td><span class="wp-badge-status wp-badge-status--prod">Production</span></td>
+              </tr>
+              <tr>
+                <td><strong>Lớp Quản trị (Governance)</strong></td>
+                <td>Manifest quyền hạn, cổng phê duyệt của con người, sổ cái nối băm (hash-chained ledger), trình xác thực tính toàn vẹn <code>core-lock</code>, bộ lọc lệnh phá hủy.</td>
+                <td><span class="wp-badge-status wp-badge-status--prod">Production</span></td>
+              </tr>
+              <tr>
+                <td><strong>Giám Thị (Supervisor)</strong></td>
+                <td>Daemon chạy độc lập ngoài không gian AI theo lịch OS mỗi 6 giờ; tự động khóa toàn bộ lệnh hệ thống nếu các file kiểm soát bị sửa đổi trái phép.</td>
+                <td><span class="wp-badge-status wp-badge-status--prod">Đang hoạt động</span></td>
+              </tr>
+              <tr>
+                <td><strong>Adapters</strong></td>
+                <td>Claude Code, Codex, Cursor, Antigravity. Mức độ cưỡng chế an toàn thay đổi theo đặc thù từng host hook.</td>
+                <td><span class="wp-badge-status wp-badge-status--pre">Phụ thuộc Host</span></td>
+              </tr>
+              <tr>
+                <td><strong>Lớp Tri thức (Knowledge Layer)</strong></td>
+                <td>Role agents, skills, slash commands và các luật ứng xử để hướng dẫn hành vi của agent.</td>
+                <td><span class="wp-badge-status wp-badge-status--prod">Production</span></td>
+              </tr>
+              <tr>
+                <td><strong>Yana OS</strong></td>
+                <td>Quản lý agent cục bộ: danh tính, ranh giới tự chủ, hạn ngạch tài nguyên, cách ly tiến trình.</td>
+                <td><span class="wp-badge-status wp-badge-status--dev">Đang phát triển</span></td>
+              </tr>
+              <tr>
+                <td><strong>Studio Electron cũ</strong></td>
+                <td>Ứng dụng desktop đời trước (v1.5–1.6, tháng 9/2026). Bản IDE tái sử dụng các logic UX đã được kiểm chứng.</td>
+                <td><span class="wp-badge-status wp-badge-status--pre">Tiền thân</span></td>
+              </tr>
+              <tr>
+                <td><strong>Wheelbot</strong></td>
+                <td>Nền tảng robot ESP32-S3 điều khiển bằng giọng nói trong kho lưu trữ riêng biệt.</td>
+                <td><span class="wp-badge-status wp-badge-status--exp">Thử nghiệm</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section 6: Benchmarks -->
+      <section class="wp-section" id="benchmarks">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">6.</span> Đo lường hiệu năng thực nghiệm</h2>
+        <div class="wp-prose">
+          <p>Dữ liệu đo đạc thực nghiệm ngày 20/10/2026 trên máy <strong>Apple Silicon MacBook Air (M4, 16 GB RAM)</strong> chạy bản release của <code>yana-rt 1.5.1</code> so sánh với script Python nguyên bản (theo tài liệu <code>BENCHMARK.md</code>):</p>
+        </div>
+
+        <div class="wp-table-wrap">
+          <table class="wp-table">
+            <thead>
+              <tr>
+                <th>Thao tác Benchmark</th>
+                <th>Rust Runtime (yana-rt)</th>
+                <th>Script Python cũ</th>
+                <th>Chênh lệch hiệu năng</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Khởi động Binary nguội (Cold Startup)</td>
+                <td><strong>4.16 ms</strong></td>
+                <td>—</td>
+                <td>Trung bình qua 100 lần chạy</td>
+              </tr>
+              <tr>
+                <td>Chẩn đoán hệ thống (<code>doctor</code>)</td>
+                <td><strong>143 ms</strong></td>
+                <td>415 ms</td>
+                <td><strong>Nhanh hơn 2.9×</strong> (cùng 16 bước kiểm tra)</td>
+              </tr>
+              <tr>
+                <td>Kiểm tra CI Quản trị (<code>ci check</code>)</td>
+                <td><strong>5.8 ms</strong></td>
+                <td>33 ms</td>
+                <td><strong>Nhanh hơn 5.7×</strong> (cùng 5 luật kiểm tra)</td>
+              </tr>
+              <tr>
+                <td>Quét thư mục Skills (<code>core/skills</code>)</td>
+                <td><strong>0.55 s</strong></td>
+                <td>8.47 s</td>
+                <td><strong>Nhanh hơn 15.4×</strong> (duyệt toàn bộ 2.027 skill)</td>
+              </tr>
+              <tr>
+                <td>Lớp bảo vệ lệnh phá hủy (Guard Latency)</td>
+                <td><strong>4.9 ms</strong></td>
+                <td>—</td>
+                <td>Độ trễ trên mỗi lần kích hoạt hook</td>
+              </tr>
+              <tr>
+                <td>Dung lượng Binary biên dịch</td>
+                <td><strong>18.2 MiB</strong></td>
+                <td>—</td>
+                <td>Binary độc lập tự chứa hoàn toàn</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section 7: Security Verification -->
+      <section class="wp-section" id="security">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">7.</span> Kiểm chứng An toàn & Thử nghiệm Tấn công</h2>
+        <div class="wp-prose">
+          <p>Vào cuối tháng 10/2026, máy chủ MCP bản địa đã trải qua bài kiểm tra fuzzing stdio trên toàn bộ 14 công cụ tích hợp. Các nỗ lực tấn công vượt thư mục làm việc (<code>/etc/hosts</code>, symlink độc hại) đều bị chặn thành công, và công cụ <code>browser_fetch</code> đòi hỏi phải có lease rõ ràng.</p>
+          <p>Quá trình thử nghiệm đã phát hiện một lỗi chức năng (<code>list_processes</code> bị lỗi trên macOS) và một <strong>lỗ hổng nghiêm trọng</strong>: hàm <code>check_command</code> cũ chỉ lọc các chuỗi lệnh phá hủy trực tiếp, cho phép các cấu trúc pipe-to-shell (như <code>curl ... | bash</code>), chuỗi giải mã base64 và lệnh <code>chmod 777</code> lọt qua dù đã bị nghiêm cấm trong luật dự án.</p>
+          <p>Bản vá cập nhật tiến hành phân tích cú pháp lệnh theo chuẩn POSIX shell (đánh giá dấu ngoặc kép, substitution, heredocs, pipelines và nhóm subshell) trước khi so khớp quy tắc, được xác thực bởi <strong>1.642 unit test vượt qua</strong>. Bản vá đã trải qua 4 chu kỳ kiểm toán đối kháng độc lập bởi các subagent AI (tổng cộng 6 lượt rà soát). <strong>Bài học rút ra:</strong> Danh sách đen theo chuỗi lệnh không bao giờ có thể bao quát hết; bộ lọc mẫu chỉ là lớp phòng thủ bổ trợ, còn sự an toàn tuyệt đối nằm ở <em>cổng phê duyệt của con người</em> và <em>phạm vi quyền hạn được cấp</em>.</p>
+        </div>
+      </section>
+
+      <!-- Section 8: Boundaries & Limitations -->
+      <section class="wp-section" id="limitations">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">8.</span> Ranh giới và các Giới hạn đã ghi nhận</h2>
+        <div class="wp-prose">
+          <ul>
+            <li><strong>Xóa sổ nhật ký (Ledger Deletion):</strong> Cơ chế nối băm đảm bảo phát hiện việc sửa đổi bản ghi trong nhật ký, nhưng không thể ngăn chặn việc cố tình xóa sạch cả file nhật ký nếu không có đặc quyền ghi bất biến từ hệ điều hành.</li>
+            <li><strong>Bất biến Core-Lock:</strong> Chứng minh cây file khớp với manifest đã đăng ký, nhưng không chứng minh được người vận hành đã tự mình đọc lại toàn bộ diff. Bất kỳ ai có quyền ghi vào <code>core/</code> đều có thể tạo lại lock. Giám Thị thực hiện kiểm tra định kỳ độc lập nhưng có cửa sổ trễ tối đa 6 giờ.</li>
+            <li><strong>Phạm vi thực thi luật:</strong> Phần lớn file trong <code>core/rules</code> mô tả hướng dẫn để agent tự nguyện tuân theo; chỉ những quy tắc có hook hệ thống gắn kết mới được ngăn chặn một cách tất định. Cơ chế ký số mã nguồn chính thức chưa được triển khai.</li>
+            <li><strong>Độ phủ của Pattern Guard:</strong> Bộ lọc lệnh dựa trên phân tích chuỗi cú pháp, không phải hypervisor sandbox. Bản bash script dự phòng chưa đạt được độ tương đồng đầy đủ trong việc chặn pipe-to-shell so với Rust runtime.</li>
+            <li><strong>Chênh lệch can thiệp giữa các Host:</strong> Cursor không can thiệp vào các cuộc gọi MCP. Antigravity chặn lệnh shell nhưng có thể bị bỏ qua nếu người dùng chạy với cờ <code>--dangerously-skip-permissions</code>.</li>
+            <li><strong>Ký chứng thực nền tảng (Notarization):</strong> Bản phát hành macOS hiện dựa trên chữ ký ad-hoc của nhà phát triển, do đó Gatekeeper sẽ hiện cảnh báo bảo mật trong lần khởi chạy đầu tiên trước khi hoàn tất đăng ký tài khoản Apple Developer.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Section 9: Engineering Trajectory -->
+      <section class="wp-section" id="timeline">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">9.</span> Quỹ đạo Kỹ thuật & Mốc thời gian</h2>
+        <div class="wp-prose">
+          <p>Kho lưu trữ bắt đầu từ một commit trống vào ngày <strong>17/05/2026</strong>. Đến ngày 26/10/2026, lịch sử Git đã ghi nhận <strong>2.488 commits</strong>, <strong>426 pull requests đã gộp</strong>, <strong>41 bản phát hành phần mềm</strong> và <strong>72 thẻ phiên bản (tags)</strong>:</p>
+        </div>
+
+        <div class="wp-timeline">
+          <div class="wp-timeline-item">
+            <div class="wp-timeline-phase">Tháng 5, 2026<small>Nền móng (17–31/05)</small></div>
+            <div class="wp-timeline-content">Cổng sự thật (Truth Gate) ngăn agent tuyên bố hoàn thành sai; bộ nhớ hai tầng (L1 lâu dài, L2 phiên); sổ cái nối băm; bộ rào theo OWASP LLM Top 10; hơn 70 luật phòng thủ; tích hợp MCP; chuyển đổi runtime sang Rust; giấy phép Apache 2.0.</div>
+          </div>
+          <div class="wp-timeline-item">
+            <div class="wp-timeline-phase">Tháng 6, 2026<small>Mở rộng & Giao diện</small></div>
+            <div class="wp-timeline-content">Nạp hàng nghìn kỹ năng; cổng web 3 ngôn ngữ; 1-click GitHub App được duyệt lên GitHub Marketplace; chat đa mô hình; mã hóa khóa API bằng AES-256-GCM tại client; chạy song song nhiều agent.</div>
+          </div>
+          <div class="wp-timeline-item">
+            <div class="wp-timeline-phase">Tháng 7, 2026<small>Tôi luyện & Kiểm soát</small></div>
+            <div class="wp-timeline-content">Phát hành Giám Thị supervisor (16/07); kiểm soát lệnh CLI; quét mã độc file tải về; khóa phạm vi <code>/freeze</code>; adapter Codex; nhà cung cấp Kimi; vá lỗi chuỗi thực thi lệnh từ xa trong script.</div>
+          </div>
+          <div class="wp-timeline-item">
+            <div class="wp-timeline-phase">Tháng 8, 2026<small>Yana OS & Quyền năng</small></div>
+            <div class="wp-timeline-content">Workspace Rust hợp nhất; Yana OS (danh tính agent, cấp độ tự chủ, hàng đợi hành động bền bỉ); capability leases; biên nhận quyết định; giao thức phê duyệt từ xa; adapter Discord / AirLLM; cầu nối giọng nói cho robot ESP32.</div>
+          </div>
+          <div class="wp-timeline-item">
+            <div class="wp-timeline-phase">Tháng 9, 2026<small>Studio & Định tuyến</small></div>
+            <div class="wp-timeline-content">Yana Studio Electron (v1.5–1.6 trên macOS, Windows, Linux); tự động chuyển vùng dự phòng (failover); xoay vòng khóa API; bộ nhớ đệm prompt; kho phiên SQLite kèm checkpoint rollback; trang đích WebGL.</div>
+          </div>
+          <div class="wp-timeline-item">
+            <div class="wp-timeline-phase">Tháng 10, 2026<small>Hợp nhất & Bàn giao</small></div>
+            <div class="wp-timeline-content">MCP client bản địa và trust-store; LSP client chỉ đọc; chế độ lập kế hoạch (Plan mode) với xem trước diff; bộ xử lý tài liệu văn phòng; phát hành Yana Studio IDE 1.7 (16/10); tích hợp Antigravity hook.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 10: Founder's Note -->
+      <section class="wp-section" id="founders-note">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">10.</span> Lời tác giả sáng lập</h2>
+        
+        <div class="wp-quote-card">
+          <blockquote>
+            "Yana AI không được sinh ra bên trong một khuôn viên tập đoàn. Dự án không có vốn đầu tư mạo hiểm, không có đội ngũ kỹ sư hùng hậu, và cũng không có phòng thí nghiệm của trường viện. Nó bắt đầu trên một chiếc máy tính cá nhân, bởi một học sinh 17 tuổi với niềm tin vững chắc rằng các coding agent tự chủ không được phép nắm giữ chủ quyền vô kiểm soát trên hệ thống máy chủ.<br><br>
+            Những cạm bẫy nguy hiểm nhất chưa bao giờ là các lỗi code đơn lẻ, mà là các giả định sai lầm về mặt khái niệm. Sau mỗi lần thất bại, Yana lại được tái thiết kế có chủ đích: dễ kiểm chứng hơn, dễ quan sát hơn, và đáng tin cậy hơn một cách căn bản.<br><br>
+            <strong>Yana AI tồn tại vì con người phải mãi mãi giữ quyền đưa ra quyết định cuối cùng.</strong>"
+          </blockquote>
+          <div class="wp-quote-author">
+            — Vũ Văn Tâm
+            <small>Người sáng lập & Kỹ sư trưởng Yana AI</small>
+          </div>
+        </div>
+
+        <div class="wp-prose">
+          <p>Tác giả bắt đầu dự án ở tuổi 17, đảm nhận vai trò kỹ sư duy nhất trong sáu tháng đầu tiên mà không có bất kỳ nguồn tài trợ tổ chức nào. Các công cụ AI đã hỗ trợ tăng tốc viết mã, sinh test case và rà soát, nhưng toàn bộ thiết kế kiến trúc, các đợt viết lại hệ thống và trách nhiệm giải trình cuối cùng thuộc về người sáng lập.</p>
+          <p>Vào cuối tháng 10/2026, <strong>Nguyễn Nam Long</strong> đã tham gia dự án với tư cách người đóng góp mới. Các mốc kỹ thuật và kết quả nghiên cứu trong báo cáo này đại diện cho chặng đường phát triển đã hoàn tất trước khi anh gia nhập.</p>
+        </div>
+      </section>
+
+      <!-- References Section -->
+      <section class="wp-section" id="references">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">11.</span> Tài liệu tham khảo</h2>
+        <ol class="wp-references">
+          <li>OWASP Foundation. <em>Top 10 for Large Language Model Applications</em>, <a href="https://owasp.org" target="_blank" rel="noopener">owasp.org</a>.</li>
+          <li>Google. <em>Trillian: A Transparent, Highly Scalable and Cryptographically Verifiable Data Store</em>, <a href="https://github.com/google/trillian" target="_blank" rel="noopener">github.com/google/trillian</a>.</li>
+          <li>Anthropic. <em>Model Context Protocol Specification</em>, <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">modelcontextprotocol.io</a>.</li>
+          <li>Microsoft. <em>Visual Studio Code, Open Source (Code-OSS)</em>, <a href="https://github.com/microsoft/vscode" target="_blank" rel="noopener">github.com/microsoft/vscode</a>.</li>
+          <li>Yana AI Repository Specifications (<code>VISION.md</code> ngày 07/06/2026; <code>PHILOSOPHY.md</code>; <code>JOURNEY.md</code>; <code>HISTORY.md</code>; <code>BENCHMARK.md</code>; <code>CURRENT-MILESTONE.md</code>; <code>docs/reference/known-limitations.md</code>), <a href="https://github.com/yanacuti1121/Yana-AI" target="_blank" rel="noopener">github.com/yanacuti1121/Yana-AI</a>.</li>
+        </ol>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="site-footer"></footer>
+
+  <script src="assets/ecosystem-pages.js?v=20260928b"></script>
+  <script src="assets/sakura-site.js?v=20261001a"></script>
+  <script src="assets/yana-motion.js?v=20260929b"></script>
+  <script src="assets/vendor/gsap/gsap.min.js"></script>
+  <script src="assets/yana-motion-2026.js" defer></script>
+</body>
+</html>
