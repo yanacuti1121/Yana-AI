@@ -94,6 +94,20 @@ artifacts/release-gate/
 .yana-ai/chat-settings.json
 .yana-ai/exports/
 .yana-ai/os/
+.yana-ai/l3.jsonl
+.yana-ai/l3.dream.jsonl
+.yana-ai/l3.jsonl.bak
+.yana-ai/bus.jsonl
+.yana-ai/peers.json
+.yana-ai/ledger.jsonl
+.yana-ai/cost-policy.json
+.yana-ai/leases.json
+.yana-ai/authority-receipts.jsonl
+.yana-ai/execution-receipts.jsonl
+.yana-ai/pending-approvals.json
+.yana-ai/missions/
+.yana-ai/repowiki/
+.yana-ai/HALT
 yana-ai-*.html
 # These localized Yana AI pages are real website pages, not generated audit reports.
 !docs/yana-ai-en.html

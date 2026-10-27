@@ -27,6 +27,15 @@ pub enum DoctorAction {
         #[arg(long)]
         json: bool,
     },
+    /// Harness optimization advisor (`/better-harness` equivalent) — analyzes
+    /// authority receipts, audit-chain logs, RepoWiki cards, and L3 memory
+    /// density to recommend concrete Rules, Leases, and Knowledge Cards.
+    Harness {
+        #[arg(default_value = ".")]
+        target: String,
+        #[arg(long)]
+        json: bool,
+    },
 }
 
 pub fn dispatch(action: DoctorAction) {
@@ -40,6 +49,7 @@ pub fn dispatch(action: DoctorAction) {
         DoctorAction::Dispatch { target, json } => {
             dispatch_check::cmd_doctor_dispatch(&target, json)
         }
+        DoctorAction::Harness { target, json } => cmd_doctor_harness(&target, json),
     }
 }
 
@@ -689,4 +699,149 @@ fn count_hook_commands(hooks: &serde_json::Value) -> Result<usize, &'static str>
         }
     }
     Ok(count)
+}
+
+// ── Harness Optimization Advisor (`doctor harness` — Wave 4) ──────────────────
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct HarnessRecommendation {
+    pub category: String,
+    pub finding: String,
+    pub action: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct HarnessReport {
+    pub target: String,
+    pub authority_allows: usize,
+    pub authority_denies: usize,
+    pub approval_pauses: usize,
+    pub repowiki_present: bool,
+    pub l3_fact_count: usize,
+    pub recommendations: Vec<HarnessRecommendation>,
+}
+
+pub fn analyze_harness_friction(target: &Path) -> HarnessReport {
+    let mut authority_allows = 0usize;
+    let mut authority_denies = 0usize;
+    let mut approval_pauses = 0usize;
+
+    let receipts_path = target.join(".yana-ai/authority-receipts.jsonl");
+    if let Ok(raw) = std::fs::read_to_string(&receipts_path) {
+        for line in raw.lines().filter(|l| !l.trim().is_empty()) {
+            if let Ok(v) = serde_json::from_str::<serde_json::Value>(line) {
+                match v.get("outcome").and_then(|o| o.as_str()) {
+                    Some("allow") => authority_allows += 1,
+                    Some("deny") => authority_denies += 1,
+                    Some("require_human_approval") | Some("human_approval_required") => {
+                        approval_pauses += 1
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
+
+    let repowiki_present = target.join(".yana-ai/repowiki/architecture.md").exists();
+    let l3_fact_count = std::fs::read_to_string(target.join(".yana-ai/l3.jsonl"))
+        .map(|s| s.lines().filter(|l| !l.trim().is_empty()).count())
+        .unwrap_or(0);
+
+    let mut recommendations = Vec::new();
+    if !repowiki_present {
+        recommendations.push(HarnessRecommendation {
+            category: "context-cards".into(),
+            finding: "RepoWiki Knowledge Cards (.yana-ai/repowiki/) have not been generated yet.".into(),
+            action: "Run `yana-rt graph wiki` to generate architecture.md, modules.md, and tech-stack.md.".into(),
+        });
+    }
+    if approval_pauses >= 3 {
+        recommendations.push(HarnessRecommendation {
+            category: "capability-lease".into(),
+            finding: format!("{approval_pauses} capability calls paused for interactive human approval."),
+            action: "Grant a time-boxed, scope-boxed lease via `yana-rt lease grant --subject agent:main --capability command.execute --allow 'cargo test' --expires-in-minutes 30`.".into(),
+        });
+    }
+    if authority_denies > 0 {
+        recommendations.push(HarnessRecommendation {
+            category: "spec-intent".into(),
+            finding: format!("{authority_denies} capability invocations were denied by RuntimeAuthority."),
+            action: "Declare allowed commands in your Spec JSON (`commands.allow`) and verify via `yana-rt spec validate <file>`.".into(),
+        });
+    }
+    if l3_fact_count > 25 {
+        recommendations.push(HarnessRecommendation {
+            category: "memory-dream".into(),
+            finding: format!("L3 memory contains {l3_fact_count} raw facts and may have duplicate entries."),
+            action: "Run `yana-rt memory dream` to preview Copy-on-Write consolidation, then `yana-rt memory dream --apply`.".into(),
+        });
+    }
+
+    HarnessReport {
+        target: target.to_string_lossy().to_string(),
+        authority_allows,
+        authority_denies,
+        approval_pauses,
+        repowiki_present,
+        l3_fact_count,
+        recommendations,
+    }
+}
+
+fn cmd_doctor_harness(target: &str, as_json: bool) {
+    let report = analyze_harness_friction(Path::new(target));
+    if as_json {
+        println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        return;
+    }
+    println!("\n  yana-ai doctor harness ({})\n", report.target);
+    println!(
+        "  Authority receipts: {} allow, {} deny, {} approval-paused",
+        report.authority_allows, report.authority_denies, report.approval_pauses
+    );
+    println!(
+        "  RepoWiki cards:     {}",
+        if report.repowiki_present { "present" } else { "missing" }
+    );
+    println!("  L3 memory facts:    {}\n", report.l3_fact_count);
+
+    if report.recommendations.is_empty() {
+        println!("  \x1b[32m✓ Harness is well-tuned — no friction hotspots detected.\x1b[0m\n");
+    } else {
+        println!("  Recommendations ({}):", report.recommendations.len());
+        for rec in &report.recommendations {
+            println!("  \x1b[33m⚠ [{}]\x1b[0m {}", rec.category, rec.finding);
+            println!("        → {}", rec.action);
+        }
+        println!();
+    }
+}
+
+#[cfg(test)]
+mod harness_tests {
+    use super::*;
+
+    #[test]
+    fn analyze_harness_friction_recommends_repowiki_lease_and_dream() {
+        let dir = std::env::temp_dir().join(format!("yana-doc-harness-{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(dir.join(".yana-ai")).unwrap();
+        let receipts = [
+            r#"{"outcome":"require_human_approval"}"#,
+            r#"{"outcome":"require_human_approval"}"#,
+            r#"{"outcome":"require_human_approval"}"#,
+            r#"{"outcome":"deny"}"#,
+        ]
+        .join("\n");
+        std::fs::write(dir.join(".yana-ai/authority-receipts.jsonl"), receipts).unwrap();
+
+        let report = analyze_harness_friction(&dir);
+        assert_eq!(report.approval_pauses, 3);
+        assert_eq!(report.authority_denies, 1);
+        assert!(!report.repowiki_present);
+        assert!(report.recommendations.iter().any(|r| r.category == "context-cards"));
+        assert!(report.recommendations.iter().any(|r| r.category == "capability-lease"));
+        assert!(report.recommendations.iter().any(|r| r.category == "spec-intent"));
+
+        std::fs::remove_dir_all(dir).ok();
+    }
 }

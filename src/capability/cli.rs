@@ -154,6 +154,54 @@ pub enum CapabilityAction {
         #[arg(long)]
         root: PathBuf,
     },
+    /// Canonical `ProjectWorkspace` full tree refresh (`src/project_workspace/`),
+    /// wiring the shared file-tree state (`EntryMeta`, `RefreshOutcome`) into
+    /// the CLI capability surface for Desktop and headless clients.
+    WorkspaceRefresh {
+        #[arg(long)]
+        root: PathBuf,
+        #[arg(long = "ignore")]
+        ignore: Vec<String>,
+    },
+    /// Canonical single-entry stat (`src/project_workspace::stat_one`) for
+    /// incremental watcher refreshes without re-walking the tree.
+    WorkspaceStat {
+        #[arg(long)]
+        root: PathBuf,
+        #[arg(long)]
+        path: String,
+    },
+    /// Create a pre-mutation workspace file snapshot (`CheckpointStore::snapshot`).
+    CheckpointSnapshot {
+        #[arg(long)]
+        root: PathBuf,
+        #[arg(long)]
+        label: String,
+    },
+    /// List all recorded file checkpoints in reverse-chronological order.
+    CheckpointList {
+        #[arg(long)]
+        root: PathBuf,
+    },
+    /// Show changed/added/deleted files since a checkpoint (`CheckpointStore::diff`).
+    CheckpointDiff {
+        #[arg(long)]
+        root: PathBuf,
+        #[arg(long)]
+        id: String,
+    },
+    /// Rewind workspace files to a checkpoint (`CheckpointStore::restore`),
+    /// with optional `--dry-run` preview and single-file `--file` scope.
+    CheckpointRewind {
+        #[arg(long)]
+        root: PathBuf,
+        #[arg(long)]
+        id: String,
+        #[arg(long)]
+        file: Option<String>,
+        #[arg(long)]
+        dry_run: bool,
+    },
 }
 
 pub fn dispatch(action: CapabilityAction) {
@@ -176,6 +224,21 @@ pub fn dispatch(action: CapabilityAction) {
         CapabilityAction::GitUnstage { root, paths } => cmd_git_unstage(&root, &paths),
         CapabilityAction::GitCommit { root, message } => cmd_git_commit(&root, &message),
         CapabilityAction::List { root } => cmd_list(&root),
+        CapabilityAction::WorkspaceRefresh { root, ignore } => {
+            cmd_workspace_refresh(&root, &ignore)
+        }
+        CapabilityAction::WorkspaceStat { root, path } => cmd_workspace_stat(&root, &path),
+        CapabilityAction::CheckpointSnapshot { root, label } => {
+            cmd_checkpoint_snapshot(&root, &label)
+        }
+        CapabilityAction::CheckpointList { root } => cmd_checkpoint_list(&root),
+        CapabilityAction::CheckpointDiff { root, id } => cmd_checkpoint_diff(&root, &id),
+        CapabilityAction::CheckpointRewind {
+            root,
+            id,
+            file,
+            dry_run,
+        } => cmd_checkpoint_rewind(&root, &id, file.as_deref(), dry_run),
     };
     std::process::exit(code);
 }
@@ -447,6 +510,297 @@ fn cmd_tree(root: &std::path::Path, path: &str, depth: usize) -> i32 {
     }
 }
 
+fn cmd_workspace_refresh(root: &std::path::Path, ignore: &[String]) -> i32 {
+    let root = match root.canonicalize() {
+        Ok(canonical) => canonical,
+        Err(error) => {
+            eprintln!("resolve --root {}: {error}", root.display());
+            return 1;
+        }
+    };
+    let mut ws = crate::project_workspace::ProjectWorkspace::new(root, ignore.to_vec());
+    match ws.refresh() {
+        Ok(outcome) => {
+            let payload = serde_json::json!({
+                "capability": "workspace.refresh",
+                "outcome": outcome,
+                "entries": ws.tree(),
+            });
+            println!("{}", serde_json::to_string(&payload).unwrap());
+            0
+        }
+        Err(error) => {
+            eprintln!("{error}");
+            1
+        }
+    }
+}
+
+fn cmd_workspace_stat(root: &std::path::Path, path: &str) -> i32 {
+    let root = match root.canonicalize() {
+        Ok(canonical) => canonical,
+        Err(error) => {
+            eprintln!("resolve --root {}: {error}", root.display());
+            return 1;
+        }
+    };
+    match crate::project_workspace::stat_one(&root, path) {
+        Ok(stat) => {
+            let payload = serde_json::json!({
+                "capability": "workspace.stat",
+                "path": path,
+                "stat": stat,
+            });
+            println!("{}", serde_json::to_string(&payload).unwrap());
+            0
+        }
+        Err(error) => {
+            eprintln!("{error}");
+            1
+        }
+    }
+}
+
+fn open_checkpoint_store(
+    root: &std::path::Path,
+) -> Result<crate::session_db::CheckpointStore, String> {
+    let canonical = root
+        .canonicalize()
+        .map_err(|e| format!("resolve --root {}: {e}", root.display()))?;
+    let state_root = crate::session_db::StateRoot::for_profile(
+        &canonical,
+        &crate::session_db::ProfileName::default_profile(),
+    );
+    crate::session_db::CheckpointStore::open(&state_root, &canonical).map_err(|e| e.to_string())
+}
+
+fn parse_checkpoint_id(raw: &str) -> Result<crate::session_db::CheckpointId, String> {
+    let trimmed = raw.trim().trim_start_matches("cp-").trim_start_matches('#');
+    let n: u32 = trimmed
+        .parse()
+        .map_err(|_| format!("invalid checkpoint id '{raw}': expected positive integer"))?;
+    Ok(crate::session_db::CheckpointId(n))
+}
+
+fn cmd_checkpoint_snapshot(root: &std::path::Path, label: &str) -> i32 {
+    let store = match open_checkpoint_store(root) {
+        Ok(s) => s,
+        Err(err) => {
+            eprintln!("{err}");
+            return 1;
+        }
+    };
+    match store.snapshot(label) {
+        Ok(id) => {
+            let payload = serde_json::json!({
+                "capability": "checkpoint.snapshot",
+                "id": id.0,
+                "label": label,
+            });
+            println!("{}", serde_json::to_string(&payload).unwrap());
+            0
+        }
+        Err(error) => {
+            eprintln!("{error}");
+            1
+        }
+    }
+}
+
+fn cmd_checkpoint_list(root: &std::path::Path) -> i32 {
+    let store = match open_checkpoint_store(root) {
+        Ok(s) => s,
+        Err(err) => {
+            eprintln!("{err}");
+            return 1;
+        }
+    };
+    match store.list() {
+        Ok(points) => {
+            let items: Vec<serde_json::Value> = points
+                .into_iter()
+                .rev()
+                .map(|c| {
+                    serde_json::json!({
+                        "id": c.id.0,
+                        "commit": c.commit,
+                        "label": c.label,
+                        "created_at": c.created_at,
+                    })
+                })
+                .collect();
+            let payload = serde_json::json!({
+                "capability": "checkpoint.list",
+                "checkpoints": items,
+            });
+            println!("{}", serde_json::to_string(&payload).unwrap());
+            0
+        }
+        Err(error) => {
+            eprintln!("{error}");
+            1
+        }
+    }
+}
+
+fn cmd_checkpoint_diff(root: &std::path::Path, id_str: &str) -> i32 {
+    let id = match parse_checkpoint_id(id_str) {
+        Ok(id) => id,
+        Err(err) => {
+            eprintln!("{err}");
+            return 1;
+        }
+    };
+    let store = match open_checkpoint_store(root) {
+        Ok(s) => s,
+        Err(err) => {
+            eprintln!("{err}");
+            return 1;
+        }
+    };
+    match store.diff(id) {
+        Ok(diff) => {
+            let payload = serde_json::json!({
+                "capability": "checkpoint.diff",
+                "id": id.0,
+                "diff": diff,
+            });
+            println!("{}", serde_json::to_string(&payload).unwrap());
+            0
+        }
+        Err(error) => {
+            eprintln!("{error}");
+            1
+        }
+    }
+}
+
+fn validate_relative_checkpoint_file(path: &str) -> Result<String, String> {
+    let invalid = |why: &str| format!("invalid path: {path}: {why}");
+    if path.is_empty() || path.starts_with('/') {
+        return Err(invalid("must be a relative path"));
+    }
+    if path.contains(['\\', ':', '\0']) {
+        return Err(invalid("contains a separator or drive character"));
+    }
+    if path
+        .split('/')
+        .any(|segment| matches!(segment, "" | "." | ".."))
+    {
+        return Err(invalid("contains an empty, '.' or '..' segment"));
+    }
+    Ok(path.to_string())
+}
+
+fn filter_unified_diff_for_file(diff: &str, target: &str) -> String {
+    let mut out = String::new();
+    let mut include_block = false;
+    let suffix_a = format!(" a/{target}");
+    let suffix_b = format!(" b/{target}");
+    for line in diff.lines() {
+        if line.starts_with("diff --git ") {
+            include_block = line.ends_with(&suffix_b) || line.contains(&format!("{suffix_a}{suffix_b}"));
+        }
+        if include_block {
+            out.push_str(line);
+            out.push('\n');
+        }
+    }
+    out
+}
+
+fn cmd_checkpoint_rewind(
+    root: &std::path::Path,
+    id_str: &str,
+    file: Option<&str>,
+    dry_run: bool,
+) -> i32 {
+    let id = match parse_checkpoint_id(id_str) {
+        Ok(id) => id,
+        Err(err) => {
+            eprintln!("{err}");
+            return 1;
+        }
+    };
+    let store = match open_checkpoint_store(root) {
+        Ok(s) => s,
+        Err(err) => {
+            eprintln!("{err}");
+            return 1;
+        }
+    };
+    if dry_run {
+        let normalized_target = match file {
+            Some(raw) => match validate_relative_checkpoint_file(raw) {
+                Ok(n) => Some(n),
+                Err(err) => {
+                    eprintln!("{err}");
+                    return 1;
+                }
+            },
+            None => None,
+        };
+        let files = match store.files(id) {
+            Ok(f) => f,
+            Err(error) => {
+                eprintln!("{error}");
+                return 1;
+            }
+        };
+        let diff = match store.diff(id) {
+            Ok(d) => d,
+            Err(error) => {
+                eprintln!("{error}");
+                return 1;
+            }
+        };
+        let (candidate_files, filtered_diff) = match normalized_target {
+            Some(ref target) => {
+                let matched: Vec<String> = files.into_iter().filter(|p| p == target).collect();
+                if matched.is_empty() {
+                    eprintln!("not found: {target} in checkpoint {}", id.0);
+                    return 1;
+                }
+                let fdiff = filter_unified_diff_for_file(&diff, target);
+                (matched, fdiff)
+            }
+            None => (files, diff),
+        };
+        let payload = serde_json::json!({
+            "capability": "checkpoint.rewind",
+            "id": id.0,
+            "dry_run": true,
+            "candidate_files": candidate_files,
+            "diff": filtered_diff,
+        });
+        println!("{}", serde_json::to_string(&payload).unwrap());
+        return 0;
+    }
+
+    let scope = match file {
+        Some(path) => crate::session_db::RestoreScope::OneFile(PathBuf::from(path)),
+        None => crate::session_db::RestoreScope::Whole,
+    };
+    match store.restore(id, scope) {
+        Ok(report) => {
+            let payload = serde_json::json!({
+                "capability": "checkpoint.rewind",
+                "id": id.0,
+                "dry_run": false,
+                "restored": report.restored,
+                "skipped": report.skipped,
+                "safety_checkpoint": report.safety_checkpoint.map(|c| c.0),
+            });
+            println!("{}", serde_json::to_string(&payload).unwrap());
+            0
+        }
+        Err(error) => {
+            eprintln!("{error}");
+            1
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -564,6 +918,48 @@ mod tests {
 
         let code = cmd_search_code(&root, ".", "   ");
         assert_eq!(code, 1);
+
+        fs::remove_dir_all(root).ok();
+    }
+
+    #[test]
+    fn cmd_workspace_refresh_and_stat_succeed() {
+        let root =
+            std::env::temp_dir().join(format!("yana-cap-cli-ws-{}", uuid::Uuid::new_v4()));
+        fs::create_dir_all(root.join("src")).unwrap();
+        fs::write(root.join("src/lib.rs"), "pub fn ok() {}").unwrap();
+
+        assert_eq!(cmd_workspace_refresh(&root, &[]), 0);
+        assert_eq!(cmd_workspace_stat(&root, "src/lib.rs"), 0);
+
+        fs::remove_dir_all(root).ok();
+    }
+
+    #[test]
+    fn cmd_checkpoint_snapshot_list_diff_and_rewind_succeed() {
+        let root =
+            std::env::temp_dir().join(format!("yana-cap-cli-cp-{}", uuid::Uuid::new_v4()));
+        fs::create_dir_all(&root).unwrap();
+        fs::write(root.join("note.txt"), "v1\n").unwrap();
+
+        assert_eq!(cmd_checkpoint_snapshot(&root, "before edit"), 0);
+        assert_eq!(cmd_checkpoint_list(&root), 0);
+
+        fs::write(root.join("note.txt"), "v2\n").unwrap();
+        assert_eq!(cmd_checkpoint_diff(&root, "1"), 0);
+
+        // Dry-run rewind leaves v2 intact
+        assert_eq!(cmd_checkpoint_rewind(&root, "1", None, true), 0);
+        assert_eq!(fs::read_to_string(root.join("note.txt")).unwrap(), "v2\n");
+
+        // Dry-run rewind rejects invalid relative paths (e.g. "./note.txt") and missing files, matching restore()
+        assert_eq!(cmd_checkpoint_rewind(&root, "1", Some("./note.txt"), true), 1);
+        assert_eq!(cmd_checkpoint_rewind(&root, "1", Some("nonexistent.txt"), true), 1);
+        assert_eq!(cmd_checkpoint_rewind(&root, "1", Some("note.txt"), true), 0);
+
+        // Real rewind restores v1
+        assert_eq!(cmd_checkpoint_rewind(&root, "1", None, false), 0);
+        assert_eq!(fs::read_to_string(root.join("note.txt")).unwrap(), "v1\n");
 
         fs::remove_dir_all(root).ok();
     }

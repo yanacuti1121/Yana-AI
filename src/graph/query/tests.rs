@@ -265,3 +265,20 @@ fn languages_layers_and_categories_follow_the_path() {
         assert_eq!(category_from_path(path, lang), cat, "{path}");
     }
 }
+
+#[test]
+fn cmd_wiki_generates_three_knowledge_cards() {
+    let dir = tempdir().unwrap();
+    let d = graph(vec![file("src/main.rs"), file("docs/README.md")], vec![]);
+    let root_str = dir.path().to_str().unwrap();
+    cmd_wiki(&d, root_str, ".yana-ai/repowiki", false).unwrap();
+    let out = dir.path().join(".yana-ai/repowiki");
+    assert!(out.join("architecture.md").exists());
+    assert!(out.join("modules.md").exists());
+    assert!(out.join("tech-stack.md").exists());
+    let modules = fs::read_to_string(out.join("modules.md")).unwrap();
+    assert!(modules.contains("## `src` (1 files)"));
+
+    // Path escape outside target root must be rejected
+    assert!(cmd_wiki(&d, root_str, "../escaped-wiki", false).is_err());
+}

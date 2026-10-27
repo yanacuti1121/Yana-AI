@@ -13,7 +13,15 @@ const {
   parseServerReadyPort,
   serverUrl: buildServerUrl,
 } = require('./runtime-paths');
-const { listDir: listDirImpl } = require('./list-dir');
+const {
+  listDir: listDirImpl,
+  workspaceRefresh: workspaceRefreshImpl,
+  workspaceStat: workspaceStatImpl,
+  checkpointSnapshot: checkpointSnapshotImpl,
+  checkpointList: checkpointListImpl,
+  checkpointDiff: checkpointDiffImpl,
+  checkpointRewind: checkpointRewindImpl,
+} = require('./list-dir');
 const { gitStatus: gitStatusImpl } = require('./git-status');
 const { readFile: readFileImpl } = require('./read-file');
 const { searchCode: searchCodeImpl } = require('./search-code');
@@ -1094,6 +1102,55 @@ handleTrusted('yana:list-dir', (event, relPath) => {
     return { ok: false, error: 'path must be a NUL-free string up to 4096 characters' };
   }
   return listDir(relPath);
+});
+
+handleTrusted('yana:workspace-refresh', (event, ignore = []) => {
+  if (!Array.isArray(ignore) || ignore.length > 100 || ignore.some((p) => typeof p !== 'string' || p.length > 256 || p.includes('\0'))) {
+    return { ok: false, error: 'ignore must be an array of up to 100 NUL-free strings' };
+  }
+  return workspaceRefreshImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt'), ignore });
+});
+
+handleTrusted('yana:workspace-stat', (event, relPath) => {
+  if (typeof relPath !== 'string' || !relPath || relPath.length > 4096 || relPath.includes('\0') || !resolveInRepo(relPath)) {
+    return { ok: false, error: 'path must be a project-relative NUL-free string' };
+  }
+  return workspaceStatImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt'), relPath });
+});
+
+handleTrusted('yana:checkpoint-snapshot', (event, label = 'snapshot') => {
+  if (typeof label !== 'string' || label.length > 200 || label.includes('\0')) {
+    return { ok: false, error: 'label must be a NUL-free string up to 200 characters' };
+  }
+  return checkpointSnapshotImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt'), label });
+});
+
+handleTrusted('yana:checkpoint-list', () => {
+  return checkpointListImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt') });
+});
+
+handleTrusted('yana:checkpoint-diff', (event, id) => {
+  if ((typeof id !== 'number' && typeof id !== 'string') || String(id).length > 32) {
+    return { ok: false, error: 'checkpoint id is invalid' };
+  }
+  return checkpointDiffImpl({ repoRoot: repoRoot(), yanaRtBin: runtimePath('yana-rt'), id });
+});
+
+handleTrusted('yana:checkpoint-rewind', (event, id, opts = {}) => {
+  if ((typeof id !== 'number' && typeof id !== 'string') || String(id).length > 32) {
+    return { ok: false, error: 'checkpoint id is invalid' };
+  }
+  const file = opts?.file;
+  if (file != null && (typeof file !== 'string' || !resolveInRepo(file))) {
+    return { ok: false, error: 'file must be a project-relative path' };
+  }
+  return checkpointRewindImpl({
+    repoRoot: repoRoot(),
+    yanaRtBin: runtimePath('yana-rt'),
+    id,
+    file: file || undefined,
+    dryRun: !!opts?.dryRun,
+  });
 });
 
 handleTrusted('yana:git-status', () => gitStatus());
