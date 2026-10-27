@@ -23,13 +23,14 @@
     "test:electron": "electron test/smoke.cjs",
     "test:ui": "node test/ui.mjs",
     "stage:runtime": "node scripts/stage-runtime.cjs",
+    "build:runtime": "node scripts/build-and-stage-runtime.cjs",
     "rebuild": "electron-rebuild -f -w node-pty",
     "format": "prettier --write host renderer test scripts *.json *.ts *.html",
     "format:check": "prettier --check host renderer test scripts *.json *.ts *.html",
-    "dist:mac": "npm run write:secrets && npm run build && electron-builder --mac --arm64",
-    "dist:win": "npm run write:secrets && npm run build && electron-builder --win --x64",
-    "dist:win-arm64": "npm run write:secrets && npm run build && electron-builder --win --arm64",
-    "dist:linux": "npm run write:secrets && npm run build && electron-builder --linux --x64"
+    "dist:mac": "npm run build:runtime && npm run write:secrets && npm run build && electron-builder --mac --arm64",
+    "dist:win": "npm run build:runtime && npm run write:secrets && npm run build && electron-builder --win --x64",
+    "dist:win-arm64": "npm run build:runtime && npm run write:secrets && npm run build && electron-builder --win --arm64",
+    "dist:linux": "npm run build:runtime && npm run write:secrets && npm run build && electron-builder --linux --x64"
   },
   "build": {
     "appId": "com.yana-ai.studio",
