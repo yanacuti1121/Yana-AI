@@ -61,4 +61,85 @@ function listDir({ repoRoot, yanaRtBin, relPath, exec = execFileSync, existsSync
   return { ok: true, entries };
 }
 
-module.exports = { listDir };
+function runCapabilityJson({ yanaRtBin, args, exec = execFileSync, existsSync = fs.existsSync }) {
+  if (!existsSync(yanaRtBin)) {
+    return { ok: false, error: `yana-rt binary not found at ${yanaRtBin}` };
+  }
+  let stdout;
+  try {
+    stdout = exec(yanaRtBin, ['capability', ...args], { encoding: 'utf8' });
+  } catch (e) {
+    const detail = (e.stderr || e.message || '').toString().trim();
+    return { ok: false, error: detail || `capability ${args[0]} failed` };
+  }
+  try {
+    return { ok: true, ...JSON.parse(stdout) };
+  } catch (e) {
+    return { ok: false, error: `capability ${args[0]} returned invalid JSON: ${e.message}` };
+  }
+}
+
+function workspaceRefresh({ repoRoot, yanaRtBin, ignore = [], exec, existsSync }) {
+  const args = ['workspace-refresh', '--root', repoRoot];
+  for (const pat of ignore) {
+    args.push('--ignore', pat);
+  }
+  return runCapabilityJson({ yanaRtBin, args, exec, existsSync });
+}
+
+function workspaceStat({ repoRoot, yanaRtBin, relPath, exec, existsSync }) {
+  return runCapabilityJson({
+    yanaRtBin,
+    args: ['workspace-stat', '--root', repoRoot, '--path', relPath],
+    exec,
+    existsSync,
+  });
+}
+
+function checkpointSnapshot({ repoRoot, yanaRtBin, label, exec, existsSync }) {
+  return runCapabilityJson({
+    yanaRtBin,
+    args: ['checkpoint-snapshot', '--root', repoRoot, '--label', label || 'snapshot'],
+    exec,
+    existsSync,
+  });
+}
+
+function checkpointList({ repoRoot, yanaRtBin, exec, existsSync }) {
+  return runCapabilityJson({
+    yanaRtBin,
+    args: ['checkpoint-list', '--root', repoRoot],
+    exec,
+    existsSync,
+  });
+}
+
+function checkpointDiff({ repoRoot, yanaRtBin, id, exec, existsSync }) {
+  return runCapabilityJson({
+    yanaRtBin,
+    args: ['checkpoint-diff', '--root', repoRoot, '--id', String(id)],
+    exec,
+    existsSync,
+  });
+}
+
+function checkpointRewind({ repoRoot, yanaRtBin, id, file, dryRun = false, exec, existsSync }) {
+  const args = ['checkpoint-rewind', '--root', repoRoot, '--id', String(id)];
+  if (file) {
+    args.push('--file', file);
+  }
+  if (dryRun) {
+    args.push('--dry-run');
+  }
+  return runCapabilityJson({ yanaRtBin, args, exec, existsSync });
+}
+
+module.exports = {
+  listDir,
+  workspaceRefresh,
+  workspaceStat,
+  checkpointSnapshot,
+  checkpointList,
+  checkpointDiff,
+  checkpointRewind,
+};

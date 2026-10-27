@@ -34,6 +34,13 @@ pub enum GraphAction {
         #[arg(default_value = "origin/main")] base: String,
         #[arg(default_value = ".")] target: String,
     },
+    /// Generate structured RepoWiki Knowledge Cards (`architecture.md`,
+    /// `modules.md`, `tech-stack.md`) from the AST knowledge graph.
+    Wiki {
+        #[arg(default_value = ".")] target: String,
+        #[arg(long, default_value = ".yana-ai/repowiki")] out_dir: String,
+        #[arg(long)] json: bool,
+    },
 }
 
 pub fn dispatch(action: GraphAction) {
@@ -52,6 +59,11 @@ pub fn dispatch(action: GraphAction) {
         }
         GraphAction::Diff { base, target } => {
             build::load_graph(&target).and_then(|data| query::cmd_diff(&data, &base, &target))
+        }
+        GraphAction::Wiki { target, out_dir, json } => {
+            build::load_graph(&target)
+                .or_else(|_| build::build_graph(&target, true))
+                .and_then(|data| query::cmd_wiki(&data, &target, &out_dir, json))
         }
     };
     if let Err(e) = result {
