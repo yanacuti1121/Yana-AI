@@ -864,7 +864,7 @@ pub fn collect_git_changed_files_strict(root: &Path, diff_base: &str) -> Result<
         .chain(String::from_utf8_lossy(&untracked_out.stdout).lines())
     {
         let p = line.trim();
-        if !p.is_empty() {
+        if !p.is_empty() && p != ".yana-ai" && !p.starts_with(".yana-ai/") {
             set.insert(p.to_string());
         }
     }

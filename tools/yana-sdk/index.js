@@ -24,6 +24,8 @@ function runJson(args, opts = {}) {
   const stdout = execFileSync(bin, args, {
     encoding: 'utf8',
     cwd: opts.cwd || process.cwd(),
+    timeout: opts.timeoutMs || 30_000,
+    maxBuffer: opts.maxBuffer || 16 * 1024 * 1024,
   });
   return JSON.parse(stdout);
 }
@@ -49,7 +51,8 @@ function rewindFiles(root, checkpointId, opts = {}) {
     String(checkpointId),
   ];
   if (opts.file) args.push('--file', opts.file);
-  if (opts.dryRun) args.push('--dry-run');
+  const dryRun = opts.dryRun !== undefined ? Boolean(opts.dryRun) : true;
+  if (dryRun) args.push('--dry-run');
   return runJson(args, opts);
 }
 
@@ -114,6 +117,12 @@ async function* query({
     cwd,
     stdio: ['pipe', 'pipe', 'pipe'],
   });
+  let stderrBuf = '';
+  if (child.stderr) {
+    child.stderr.on('data', (chunk) => {
+      if (stderrBuf.length < 65536) stderrBuf += chunk.toString('utf8');
+    });
+  }
   const payload = JSON.stringify({
     message: prompt,
     history,
@@ -123,9 +132,16 @@ async function* query({
   child.stdin.end();
 
   const rl = readline.createInterface({ input: child.stdout });
-  for await (const line of rl) {
-    if (!line.trim()) continue;
-    yield JSON.parse(line);
+  try {
+    for await (const line of rl) {
+      if (!line.trim()) continue;
+      yield JSON.parse(line);
+    }
+  } finally {
+    rl.close();
+    if (child.exitCode === null && !child.killed) {
+      child.kill('SIGTERM');
+    }
   }
 }
 
@@ -146,6 +162,12 @@ async function* resumeApproval({
     cwd,
     stdio: ['pipe', 'pipe', 'pipe'],
   });
+  let stderrBuf = '';
+  if (child.stderr) {
+    child.stderr.on('data', (chunk) => {
+      if (stderrBuf.length < 65536) stderrBuf += chunk.toString('utf8');
+    });
+  }
   const payload = JSON.stringify({
     approval_id: approvalId,
     decision,
@@ -156,9 +178,16 @@ async function* resumeApproval({
   child.stdin.end();
 
   const rl = readline.createInterface({ input: child.stdout });
-  for await (const line of rl) {
-    if (!line.trim()) continue;
-    yield JSON.parse(line);
+  try {
+    for await (const line of rl) {
+      if (!line.trim()) continue;
+      yield JSON.parse(line);
+    }
+  } finally {
+    rl.close();
+    if (child.exitCode === null && !child.killed) {
+      child.kill('SIGTERM');
+    }
   }
 }
 

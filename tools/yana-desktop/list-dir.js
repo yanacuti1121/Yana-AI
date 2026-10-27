@@ -67,7 +67,11 @@ function runCapabilityJson({ yanaRtBin, args, exec = execFileSync, existsSync = 
   }
   let stdout;
   try {
-    stdout = exec(yanaRtBin, ['capability', ...args], { encoding: 'utf8' });
+    stdout = exec(yanaRtBin, ['capability', ...args], {
+      encoding: 'utf8',
+      timeout: 30_000,
+      maxBuffer: 16 * 1024 * 1024,
+    });
   } catch (e) {
     const detail = (e.stderr || e.message || '').toString().trim();
     return { ok: false, error: detail || `capability ${args[0]} failed` };
@@ -123,7 +127,7 @@ function checkpointDiff({ repoRoot, yanaRtBin, id, exec, existsSync }) {
   });
 }
 
-function checkpointRewind({ repoRoot, yanaRtBin, id, file, dryRun = false, exec, existsSync }) {
+function checkpointRewind({ repoRoot, yanaRtBin, id, file, dryRun = true, exec, existsSync }) {
   const args = ['checkpoint-rewind', '--root', repoRoot, '--id', String(id)];
   if (file) {
     args.push('--file', file);
