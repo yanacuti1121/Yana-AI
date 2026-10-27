@@ -86,9 +86,41 @@ fi
 if [[ "$TOOL_NAME" == "Bash" ]]; then
   CMD=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null || true)
 
-  # Null bytes in commands — always malicious
-  if printf '%s' "$CMD" | grep -qP '\x00' 2>/dev/null || \
-     printf '%s' "$CMD" | LC_ALL=C grep -q $'\x00' 2>/dev/null; then
+  # Null bytes in commands — always malicious.
+  #
+  # BUG FIX (2026-08-16, confirmed live on origin/main: this exact check
+  # was blocking every single Bash call including a bare `echo test`):
+  # the fallback arm `LC_ALL=C grep -q $'\x00'` is unconditionally
+  # broken. Bash's `$'...'` ANSI-C quoting cannot represent a NUL byte —
+  # a shell string is C-string-backed and NUL-terminated internally, so
+  # `$'\x00'` collapses to a zero-length string at the point the NUL
+  # would go, and `grep -q ''` (an empty pattern) matches every line
+  # unconditionally. The two arms were OR'd together, so this fallback
+  # alone made the whole condition always-true regardless of `$CMD`'s
+  # actual content — a hard deny on 100% of Bash calls, not a
+  # null-byte-specific one.
+  #
+  # This is the identical bug class already found and removed once
+  # before in an earlier revision of this same file (see git history,
+  # "tool-validator.sh's null-byte check: unconditionally broken ...
+  # Removed entirely, not fixed — confirmed by 2 independent reviewer
+  # dispatches with zero Safety findings"). It was reintroduced when
+  # this file was substantially rewritten to add the WebFetch/SSRF
+  # guard below, by someone who didn't have that earlier context.
+  # Removing the broken fallback again, same resolution as before: the
+  # remaining `grep -qP '\x00'` arm is correctly-formed (PCRE `\x00` is
+  # a real null-byte pattern, and returns no match against a string
+  # that doesn't contain one), but it is also structurally unable to
+  # ever catch a REAL null byte injection — bash's own `$CMD` variable
+  # can never contain a literal NUL to begin with (the same C-string
+  # truncation applies on the way in, at
+  # `CMD=$(printf '%s' "$INPUT" | jq -r ...)`), so there is nothing
+  # left for this check to meaningfully detect at this layer. Kept only
+  # as a fail-safe no-op rather than deleted outright, so a future
+  # null-byte defense added upstream of this hook (e.g. at the
+  # JSON/stdin layer, before bash ever sees the value) has a matching
+  # check already in place here to catch it if it ever changes.
+  if printf '%s' "$CMD" | grep -qP '\x00' 2>/dev/null; then
     deny "Blocked [L1.5 Tool Validator]: Null byte (\\x00) detected in Bash command. Null byte injection is a known attack vector for bypassing string-based filters. Bypass: YANA_TOOL_VALID_BYPASS=1"
   fi
 
