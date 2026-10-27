@@ -47,18 +47,20 @@ const COPY_FILES = [
 // ── Giám thị watcher — opt-in cross-platform OS supervisor ─────────────────
 // Not part of COPY_DIRS/COPY_FILES: this registers a persistent process
 // outside the project directory (~/Library/LaunchAgents/), so it must never
-// be silent-by-default. Ask, default No, only on macOS with an interactive
-// TTY. See core/rules/71-entry-point-verify-law.md — this file is a
+// be silent-by-default. Ask on an interactive TTY only, default Yes
+// (Giám thị ships with Yana, owner decision 2026-09-29); --auto/postinstall
+// never registers it. See core/rules/71-entry-point-verify-law.md — this file is a
 // registered entry point; any change here needs a real exec() verification
 // pass, not just a lint/compile check.
 
-function askYesNo(question) {
+function askYesNo(question, defaultYes = false) {
   if (!process.stdin.isTTY || AUTO_MODE) return Promise.resolve(false); // safe default: no prompt possible → decline
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   return new Promise((resolve) => {
     rl.question(question, (answer) => {
       rl.close();
-      resolve(/^y(es)?$/i.test(answer.trim()));
+      const value = answer.trim();
+      resolve(value === "" ? defaultYes : /^y(es)?$/i.test(value));
     });
   });
 }
@@ -86,8 +88,15 @@ function installGiamthiWatcher(targetPath) {
 }
 
 async function maybeInstallGiamthiWatcher(targetPath) {
+  // Interactive installs default to yes (Giám thị ships with Yana). npm
+  // postinstall/--auto stays off: a package hook must not register OS services.
+  if (!process.stdin.isTTY || AUTO_MODE) {
+    console.log(`  Giám thị supervisor not installed (non-interactive). Run: yana-ai giamthi install "${targetPath}"`);
+    return;
+  }
   const yes = await askYesNo(
-    "  Install OS-level Giám thị supervisor (launchd/systemd/Task Scheduler)? (y/N) "
+    "  Install OS-level Giám thị supervisor (launchd/systemd/Task Scheduler)? (Y/n) ",
+    true
   );
   if (yes) installGiamthiWatcher(targetPath);
 }

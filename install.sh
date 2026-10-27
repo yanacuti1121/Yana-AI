@@ -148,7 +148,9 @@ verify() {
 }
 
 install_supervisor() {
-  local answer="n"
+  # Default is install (Giám thị tier 1 + tier 2 ship with Yana by default);
+  # opt out with YANA_SUPERVISOR=skip or by answering "n".
+  local answer="y"
   if [[ "$INSTALL_DIR" != ".claude" && "$INSTALL_DIR" != "$(pwd)/.claude" ]]; then
     warn "OS supervisor requires the canonical .claude install path; current YANA_DIR is $INSTALL_DIR"
     return
@@ -158,8 +160,9 @@ install_supervisor() {
     skip) return ;;
     ask)
       if [[ -r /dev/tty ]]; then
-        printf "  Install OS-level Giám thị supervisor for %s? (y/N) " "$(pwd)" > /dev/tty
-        IFS= read -r answer < /dev/tty || answer="n"
+        printf "  Install OS-level Giám thị supervisor for %s? (Y/n) " "$(pwd)" > /dev/tty
+        IFS= read -r answer < /dev/tty || answer="y"
+        [[ -z "$answer" ]] && answer="y"
       fi
       ;;
     *) fail "YANA_SUPERVISOR must be ask, install, or skip" ;;

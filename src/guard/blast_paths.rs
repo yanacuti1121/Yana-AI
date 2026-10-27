@@ -128,6 +128,17 @@ pub fn entry_point_hit(raw: &str, entry_points: &[String]) -> Option<String> {
     None
 }
 
+/// Serializes tests that mutate the process-global YANA_REPO_ROOT / PWD.
+/// `cargo test` runs tests on parallel threads that share one environment,
+/// so without this an unrelated test's `remove_var` could land between
+/// another test's `set_var` and its `protected_hit` call (seen as random
+/// 1-2 failures per run of `cargo test guard::`).
+#[cfg(test)]
+pub(crate) fn repo_env_guard() -> std::sync::MutexGuard<'static, ()> {
+    static REPO_ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    REPO_ENV_LOCK.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -148,6 +159,7 @@ mod tests {
 
     #[test]
     fn absolute_path_under_repo_root_is_protected() {
+        let _env = repo_env_guard();
         // THE BYPASS: the Codespaces reviewer caught this — an absolute path
         // used to slip straight past protected_hit. It must not anymore.
         std::env::set_var("YANA_REPO_ROOT", "/workspaces/Yana-AI");
@@ -158,6 +170,7 @@ mod tests {
 
     #[test]
     fn absolute_path_via_pwd_fallback_with_symlinked_cwd_is_protected() {
+        let _env = repo_env_guard();
         // THE 2026-07-03 REGRESSION: the test above only ever exercised the
         // YANA_REPO_ROOT override branch, never the default fallback — so it
         // kept passing even after repo_root() started calling
@@ -188,6 +201,7 @@ mod tests {
 
     #[test]
     fn unrelated_absolute_path_not_treated_as_repo_relative() {
+        let _env = repo_env_guard();
         std::env::set_var("YANA_REPO_ROOT", "/workspaces/Yana-AI");
         // /etc/passwd is not under the repo and not a protected prefix → no hit
         let hit = protected_hit("/etc/passwd", &prot());
@@ -213,6 +227,7 @@ mod tests {
 
     #[test]
     fn absolute_path_to_entry_point_is_hit() {
+        let _env = repo_env_guard();
         std::env::set_var("YANA_REPO_ROOT", "/workspaces/Yana-AI");
         let hit = entry_point_hit(
             "/workspaces/Yana-AI/scripts/yana-rt-wrapper.js",

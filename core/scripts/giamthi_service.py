@@ -15,8 +15,12 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import giamthi_oslock  # noqa: E402  (sibling module, tier 2 OS lock)
+
 
 INTERVAL_SECONDS = 21_600
+OSLOCK_COMMANDS = ("install-oslock", "unlock", "uninstall-oslock")
 
 
 def canonical_target(value: str | os.PathLike[str]) -> Path:
@@ -371,7 +375,10 @@ def run_once(target: Path) -> int:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="yana-ai giamthi", description=__doc__)
-    parser.add_argument("command", choices=("install", "status", "repair", "uninstall", "run"))
+    parser.add_argument("command", choices=(
+        "install", "status", "repair", "uninstall", "run",
+        *OSLOCK_COMMANDS,
+    ))
     parser.add_argument("target", nargs="?", default=".")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--json", action="store_true", dest="json_output")
@@ -380,7 +387,38 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Attempt macOS install after Full Disk Access was granted",
     )
+    parser.add_argument("--no-oslock", action="store_true", help="Skip the tier 2 root OS lock")
     return parser.parse_args()
+
+
+def handle_oslock_command(command: str, target: Path, *, dry_run: bool) -> int:
+    """Tier 2 (root OS lock) subcommands; see giamthi_oslock.py and ADR-016."""
+    if command == "unlock":
+        return giamthi_oslock.unlock(target_id(target), dry_run=dry_run)
+    if command == "install-oslock":
+        oslock = giamthi_oslock.install(target, target_id(target), dry_run=dry_run)
+        print(f"Giám thị tier 2 ready: {oslock.label}")
+        return 0
+    oslock = giamthi_oslock.uninstall(target_id(target), dry_run=dry_run)
+    print(f"Giám thị tier 2 removed: {oslock.label}")
+    return 0
+
+
+def print_status(report: dict[str, object], *, json_output: bool) -> None:
+    if json_output:
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    print(f"Target: {report['target']}")
+    print(f"Supervisor: {'installed' if report['installed'] else 'not installed'}")
+    print(f"Runtime: {report['runtime_state']}")
+    print(f"Watcher: {'present' if report['watcher_exists'] else 'missing'}")
+    print(f"HALT: {'active' if report['lock_exists'] else 'clear'}")
+    engaged = " (ENGAGED)" if report["oslock_engaged"] else ""
+    print(f"Tier 2 OS lock: {'installed' if report['oslock_installed'] else 'not installed'}{engaged}")
+    if report["heartbeat_age_seconds"] is not None:
+        print(f"Heartbeat age: {report['heartbeat_age_seconds']}s")
+    for stale in report.get("stale_services", []):
+        print(f"Warning: another Giám thị service points to {stale['target']} ({stale['path']})")
 
 
 def main() -> int:
@@ -399,7 +437,11 @@ def main() -> int:
             )
             print(f"Giám thị supervisor ready: {paths.service_id}")
             print(f"Definition: {paths.primary}")
+            if not args.no_oslock:
+                giamthi_oslock.offer_install(target, target_id(target), dry_run=args.dry_run)
             return 0
+        if args.command in OSLOCK_COMMANDS:
+            return handle_oslock_command(args.command, target, dry_run=args.dry_run)
         if args.command == "uninstall":
             paths = uninstall(target, home, platform, dry_run=args.dry_run)
             print(f"Giám thị supervisor removed: {paths.service_id}")
@@ -408,21 +450,11 @@ def main() -> int:
         if args.command == "run":
             return run_once(target)
         report = status(target, home, platform)
-        if args.json_output:
-            print(json.dumps(report, indent=2, ensure_ascii=False))
-        else:
-            print(f"Target: {report['target']}")
-            print(f"Supervisor: {'installed' if report['installed'] else 'not installed'}")
-            print(f"Runtime: {report['runtime_state']}")
-            print(f"Watcher: {'present' if report['watcher_exists'] else 'missing'}")
-            print(f"HALT: {'active' if report['lock_exists'] else 'clear'}")
-            if report["heartbeat_age_seconds"] is not None:
-                print(f"Heartbeat age: {report['heartbeat_age_seconds']}s")
-            for stale in report.get("stale_services", []):
-                print(f"Warning: another Giám thị service points to {stale['target']} ({stale['path']})")
+        report.update(giamthi_oslock.status(target_id(target)))
+        print_status(report, json_output=args.json_output)
         runtime_ready = report["runtime_state"] in {"loaded", "enabled", "registered"}
         return 0 if report["installed"] and report["watcher_exists"] and runtime_ready else 1
-    except RuntimeError as error:
+    except (RuntimeError, OSError) as error:
         print(f"Error: {error}", file=sys.stderr)
         return 2
 

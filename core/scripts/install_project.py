@@ -154,10 +154,14 @@ def run_audit(target: str) -> dict | None:
 def should_install_supervisor(mode: str) -> bool:
     if mode == "install":
         return True
-    if mode == "skip" or not sys.stdin.isatty():
+    if mode == "skip":
         return False
-    answer = input("  Install the OS-level Giám thị supervisor for this project? (y/N) ")
-    return answer.strip().lower() in {"y", "yes"}
+    # Default is install: Giám thị ships with Yana. Non-interactive installs
+    # get tier 1; tier 2 (sudo) prints a follow-up command instead.
+    if not sys.stdin.isatty():
+        return True
+    answer = input("  Install the OS-level Giám thị supervisor for this project? (Y/n) ")
+    return answer.strip().lower() in {"", "y", "yes"}
 
 
 def install_supervisor_assets(target: Path, dry_run: bool) -> int:
@@ -302,16 +306,13 @@ def main():
         if args.dry_run:
             print(f"     {c(YELLOW, 'would run')} yana-ai giamthi install {target}")
         else:
-            result = subprocess.run(
-                [sys.executable, GIAMTHI_PY, "install", target],
-                capture_output=True,
-                text=True,
-            )
+            # Not captured: tier 2 asks for consent and sudo on this terminal,
+            # and its warnings keep exit code 0, so they must print directly.
+            result = subprocess.run([sys.executable, GIAMTHI_PY, "install", target])
             if result.returncode == 0:
                 print(f"     {c(GREEN, '✓')} supervisor installed and initial scan requested")
             else:
-                diagnostic = (result.stderr or result.stdout).strip()
-                print(f"     {c(YELLOW, '!')} supervisor setup failed: {diagnostic}")
+                print(f"     {c(YELLOW, '!')} supervisor setup failed (see output above)")
                 print(f"     Retry: yana-ai giamthi repair {target}")
 
     print()
