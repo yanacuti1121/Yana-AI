@@ -47,3 +47,23 @@ html {
 
 /* Diagram labels were 11.5px. */
 body.home-page .platform-node span { font-size: max(12px, 1em); }
+
+/* Icons: one stroke style from assets/yana-icons.svg. */
+.y-ico {
+  width: 1em;
+  height: 1em;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vertical-align: -.14em;
+}
+.y-ico-ext {
+  width: .9em;
+  height: .9em;
+  margin-left: .2em;
+  vertical-align: -.1em;
+}
+.field-face .y-ico { width: 1.15em; height: 1.15em; vertical-align: middle; }
