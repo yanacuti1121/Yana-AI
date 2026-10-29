@@ -2,7 +2,7 @@
 //! exercised for real, and no process or socket is involved.
 
 use super::*;
-use rmcp::model::{CallToolResult, ContentBlock, ListToolsResult, ServerCapabilities, ServerInfo, Tool};
+use rmcp::model::{CallToolResponse, CallToolResult, ContentBlock, ListToolsResult, ServerCapabilities, ServerConfig, Tool};
 use rmcp::service::RequestContext;
 use rmcp::{ErrorData, RoleServer, ServerHandler};
 use std::sync::Arc;
@@ -14,8 +14,8 @@ fn schema() -> Arc<Map<String, Value>> {
 }
 
 impl ServerHandler for Fake {
-    fn get_info(&self) -> ServerInfo {
-        ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
+    fn get_info(&self) -> ServerConfig {
+        ServerConfig::new(ServerCapabilities::builder().enable_tools().build())
     }
 
     async fn list_tools(&self, _: Option<rmcp::model::PaginatedRequestParams>, _: RequestContext<RoleServer>) -> Result<ListToolsResult, ErrorData> {
@@ -24,7 +24,13 @@ impl ServerHandler for Fake {
         Ok(ListToolsResult { tools, ..Default::default() })
     }
 
-    async fn call_tool(&self, request: rmcp::model::CallToolRequestParams, _: RequestContext<RoleServer>) -> Result<CallToolResult, ErrorData> {
+    async fn call_tool(&self, request: rmcp::model::CallToolRequestParams, _: RequestContext<RoleServer>) -> Result<CallToolResponse, ErrorData> {
+        self.answer(request).await.map(Into::into)
+    }
+}
+
+impl Fake {
+    async fn answer(&self, request: rmcp::model::CallToolRequestParams) -> Result<CallToolResult, ErrorData> {
         let args = request.arguments.unwrap_or_default();
         match request.name.as_ref() {
             "echo" => Ok(CallToolResult::success(vec![ContentBlock::text(args.get("text").and_then(Value::as_str).unwrap_or("").to_string())])),
@@ -143,8 +149,8 @@ fn non_text_content_is_named_never_included_and_structured_content_is_the_fallba
 struct Endless;
 
 impl ServerHandler for Endless {
-    fn get_info(&self) -> ServerInfo {
-        ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
+    fn get_info(&self) -> ServerConfig {
+        ServerConfig::new(ServerCapabilities::builder().enable_tools().build())
     }
 
     async fn list_tools(&self, _: Option<rmcp::model::PaginatedRequestParams>, _: RequestContext<RoleServer>) -> Result<ListToolsResult, ErrorData> {
