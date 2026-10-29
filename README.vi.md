@@ -44,13 +44,13 @@
     <td align="center" width="25%"><h3>19</h3><sub>provider model<br>13 cloud, 6 local</sub></td>
     <td align="center" width="25%"><h3>40</h3><sub>subcommand runtime<br>trong một binary Rust</sub></td>
     <td align="center" width="25%"><h3>66</h3><sub>hook cho tool call<br>Pre, Post và Stop</sub></td>
-    <td align="center" width="25%"><h3>288</h3><sub>file lõi<br>được ghim bằng SHA-256</sub></td>
+    <td align="center" width="25%"><h3>289</h3><sub>file lõi<br>được ghim bằng SHA-256</sub></td>
   </tr>
   <tr>
     <td align="center"><h3>4</h3><sub>host agent<br>Claude Code, Codex, Cursor, Antigravity</sub></td>
     <td align="center"><h3>4,2 ms</h3><sub>khởi động runtime<br>bản release, Apple M4</sub></td>
     <td align="center"><h3>100</h3><sub>agent chuyên biệt</sub></td>
-    <td align="center"><h3>2.026</h3><sub>skill kiến thức làm việc,<br>không cấp quyền</sub></td>
+    <td align="center"><h3>2.035</h3><sub>skill kiến thức làm việc,<br>không cấp quyền</sub></td>
   </tr>
 </table>
 
@@ -117,7 +117,7 @@ Skill dạy agent cách làm việc. Chỉ capability mới cấp quyền hành 
 | **[Governance](core)** | Capability manifest, phê duyệt của con người, nhật ký kiểm toán nối băm, toàn vẹn core-lock. | ![Đang dùng](https://img.shields.io/badge/-đang_dùng-2e8b75) |
 | **[Giám Thị](#giám-thị)** | Bộ giám sát chạy ngoài mọi phiên AI, khóa mọi tool call về sau khi phát hiện sai lệch. | ![Đang dùng, tùy chọn bật](https://img.shields.io/badge/đang_dùng-tùy_chọn_bật-2e8b75) |
 | **[Harness adapters](adapters)** | Claude Code, Codex, Cursor và Antigravity. Mức thực thi khác nhau tùy host. | ![Tùy host](https://img.shields.io/badge/đang_dùng-tùy_host-2e8b75) |
-| **[Lớp tri thức](core/skills)** | 60 agent, 2.027 skill, command và rule dạy agent cách làm việc. Chúng không cấp quyền nào. | ![Đang dùng](https://img.shields.io/badge/-đang_dùng-2e8b75) |
+| **[Lớp tri thức](core/skills)** | 100 agent, 2.035 skill, command và rule dạy agent cách làm việc. Chúng không cấp quyền nào. | ![Đang dùng](https://img.shields.io/badge/-đang_dùng-2e8b75) |
 | **[Yana OS](src/os)** | Lớp quản lý cục bộ: danh tính agent, mức tự chủ, quota, sức khỏe, cách ly. | ![Đang phát triển](https://img.shields.io/badge/-đang_phát_triển-d97706) |
 | **[Yana Desktop / Web](tools/yana-web)** | Vỏ Electron và giao diện web đời trước. Studio là bản dựng lại riêng, không phải đổi giao diện. | ![Bảo trì riêng](https://img.shields.io/badge/-bảo_trì_riêng-64748b) |
 | **[Yana Wheelbot](https://github.com/yanacuti1121/yana-wheelbot)** | Nền tảng robot trên ESP32-S3, nằm trong repository riêng. | ![Thử nghiệm](https://img.shields.io/badge/-thử_nghiệm-dc2626) |
@@ -133,8 +133,8 @@ cấu hình build, kể cả các lệnh nằm sau feature flag.
 core/
 ├── hooks/    # 66 hook PreToolUse / PostToolUse / Stop (63 shell, 3 JavaScript)
 ├── rules/    # 71 rule, phần lớn là hướng dẫn agent tự áp dụng; hook thực thi một phần
-├── agents/   # 60 agent chuyên biệt
-├── skills/   # 2.027 skill
+├── agents/   # 100 agent chuyên biệt
+├── skills/   # 2.035 skill
 ├── commands/ # 170 slash command của Claude Code
 └── config/
     └── core-lock.json    # manifest SHA-256, ghim 288 file lõi
