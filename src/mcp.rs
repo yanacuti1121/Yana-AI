@@ -21,7 +21,7 @@
 
 use rmcp::{
     handler::server::{router::tool::ToolRouter, wrapper::Parameters},
-    model::{CallToolResult, ContentBlock, Implementation, ServerCapabilities, ServerInfo},
+    model::{CallToolResult, ContentBlock, Implementation, ServerCapabilities, ServerConfig},
     schemars, tool, tool_handler, tool_router,
     transport::stdio,
     ErrorData as McpError, ServerHandler, ServiceExt,
@@ -347,8 +347,8 @@ fn observe(result: Result<String, String>) -> Result<CallToolResult, McpError> {
 
 #[tool_handler]
 impl ServerHandler for YanaRuntime {
-    fn get_info(&self) -> ServerInfo {
-        ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
+    fn get_info(&self) -> ServerConfig {
+        ServerConfig::new(ServerCapabilities::builder().enable_tools().build())
             .with_server_info(Implementation::from_build_env())
             .with_instructions(
                 "Yana Program J local capability runtime: read-only repository/host tools, governed workspace operations, and the canonical command guard. Critical workspace approval is CLI-only."
