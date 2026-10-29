@@ -42,7 +42,7 @@
 <table>
   <tr>
     <td align="center" width="25%"><h3>19</h3><sub>模型 provider<br>云端 13，本地 6</sub></td>
-    <td align="center" width="25%"><h3>40</h3><sub>运行时子命令<br>同一个 Rust 二进制</sub></td>
+    <td align="center" width="25%"><h3>41</h3><sub>运行时子命令<br>同一个 Rust 二进制</sub></td>
     <td align="center" width="25%"><h3>66</h3><sub>工具调用 hook<br>Pre、Post、Stop</sub></td>
     <td align="center" width="25%"><h3>289</h3><sub>核心文件<br>以 SHA-256 锁定</sub></td>
   </tr>

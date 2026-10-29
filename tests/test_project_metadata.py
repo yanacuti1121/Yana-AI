@@ -157,6 +157,18 @@ class ProjectMetadataTests(unittest.TestCase):
                 handle.write(
                     "core-lock.json    # SHA-256 manifest — 9 core files pinned\n"
                     "9 subcommands. Zero Python dependency\n"
+                    # Shapes of the real README's stats table, structure table and tree.
+                    "<td><h3>9</h3><sub>runtime subcommands</sub></td>\n"
+                    "<td><h3>9</h3><sub>core files<br>pinned</sub></td>\n"
+                    "<td><h3>9</h3><sub>tool-call hooks</sub></td>\n"
+                    "<td><h3>9 agents</h3></td>\n"
+                    "<td><h3>9 skills</h3></td>\n"
+                    "| **[Knowledge layer](core/skills)** | 9 agents, 9 skills, commands and rules |\n"
+                    "├── agents/   # 9 specialist agents\n"
+                    "├── skills/   # 9 skills\n"
+                    "├── hooks/    # 9 PreToolUse / PostToolUse hooks\n"
+                    "├── rules/    # 9 rules, most are guidance\n"
+                    "├── commands/ # 9 Claude Code slash commands\n"
                 )
 
     def tearDown(self) -> None:
@@ -345,6 +357,20 @@ class ProjectMetadataTests(unittest.TestCase):
         readme = (self.root / "README.md").read_text(encoding="utf-8")
         self.assertIn("core-lock.json    # SHA-256 manifest — 2 core files pinned", readme)
         self.assertIn("3 subcommands. Zero Python dependency", readme)
+
+    def test_readme_stats_table_and_tree_counts_are_checked_and_fixed(self) -> None:
+        # Regression for A11: the stats table, structure table and file tree
+        # held wrong numbers while check_counts reported CLEAN.
+        self.assertTrue(project_metadata.drift(self.root))
+
+        project_metadata.fix(self.root)
+        readme = (self.root / "README.md").read_text(encoding="utf-8")
+        self.assertIn("<h3>3</h3><sub>runtime subcommands", readme)
+        self.assertIn("<h3>2</h3><sub>core files", readme)
+        self.assertNotIn("<h3>9</h3><sub>runtime subcommands", readme)
+        self.assertNotIn("<h3>9</h3><sub>core files", readme)
+        self.assertNotIn("# 9 specialist agents", readme)
+        self.assertEqual(project_metadata.drift(self.root), [])
 
 
 if __name__ == "__main__":

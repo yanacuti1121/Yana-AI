@@ -132,6 +132,22 @@ _COUNT_ANCHORS: dict[str, list[tuple[str, re.Pattern[str], str]]] = {
             re.compile(r"(\b)\d[\d,]*( subcommands\. Zero Python dependency)"),
             r"\g<1>{value}\g<2>",
         ),
+        # The "At a glance" stats table sits below the 30-line window that
+        # _replace_claims() scans, and the structure table and file tree use
+        # their own wording. All of these held stale numbers while this
+        # script still reported CLEAN, so each is anchored explicitly.
+        ("subcommands", re.compile(r"(<h3>)\d[\d,]*(</h3><sub>runtime subcommands)"), r"\g<1>{value}\g<2>"),
+        ("core_lock_files", re.compile(r"(<h3>)\d[\d,]*(</h3><sub>core files)"), r"\g<1>{value}\g<2>"),
+        ("hooks", re.compile(r"(<h3>)\d[\d,]*(</h3><sub>tool-call hooks)"), r"\g<1>{value}\g<2>"),
+        ("agents", re.compile(r"(<h3>)\d[\d,]*( agents</h3>)"), r"\g<1>{value}\g<2>"),
+        ("skills", re.compile(r"(<h3>)\d[\d,]*( skills</h3>)"), r"\g<1>{value}\g<2>"),
+        ("agents", re.compile(r"(Knowledge layer\]\(core/skills\)\*\* \| )\d[\d,]*( agents,)"), r"\g<1>{value}\g<2>"),
+        ("skills", re.compile(r"( agents, )\d[\d,]*( skills, commands and rules)"), r"\g<1>{value}\g<2>"),
+        ("agents", re.compile(r"(agents/\s+# )\d[\d,]*( specialist agents)"), r"\g<1>{value}\g<2>"),
+        ("skills", re.compile(r"(skills/\s+# )\d[\d,]*( skills)"), r"\g<1>{value}\g<2>"),
+        ("hooks", re.compile(r"(hooks/\s+# )\d[\d,]*( PreToolUse)"), r"\g<1>{value}\g<2>"),
+        ("rules", re.compile(r"(rules/\s+# )\d[\d,]*( rules,)"), r"\g<1>{value}\g<2>"),
+        ("commands", re.compile(r"(commands/\s+# )\d[\d,]*( Claude Code slash commands)"), r"\g<1>{value}\g<2>"),
     ],
 }
 

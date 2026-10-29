@@ -42,7 +42,7 @@
 <table>
   <tr>
     <td align="center" width="25%"><h3>19</h3><sub>모델 provider<br>클라우드 13, 로컬 6</sub></td>
-    <td align="center" width="25%"><h3>40</h3><sub>런타임 하위 명령<br>Rust 바이너리 하나</sub></td>
+    <td align="center" width="25%"><h3>41</h3><sub>런타임 하위 명령<br>Rust 바이너리 하나</sub></td>
     <td align="center" width="25%"><h3>66</h3><sub>도구 호출 hook<br>Pre, Post, Stop</sub></td>
     <td align="center" width="25%"><h3>289</h3><sub>핵심 파일<br>SHA-256으로 고정</sub></td>
   </tr>
