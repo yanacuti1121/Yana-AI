@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Yana AI Technical Whitepaper · October 2026</title>
+  <meta name="description" content="Yana AI: A Local Governance Layer Between AI Models and System Execution. Engineering report and system architecture across 2,488 commits.">
+  <link rel="canonical" href="https://yana.vutam.link/whitepaper-en.html">
+  <link rel="alternate" hreflang="vi" href="https://yana.vutam.link/whitepaper.html">
+  <link rel="alternate" hreflang="en" href="https://yana.vutam.link/whitepaper-en.html">
+  <link rel="icon" href="yana-mark.svg">
+  
+  <link rel="stylesheet" href="assets/ecosystem-pages.css?v=20260926a">
+  <link rel="stylesheet" href="assets/sakura-site.css?v=20260926a">
+  <link rel="stylesheet" href="assets/yana-white.css?v=20260930g">
+  <link rel="stylesheet" href="assets/yana-nav.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap&subset=vietnamese">
+  <link rel="stylesheet" href="assets/yana-home-type.css">
+  <link rel="stylesheet" href="assets/whitepaper26.css">
+</head>
+<body class="sakura-site whitepaper-page">
+  <div class="yana-opening yana-opening--inner" aria-label="Yana">
+    <div class="opening-center">
+      <div class="opening-mark"><img src="yana-mark.svg" alt="" width="58" height="58"></div>
+      <div class="opening-word" aria-hidden="true"><span>Y</span><span>a</span><span>n</span><span>a</span></div>
+      <p class="opening-caption">AI works. You hold authority.</p>
+    </div>
+    <button class="opening-skip" type="button">Skip <span aria-hidden="true">↗</span></button>
+  </div>
+
+  <nav class="site-nav"></nav>
+
+  <main id="main">
+    <div class="wp-container">
+      
+      <!-- Action Bar: Download PDF & Switch language -->
+      <div class="wp-action-bar">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <a class="wp-btn-download" href="whitepaper.pdf" download="Yana_AI_Technical_Whitepaper_2026_EN.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Download Whitepaper (PDF)
+          </a>
+          <span style="font-size:0.85rem;color:var(--wp-text-dim);">Official Release · 6 Pages (84 KB)</span>
+        </div>
+        <div class="wp-lang-nav">
+          <a href="whitepaper.html">Tiếng Việt</a>
+          <a href="whitepaper-en.html" class="is-active">English</a>
+        </div>
+      </div>
+
+      <!-- Header & Document Metadata -->
+      <header class="wp-header">
+        <div class="wp-badge-row">
+          <span class="wp-badge wp-badge--primary">ENGINEERING REPORT · INITIAL RELEASE</span>
+          <span class="wp-badge wp-badge--accent">CONTROL · VERIFY · PROTECT</span>
+          <span class="wp-badge wp-badge--tag">Yana Studio IDE 1.7</span>
+        </div>
+        <h1 class="wp-title">Yana AI: A Local Governance Layer Between AI Models and System Execution</h1>
+        <p class="wp-subtitle">Six Months of Engineering: From an Empty Repository to Yana Studio IDE 1.7</p>
+
+        <dl class="wp-meta-grid">
+          <div class="wp-meta-item">
+            <dt>Authors</dt>
+            <dd>Vũ Văn Tâm (Founder), Nguyễn Nam Long</dd>
+          </div>
+          <div class="wp-meta-item">
+            <dt>Date & License</dt>
+            <dd>October 26, 2026 · Apache 2.0</dd>
+          </div>
+          <div class="wp-meta-item">
+            <dt>Repository</dt>
+            <dd><a href="https://github.com/yanacuti1121/Yana-AI" target="_blank" rel="noopener">github.com/yanacuti1121/Yana-AI</a></dd>
+          </div>
+          <div class="wp-meta-item">
+            <dt>Official Portal</dt>
+            <dd><a href="https://yana.vutam.link">yana.vutam.link</a></dd>
+          </div>
+        </dl>
+      </header>
+
+      <!-- Abstract Section -->
+      <section class="wp-abstract">
+        <div class="wp-abstract-title">Abstract</div>
+        <p>Modern autonomous coding agents possess the capability to delete directories, force-push unvetted code to shared repositories, or exfiltrate private API keys with a single command. Natural language prompts advising an agent to <em>"be careful"</em> are inherently advisory and fundamentally insufficient to prevent catastrophic side effects. Yana AI decouples two distinct concepts: <strong>skills</strong> teach agents how to accomplish tasks, whereas <strong>capabilities</strong> grant concrete execution permissions through an isolated, host-native governance layer running entirely on the user's machine. The model proposes, Yana arbitrates, and the human operator always maintains unilateral veto authority.</p>
+        <p>This report presents the system architecture, implementation details, and engineering trajectory across <strong>2,488 commits</strong> (May 17 – October 26, 2026), alongside empirical performance benchmarks, safety verification methodology, and documented design boundaries. The current production release is <strong>Yana Studio IDE 1.7</strong> for macOS (Apple Silicon), built atop Code-OSS and interfacing with 19 model providers via a single, zero-overhead Rust runtime (<code>yana-rt</code>).</p>
+        <div class="wp-keywords">
+          <strong>Keywords:</strong> AI agent safety, capability governance, hash-chained audit logs, Model Context Protocol (MCP), Rust, Code-OSS.
+        </div>
+      </section>
+
+      <!-- Section 1: Problem Statement -->
+      <section class="wp-section" id="problem">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">1.</span> Problem Statement</h2>
+        <div class="wp-prose">
+          <p>When an autonomous agent is granted terminal execution privileges, every stochastic deviation or hallucination by the model translates into an immediate, irreversible real-world action on the host machine. Two conventional defensive strategies are widely deployed, yet both exhibit structural flaws:</p>
+          <ul>
+            <li><strong>Advisory Prompt Rules:</strong> Directives embedded within system prompts are merely token sequences that the model itself reads and can arbitrarily hallucinate away, ignore, or bypass under prompt injection.</li>
+            <li><strong>Hermetic Containers & Sandboxes:</strong> Isolating execution inside a locked virtual environment ensures safety, but severely hampers practical utility by cutting the agent off from the developer's real host toolchains, native compilers, and live project workflows.</li>
+          </ul>
+          <p>Yana pursues an intentional third path: <strong>keep the agent operating directly on the real host machine</strong>, but force every action to traverse an out-of-band arbitration layer located outside model space. This layer strictly separates knowledge from authority: a <code>skill</code> is solely declarative text teaching an approach and confers zero permissions; only an explicitly declared <code>capability</code> can authorize a concrete system operation.</p>
+        </div>
+      </section>
+
+      <!-- Section 2: Vision and Core Principles -->
+      <section class="wp-section" id="principles">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">2.</span> Vision and Core Principles</h2>
+        <div class="wp-prose">
+          <p>The project's foundational vision document (authored June 7, 2026) defines Yana as a <strong>lean orchestration layer</strong> mediating between human intent and AI intelligence. It explicitly demarcates what Yana is not:</p>
+          <ul>
+            <li>Not an agent.</li>
+            <li>Not a chatbot.</li>
+            <li>Not an unbounded framework for endlessly stacking agents and skills.</li>
+            <li>Not a system requiring a large language model simply to function.</li>
+          </ul>
+          <p>The core is dedicated exclusively to four deterministic jobs done with deep rigor: request routing, runtime safety enforcement, multi-model lifecycle dispatch, and context management. Everything else constitutes the application layer—modular and replaceable without rewriting the core.</p>
+          <p>The engineering philosophy crystallizes into seven core tenets:</p>
+          <ol>
+            <li><strong>Human before automation:</strong> Every critical execution requires an accountable human operator.</li>
+            <li><strong>Safety before speed:</strong> When forced to choose, choose safety unconditionally.</li>
+            <li><strong>Evidence before confidence:</strong> Every substantive claim must be accompanied by cryptographic logs, structured audits, or deterministic verification.</li>
+            <li><strong>Build less, build better:</strong> Every feature must justify its existence; anything non-essential is aggressively pruned.</li>
+            <li><strong>Designed for failure:</strong> Every operational incident becomes a post-mortem lesson, and every lesson yields an improved architectural invariant.</li>
+            <li><strong>Open, honest, transparent:</strong> Build in public, document mistakes, and disclose tradeoffs unvarnished.</li>
+            <li><strong>Continuous improvement:</strong> No piece of software is ever truly finished.</li>
+          </ol>
+          <p>Regarding end-user adoption, the project established a 12-month milestone: a non-programmer can download Yana, input an API key, and begin productive work without reading documentation. This milestone has not yet been achieved. Currently, the primary user base remains developers who already employ coding agents and require granular runtime governance.</p>
+        </div>
+      </section>
+
+      <!-- Section 3: Architecture & Design -->
+      <section class="wp-section" id="architecture">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">3.</span> Architecture and Design</h2>
+        
+        <h3 class="wp-subsec-title">3.1 The Deterministic Decision Pipeline</h3>
+        <p class="wp-prose">Every discrete operation proposed by an agent—whether originating from Claude, GPT, Gemini, DeepSeek, or an offline local model—must sequentially traverse five mandatory verification gates (Figure 1). Both allowed and rejected actions are permanently committed to an audit log for retroactive inspection.</p>
+
+        <!-- Pipeline Diagram Card -->
+        <div class="wp-pipeline-card">
+          <div class="wp-pipeline-flow">
+            <div class="wp-step-box">
+              <div class="wp-step-num">Gate 01</div>
+              <div class="wp-step-name">Model Proposal</div>
+              <div class="wp-step-desc">Agent proposes a discrete action</div>
+            </div>
+            <div class="wp-step-box">
+              <div class="wp-step-num">Gate 02</div>
+              <div class="wp-step-name">Authority Gate</div>
+              <div class="wp-step-desc">Is this agent allowed to request?</div>
+            </div>
+            <div class="wp-step-box">
+              <div class="wp-step-num">Gate 03</div>
+              <div class="wp-step-name">Capability Filter</div>
+              <div class="wp-step-desc">Does it match granted capabilities?</div>
+            </div>
+            <div class="wp-step-box">
+              <div class="wp-step-num">Gate 04</div>
+              <div class="wp-step-name">Policy & Human Gate</div>
+              <div class="wp-step-desc">Invariant rules, then human approval</div>
+            </div>
+            <div class="wp-step-box">
+              <div class="wp-step-num">Gate 05</div>
+              <div class="wp-step-name">Deterministic Executor</div>
+              <div class="wp-step-desc">Execute only pre-approved actions</div>
+            </div>
+          </div>
+          <div class="wp-ledger-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <div><strong>Hash-Chained Audit Ledger:</strong> Each sequential record encapsulates the cryptographic SHA-256 hash of its predecessor. Any retroactive modification or deletion of a record is immediately detected.</div>
+          </div>
+        </div>
+
+        <figure class="wp-figure">
+          <img src="assets/fig-1-decision-flow.png" alt="Figure 1. Deterministic Decision Flow" loading="lazy">
+          <figcaption class="wp-figure-caption"><strong>Figure 1.</strong> Deterministic decision flow for all models. Skills educate and do not sit on the execution critical path; only guard gates and audit ledgers govern whether an action executes.</figcaption>
+        </figure>
+
+        <h3 class="wp-subsec-title">3.2 Ecosystem Architecture</h3>
+        <div class="wp-prose">
+          <ul>
+            <li><strong>Agent Hosts (Adapters):</strong> Interceptors for Claude Code (full tool-call interception at runtime), Codex (project-scoped hooks), Cursor (shell filtering), and Antigravity.</li>
+            <li><strong>Yana Applications (tools/):</strong> Yana Studio IDE 1.7 (macOS on Code-OSS 1.141), legacy Studio Electron, CLI <code>yana-ai</code>, and 14 native MCP servers.</li>
+            <li><strong>Governance (core/):</strong> Runtime <code>yana-rt</code> (Rust) delivering 40 subcommands with zero Python dependencies; <code>core-lock</code> integrity manifests (~290 pinned files); in-session human approval gates; and <strong>Giám Thị (Supervisor)</strong>—an out-of-band daemon running on OS system schedulers outside AI process space, instantly locking execution upon state divergence.</li>
+            <li><strong>Knowledge Layer (core/):</strong> 60 role agents, 2,027 operational skills, 170 slash commands, 71 behavioral rules, and 66 pre/post-tool hooks. Knowledge educates; it never confers execution authority.</li>
+            <li><strong>Model Engine:</strong> Unified router connecting 13 cloud APIs (Anthropic, OpenAI, Gemini, Groq, DeepSeek, OpenRouter, xAI, Kimi) and 6 local runtimes (Ollama, LM Studio, llama.cpp, TurboFieldfare, AirLLM, 9Router).</li>
+          </ul>
+        </div>
+
+        <figure class="wp-figure">
+          <img src="assets/fig-2-ecosystem.png" alt="Figure 2. Components of the Yana AI Ecosystem" loading="lazy">
+          <figcaption class="wp-figure-caption"><strong>Figure 2.</strong> Components of the Yana AI ecosystem. Dotted perimeters represent agent host boundaries; all resource invocations converge at the centralized governance engine.</figcaption>
+        </figure>
+
+        <h3 class="wp-subsec-title">3.3 Codebase Distribution</h3>
+        <div class="wp-code-block">
+<pre><code><span class="c-tree">Yana-AI/</span>
+├── <span class="c-cmd">src/</span> <span class="c-comment">yana-rt runtime: 313 Rust files, 82,133 lines</span>
+│   ├── <span class="c-arg">capability/</span> <span class="c-comment">permissions, shared execution engine for chat and MCP</span>
+│   ├── <span class="c-arg">guard/</span>      <span class="c-comment">blocks dangerous commands, pipe-to-shell, write permissions</span>
+│   ├── <span class="c-arg">model/</span>      <span class="c-comment">19 model providers, failover routing, key rotation</span>
+│   ├── <span class="c-arg">session_db/</span> <span class="c-comment">SQLite session store, full-text search, checkpoints</span>
+│   ├── <span class="c-arg">os/</span>         <span class="c-comment">Yana OS: agent identity, quotas, supervision</span>
+│   └── <span class="c-comment">chat/, mission/, memory/, doctor/, scanner/, … (50 top-level modules)</span>
+├── <span class="c-cmd">core/</span> <span class="c-comment">governance and knowledge layers (66 hooks, 71 rules, 2,027 skills)</span>
+├── <span class="c-cmd">tools/</span> <span class="c-comment">yana-ide (Code-OSS 1.141), legacy studio, desktop & web bridges</span>
+├── <span class="c-cmd">adapters/</span> <span class="c-comment">Claude Code, Codex, Cursor, Antigravity</span>
+└── <span class="c-cmd">site/, docs/, ci/</span> <span class="c-comment">web portal (Astro), documentation, and CI gates</span></code></pre>
+        </div>
+      </section>
+
+      <!-- Section 4: Yana in Practice -->
+      <section class="wp-section" id="practice">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">4.</span> Yana in Practice</h2>
+        <div class="wp-prose">
+          <h3 class="wp-subsec-title">4.1 User Interface & Studio IDE</h3>
+          <p>Yana Studio IDE embeds full developer tooling within an integrated development environment. The left pane provides the standard VS Code file tree, while the right pane houses the Yana Agent chat. The chat interface continuously surfaces the active governance posture: in <code>SUPERVISED</code> mode, read operations proceed automatically, whereas all execution commands pause for explicit operator sign-off. The status bar reflects <code>Policy: SUPERVISED [ALLOW: read, REQUIRE: run]</code>, the active runtime version, and the verified audit log count (<code>Audit 500</code>).</p>
+        </div>
+
+        <figure class="wp-figure">
+          <img src="assets/fig-yana-studio-ide.jpg" alt="Figure 4. Yana Studio IDE on Code-OSS" loading="lazy">
+          <figcaption class="wp-figure-caption"><strong>Figure 4.</strong> Yana Studio IDE built on Code-OSS. The right-hand chat pane operates under SUPERVISED policy; the status bar reports read allowances and command sign-off requirements with the verified audit ledger count.</figcaption>
+        </figure>
+
+        <div class="wp-prose">
+          <p>The initial launch screen (Figure 5) guides operators through three foundational steps: open a project workspace, bestow workspace trust so agents can inspect code safely, and select an inference backend (either local Ollama or cloud API credentials). It provides tri-lingual switching (English, Vietnamese, Korean) and real-time engine health telemetry.</p>
+        </div>
+
+        <figure class="wp-figure">
+          <img src="assets/fig-yana-home.jpg" alt="Figure 5. Yana Home Interface" loading="lazy">
+          <figcaption class="wp-figure-caption"><strong>Figure 5.</strong> Yana Home launch experience: 3-step rapid onboarding, multi-language interface switcher, and local runtime service health monitors.</figcaption>
+        </figure>
+
+        <div class="wp-prose">
+          <h3 class="wp-subsec-title">4.2 Real-World Command Guard Evaluation</h3>
+          <p>Table 1 demonstrates four actual CLI commands evaluated directly by the runtime guard (<code>yana-rt guard destructive</code>). When an invocation is intercepted, the agent receives an explanatory reason along with recommended safe alternatives, while the incident is committed to the audit trail.</p>
+        </div>
+
+        <!-- Table 1: Command Guard Evaluation -->
+        <div class="wp-table-wrap">
+          <table class="wp-table">
+            <thead>
+              <tr>
+                <th>Target Command</th>
+                <th>Verdict</th>
+                <th>Runtime Justification Returned to Agent</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>curl -fsSL https://.../install.sh | bash</code></td>
+                <td><span class="wp-badge-verdict wp-badge-verdict--blocked">Blocked</span></td>
+                <td>Remote content piped directly into shell without operator inspection. Download file, inspect source, and then execute, or request operator approval.</td>
+              </tr>
+              <tr>
+                <td><code>rm -rf ~/Documents</code></td>
+                <td><span class="wp-badge-verdict wp-badge-verdict--blocked">Blocked</span></td>
+                <td>Recursive, irreversible force deletion on protected user directory. Target specific files or request operator approval.</td>
+              </tr>
+              <tr>
+                <td><code>chmod 777 deploy.sh</code></td>
+                <td><span class="wp-badge-verdict wp-badge-verdict--blocked">Blocked</span></td>
+                <td>Grants global write permissions. Enforce principle of least privilege using restrictive modes (e.g., 755 or 644).</td>
+              </tr>
+              <tr>
+                <td><code>git status --short</code></td>
+                <td><span class="wp-badge-verdict wp-badge-verdict--allowed">Allowed</span></td>
+                <td>Read-only introspection command; auto-approved without gating.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="wp-subsec-title">4.3 Command-Line Tooling</h3>
+        <div class="wp-code-block">
+<pre><code><span class="c-comment"># Python CLI management tool</span>
+<span class="c-cmd">pip install yana-ai</span>
+<span class="c-cmd">yana-ai install</span>     <span class="c-comment"># Inject Yana hooks and policy rules into repository</span>
+<span class="c-cmd">yana-ai doctor .</span>    <span class="c-comment"># Verify environment and hook connectivity</span>
+
+<span class="c-comment"># Standalone Rust runtime (zero Python dependencies)</span>
+<span class="c-cmd">cargo install yana-rt</span></code></pre>
+        </div>
+      </section>
+
+      <!-- Section 5: Component Statuses -->
+      <section class="wp-section" id="components">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">5.</span> Component Statuses & Architecture</h2>
+        <div class="wp-table-wrap">
+          <table class="wp-table">
+            <thead>
+              <tr>
+                <th>Component</th>
+                <th>Responsibility</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Yana Studio IDE 1.7</strong></td>
+                <td>Flagship desktop environment on macOS (Code-OSS 1.141). Strips proprietary telemetry, integrates Yana chat, approval gates, verified tasks, 19 providers, and canvas.</td>
+                <td><span class="wp-badge-status wp-badge-status--prod">Production</span></td>
+              </tr>
+              <tr>
+                <td><strong>Runtime yana-rt</strong></td>
+                <td>Core Rust engine: turn loops, capability contracts, SQLite session store, rollback checkpoints, MCP and LSP clients.</td>
+                <td><span class="wp-badge-status wp-badge-status--prod">Production</span></td>
+              </tr>
+              <tr>
+                <td><strong>Governance Layer</strong></td>
+                <td>Capability manifests, human approval gates, hash-chained audit ledger, core-lock integrity verifier, command guards.</td>
+                <td><span class="wp-badge-status wp-badge-status--prod">Production</span></td>
+              </tr>
+              <tr>
+                <td><strong>Giám Thị (Supervisor)</strong></td>
+                <td>Out-of-band daemon running on 6-hour OS scheduler; locks system commands if control files deviate from signed hashes.</td>
+                <td><span class="wp-badge-status wp-badge-status--prod">Production (Active)</span></td>
+              </tr>
+              <tr>
+                <td><strong>Adapters</strong></td>
+                <td>Claude Code, Codex, Cursor, Antigravity. Execution enforcement varies across host hooks.</td>
+                <td><span class="wp-badge-status wp-badge-status--pre">Host-dependent</span></td>
+              </tr>
+              <tr>
+                <td><strong>Knowledge Layer</strong></td>
+                <td>Role agents, skills, slash commands, and behavioral rules instructing agent conduct.</td>
+                <td><span class="wp-badge-status wp-badge-status--prod">Production</span></td>
+              </tr>
+              <tr>
+                <td><strong>Yana OS</strong></td>
+                <td>Local agent management: identities, autonomy boundaries, execution quotas, process isolation.</td>
+                <td><span class="wp-badge-status wp-badge-status--dev">In Development</span></td>
+              </tr>
+              <tr>
+                <td><strong>Legacy Studio Electron</strong></td>
+                <td>Preceding desktop app (v1.5–1.6, Sept 2026). IDE reuses its validated UX logic.</td>
+                <td><span class="wp-badge-status wp-badge-status--pre">Precursor</span></td>
+              </tr>
+              <tr>
+                <td><strong>Wheelbot</strong></td>
+                <td>Voice-controlled ESP32-S3 robotics platform in dedicated repository.</td>
+                <td><span class="wp-badge-status wp-badge-status--exp">Experimental</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section 6: Benchmarks -->
+      <section class="wp-section" id="benchmarks">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">6.</span> Empirical Evaluation and Benchmarks</h2>
+        <div class="wp-prose">
+          <p>Benchmarked on October 20, 2026, using an <strong>Apple Silicon MacBook Air (M4, 16 GB RAM)</strong> running release builds of <code>yana-rt 1.5.1</code> against baseline Python scripts as documented in <code>BENCHMARK.md</code>:</p>
+        </div>
+
+        <div class="wp-table-wrap">
+          <table class="wp-table">
+            <thead>
+              <tr>
+                <th>Benchmark Operation</th>
+                <th>Rust Runtime (yana-rt)</th>
+                <th>Legacy Python Script</th>
+                <th>Performance Delta</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Cold Binary Startup</td>
+                <td><strong>4.16 ms</strong></td>
+                <td>—</td>
+                <td>Average across 100 runs</td>
+              </tr>
+              <tr>
+                <td>System Diagnostics (<code>doctor</code>)</td>
+                <td><strong>143 ms</strong></td>
+                <td>415 ms</td>
+                <td><strong>2.9× faster</strong> (16 verification checks)</td>
+              </tr>
+              <tr>
+                <td>Governance CI Audit (<code>ci check</code>)</td>
+                <td><strong>5.8 ms</strong></td>
+                <td>33 ms</td>
+                <td><strong>5.7× faster</strong> (5 lint/policy rules)</td>
+              </tr>
+              <tr>
+                <td>Skills Directory Scan (<code>core/skills</code>)</td>
+                <td><strong>0.55 s</strong></td>
+                <td>8.47 s</td>
+                <td><strong>15.4× faster</strong> (full directory parse)</td>
+              </tr>
+              <tr>
+                <td>Destructive Command Guard</td>
+                <td><strong>4.9 ms</strong></td>
+                <td>—</td>
+                <td>Latency per hook invocation</td>
+              </tr>
+              <tr>
+                <td>Compiled Binary Size</td>
+                <td><strong>18.2 MiB</strong></td>
+                <td>—</td>
+                <td>Self-contained release binary</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section 7: Security Verification -->
+      <section class="wp-section" id="security">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">7.</span> Security Verification and Adversarial Auditing</h2>
+        <div class="wp-prose">
+          <p>In late October 2026, the native MCP server was subjected to stdio fuzz testing across its 14 built-in tools. Path traversal exploits escaping workspace bounds (<code>/etc/hosts</code>, malicious symlinks) were successfully blocked, and <code>browser_fetch</code> strictly required explicit leases.</p>
+          <p>The audit revealed one functional defect (<code>list_processes</code> failure on macOS) and a <strong>significant vulnerability</strong>: the legacy <code>check_command</code> function focused exclusively on direct destructive primitives, permitting pipe-to-shell constructs (<code>curl ... | bash</code>), base64 decoding pipelines, and <code>chmod 777</code> to bypass rules despite explicit prohibitions in project rules.</p>
+          <p>An updated patch parses commands according to POSIX shell grammar (evaluating quotes, command substitution, heredocs, pipes, and subshell groups) prior to rule matching, validated by <strong>1,642 passing unit tests</strong>. The patch underwent four independent adversarial audit cycles executed by AI subagents (six review passes total). <strong>Key takeaway:</strong> String-based command blacklists are inherently non-exhaustive; pattern guards must be treated as defense-in-depth, while absolute protection rests upon the <em>human approval gate</em> and <em>granular capability bounds</em>.</p>
+        </div>
+      </section>
+
+      <!-- Section 8: Boundaries & Limitations -->
+      <section class="wp-section" id="limitations">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">8.</span> Documented Boundaries and Limitations</h2>
+        <div class="wp-prose">
+          <ul>
+            <li><strong>Ledger Deletion:</strong> Hash-chaining cryptographically guarantees tamper-detection against in-place record manipulation, but cannot prevent wholesale deletion of the log file without OS-level immutable write privileges.</li>
+            <li><strong>Core-Lock Invariant:</strong> Proves that the file tree matches the registered manifest, but does not verify whether an operator personally reviewed the diff. Anyone with write access to <code>core/</code> can regenerate the lock. Giám Thị provides independent scheduled verification, but operates with up to a 6-hour window.</li>
+            <li><strong>Rule Enforcement Scope:</strong> The majority of files in <code>core/rules</code> describe guidelines that agents self-enforce; only rules backed by active system hooks are deterministically blocked. A formal cryptographic code-signing infrastructure is not yet implemented.</li>
+            <li><strong>Pattern Guard Coverage:</strong> Destructive command filters rely on structural string parsing, not sandbox hypervisors. The fallback Bash script implementation does not yet incorporate pipe-to-shell blocking parity.</li>
+            <li><strong>Host Interception Discrepancies:</strong> Cursor does not intercept MCP tool calls. Antigravity filters shell invocations, but can be bypassed when executed with <code>--dangerously-skip-permissions</code>.</li>
+            <li><strong>Platform Notarization:</strong> macOS releases currently rely on ad-hoc developer code signatures prior to Apple Developer account notarization, triggering standard Gatekeeper warnings on first launch.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Section 9: Engineering Trajectory -->
+      <section class="wp-section" id="timeline">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">9.</span> Engineering Trajectory & Timeline</h2>
+        <div class="wp-prose">
+          <p>The Git repository began with an empty commit on <strong>May 17, 2026</strong>. By October 26, 2026, the history recorded <strong>2,488 commits</strong>, <strong>426 merged pull requests</strong>, <strong>41 software releases</strong>, and <strong>72 tags</strong>. Figure 6 details the commit velocity across months, peaking in June during the bulk ingestion of operational skills and web portal launch.</p>
+        </div>
+
+        <figure class="wp-figure">
+          <img src="assets/fig-commits-chart.png" alt="Figure 6. Commits per month, May 17 to Oct 26, 2026" loading="lazy">
+          <figcaption class="wp-figure-caption"><strong>Figure 6.</strong> Monthly commit cadence from May 17 to October 26, 2026. Source: Yana-AI repository Git history.</figcaption>
+        </figure>
+
+        <div class="wp-timeline">
+          <div class="wp-timeline-item">
+            <div class="wp-timeline-phase">May 17–31, 2026<small>Foundation</small></div>
+            <div class="wp-timeline-content">Truth-gate preventing false agent completions; two-tier memory (L1/L2); hash-chained audit ledger; OWASP LLM Top 10 guardrails; 70+ defensive rules; MCP integration; runtime migration to Rust; Apache 2.0.</div>
+          </div>
+          <div class="wp-timeline-item">
+            <div class="wp-timeline-phase">June 2026<small>Expansion & Interface</small></div>
+            <div class="wp-timeline-content">Large-scale skill ingestion; tri-lingual web portal; 1-click GitHub App approved on GitHub Marketplace; multi-model chat; AES-256-GCM client-side key encryption; parallel agents.</div>
+          </div>
+          <div class="wp-timeline-item">
+            <div class="wp-timeline-phase">July 2026<small>Hardening & Controls</small></div>
+            <div class="wp-timeline-content">Release of Giám Thị supervisor (July 16); gated CLI tool execution; automated malware scanning; <code>/freeze</code> scope lock; Codex adapter; Kimi provider; patched remote execution script defect.</div>
+          </div>
+          <div class="wp-timeline-item">
+            <div class="wp-timeline-phase">August 2026<small>Yana OS & Actions</small></div>
+            <div class="wp-timeline-content">Unified Rust workspace; Yana OS (identities, autonomy tiers, durable action queues); capability leases; decision receipts; remote approval protocol; Discord/AirLLM adapters; ESP32 voice bridge.</div>
+          </div>
+          <div class="wp-timeline-item">
+            <div class="wp-timeline-phase">September 2026<small>Studio & Model Routing</small></div>
+            <div class="wp-timeline-content">Yana Studio Electron (v1.5–1.6 across macOS, Windows, Linux); automatic failover; API key rotation; prompt caching; SQLite session store with checkpoint rollback; WebGL landing page.</div>
+          </div>
+          <div class="wp-timeline-item">
+            <div class="wp-timeline-phase">October 2026<small>Unification & Delivery</small></div>
+            <div class="wp-timeline-content">Native MCP client and trust-store; read-only LSP client; plan mode with diff previews; universal office document suite; Yana Studio IDE 1.7 released (Oct 16); Antigravity hook integration.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 10: Founder's Note -->
+      <section class="wp-section" id="founders-note">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">10.</span> Founder's Note</h2>
+        
+        <div class="wp-quote-card">
+          <blockquote>
+            "Yana AI was not born inside a corporate campus. It possessed no venture backing, no enterprise engineering brigade, and no institutional laboratory. It began on a personal laptop, driven by a 17-year-old student who believed coding agents must not be granted unchecked sovereignty over host systems.<br><br>
+            The most insidious pitfalls were never individual code bugs, but flawed conceptual assumptions. Following each failure, Yana was deliberately re-engineered to be more verifiable, more observable, and radically more dependable.<br><br>
+            <strong>Yana AI exists because humans must forever retain the final decision.</strong>"
+          </blockquote>
+          <div class="wp-quote-author">
+            — Vũ Văn Tâm
+            <small>Founder & Lead Engineer, Yana AI</small>
+          </div>
+        </div>
+
+        <div class="wp-prose">
+          <p>The author initiated the project at age 17, operating as sole engineer for the first six months without institutional funding. AI tooling assisted in accelerating implementation, test generation, and review cycles, while all architectural design, system rewrites, and final accountability rested with the maintainer.</p>
+          <p>In late October 2026, <strong>Nguyễn Nam Long</strong> joined the project as a new contributor. The engineering milestones and technical work documented in this report represent development completed prior to his onboarding.</p>
+        </div>
+      </section>
+
+      <!-- References Section -->
+      <section class="wp-section" id="references">
+        <h2 class="wp-sec-title"><span class="wp-sec-num">11.</span> References</h2>
+        <ol class="wp-references">
+          <li>OWASP Foundation. <em>Top 10 for Large Language Model Applications</em>, <a href="https://owasp.org" target="_blank" rel="noopener">owasp.org</a>.</li>
+          <li>Google. <em>Trillian: A Transparent, Highly Scalable and Cryptographically Verifiable Data Store</em>, <a href="https://github.com/google/trillian" target="_blank" rel="noopener">github.com/google/trillian</a>.</li>
+          <li>Anthropic. <em>Model Context Protocol Specification</em>, <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">modelcontextprotocol.io</a>.</li>
+          <li>Microsoft. <em>Visual Studio Code, Open Source (Code-OSS)</em>, <a href="https://github.com/microsoft/vscode" target="_blank" rel="noopener">github.com/microsoft/vscode</a>.</li>
+          <li>Yana AI Repository Specifications (<code>VISION.md</code> dated June 7, 2026; <code>PHILOSOPHY.md</code>; <code>JOURNEY.md</code>; <code>HISTORY.md</code>; <code>BENCHMARK.md</code>; <code>CURRENT-MILESTONE.md</code>; <code>docs/reference/known-limitations.md</code>), <a href="https://github.com/yanacuti1121/Yana-AI" target="_blank" rel="noopener">github.com/yanacuti1121/Yana-AI</a>.</li>
+        </ol>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="site-footer"></footer>
+
+  <script src="assets/ecosystem-pages.js?v=20260928b"></script>
+  <script src="assets/sakura-site.js?v=20261001a"></script>
+  <script src="assets/yana-motion.js?v=20260929b"></script>
+  <script src="assets/vendor/gsap/gsap.min.js"></script>
+  <script src="assets/yana-motion-2026.js" defer></script>
+</body>
+</html>

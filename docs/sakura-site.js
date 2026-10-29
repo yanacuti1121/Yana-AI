@@ -6,7 +6,7 @@
   /* localStorage throws when storage is blocked (private mode, site settings). An unguarded call
      aborted this whole script, leaving the footer, petals and demos unbuilt. Not persisting is fine. */
   const store={get:key=>{try{return localStorage.getItem(key)}catch(error){return null}},set:(key,value)=>{try{localStorage.setItem(key,value)}catch(error){/* storage blocked: preference just is not remembered */}}};
-  const englishPages=new Set(["yana-ai","studio","wheelbot","runtime","governance","agents-skills","models","connectors","missions","continuity","design","evidence","safety","architecture","ecosystem","download","updates","support","privacy","legal-notices","acknowledgements","install-macos","install-windows","install-linux","account","history","commands","contact"]);
+  const englishPages=new Set(["yana-ai","studio","wheelbot","runtime","governance","agents-skills","models","connectors","missions","continuity","design","evidence","safety","architecture","ecosystem","download","updates","support","privacy","legal-notices","acknowledgements","install-macos","install-windows","install-linux","account","history","commands","contact","whitepaper"]);
   const stem=page.replace(/\.html$/,"").replace(/-(en|ko)$/,"");
   const koreanPages=new Set(englishPages);
   const languageHref=vi?(page==="index.html"?"en.html":englishPages.has(stem)?`${stem}-en.html`:"en.html"):(stem==="en"||stem==="ko"?"index.html":`${stem}.html`);
@@ -23,7 +23,7 @@
   }
 
   const documentPages=["legal-notices","privacy","acknowledgements"];
-  const technicalPages=["architecture","governance","runtime","models","connectors","evidence","continuity","missions","agents-skills"];
+  const technicalPages=["architecture","governance","runtime","models","connectors","evidence","continuity","missions","agents-skills","whitepaper"];
   document.body.classList.add(documentPages.includes(stem)?"mode-document":technicalPages.some(name=>stem===name)?"mode-technical":["index","en","ko"].includes(stem)?"petal-high":"mode-standard");
 
   const copy = vi ? {
@@ -77,6 +77,7 @@
         item("wheelbot","wheelbot","Yana Wheelbot","Yana Wheelbot","Robot vật lý ESP32-S3 mã nguồn mở","Open-source physical robot project","◌","robot esp32 3d print hardware")
       ]},
       resources:{label:copy.resources,title:copy.resourcesTitle,items:[
+        item("whitepaper","whitepaper","Báo cáo kỹ thuật (Whitepaper)","Technical Whitepaper","Kiến trúc điều phối, benchmark & ranh giới an toàn","Architecture, benchmarks & safety boundaries","📄","whitepaper report research architecture benchmark"),
         item("download","download","Tải Studio & CLI","Download Studio & CLI","Bộ cài macOS, Win, Linux & PyPI CLI","Installers for Mac, Windows, Linux & PyPI","↓","download mac windows linux pypi pip"),
         item("updates","updates","Cập nhật / Changelog","Updates / Changelog","Lịch sử phiên bản & lộ trình phát triển","Ecosystem release history & roadmap","◴","releases version changelog updates"),
         item("support","support","Hỗ trợ & Liên hệ","Support & Contact","Email, điện thoại, Facebook, TikTok & GitHub","Official contact channels & creator links","?","help contact support email"),
@@ -102,10 +103,11 @@
       +'<a class="nav-about" href="https://vutam.link/" target="_blank" rel="noopener noreferrer">'+copy.about+' <span aria-hidden="true">↗</span></a>'
       +'<div class="nav-mobile-actions"><a href="'+route("updates")+'">'+copy.updates+'</a><a href="'+route("download")+'">'+copy.download+'</a><a href="'+docsHref+'">'+copy.docs+'</a><a href="'+githubHref+'" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="'+startHref+'">'+copy.start+' →</a><details class="mobile-language-group"><summary>'+(vi?"Ngôn ngữ":ko?"언어":"Language")+' →</summary><div>'+languageOptions+'</div></details></div></div>'
       +'<div class="nav-actions">'+searchButton+'<a class="nav-docs" href="'+docsHref+'">'+copy.docs+'</a>'
+      +'<a class="nav-action--whitepaper" href="'+(vi?"whitepaper.html":"whitepaper-en.html")+'" title="'+(vi?"Báo cáo kỹ thuật (Technical Whitepaper)":"Technical Whitepaper")+'"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>Whitepaper</span></a>'
       +languageMenu
       +'<a class="nav-action--updates" href="'+route("updates")+'">'+copy.updates+'</a>'
       +'<a class="nav-action--source" href="'+githubHref+'" target="_blank" rel="noopener noreferrer">'+copy.source+' ↗</a>'
-      +'<a class="nav-action--download" href="'+route("download")+'">'+copy.download+'</a>'
+      +'<a class="nav-action--download" href="'+route("download")+'"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span>'+copy.download+'</span></a>'
       +'<a class="nav-start" href="'+startHref+'"><span>'+copy.start+'</span><span class="nav-start-arrow" aria-hidden="true">→</span></a></div>';
     const scrim=document.createElement("div");scrim.className="nav-scrim";document.body.append(scrim);
     const menu=nav.querySelector(".menu-button"),links=nav.querySelector(".nav-links");
@@ -251,16 +253,55 @@
     });
   }
 
-  if (store.get("yana-announcement-hidden") !== "1") {
+  if (nav && store.get("yana-announcement-hidden") !== "1") {
     const bar=document.createElement("div");bar.className="announcement-bar";bar.innerHTML=`<span>${copy.announcement}</span><button type="button" aria-label="${vi?"Đóng":ko?"닫기":"Close"}">×</button>`;document.body.prepend(bar);const hideAnnouncement=()=>{bar.classList.add("is-hiding");setTimeout(()=>{bar.hidden=true;store.set("yana-announcement-hidden","1")},420)};bar.querySelector("button").addEventListener("click",hideAnnouncement);setTimeout(hideAnnouncement,5200);
   }
 
   const footer=document.querySelector(".site-footer");
-  if(footer) footer.innerHTML=`<div class="footer-inner"><div><a class="brand" href="${route("index")}"><img class="brand-mark" src="yana-mark.svg" alt=""><span>Yana</span></a><p>${vi?"AI làm việc. Bạn giữ quyền. Trí tuệ có thể đổi, quyền hạn luôn bền vững.":"AI works. You hold authority. Intelligence may change, authority endures."}</p></div><div class="footer-links"><strong>${copy.products}</strong><a href="${route("studio")}">Yana Studio</a><a href="${route("wheelbot")}">Yana Wheelbot</a><a href="${route("download")}">Download & CLI</a></div><div class="footer-links"><strong>${copy.resources}</strong><a href="${route("updates")}">${copy.updates}</a><a href="${route("support")}">${vi?"Hỗ trợ & Liên hệ":"Support & Contact"}</a><a href="https://github.com/yanacuti1121/Yana-AI" target="_blank" rel="noopener noreferrer">GitHub Repository ↗</a><a href="https://vutam.link/" target="_blank" rel="noopener noreferrer">vutam.link ↗</a></div><div class="footer-links"><strong>${vi?"Pháp lý":"Legal"}</strong><a href="${route("legal-notices")}">${vi?"Bản quyền & Pháp lý":"Legal Notices & Copyright"}</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Apache 2.0 License ↗</a></div></div><div class="footer-bottom">© 2026 Yana AI · Vũ Văn Tâm · ${vi?"Các thành phần nguồn mở giữ nguyên giấy phép tương ứng.":"Open-source components remain under their respective licenses."}</div>`;
+  if(footer) footer.innerHTML=`<div class="footer-inner"><div><a class="brand" href="${route("index")}"><img class="brand-mark" src="yana-mark.svg" alt=""><span>Yana</span></a><p>${vi?"AI làm việc. Bạn giữ quyền. Trí tuệ có thể đổi, quyền hạn luôn bền vững.":"AI works. You hold authority. Intelligence may change, authority endures."}</p></div><div class="footer-links"><strong>${copy.products}</strong><a href="${route("studio")}">Yana Studio</a><a href="${route("wheelbot")}">Yana Wheelbot</a><a href="${route("download")}">Download & CLI</a><a href="${route("updates")}">${copy.updates}</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/CHANGELOG.md" target="_blank" rel="noopener noreferrer">CHANGELOG.md ↗</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/CURRENT-MILESTONE.md" target="_blank" rel="noopener noreferrer">CURRENT-MILESTONE.md ↗</a></div><div class="footer-links"><strong>${vi?"Tài liệu & Kỹ thuật":"Docs & Technical"}</strong><a href="${route("whitepaper")}"><strong>${vi?"Báo cáo kỹ thuật (Whitepaper)":"Technical Whitepaper"}</strong></a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ARCHITECTURE.md" target="_blank" rel="noopener noreferrer">ARCHITECTURE.md ↗</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/PHILOSOPHY.md" target="_blank" rel="noopener noreferrer">PHILOSOPHY.md ↗</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ROADMAP.md" target="_blank" rel="noopener noreferrer">ROADMAP.md ↗</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/BENCHMARK.md" target="_blank" rel="noopener noreferrer">BENCHMARK.md ↗</a></div><div class="footer-links"><strong>${copy.resources}</strong><a href="${route("support")}">${vi?"Hỗ trợ & Liên hệ":"Support & Contact"}</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer">CONTRIBUTING.md ↗</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/SECURITY.md" target="_blank" rel="noopener noreferrer">SECURITY.md ↗</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/ACKNOWLEDGEMENTS.md" target="_blank" rel="noopener noreferrer">Acknowledgements ↗</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/docs/history/LINEAGE.md" target="_blank" rel="noopener noreferrer">Lineage ↗</a></div><div class="footer-links"><strong>${vi?"Pháp lý":"Legal"}</strong><a href="${route("legal-notices")}">${vi?"Bản quyền & Pháp lý":"Legal Notices & Copyright"}</a><a href="https://github.com/yanacuti1121/Yana-AI/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Apache 2.0 License ↗</a><a href="https://github.com/yanacuti1121/Yana-AI" target="_blank" rel="noopener noreferrer">GitHub Repository ↗</a><a href="https://vutam.link/" target="_blank" rel="noopener noreferrer">vutam.link ↗</a></div></div><div class="footer-bottom">© 2026 Yana AI · Vũ Văn Tâm · ${vi?"Các thành phần nguồn mở giữ nguyên giấy phép tương ứng.":"Open-source components remain under their respective licenses."}</div>`;
 
   if(footer){
     const contextualFooterLinks={"support.html":route("support"),"legal-notices.html":route("legal-notices")};
     Object.entries(contextualFooterLinks).forEach(([current,target])=>{const anchor=footer.querySelector(`a[href="${current}"]`);if(anchor)anchor.setAttribute("href",target)});
+  }
+
+
+  /* Terms of use under the footer. One source for every page (vi / en / ko); the pages carry no copy of it. */
+  if(footer&&!document.querySelector(".site-legal")){
+    const L={
+      vi:{title:"Điều khoản sử dụng trang này",items:[
+        ["Bản quyền và giấy phép.","Mã nguồn của Yana theo giấy phép Apache 2.0. Nội dung và giao diện trên trang © 2026 Yana. Các thành phần nguồn mở giữ nguyên giấy phép tương ứng."],
+        ["Thương hiệu.","Tên Yana, logo và nhận diện của Yana không nằm trong giấy phép mã nguồn (xem Apache 2.0, mục 6). Không dùng chúng theo cách khiến người khác hiểu nhầm sản phẩm của bạn là Yana, hoặc được Yana bảo trợ, khi chưa có sự đồng ý bằng văn bản."],
+        ["Ví dụ minh hoạ.","Màn hình, lệnh và hộp duyệt trên trang chạy trong trình duyệt để minh hoạ; không có lệnh nào chạy trên máy của bạn."],
+        ["Nhãn hiệu Apple.","Apple, iMac, MacBook và macOS là nhãn hiệu của Apple Inc., đã đăng ký tại Hoa Kỳ và các quốc gia khác. Khung máy iMac và MacBook Pro lấy từ Apple Design Resources. Yana không liên kết với Apple và không được Apple bảo trợ."],
+        ["Hình ảnh.","Hình nền trên màn hình máy là hình nền iMac thuộc bản quyền của Apple Inc."],
+        ["Phông chữ.","Nunito, Plus Jakarta Sans, Patrick Hand, Caveat và JetBrains Mono từ Google Fonts, theo giấy phép SIL Open Font License."]],
+        more:"Đọc đầy đủ:",links:[["legal-notices","Thông báo pháp lý"],["privacy","Quyền riêng tư"],["acknowledgements","Lời cảm ơn"]]},
+      en:{title:"Terms of use for this site",items:[
+        ["Copyright and license.","Yana's source code is under the Apache 2.0 license. The content and interface of this site are © 2026 Yana. Open-source components keep their respective licenses."],
+        ["Trademarks.","The Yana name, logo and identity are not covered by the source-code license (see Apache 2.0, section 6). Do not use them in a way that suggests your product is Yana, or is endorsed by Yana, without written permission."],
+        ["Illustrative examples.","The screens, commands and approval boxes on this site run in the browser for illustration; no command runs on your machine."],
+        ["Apple trademarks.","Apple, iMac, MacBook and macOS are trademarks of Apple Inc., registered in the U.S. and other countries. The iMac and MacBook Pro frames come from Apple Design Resources. Yana is not affiliated with or endorsed by Apple."],
+        ["Images.","The wallpaper on the device screens is an iMac wallpaper copyrighted by Apple Inc."],
+        ["Fonts.","Nunito, Plus Jakarta Sans, Patrick Hand, Caveat and JetBrains Mono from Google Fonts, under the SIL Open Font License."]],
+        more:"Read in full:",links:[["legal-notices","Legal notices"],["privacy","Privacy"],["acknowledgements","Acknowledgements"]]},
+      ko:{title:"이 사이트 이용 약관",items:[
+        ["저작권 및 라이선스.","Yana의 소스 코드는 Apache 2.0 라이선스를 따릅니다. 사이트의 콘텐츠와 인터페이스 © 2026 Yana. 오픈소스 구성 요소는 각자의 라이선스를 그대로 따릅니다."],
+        ["상표.","Yana 이름, 로고, 브랜드 식별 요소는 소스 코드 라이선스에 포함되지 않습니다(Apache 2.0 6항 참조). 서면 동의 없이 귀하의 제품이 Yana이거나 Yana의 후원을 받는 것으로 오해하게 하는 방식으로 사용할 수 없습니다."],
+        ["예시 안내.","이 사이트의 화면, 명령, 승인 상자는 설명을 위해 브라우저 안에서 동작하며, 어떤 명령도 내 컴퓨터에서 실행되지 않습니다."],
+        ["Apple 상표.","Apple, iMac, MacBook, macOS는 미국 및 기타 국가에 등록된 Apple Inc.의 상표입니다. iMac과 MacBook Pro 프레임은 Apple Design Resources에서 가져왔습니다. Yana는 Apple과 제휴하거나 Apple의 후원을 받지 않습니다."],
+        ["이미지.","기기 화면의 배경화면은 Apple Inc.가 저작권을 가진 iMac 배경화면입니다."],
+        ["글꼴.","Google Fonts의 Nunito, Plus Jakarta Sans, Patrick Hand, Caveat, JetBrains Mono이며, SIL Open Font License를 따릅니다."]],
+        more:"전문 보기:",links:[["legal-notices","법적 고지"],["privacy","개인정보 처리방침"],["acknowledgements","감사의 말"]]}
+    }[vi?"vi":ko?"ko":"en"];
+    if(!document.getElementById("site-legal-style")){
+      const style=document.createElement("style");style.id="site-legal-style";
+      style.textContent=".site-legal{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:36px 24px 48px;border-top:1px solid #e3e8ef;color:#4b5563;font:500 .92rem/1.65 var(--sans)}.site-legal h2{margin:0 0 12px;color:#17181c;font:800 1.05rem var(--sans);letter-spacing:-.01em}.site-legal ul{margin:0;padding-left:1.1em;display:grid;gap:6px}.site-legal b{color:#17181c}.site-legal-links{margin:16px 0 0;display:flex;flex-wrap:wrap;gap:6px 18px}.site-legal-links a{color:#3b6fe0;font-weight:700;text-decoration:underline;text-underline-offset:3px}";
+      document.head.appendChild(style);
+    }
+    const legal=document.createElement("section");legal.className="site-legal";legal.setAttribute("aria-labelledby","site-legal-title");
+    legal.innerHTML=`<h2 id="site-legal-title">${L.title}</h2><ul>${L.items.map(i=>`<li><b>${i[0]}</b> ${i[1]}</li>`).join("")}</ul><p class="site-legal-links">${L.more} ${L.links.map(l=>`<a href="${route(l[0])}">${l[1]}</a>`).join("")}</p>`;
+    footer.insertAdjacentElement("afterend",legal);
   }
 
   /* Reveal sections once. No continuous render or per-scroll transforms. */

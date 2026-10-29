@@ -638,22 +638,64 @@ body.opening-active{overflow:hidden}
 .sakura-site .global-mega-link strong { display:block; color:#24364a; font-size:.82rem; line-height:1.2; }
 .sakura-site .global-mega-link small { display:block; margin-top:3px; color:#788696; font-size:.69rem; line-height:1.35; }
 .external-indicator { font-size:.7em; color:#7894b3; }
-.sakura-site .nav-actions { gap:7px; white-space:nowrap; }
+.sakura-site .nav-actions { display:flex; align-items:center; gap:8px; white-space:nowrap; }
 .sakura-site .nav-actions>a:not(.liquid-button),
 .sakura-site .nav-search-trigger,
 .sakura-site .nav-language-menu>summary {
-  display:inline-flex; align-items:center; justify-content:center; min-height:36px;
-  padding:0 10px; border:1px solid rgba(135,156,179,.23); border-radius:999px;
-  color:#344255; background:rgba(255,255,255,.66); font:600 .75rem var(--sans);
-  text-decoration:none; box-shadow:none; transition:background .2s ease,border-color .2s ease,transform .2s ease;
+  display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:36px;
+  padding:0 12px; border:1px solid rgba(135,156,179,.28); border-radius:999px;
+  color:#24364a; background:rgba(255,255,255,.8); font:600 .78rem var(--sans);
+  text-decoration:none; box-shadow:0 1px 2px rgba(15,23,42,.04);
+  -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+  transition:background-color .15s ease,border-color .15s ease,color .15s ease,transform .15s ease;
+  will-change:transform;
 }
-.sakura-site .nav-actions>a:hover,.sakura-site .nav-search-trigger:hover,.sakura-site .nav-language-menu>summary:hover { background:#eef5fd; border-color:#bfd1e6; transform:translateY(-1px); }
-.sakura-site .nav-search-trigger { gap:7px; cursor:pointer; }
-.nav-search-trigger svg { width:15px; height:15px; }
-.nav-search-trigger kbd { padding:2px 4px; border:1px solid #dbe5f0; border-radius:5px; color:#7a8ba1; background:#fff; font:600 .6rem var(--mono); }
-.sakura-site .nav-actions>.nav-start { gap:9px; padding:0 16px; color:#fff; background:#496b92; border-color:#496b92; }
-.sakura-site .nav-actions>.nav-start:hover { color:#fff; background:#365b84; }
-.nav-start-arrow { font-size:1.05rem; }
+.sakura-site .nav-actions>a:hover,
+.sakura-site .nav-search-trigger:hover,
+.sakura-site .nav-language-menu>summary:hover {
+  background:#ffffff; border-color:#9bb7d4; color:#0f172a;
+  transform:translateY(-1px); box-shadow:0 3px 8px rgba(15,23,42,.08);
+}
+.sakura-site .nav-actions .nav-icon {
+  width:14px; height:14px; flex-shrink:0; color:#5e82aa;
+  transition:color .15s ease;
+}
+.sakura-site .nav-actions>a:hover .nav-icon {
+  color:#1e40af;
+}
+.sakura-site .nav-action--whitepaper {
+  background:rgba(238,245,253,.85)!important;
+  border-color:rgba(186,211,238,.7)!important;
+  color:#1e3a8a!important;
+}
+.sakura-site .nav-action--whitepaper:hover {
+  background:#e0effe!important;
+  border-color:#93c5fd!important;
+}
+.sakura-site .nav-action--download {
+  font-weight:700!important;
+}
+.sakura-site .nav-search-trigger { gap:8px; cursor:pointer; }
+.nav-search-trigger svg { width:14px; height:14px; color:#5e82aa; }
+.nav-search-trigger kbd {
+  padding:1px 5px; border:1px solid #cbd5e1; border-radius:4px;
+  color:#64748b; background:#f8fafc; font:600 .62rem var(--mono);
+  box-shadow:0 1px 1px rgba(0,0,0,.04);
+}
+.sakura-site .nav-actions>.nav-start {
+  gap:8px; padding:0 16px; color:#fff!important;
+  background:linear-gradient(135deg, #2563eb, #1d4ed8)!important;
+  border:1px solid #1d4ed8!important;
+  font-weight:700!important;
+  box-shadow:0 2px 6px rgba(37,99,235,.25);
+}
+.sakura-site .nav-actions>.nav-start:hover {
+  background:linear-gradient(135deg, #1d4ed8, #1e40af)!important;
+  box-shadow:0 4px 12px rgba(37,99,235,.35);
+  transform:translateY(-1px);
+}
+.nav-start-arrow { font-size:1rem; transition:transform .15s ease; }
+.sakura-site .nav-actions>.nav-start:hover .nav-start-arrow { transform:translateX(2px); }
 .sakura-site .nav-mobile-actions { display:none; }
 .sakura-site .nav-language-menu { position:relative; }
 .sakura-site .nav-language-menu>summary { min-width:42px; padding:0 10px; list-style:none; cursor:pointer; }
