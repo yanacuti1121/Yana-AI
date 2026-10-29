@@ -60,6 +60,8 @@ Timings are local measurements from 2026-10-20; the method is under [Performance
 
 ## Quick start
 
+Choose one: the desktop app, or the command line.
+
 **Desktop app.** Download Yana Studio (v1.7.0) from the
 [latest release](https://github.com/yanacuti1121/Yana-AI/releases/latest) or
 [yana.vutam.link](https://yana.vutam.link).
@@ -74,7 +76,7 @@ Timings are local measurements from 2026-10-20; the method is under [Performance
 pip install yana-ai    # Python CLI
 yana-ai install        # add Yana's hooks and rules to your repo
 yana-ai doctor .       # check that everything is wired
-cargo install yana-rt  # native runtime, no Python needed
+cargo install yana-rt  # optional: native runtime, no Python needed
 ```
 
 Needs Python 3.11+ (or Rust), Git, and one supported host. All CLI commands are in

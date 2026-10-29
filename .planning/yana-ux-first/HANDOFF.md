@@ -12,6 +12,19 @@ The maintainer asked for autonomous work until the backlog is exhausted, with re
 - 314906ac Giám Thị HALT message is copy-pasteable (C01, C02, C03 partial)
 - 4b531c48 check_counts.py anchors for the README stats table and tree, regression test, subcommand count fixed (A11)
 
+## State when the usage limit was hit (2026-10-29)
+
+Committed since the list above: 0d100c75 bin/yana help and error text (independently exec-verified), a85c7b16 tool-proxy-enforcer deny messages (both rule 54 reviewers done), and the README Quick start wording (A03).
+
+UNCOMMITTED in the worktree, waiting for review: the trust score fix for C10.
+- Files: core/hooks/session-bootstrap.sh plus byte-identical copies in .claude/hooks and .codex/hooks, and the new test in core/tests/hooks/run-hook-tests.sh.
+- Verified: hook suite 369 of 369; the new test fails against the previous hook and passes on the new one.
+- security-auditor reviewed it: no Safety findings; optional: store a hash or length-capped session id, add tests for a missing id and an unwritable state dir.
+- code-auditor review was still running when the limit hit. Do NOT commit until its report is in (rule 54 needs both). After it: run `bash core/scripts/update-core-lock.sh`, `bash core/scripts/verify-core-lock.sh`, then commit hook files, tests and core-lock together.
+- C10 in BACKLOG.md still says open until that commit lands.
+
+Phase 1 (external study) started: VS Code Workspace Trust page was fetched (trust once per folder, parent folder covers children, Restricted Mode, remembered list). The Claude Code page fetched was the authentication page, not permissions, so it is not usable evidence for E02; the OpenAI Codex fetch hit the limit. The OpenAI docs URL redirected to an unfamiliar domain, which was deliberately not followed.
+
 ## Next, in the order chosen
 
 1. bin/yana: banner before usage (B01), flat command list (B02), missing-runtime message (B04). Registered entry point under rule 71: needs an independent exec verification, not self-certification.
