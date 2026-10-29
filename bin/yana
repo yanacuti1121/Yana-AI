@@ -42,8 +42,8 @@ rt() {
   if [[ -z "$bin" ]]; then
     echo -e "\n${RED}  ✗ yana-rt not found${RESET} — the Rust runtime is required for this command.\n" >&2
     echo    "  Install options:" >&2
-    echo    "    cargo install yana-rt          # from crates.io (recommended)" >&2
-    echo    "    cargo build --release          # build from source (run in this repo)" >&2
+    echo    "    cargo install yana-rt          # from crates.io (works anywhere, recommended)" >&2
+    echo    "    cargo build --release          # only inside a clone of the Yana-AI repository" >&2
     echo -e "\n  Commands that work without yana-rt:" >&2
     echo    "    yana-ai verify / init / policy / guard / router / watch / stats" >&2
     echo    "    yana-ai explain / badge / harness / export / report / upgrade" >&2
@@ -319,12 +319,17 @@ banner() {
 }
 
 usage() {
-  banner 1
   cat <<EOF
-
 Usage: yana-ai <command> [target] [flags]
 
-Commands:
+Start here:
+  yana-ai install .       Set up Yana in this project (hooks and rules)
+  yana-ai doctor .        Check that everything is wired
+  yana-ai audit .         Scan this project for risky agent settings
+  yana-ai chat            Talk to a model through Yana
+  yana-ai banner          Show the welcome screen
+
+All commands:
   chat   [--provider p]   Interactive chat REPL — cloud (Anthropic/OpenAI) or local (Ollama)
   doctor [target]         Check environment health before starting an agent session
   doctor dispatch [target] Cross-check src/main.rs Commands enum vs bin/yana dispatch table
