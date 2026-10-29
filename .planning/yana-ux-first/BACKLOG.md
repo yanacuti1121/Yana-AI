@@ -6,14 +6,14 @@ Rules: an item is listed only if its evidence was observed in this session. Evid
 
 Size: S under 1 hour, M under 1 day, L more. Status: open, unverified.
 
-Count so far: 35 verified items (counted with grep on the table rows), 0 unverified, 0 solved.
+Count so far: 36 verified items. Solved: 3 (A01, C01, C02). Partial: 2 (A02, C03). Rows are counted with grep on the tables.
 
 ## A. First run and first impression
 
 | ID | Problem | Evidence | Learn from (to study) | Size | Status |
 |---|---|---|---|---|---|
-| A01 | Quick start table repeats the same macOS row twice and lists no other platform | README.md, "Quick start" table: two identical rows `macOS, Apple Silicon` | Homebrew install page | S | open |
-| A02 | Counts disagree inside one repo although the README says CI derives them | README "At a glance": 100 agents, 2,026 skills, 40 subcommands, 288 core files. README "System structure": 60 agents, 2,027 skills, 41 subcommands, 289 files. `bin/yana --help` banner: 2035 skills. `ls core/skills` entries: 2036 | Stripe docs (single source for facts) | S | open |
+| A01 | Quick start table repeats the same macOS row twice and lists no other platform | README.md, "Quick start" table: two identical rows `macOS, Apple Silicon` | Homebrew install page | S | solved (3f5e2d54) |
+| A02 | Counts disagree inside one repo although the README says CI derives them | README "At a glance": 100 agents, 2,026 skills, 40 subcommands, 288 core files. README "System structure": 60 agents, 2,027 skills, 41 subcommands, 289 files. `bin/yana --help` banner: 2035 skills. `ls core/skills` entries: 2036 | Stripe docs (single source for facts) | S | partial (3f5e2d54): README counts fixed; checker blind spot is A11; subcommand count 40 vs 41 still unverified |
 | A03 | Three install routes (desktop, pip, cargo) are offered together with no recommended path, and `cargo install yana-rt` comes after `yana-ai doctor` | README "Quick start" | GitHub CLI install, Vercel CLI | S | open |
 | A04 | macOS build is not notarized, so first launch triggers a Gatekeeper warning | README Quick start note | Apple notarization docs, Docker Desktop | L | open |
 | A05 | No Linux ARM build; Windows and Linux are not mentioned in the platform table | README Quick start note and table | VS Code download page | M | open |
@@ -22,6 +22,7 @@ Count so far: 35 verified items (counted with grep on the table rows), 0 unverif
 | A08 | Component status is conveyed only by shields.io images, so it fails without network or a screen reader | README "System structure": status cells are `![Live](https://img.shields.io/...)` | WCAG text alternatives | S | open |
 | A09 | Four frontends are presented side by side (Studio, IDE, Desktop/Web, plus `tools/yana-notch` which the table omits) with no guidance on which to use | README "System structure"; `ls tools` | Docker Desktop vs CLI positioning | M | open |
 | A10 | `tools/` mixes product code with experiments (finetune-vi, moss-tts-nano, promo, codexmate-vi-patch) | `ls tools` (15 entries) | Monorepo hygiene in large OSS repos | M | open |
+| A11 | check_counts.py reported CLEAN while the README held wrong counts, so its patterns miss the stats table, the structure table, the file tree and the translations | Running python3 -I core/scripts/check_counts.py printed CLEAN (agents=100, skills=2035) while README.md said 2,026 and 2,027 skills, 60 agents and 288 files | Docs-as-code link checkers | M | open |
 
 ## B. Command line
 
@@ -38,9 +39,9 @@ Count so far: 35 verified items (counted with grep on the table rows), 0 unverif
 
 | ID | Problem | Evidence | Learn from (to study) | Size | Status |
 |---|---|---|---|---|---|
-| C01 | The halt message gives a command containing `<tên>` and `<lý do>`; zsh reads `<` as redirection, so the user got `parse error near \n` | Terminal output pasted by the maintainer in this session | GitHub CLI, kubectl error hints with real examples | S | open |
-| C02 | The halt message says to delete a lock file but does not give the command, and the user typed the path alone and got `permission denied` | Same paste: `.claude/state/GIAMTHI_HALT.lock` run as a command | Docker, Git "hint:" lines | S | open |
-| C03 | The halt record lists 13 changed files with no diffstat and no risk label, so a human must diff by hand to judge it | Halt text in this session | GitHub Dependabot PR summaries | M | open |
+| C01 | The halt message gives a command containing `<tên>` and `<lý do>`; zsh reads `<` as redirection, so the user got `parse error near \n` | Terminal output pasted by the maintainer in this session | GitHub CLI, kubectl error hints with real examples | S | solved (314906ac) |
+| C02 | The halt message says to delete a lock file but does not give the command, and the user typed the path alone and got `permission denied` | Same paste: `.claude/state/GIAMTHI_HALT.lock` run as a command | Docker, Git "hint:" lines | S | solved (314906ac) |
+| C03 | The halt record lists 13 changed files with no diffstat and no risk label, so a human must diff by hand to judge it | Halt text in this session | GitHub Dependabot PR summaries | M | partial (314906ac): diff command added to the message; no risk labels yet |
 | C04 | Approving the baseline does not clear the halt, a second manual step the message only mentions in passing | Halt text: "lệnh này KHÔNG gỡ HALT" | Two-step flows with a single summary screen | M | open |
 | C05 | The halt blocked a skill triggered by a greeting, so fail-closed was wider than the risk | First turn: `idea-loop` blocked by Giám Thị after "Helo em" | Claude Code permission modes | M | open |
 | C06 | The shell guard blocked `${PIPESTATUS[0]}` as a subshell injection and the message does not say what is allowed | Hook error `tool-proxy-enforcer` in this session | ShellCheck messages with fixes | S | open |
