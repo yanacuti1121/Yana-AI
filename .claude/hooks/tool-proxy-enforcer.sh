@@ -99,14 +99,34 @@ sys.exit(0 if re.search(sys.argv[1], sys.stdin.read(), flags) else 1)
 " "$pattern" "$ignorecase"
 }
 
+# Display only: the text around the first match, so a deny message can say what
+# tripped it. The allow/deny decision is made by match_re above and never by
+# this function. Any failure here yields an empty string, not a changed result.
+#
+# The fragment is untrusted display text copied from the command. Control
+# characters are replaced so it cannot drive the terminal that shows it.
+FRAG_LEN=40  # characters of the command shown after the match
+match_frag() {
+  local pattern="$1" ignorecase="${2:-0}"
+  echo "$COMMAND" | python3 -c "
+import re, sys
+flags = re.IGNORECASE if sys.argv[2] == '1' else 0
+text = sys.stdin.read()
+m = re.search(sys.argv[1], text, flags)
+print(re.sub(r'[\\x00-\\x1f\\x7f]', ' ', text[m.start():m.start() + int(sys.argv[3])]) if m else '')
+" "$pattern" "$ignorecase" "$FRAG_LEN" 2>/dev/null || true
+}
+
 # ── Subshell injection (tool-proxy sanitize phase 2a/2b) ─────────────────────
-if echo "$COMMAND" | match_re '\$\(|`|<\(|\$\{'; then
-  deny "[tool-proxy-enforcer] Blocked: subshell injection pattern detected (\$(), \`, <(), \${}). Use explicit commands instead of subshell substitution."
+SUBSHELL_RE='\$\(|`|<\(|\$\{'
+if echo "$COMMAND" | match_re "$SUBSHELL_RE"; then
+  deny "[tool-proxy-enforcer] Blocked: subshell injection pattern detected (\$(), \`, <(), \${}). Matched text: '$(match_frag "$SUBSHELL_RE")'. This check reads the raw command text, so quoting does not hide it. Rewrite with explicit commands (separate steps, xargs, or a loop instead of substitution), or ask the human to approve."
 fi
 
 # ── Pipe-to-interpreter (anti-evasion-law.md, tool-proxy phase 2d) ───────────
-if echo "$COMMAND" | match_re '\|\s*(bash|sh|zsh|python3?|node|perl|ruby|php)\b' 1; then
-  deny "[tool-proxy-enforcer] Blocked: pipe-to-interpreter detected. This is a TIER 1 security violation (anti-evasion-law.md). Never pipe content into a shell interpreter."
+PIPE_INTERP_RE='\|\s*(bash|sh|zsh|python3?|node|perl|ruby|php)\b'
+if echo "$COMMAND" | match_re "$PIPE_INTERP_RE" 1; then
+  deny "[tool-proxy-enforcer] Blocked: pipe-to-interpreter detected. This is a TIER 1 security violation (anti-evasion-law.md). Never pipe content into a shell interpreter. Matched text: '$(match_frag "$PIPE_INTERP_RE" 1)'. If that text is only a search pattern inside quotes (for example a grep pattern), rewrite the pattern so a pipe is not followed directly by an interpreter name."
 fi
 
 # ── Base64 decode + pipe (anti-evasion pattern 2) ────────────────────────────
