@@ -433,7 +433,7 @@ if [[ -n "$CURRENT_SHA" && -n "$LAST_SHA" && "$LAST_SHA" != "$CURRENT_SHA" ]]; t
     [[ "$TRUSTED_HOME" -eq 1 ]] && APPROVE_CMD="YANA_WATCH_TARGET=$(printf '%q' "$REPO_DIR") bash $(printf '%q' "$SCRIPT_DIR/giamthi-watch.sh")"
     RISKY=$(printf '%s\n' "$CHANGED" | grep -E '^(\.claude/settings\.json|\.claude/hooks/|\.claude/scripts/|\.codex/hooks/|\.cursor/hooks\.json|\.cursor/hooks/|\.github/workflows/|core/rules/|core/gates/|core/hooks/|core/scripts/|src/guard/)' || true)
     if [[ -n "$RISKY" ]]; then
-      ISSUES+=("Thay đổi đã commit ở vùng nhạy cảm từ $LAST_SHA đến $CURRENT_SHA chưa được con người duyệt: $(printf '%s' "$RISKY" | tr '\n' ' '). Sau khi review, chạy: ${APPROVE_CMD} --approve-baseline --approve --actor <name> --reason <reason>; lệnh này KHÔNG gỡ HALT.")
+      ISSUES+=("Thay đổi đã commit ở vùng nhạy cảm từ $LAST_SHA đến $CURRENT_SHA chưa được con người duyệt: $(printf '%s' "$RISKY" | tr '\n' ' '). Xem nhanh các thay đổi: git --no-pager diff --stat $LAST_SHA $CURRENT_SHA. Sau khi review, chạy lệnh dưới đây (thay YOUR_NAME và WHAT_YOU_REVIEWED bằng chữ thật, giữ nguyên dấu nháy): ${APPROVE_CMD} --approve-baseline --approve --actor \"YOUR_NAME\" --reason \"WHAT_YOU_REVIEWED\"; lệnh này KHÔNG gỡ HALT.")
     fi
   fi
 fi
@@ -450,7 +450,7 @@ if [[ ${#ISSUES[@]} -gt 0 ]]; then
   # `if !` around it) when the group's redirection fails, which would let a
   # failed lock write fall through as if it had succeeded.
   ISSUE_LINES=$(printf '%s\n' "${ISSUES[@]}")
-  if ! printf '=== GIAM THI HALT — %s ===\n%s\n\nGỡ khoá: xoá %s sau khi đã kiểm tra thủ công. Không có cơ chế tự động gỡ.\n' \
+  if ! printf '=== GIAM THI HALT — %s ===\n%s\n\nGỡ khoá sau khi đã kiểm tra thủ công, chạy lệnh: rm "%s"\nKhông có cơ chế tự động gỡ.\n' \
     "$TS" "$ISSUE_LINES" "$LOCK_FILE" 2>/dev/null > "$LOCK_FILE"; then
     echo "Giám Thị: findings detected but HALT lock could not be written ($LOCK_FILE):" >&2
     printf '%s\n' "${ISSUES[@]}" >&2
