@@ -49,6 +49,10 @@ final class PillModel: ObservableObject {
         if log.count > Self.maxLogEntries { log.removeLast() }
     }
 
+    func setLog(_ entries: [LogEntry]) {
+        log = Array(entries.prefix(Self.maxLogEntries))
+    }
+
     func requestApproval(command: String, decide: @escaping (Bool) -> Void) {
         self.command = command
         pendingDecision = decide
