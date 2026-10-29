@@ -45,7 +45,7 @@ path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-default = ["cli"]
+default = ["cli", "mcp"]
 cli = [
   "clap", "uuid", "chrono", "shell-words", "glob", "walkdir",
   "anyhow", "unicode-normalization", "liteparse", "ureq", "noyalib", "sha2",
