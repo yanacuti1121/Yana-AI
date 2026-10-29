@@ -15,26 +15,54 @@
 pub use crate::capability::mcp_disclosure::{disclose, disclosure_of, parse_command, Disclosure};
 
 use super::config::{find_server, ServerConfig};
+use super::pins::{Pin, PinStore};
 use super::session::{Session, ToolInfo, ToolOutput};
 use super::spawn::spawn_session;
 use crate::capability::untrusted::guard;
 use crate::capability::CapabilityError;
 use serde_json::{json, Value};
+use std::collections::HashSet;
 use std::path::Path;
 
 enum Outcome {
-    Tools(Vec<ToolInfo>),
+    /// The tools, and the names among them whose definition differs from the pinned one.
+    Tools(Vec<ToolInfo>, HashSet<String>),
     Result(ToolOutput),
+}
+
+fn refuse(detail: String) -> CapabilityError {
+    CapabilityError::External { detail }
 }
 
 async fn run(config: ServerConfig, root: &Path, tool: Option<&str>, arguments: &Value) -> Result<Outcome, CapabilityError> {
     let session: Session = spawn_session(&config, root).await?;
-    let outcome = match tool {
-        None => session.list_tools().await.map(Outcome::Tools),
-        Some(name) => session.call_tool(name, arguments).await.map(Outcome::Result),
-    };
+    let outcome = checked(&session, &config, root, tool, arguments).await;
     session.close().await;
     outcome
+}
+
+/// Lists the tools and compares each definition with its pin BEFORE anything is called, so a
+/// tool that changed what it says it does after it was reviewed is never run. Tools seen for the
+/// first time are pinned; a pinned hash is never replaced here.
+async fn checked(session: &Session, config: &ServerConfig, root: &Path, tool: Option<&str>, arguments: &Value) -> Result<Outcome, CapabilityError> {
+    let tools = session.list_tools().await?;
+    let pins = PinStore::for_root(root);
+    let hashes: Vec<(String, String)> = tools.iter().map(|t| (t.name.clone(), t.hash.clone())).collect();
+    let verdicts = pins.check_all(&config.name, &hashes)?;
+    let changed: HashSet<String> = tools.iter().zip(&verdicts).filter(|(_, v)| **v == Pin::Changed).map(|(t, _)| t.name.clone()).collect();
+    let fresh: Vec<(String, String)> = hashes.iter().zip(&verdicts).filter(|(_, v)| **v == Pin::New).map(|(h, _)| h.clone()).collect();
+    pins.record_new(&config.name, &fresh)?;
+    let Some(name) = tool else { return Ok(Outcome::Tools(tools, changed)) };
+    let server = &config.name;
+    if !tools.iter().any(|t| t.name == name) {
+        return Err(refuse(format!("MCP server '{server}' does not offer a tool named '{name}'; nothing was called")));
+    }
+    if changed.contains(name) {
+        return Err(refuse(format!(
+            "the definition of tool '{name}' on MCP server '{server}' changed since it was first seen; nothing was called. Review the change, then delete its entry in .yana-ai/mcp-tool-pins.json to accept it"
+        )));
+    }
+    session.call_tool(name, arguments).await.map(Outcome::Result)
 }
 
 /// Run on a thread of its own, so this works whether or not the caller is
@@ -55,11 +83,18 @@ fn run_blocking(config: ServerConfig, root: &Path, tool: Option<&str>, arguments
     })
 }
 
-fn render_tools(tools: &[ToolInfo]) -> String {
+fn render_tools(tools: &[ToolInfo], changed: &HashSet<String>) -> String {
     if tools.is_empty() {
         return "(no tools)".to_string();
     }
-    tools.iter().map(|t| if t.description.is_empty() { t.name.clone() } else { format!("{}: {}", t.name, t.description) }).collect::<Vec<_>>().join("\n")
+    tools
+        .iter()
+        .map(|t| {
+            let line = if t.description.is_empty() { t.name.clone() } else { format!("{}: {}", t.name, t.description) };
+            if changed.contains(&t.name) { format!("{line}  [DEFINITION CHANGED since first seen: calls are refused]") } else { line }
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 /// List a server's tools or call one. The caller must already have authorized it,
@@ -74,12 +109,19 @@ pub fn mcp_call(root: &Path, command: &str, arguments: &Value, approved: &Disclo
             detail: format!("the configuration of MCP server '{server}' is not what was approved; nothing was started"),
         });
     }
+    if let (Some(t), Some(allowed)) = (&tool, &config.allowed_tools) {
+        if !allowed.iter().any(|name| name == t) {
+            return Err(CapabilityError::External {
+                detail: format!("tool '{t}' is not in allowed_tools of MCP server '{server}'; nothing was started"),
+            });
+        }
+    }
     let source = match &tool {
         Some(t) => format!("mcp:{server}/{t}"),
         None => format!("mcp:{server}"),
     };
     let (text, truncated, failed) = match run_blocking(config, root, tool.as_deref(), arguments)? {
-        Outcome::Tools(tools) => (render_tools(&tools), false, false),
+        Outcome::Tools(tools, changed) => (render_tools(&tools, &changed), false, false),
         Outcome::Result(out) => (out.text, out.truncated, out.is_error),
     };
     let wrapped = guard(&source, &text)?;
