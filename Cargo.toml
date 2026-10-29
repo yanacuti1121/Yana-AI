@@ -59,17 +59,12 @@ cli = [
 # feature so a build without SQLite is still possible; it is part of `cli`.
 session-db = ["rusqlite", "unicode-normalization", "chrono"]
 wasm = ["wasm-bindgen", "js-sys"]
-# Program J (docs/programs/PROGRAM-J-SKELETON.md) Phase 9 Research/Prototype
-# spike ONLY — not wired into any live client path, not part of default
-# `cli`. Deliberately isolated: rmcp pulls in tokio (this crate's first
-# async runtime dependency, confirmed via docs.rs before adding this —
-# every other feature above is sync), and a spike shouldn't change the
-# default build's footprint or introduce an async runtime into code that
-# doesn't need one yet. `features = ["full"]` on tokio here is a spike
-# convenience, not a Phase 10 recommendation — trim to the actual
-# required feature set (rt-multi-thread/macros/io-std, likely) once this
-# graduates past prototype.
-mcp = ["rmcp", "tokio"]
+# The MCP server (`yana-rt mcp`) and client (`mcp.call`). Part of the default build since
+# 2026-10: release binaries already shipped it (`--features cli,mcp`), while a plain
+# `cargo install` did not, so the same version behaved differently depending on how it was
+# built. rmcp pulls in tokio, the only async runtime dependency of the main build; builds
+# that must stay sync use `--no-default-features`. `sha2` is for the tool-definition pins.
+mcp = ["rmcp", "tokio", "sha2"]
 # The read-only language-server client (docs/contracts/ws3-tools.md section 17). It
 # needs the async runtime but not the MCP protocol crate, so it does not depend on `mcp`.
 lsp = ["tokio"]

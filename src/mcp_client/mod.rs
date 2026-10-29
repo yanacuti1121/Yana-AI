@@ -6,7 +6,8 @@
 //! Layers: `config` (which servers, from a file the model cannot write),
 //! `process` (the child with a clean environment, and killing its tree),
 //! `bounded` (size-capped reads), and, with `mcp`: `session` (one connection,
-//! time limits, size caps), `spawn` (start and handshake) and `gateway` (the
+//! time limits, size caps), `spawn` (start and handshake), `pins` (refuses a
+//! tool whose definition changed since it was first seen) and `gateway` (the
 //! single `mcp.call` entry point that screens output as untrusted).
 
 pub mod bounded;
@@ -14,6 +15,8 @@ pub mod config;
 pub mod process;
 #[cfg(feature = "mcp")]
 pub mod gateway;
+#[cfg(feature = "mcp")]
+pub mod pins;
 #[cfg(feature = "mcp")]
 pub mod session;
 #[cfg(feature = "mcp")]
@@ -24,5 +27,7 @@ mod config_tests;
 // The fake servers are `sh` scripts and the checks use `kill -0`, so these are Unix-only.
 #[cfg(all(test, unix, feature = "mcp"))]
 pub(crate) mod gateway_tests;
+#[cfg(all(test, unix, feature = "mcp"))]
+mod gateway_pin_tests;
 #[cfg(all(test, unix))]
 pub(crate) mod test_support;

@@ -50,6 +50,7 @@ fn the_plain_path_and_its_dot_and_dotdot_spellings_are_refused() {
         ".yana-ai/../.yana-ai/web-search.json",
         ".yana-ai/mcp-servers.json",
         "./.yana-ai/./mcp-servers.json",
+        ".yana-ai/mcp-tool-pins.json",
         ".yana-ai/lsp-servers.json",
         "docs/../.yana-ai/lsp-servers.json",
         ".yana-ai/leases.json",

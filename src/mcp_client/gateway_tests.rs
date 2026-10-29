@@ -29,7 +29,7 @@ done
     )
 }
 
-fn workspace(script: &str) -> (tempfile::TempDir, PathBuf) {
+pub(crate) fn workspace(script: &str) -> (tempfile::TempDir, PathBuf) {
     let outer = tempfile::tempdir().unwrap();
     let root = outer.path().join("ws");
     std::fs::create_dir_all(root.join(".yana-ai")).unwrap();
@@ -37,24 +37,24 @@ fn workspace(script: &str) -> (tempfile::TempDir, PathBuf) {
     (outer, root)
 }
 
-fn sh_server(root: &Path, name: &str, extra: Value) -> Value {
+pub(crate) fn sh_server(root: &Path, name: &str, extra: Value) -> Value {
     let mut server = json!({"name": name, "command": "/bin/sh", "args": [root.join("server.sh").to_string_lossy()]});
     server.as_object_mut().unwrap().extend(extra.as_object().unwrap().clone());
     server
 }
 
-fn configure(root: &Path, servers: Vec<Value>) {
+pub(crate) fn configure(root: &Path, servers: Vec<Value>) {
     std::fs::write(root.join(".yana-ai/mcp-servers.json"), json!({"servers": servers}).to_string()).unwrap();
     // These tests are about running servers, so the configuration is confirmed.
     crate::capability::config_trust::trust_in_test(root);
 }
 
-fn content_of(out: &str) -> String {
+pub(crate) fn content_of(out: &str) -> String {
     serde_json::from_str::<Value>(out).unwrap()["data"]["content"].as_str().unwrap().to_string()
 }
 
 /// What a caller does: disclose first, then run exactly what was disclosed.
-fn call(root: &Path, command: &str, arguments: &Value) -> Result<String, CapabilityError> {
+pub(crate) fn call(root: &Path, command: &str, arguments: &Value) -> Result<String, CapabilityError> {
     let approved = disclose(root, command)?;
     mcp_call(root, command, arguments, &approved)
 }

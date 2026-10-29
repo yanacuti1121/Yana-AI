@@ -24,6 +24,27 @@ fn a_valid_file_is_read_and_a_missing_one_means_no_servers() {
 }
 
 #[test]
+fn allowed_tools_is_optional_and_only_plain_names_are_accepted() {
+    let (_k, root) = root_with(r#"{"servers":[{"name":"a","command":"x","allowed_tools":["read_file","git.status"]},{"name":"b","command":"x","allowed_tools":[]},{"name":"c","command":"x"}]}"#);
+    let servers = load_servers(&root).unwrap();
+    assert_eq!(servers[0].allowed_tools.as_deref(), Some(&["read_file".to_string(), "git.status".to_string()][..]));
+    assert_eq!(servers[1].allowed_tools.as_deref(), Some(&[][..]), "an empty list is not the same as no list");
+    assert_eq!(servers[2].allowed_tools, None);
+    let too_many = format!(r#"{{"servers":[{{"name":"a","command":"x","allowed_tools":[{}]}}]}}"#, (0..65).map(|n| format!("\"t{n}\"")).collect::<Vec<_>>().join(","));
+    for bad in [
+        r#"{"servers":[{"name":"a","command":"x","allowed_tools":["has space"]}]}"#,
+        r#"{"servers":[{"name":"a","command":"x","allowed_tools":["semi;colon"]}]}"#,
+        r#"{"servers":[{"name":"a","command":"x","allowed_tools":[""]}]}"#,
+        r#"{"servers":[{"name":"a","command":"x","allowed_tools":["tab\tname"]}]}"#,
+        r#"{"servers":[{"name":"a","command":"x","allowed_tools":"echo"}]}"#,
+        too_many.as_str(),
+    ] {
+        let (_k, root) = root_with(bad);
+        assert!(load_servers(&root).is_err(), "{bad}");
+    }
+}
+
+#[test]
 fn invalid_entries_are_refused_whole() {
     let cases = [
         r#"{"servers":[{"name":"Has Space","command":"x"}]}"#,
