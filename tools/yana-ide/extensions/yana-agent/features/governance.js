@@ -5,6 +5,7 @@ const vscode = require('vscode');
 const changes = require('./changes');
 const { runJson } = require('../cli');
 const { YanaTree, infoItem, group } = require('./tree');
+const { clean } = require('./status-model');
 
 const AUDIT_WINDOW = 500; // số dòng audit gần nhất được tóm tắt, khớp mặc định của `observability show`
 const DECISION_ICON = { allow: 'pass', deny: 'error', warn: 'warning', block: 'error' };
@@ -15,10 +16,17 @@ function leaf(label, icon, description, tooltip) {
 	return item;
 }
 
+// Bản ghi chờ duyệt lưu cả hội thoại và nguyên lời gọi công cụ (kể cả dòng lệnh, có thể chứa khóa).
+// Chỉ lấy vài trường an toàn để hiện; không bao giờ đưa cả bản ghi vào tooltip.
+const MAX_APPROVAL_FIELD = 80;
+
 async function approvalsGroup() {
 	const list = await runJson(['authority', 'pending-approvals', '--json']);
-	const items = (Array.isArray(list) ? list : []).map(entry =>
-		leaf(entry.capability || entry.approval_id || 'approval', 'shield', entry.expires_at || '', JSON.stringify(entry, null, 2)));
+	const items = (Array.isArray(list) ? list : []).map(entry => {
+		const label = clean(entry?.pending_call?.name || entry?.approval_id, MAX_APPROVAL_FIELD) || 'approval';
+		const reason = clean(entry?.authority_reason, MAX_APPROVAL_FIELD * 2);
+		return leaf(label, 'shield', clean(entry?.expires_at, MAX_APPROVAL_FIELD), `${reason}\nApprove or deny at the terminal (yana-rt authority).`);
+	});
 	return group('Pending approvals', 'shield', items);
 }
 
