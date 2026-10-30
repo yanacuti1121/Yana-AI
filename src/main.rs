@@ -35,6 +35,7 @@ mod session_context;
 mod session_db;
 mod skill_quality;
 mod spec;
+mod status;
 mod task;
 mod vault;
 mod watch;
@@ -208,6 +209,19 @@ enum Commands {
     Score {
         #[command(subcommand)]
         action: score::ScoreAction,
+    },
+    /// What is happening now and what is waiting on a person: engines running, pending approvals,
+    /// recent audit entries, halt lock (not `os status`, which is the host-level management plane)
+    /// DOCTOR_DISPATCH_EXEMPT: new in Rust with no Python canonical to defer to; read by Yana Studio,
+    /// the notch app and the terminal as `yana-rt status --json`. It only lists, so there is nothing
+    /// for a wrapper to gate.
+    Status {
+        /// Print the snapshot as JSON (schema version in the `schema` field)
+        #[arg(long)]
+        json: bool,
+        /// Project root to read (default: current directory)
+        #[arg(long)]
+        root: Option<std::path::PathBuf>,
     },
     /// Environment and dependency health checks
     Doctor {
@@ -1058,6 +1072,12 @@ fn main() {
         Commands::Map { action } => map::dispatch(action),
         Commands::Fix { action } => fix::dispatch(action),
         Commands::Score { action } => score::dispatch(action),
+        Commands::Status { json, root } => {
+            if let Err(error) = status::dispatch(json, root) {
+                eprintln!("[status] {error:#}");
+                std::process::exit(2);
+            }
+        }
         Commands::Doctor { action } => doctor::dispatch(action),
         Commands::Filescan { action } => filescan::dispatch(action),
         Commands::Guard { action } => guard::dispatch(action),
