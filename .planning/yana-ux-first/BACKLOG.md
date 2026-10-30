@@ -6,7 +6,7 @@ Rules: an item is listed only if its evidence was observed in this session. Evid
 
 Size: S under 1 hour, M under 1 day, L more. Status: open, unverified.
 
-Count so far: 39 verified items and 3 unverified (not counted). Solved: 7 (A01, A11, B01, B04, C01, C02, C10). Partial: 6 (A02, B02, C03, C06, C07, C08). In progress elsewhere: 0 (). Counted by a script over the tables.
+Count so far: 39 verified items and 3 unverified (not counted). Solved: 7 (A01, A11, B01, B04, C01, C02, C10). Partial: 7 (A02, B02, C03, C06, C07, C08, D01). In progress elsewhere: 1 (E01). Counted by a script over the tables.
 
 ## A. First run and first impression
 
@@ -56,7 +56,7 @@ Count so far: 39 verified items and 3 unverified (not counted). Solved: 7 (A01, 
 
 | ID | Problem | Evidence | Learn from (to study) | Size | Status |
 |---|---|---|---|---|---|
-| D01 | Three sessions share one checkout, and a branch switch plus reset lost uncommitted edits | `git reflog` shows checkout, reset and rebase in the shared dir; edits were gone afterwards | Git worktree workflows, Cursor background agents | M | open |
+| D01 | Three sessions share one checkout, and a branch switch plus reset lost uncommitted edits | `git reflog` shows checkout, reset and rebase in the shared dir; edits were gone afterwards | Git worktree workflows, Cursor background agents | M | partial (56607115): rule added to AGENTS.md; nothing enforces it |
 | D02 | No coordination for heavy builds: another session started `cargo build` while load average was 17.6 and swap 85% used | `uptime`, `sysctl vm.swapusage`, `ps` showing `rustc` | Build queues, sccache | M | open |
 | D03 | Each session starts its own copy of `ollama-mcp` and `rea-agents` (three copies each) | `pgrep -fl` listing | Shared MCP host process | M | open |
 | D04 | An untracked large video sits in `docs/` and is not ignored | `git status`: `?? docs/d267...MP4` | `.gitignore` for media, Git LFS | S | open |
@@ -65,7 +65,7 @@ Count so far: 39 verified items and 3 unverified (not counted). Solved: 7 (A01, 
 
 | ID | Problem | Evidence | Learn from (to study) | Size | Status |
 |---|---|---|---|---|---|
-| E01 | Pending approvals, halt state, token budget, audit log and memory live in different places with no single view | Paths seen: `.claude/state/`, `core/memory/`, `docs/`, hook output in the terminal | Docker Desktop dashboard, macOS notification center | L | open |
+| E01 | Pending approvals, halt state, token budget, audit log and memory live in different places with no single view | Paths seen: `.claude/state/`, `core/memory/`, `docs/`, hook output in the terminal | Docker Desktop dashboard, macOS notification center | L | in progress elsewhere: worktree Yana-AI-status, branch feat/status-hub (yana-rt status); not duplicated here |
 | E02 | Permission requests arrive one by one across the session instead of once up front | Maintainer feedback in this session; lease code is described as subagent oriented in `src/capability/lease.rs` header (not traced further) | Claude Code plan mode, Codex CLI approval modes | L | open |
 | E03 | Users can browse 170 commands and 2,036 skills, which they should never have to do | `ls core/commands`, `ls core/skills` | Raycast and VS Code command palette search | M | open |
 | E04 | The docs folder has 205 entries and the repo root 76, with no obvious entry point beyond the README | `ls docs`, `ls` counts | Stripe and Vercel doc structure | M | open |
