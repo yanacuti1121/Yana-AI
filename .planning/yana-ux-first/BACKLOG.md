@@ -6,7 +6,7 @@ Rules: an item is listed only if its evidence was observed in this session. Evid
 
 Size: S under 1 hour, M under 1 day, L more. Status: open, unverified.
 
-Count so far: 36 verified items. Solved: 6 (A01, A11, B01, B04, C01, C02). Partial: 6 (A02, B02, C03, C06, C07, C08). Rows are counted by a script over the tables.
+Count so far: 36 verified items and 3 unverified (not counted). Solved: 7 (A01, A11, B01, B04, C01, C02, C10). Partial: 6 (A02, B02, C03, C06, C07, C08). Counted by a script over the tables.
 
 ## A. First run and first impression
 
@@ -48,7 +48,7 @@ Count so far: 36 verified items. Solved: 6 (A01, A11, B01, B04, C01, C02). Parti
 | C07 | The shell guard blocked a harmless count command that used `$( )` inside `printf` | Same hook, earlier call in this session | ShellCheck | S | partial (this commit): same message change; the guard still blocks it by design |
 | C08 | The pipe-to-interpreter rule fired on a `grep -E` pattern that merely contained the text `node ` | Hook error "pipe-to-interpreter detected" on a grep with pattern `...|node |...` | Parse the command before matching | M | partial (this commit): the message now shows the matched text and a hint for grep patterns; the false positive remains |
 | C09 | `token-scope-guard` warns "bulk secret scan" whenever a `grep -r` line contains the word secret or token anywhere later, even as the search phrase itself. The regex `grep.*-r.*secret` also spans across `;` and `\|`, so words from a different command on the same line count. Correction: the first version of this row said the commands "only listed file names"; that was wrong, the patterns contained `service_token` and the phrase "bulk secret scan" | Warnings in this session on commands containing `grep -rIlE "...service_token"` and `grep -rIl "bulk secret scan"`; regex at `core/hooks/token-scope-guard.sh` line 80 | Secret scanners that look at content, not names | M | open (advisory only, matches the design; narrowing it is a design choice, not changed) |
-| C10 | The `Trust score: N/100` line is stuck at 0. It is real state, not a dead metric: `truth-gate-guard.sh` subtracts 10 per warning and `session-bootstrap.sh` prints the value below 80, but `session-trust.sh` documents the score as per session and nothing calls its `reset` at session start, so the file keeps the floor value across sessions. Correction: an earlier note called this a number with no information; that was wrong | `.claude/state/session-trust.json` contains `{"score":0}`; `grep -rn "session-trust.sh reset" core/hooks core/scripts` finds no caller; header of `core/scripts/session-trust.sh` says "within the current session" | Rule 63 stop below 60 | S | open |
+| C10 | The `Trust score: N/100` line is stuck at 0. It is real state, not a dead metric: `truth-gate-guard.sh` subtracts 10 per warning and `session-bootstrap.sh` prints the value below 80, but `session-trust.sh` documents the score as per session and nothing calls its `reset` at session start, so the file keeps the floor value across sessions. Correction: an earlier note called this a number with no information; that was wrong | `.claude/state/session-trust.json` contains `{"score":0}`; `grep -rn "session-trust.sh reset" core/hooks core/scripts` finds no caller; header of `core/scripts/session-trust.sh` says "within the current session" | Rule 63 stop below 60 | S | solved (7c7bfc45) |
 | C11 | Guidance that tells people to run `git diff` opens a pager, and the maintainer asked how to leave it | Conversation: "mà xem rồi thoát ra kiểu gì" | Tools that ship `--no-pager` examples | S | open |
 
 ## D. Multi-session work
@@ -68,6 +68,9 @@ Count so far: 36 verified items. Solved: 6 (A01, A11, B01, B04, C01, C02). Parti
 | E02 | Permission requests arrive one by one across the session instead of once up front | Maintainer feedback in this session; lease code is described as subagent oriented in `src/capability/lease.rs` header (not traced further) | Claude Code plan mode, Codex CLI approval modes | L | open |
 | E03 | Users can browse 170 commands and 2,036 skills, which they should never have to do | `ls core/commands`, `ls core/skills` | Raycast and VS Code command palette search | M | open |
 | E04 | The docs folder has 205 entries and the repo root 76, with no obvious entry point beyond the README | `ls docs`, `ls` counts | Stripe and Vercel doc structure | M | open |
+| E05 | Idea: trust a project folder once, and let a parent folder cover its subfolders, so the first prompt is the only trust question. Whether Yana already does this was not checked | VS Code Workspace Trust page: remembered Trusted Folders list, parent folder trusts all subfolders (EVIDENCE/phase1-permissions.md) | VS Code Workspace Trust | M | unverified (Yana side not checked) |
+| E06 | Idea: when a user approves an action offer a remembered choice scoped by repository and command, with a shorter scope for file edits (session only). Yana side not checked | Claude Code permissions page: "Yes, and don't ask again" lasts per repository and command for Bash, until session end for file edits | Claude Code permissions | M | unverified (Yana side not checked) |
+| E07 | Idea: let the user pick a named run mode before work starts (for example plan only, accept edits, ask for everything) instead of answering prompts one by one. Yana side not checked | Claude Code permissions page lists acceptEdits, dontAsk, bypassPermissions and plan mode | Claude Code permission modes | L | unverified (Yana side not checked) |
 
 ## Next
 
