@@ -6,7 +6,7 @@ Rules: an item is listed only if its evidence was observed in this session. Evid
 
 Size: S under 1 hour, M under 1 day, L more. Status: open, unverified.
 
-Count so far: 36 verified items and 3 unverified (not counted). Solved: 7 (A01, A11, B01, B04, C01, C02, C10). Partial: 6 (A02, B02, C03, C06, C07, C08). Counted by a script over the tables.
+Count so far: 39 verified items and 3 unverified (not counted). Solved: 7 (A01, A11, B01, B04, C01, C02, C10). Partial: 6 (A02, B02, C03, C06, C07, C08). In progress elsewhere: 0 (). Counted by a script over the tables.
 
 ## A. First run and first impression
 
@@ -23,6 +23,7 @@ Count so far: 36 verified items and 3 unverified (not counted). Solved: 7 (A01, 
 | A09 | Four frontends are presented side by side (Studio, IDE, Desktop/Web, plus `tools/yana-notch` which the table omits) with no guidance on which to use | README "System structure"; `ls tools` | Docker Desktop vs CLI positioning | M | open |
 | A10 | `tools/` mixes product code with experiments (finetune-vi, moss-tts-nano, promo, codexmate-vi-patch) | `ls tools` (15 entries) | Monorepo hygiene in large OSS repos | M | open |
 | A11 | check_counts.py reported CLEAN while the README held wrong counts, so its patterns miss the stats table, the structure table, the file tree and the translations | Running python3 -I core/scripts/check_counts.py printed CLEAN (agents=100, skills=2035) while README.md said 2,026 and 2,027 skills, 60 agents and 288 files | Docs-as-code link checkers | M | solved (4b531c48) |
+| A12 | The vi, ko and zh READMEs are not covered by the count anchors, so their numbers can drift again. vi writes thousands with a dot, which the anchor formatter would overwrite | Before the fixes in 3f5e2d54 and 4b531c48 the translations held 2.026 and 40 while the canonical counts were 2035 and 41; `_COUNT_ANCHORS` in core/scripts/check_counts.py has an entry only for README.md | Docs-as-code checks | M | open |
 
 ## B. Command line
 
@@ -71,6 +72,13 @@ Count so far: 36 verified items and 3 unverified (not counted). Solved: 7 (A01, 
 | E05 | Idea: trust a project folder once, and let a parent folder cover its subfolders, so the first prompt is the only trust question. Whether Yana already does this was not checked | VS Code Workspace Trust page: remembered Trusted Folders list, parent folder trusts all subfolders (EVIDENCE/phase1-permissions.md) | VS Code Workspace Trust | M | unverified (Yana side not checked) |
 | E06 | Idea: when a user approves an action offer a remembered choice scoped by repository and command, with a shorter scope for file edits (session only). Yana side not checked | Claude Code permissions page: "Yes, and don't ask again" lasts per repository and command for Bash, until session end for file edits | Claude Code permissions | M | unverified (Yana side not checked) |
 | E07 | Idea: let the user pick a named run mode before work starts (for example plan only, accept edits, ask for everything) instead of answering prompts one by one. Yana side not checked | Claude Code permissions page lists acceptEdits, dontAsk, bypassPermissions and plan mode | Claude Code permission modes | L | unverified (Yana side not checked) |
+
+## F. Review and release flow
+
+| ID | Problem | Evidence | Learn from (to study) | Size | Status |
+|---|---|---|---|---|---|
+| F01 | Dependabot bumps of GitHub Actions touch `.github/workflows/`, a path Giám Thị watches, so each merged bump produces a HALT that needs a human baseline approval | Commit 1e75153b "Bump the actions group across 1 directory with 15 updates" (merged 2026-10-28) changed the 12 workflow files named in the HALT record; CI on main stayed green for six runs afterwards (`gh run list`) | Dependabot auto-merge policies | M | open |
+| F02 | The release, publish and desktop workflows run only on tags or manual dispatch, so a pin bump to them is not exercised by the green ci.yml runs | `gh run list --workflow ci.yml` is green; no run of release.yml or publish.yml was seen in this session | Dry-run or `workflow_dispatch` smoke runs | M | open |
 
 ## Next
 

@@ -54,6 +54,23 @@ If you only have time for one file, read `gates/truth_gate.md`.
 
 ---
 
+## Parallel sessions
+
+Several agent sessions can work on this repository at the same time. Give each
+session its own branch in its own worktree and never switch branches in a
+directory another session may be using:
+
+```bash
+git worktree add ../Yana-AI-<name> -b <branch> origin/main
+```
+
+Do not run `git checkout`, `git reset` or `git stash` in the shared checkout. A
+branch switch and reset there has already lost another session's uncommitted
+edits once. Heavy builds (`cargo build`) from two sessions at once also slow the
+whole machine, so check what is running before starting one.
+
+---
+
 ## Commit attribution
 
 End every commit you author in this repo with a trailer naming the engine
