@@ -185,6 +185,10 @@ impl YanaRuntime {
     ) -> Result<CallToolResult, McpError> {
         observe(crate::capability::list_processes(&p.sort, p.limit).map_err(Into::into))
     }
+    #[tool(description = "One read-only snapshot of what is happening now: AI engines running, approvals waiting on a person (never the raw command), the last audit entries, and the halt lock. A source that cannot be read is null and named in 'unavailable'.", annotations(read_only_hint = true, destructive_hint = false, idempotent_hint = true, open_world_hint = false))]
+    fn status(&self) -> Result<CallToolResult, McpError> {
+        observe(serde_json::to_string(&crate::status::collect(&self.repo_root, chrono::Utc::now())).map_err(|error| error.to_string()))
+    }
     #[tool(description = "Inspect one process by PID; read-only.", annotations(read_only_hint = true, destructive_hint = false, idempotent_hint = true, open_world_hint = false))]
     fn process_details(
         &self,
@@ -381,7 +385,7 @@ mod tests {
     #[test]
     fn every_tool_declares_safety_hints_and_only_workspace_operate_writes() {
         let tools = YanaRuntime::tool_router().list_all();
-        assert_eq!(tools.len(), 15, "a new tool needs its hints decided here");
+        assert_eq!(tools.len(), 16, "a new tool needs its hints decided here");
         for tool in &tools {
             let hints = tool.annotations.as_ref().unwrap_or_else(|| panic!("{} has no annotations", tool.name));
             let name = tool.name.as_ref();
@@ -410,6 +414,19 @@ mod tests {
         std::fs::create_dir_all(marker.parent().unwrap()).unwrap();
         std::fs::write(&marker, yana_rt::flock_v1::PROTOCOL_VERSION).unwrap();
         dir
+    }
+
+    #[test]
+    fn the_status_tool_returns_the_snapshot_for_the_repo_root() {
+        let root = temp_repo("status-tool");
+        let result = YanaRuntime::new(root.clone()).status().unwrap();
+        assert_ne!(result.is_error, Some(true), "{result:?}");
+        let block = serde_json::to_value(&result.content[0]).unwrap();
+        let snapshot: serde_json::Value = serde_json::from_str(block["text"].as_str().unwrap()).unwrap();
+        assert_eq!(snapshot["schema"], 1);
+        assert!(snapshot["state"].is_string());
+        assert_eq!(snapshot["halted"], false);
+        std::fs::remove_dir_all(&root).ok();
     }
 
     #[test]
