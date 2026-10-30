@@ -18,6 +18,7 @@ const FEATURES = [
 	require('./studio-screens'),
 	require('./conversations'),
 	require('./statusbar'),
+	require('./status'),
 	require('./tasks'),
 	require('./governance'),
 	require('./tools'),

@@ -56,6 +56,7 @@
 			],
 			"yana-explorer": [
 				{ "id": "yana.home", "name": "Start", "icon": "media/yana.svg" },
+				{ "id": "yana.status", "name": "Status", "icon": "media/yana.svg" },
 				{ "id": "yana.conversations", "name": "Conversations", "icon": "media/yana.svg" },
 				{ "id": "yana.models", "name": "Models & Runtime", "icon": "media/yana.svg" },
 				{ "id": "yana.project", "name": "Project", "icon": "media/yana.svg", "visibility": "collapsed" },
@@ -108,6 +109,7 @@
 			{ "command": "yana.tasks.done", "title": "Mark Done with Evidence", "category": "Yana", "icon": "$(check)" },
 			{ "command": "yana.tasks.drop", "title": "Drop Task", "category": "Yana", "icon": "$(trash)" },
 			{ "command": "yana.governance.refresh", "title": "Refresh Governance", "category": "Yana", "icon": "$(refresh)" },
+			{ "command": "yana.status.refresh", "title": "Refresh Status", "category": "Yana", "icon": "$(refresh)" },
 			{ "command": "yana.tools.pick", "title": "Run Tool…", "category": "Yana", "icon": "$(play)" },
 			{ "command": "yana.tool.doctor", "title": "Doctor", "category": "Yana" },
 			{ "command": "yana.tool.scan", "title": "Scan Agent Setup", "category": "Yana" },
@@ -138,6 +140,7 @@
 				{ "command": "yana.tasks.open", "when": "view == yana.tasks", "group": "navigation@0" },
 				{ "command": "yana.tasks.create", "when": "view == yana.tasks", "group": "navigation@1" },
 				{ "command": "yana.tasks.refresh", "when": "view == yana.tasks", "group": "navigation@2" },
+				{ "command": "yana.status.refresh", "when": "view == yana.status", "group": "navigation" },
 				{ "command": "yana.permissions.open", "when": "view == yana.governance", "group": "navigation@0" },
 				{ "command": "yana.governance.refresh", "when": "view == yana.governance", "group": "navigation@1" },
 				{ "command": "yana.tools.pick", "when": "view == yana.tools", "group": "navigation" }
