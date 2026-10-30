@@ -1,46 +1,40 @@
 # Handoff: Yana UX-first program
 
-Last updated: 2026-10-29. Worktree: `/Users/vutam/Desktop/Yana-AI-5f`, branch `fix/governance-cleanup-5f`. Nothing is pushed.
+Last updated: 2026-10-30. Worktree: `/Users/vutam/Desktop/Yana-AI-5f`, branch `fix/governance-cleanup-5f`. Nothing is pushed; every change is a local commit waiting for the maintainer's review.
 
-The maintainer asked for autonomous work until the backlog is exhausted, with review afterwards. Standing limits: no push, no publish, no edits in the shared `/Users/vutam/Desktop/Yana-AI` checkout, no app (Studio) changes because another session owns that.
+Standing limits: no push, no publish, no edits in the shared `/Users/vutam/Desktop/Yana-AI` checkout, no Studio app changes (another session owns the app).
 
-## Done (local commits, newest last)
+## Done (local commits)
 
-- 1d973121 ci: version comments next to pinned action SHAs now match upstream tags (CI not yet confirmed green on the major bumps)
-- 0048a161, 587275a8 plan and backlog files
-- 3f5e2d54 README counts aligned, duplicate install row removed (A01, A02 partial)
-- 314906ac Giám Thị HALT message is copy-pasteable (C01, C02, C03 partial)
-- 4b531c48 check_counts.py anchors for the README stats table and tree, regression test, subcommand count fixed (A11)
+- ci: version comments next to pinned action SHAs now match upstream tags
+- docs: README counts aligned with the filesystem, duplicate install row removed, Quick start says "choose one", cargo step marked optional
+- fix(giamthi): the HALT message is copy-pasteable and shows a diff command
+- fix(counts): `check_counts.py` now anchors the README stats table and tree; regression test; subcommand count 40 corrected to 41
+- fix(cli): `bin/yana --help` starts with Usage and a Start here block; accurate missing-runtime hint (independently exec-verified)
+- fix(hooks): `tool-proxy-enforcer` deny messages say which text matched (security and code review done)
+- fix(hooks): the session trust score resets when the session id changes (security and code review done; Codex layout bug found in review and fixed)
+- docs: AGENTS.md says one worktree per session; planning files
 
-## State when the usage limit was hit (2026-10-29)
+See `git log fix/governance-cleanup-5f` for hashes. Backlog status lives in `BACKLOG.md` (counts are computed by script).
 
-Committed since the list above: 0d100c75 bin/yana help and error text (independently exec-verified), a85c7b16 tool-proxy-enforcer deny messages (both rule 54 reviewers done), and the README Quick start wording (A03).
+## Not done, in rough order of value
 
-UNCOMMITTED in the worktree, waiting for review: the trust score fix for C10.
-- Files: core/hooks/session-bootstrap.sh plus byte-identical copies in .claude/hooks and .codex/hooks, and the new test in core/tests/hooks/run-hook-tests.sh.
-- Verified: hook suite 369 of 369; the new test fails against the previous hook and passes on the new one.
-- security-auditor reviewed it: no Safety findings; optional: store a hash or length-capped session id, add tests for a missing id and an unwritable state dir.
-- code-auditor review was still running when the limit hit. Do NOT commit until its report is in (rule 54 needs both). After it: run `bash core/scripts/update-core-lock.sh`, `bash core/scripts/verify-core-lock.sh`, then commit hook files, tests and core-lock together.
-- C10 in BACKLOG.md still says open until that commit lands.
-
-Phase 1 (external study) started: VS Code Workspace Trust page was fetched (trust once per folder, parent folder covers children, Restricted Mode, remembered list). The Claude Code page fetched was the authentication page, not permissions, so it is not usable evidence for E02; the OpenAI Codex fetch hit the limit. The OpenAI docs URL redirected to an unfamiliar domain, which was deliberately not followed.
-
-## Next, in the order chosen
-
-1. bin/yana: banner before usage (B01), flat command list (B02), missing-runtime message (B04). Registered entry point under rule 71: needs an independent exec verification, not self-certification.
-2. Hook false positives C06 to C09 in `core/hooks` and the mirrors in `.claude/hooks` and `.codex/hooks`. Rule 54: security-auditor plus code-auditor review, then `update-core-lock.sh`, then `verify-hook-mirrors`.
-3. C10 trust score line printed as 0/100 every turn. Needs the maintainer's choice (wire to data or hide). Default if unanswered: stop printing a value that is not backed by data.
-4. README messaging A03, A06, A07, A08, A09.
-5. Phase 1 external study, only after the above; every lesson needs a fetched source.
+1. README messaging (A06 to A09): lead with what the user gets, not counts. Needs the maintainer's voice; also overlaps the Studio work.
+2. Decisions inbox and one-time permission preflight (E01, E02, E05 to E07): E01 is already being built in worktree `Yana-AI-status` (branch `feat/status-hub`). Check Yana's current lease and approval code before designing E02; E05 to E07 are unverified ideas from outside sources.
+3. B03 (three backends behind one CLI), B05 and B06 (npm leftovers), C04 (two-step approval), C09 (token-scope-guard precision), D02 and D03 (shared build load, duplicate MCP processes), F01 and F02 (Dependabot causing HALTs, release workflows untested after the pin bumps), A12 (translation count checks).
+4. More external study (Homebrew doctor, GitHub CLI, Docker Desktop, Raycast). Only fetch primary pages; record each in `EVIDENCE/`.
 
 ## Open questions for the maintainer
 
-- Trust score: wire to data or hide?
 - What is the "50%" cap on source vetting measured against?
 - Does the 2026-07 maintenance freeze still apply?
+- Who removed `GIAMTHI_HALT.lock` from the shared checkout? It was gone when checked, and the baseline approval for the workflow changes was never run.
+- Should Dependabot action bumps be exempt from the HALT approval ceremony (F01)?
 
 ## Things to know
 
-- The shell hook rejects `$(`, backticks and `${` in command strings, even inside awk or quoted text. Put such code in a script file under the session scratchpad and run that.
+- The shell hook rejects `$(`, backticks, `${` and `| python3` in command strings, even inside quoted text. Put such code in a script file under the session scratchpad and run that.
 - `check_counts.py` fails loudly when an anchor matches nothing; keep that behavior.
-- Translation READMEs use their own number formats (vi uses a dot). Only README.md is anchor-checked; translations are fixed by hand (backlog A12, not yet added).
+- Hook files exist in three byte-identical copies (`core/hooks`, `.claude/hooks`, `.codex/hooks`); `.codex` has no `scripts/` directory, so a hook must not depend on `../scripts`.
+- Core changes follow rule 54: security-auditor plus code-auditor, then `update-core-lock.sh`.
+- The usage limit was hit once mid-task; the work after the reset continued from this file.

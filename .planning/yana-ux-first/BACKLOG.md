@@ -6,7 +6,7 @@ Rules: an item is listed only if its evidence was observed in this session. Evid
 
 Size: S under 1 hour, M under 1 day, L more. Status: open, unverified.
 
-Count so far: 39 verified items and 3 unverified (not counted). Solved: 7 (A01, A11, B01, B04, C01, C02, C10). Partial: 7 (A02, B02, C03, C06, C07, C08, D01). In progress elsewhere: 1 (E01). Counted by a script over the tables.
+Count so far: 39 verified items and 3 unverified (not counted). Solved: 7 (A01, A11, B01, B04, C01, C02, C10). Partial: 7 (A02, B02, C03, C06, C07, C08, D01). In progress elsewhere: 1 (E01). Closed by design: 1 (C05). Counted by a script over the tables.
 
 ## A. First run and first impression
 
@@ -44,7 +44,7 @@ Count so far: 39 verified items and 3 unverified (not counted). Solved: 7 (A01, 
 | C02 | The halt message says to delete a lock file but does not give the command, and the user typed the path alone and got `permission denied` | Same paste: `.claude/state/GIAMTHI_HALT.lock` run as a command | Docker, Git "hint:" lines | S | solved (314906ac) |
 | C03 | The halt record lists 13 changed files with no diffstat and no risk label, so a human must diff by hand to judge it | Halt text in this session | GitHub Dependabot PR summaries | M | partial (314906ac): diff command added to the message; no risk labels yet |
 | C04 | Approving the baseline does not clear the halt, a second manual step the message only mentions in passing | Halt text: "lệnh này KHÔNG gỡ HALT" | Two-step flows with a single summary screen | M | open |
-| C05 | The halt blocked a skill triggered by a greeting, so fail-closed was wider than the risk | First turn: `idea-loop` blocked by Giám Thị after "Helo em" | Claude Code permission modes | M | open |
+| C05 | The halt blocked a skill triggered by a greeting, so fail-closed was wider than the risk | First turn: `idea-loop` blocked by Giám Thị after "Helo em" | Claude Code permission modes | M | closed, by design: core/hooks/giamthi-halt-check.sh header says a HALT denies every tool call so that whatever can stop a session cannot also restart it. Not changed |
 | C06 | The shell guard blocked `${PIPESTATUS[0]}` as a subshell injection and the message does not say what is allowed | Hook error `tool-proxy-enforcer` in this session | ShellCheck messages with fixes | S | partial (this commit): the deny message now names the matched text and the alternative; the guard still blocks it by design |
 | C07 | The shell guard blocked a harmless count command that used `$( )` inside `printf` | Same hook, earlier call in this session | ShellCheck | S | partial (this commit): same message change; the guard still blocks it by design |
 | C08 | The pipe-to-interpreter rule fired on a `grep -E` pattern that merely contained the text `node ` | Hook error "pipe-to-interpreter detected" on a grep with pattern `...|node |...` | Parse the command before matching | M | partial (this commit): the message now shows the matched text and a hint for grep patterns; the false positive remains |
