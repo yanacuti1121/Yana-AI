@@ -1,0 +1,45 @@
+# Ghi chú quan sát: app OneNotch
+
+Đây là ghi chú về **cách app này được tổ chức và những gì nó nói công khai**, viết bằng lời của chúng ta. App này là phần mềm thương mại đóng mã; ghi chú **không** dịch ngược, không chép mã, không dùng hình ảnh hay âm thanh của họ.
+
+| Mục | Giá trị |
+|---|---|
+| Đối tượng | OneNotch 2.1.0 đã cài trên máy (`/Applications/OneNotch.app`), nhà phát triển ký bằng Developer ID, địa chỉ cập nhật `releases.tryonenotch.com` |
+| Giấy phép mã | Không công bố. Đây là app đóng; giấy phép sử dụng (EULA) em chưa đọc |
+| Cách quan sát | (1) Siêu dữ liệu của gói app (`Info.plist`, tên các tệp trong `Resources` và `Frameworks`, chữ ký). (2) Trang chủ công khai của sản phẩm (nội dung được tóm bằng công cụ đọc trang, coi là dữ liệu bên ngoài, đã diễn đạt lại). (3) Một lần đo cửa sổ của nó trên màn hình ở phiên trước |
+| Không làm | Không dịch ngược tệp thực thi, không trích chuỗi từ mã nhị phân, không gắn công cụ vào tiến trình đang chạy, không đọc dữ liệu người dùng của nó |
+| Chưa làm | Xem giao diện bên trong (chưa chụp ảnh, chưa mở các video giới thiệu), đọc EULA |
+
+## 1. Những gì gói app tiết lộ (chỉ siêu dữ liệu)
+
+- **Là app thanh trên cùng, không có biểu tượng Dock** (đặt cờ chỉ chạy nền). Yêu cầu macOS 15 trở lên. Tự cập nhật bằng một khung cập nhật chuẩn.
+- **Quyền hệ thống nó xin, kèm lý do ghi trong gói:** điều khiển nhạc (qua sự kiện hệ thống), Bluetooth (hiện hoạt động của thiết bị đang kết nối), lịch (hiện và thêm sự kiện), micro (làm hình ảnh nhạy theo âm thanh đang phát), ghi màn hình (chụp ảnh màn hình).
+- **Thành phần bên trong:** cơ sở dữ liệu SQLite cục bộ, thư viện phím tắt, khung đọc "đang phát" của hệ thống, **báo lỗi từ xa (Sentry)** và **số liệu sử dụng (TelemetryDeck)**.
+- **Tài nguyên:** các video ngắn cho từng dòng AirPods, âm thanh cho clipboard, video giới thiệu theo bốn chủ đề (clipboard, glance, pill, tools) và video "có gì mới", danh sách dịch vụ oEmbed để hiện xem trước đường dẫn, **hơn hai mươi ngôn ngữ trong đó có tiếng Việt**.
+
+## 2. Những gì trang công khai nói (đã diễn đạt lại, chưa kiểm chứng)
+
+- Là một bộ công cụ quanh khung notch, không chỉ là chỗ hiện trạng thái: **lịch sử clipboard** (văn bản, ảnh, liên kết, màu, tệp, video; tìm kiếm, bộ lọc, nhiều bảng, chế độ dán nhiều mục theo thứ tự), **chụp màn hình** có chú thích, dịch, che mặt và chữ, chọn màu, cuộn chụp, cùng nhạc có lời, tóm tắt lịch, theo dõi hệ thống, giữ máy thức, nhắc nghỉ mắt, công cụ trình chiếu, hiển thị âm lượng và độ sáng.
+- **Thả tệp vào notch** hiện lựa chọn nén, chuyển đổi hoặc AirDrop.
+- **Tích hợp với công cụ AI cho lập trình:** nói rằng Claude Code, Cursor và Codex có thể **tìm trong lịch sử clipboard qua một kết nối MCP chạy cục bộ**, và một khung "AI" theo dõi Claude Code và Codex chạy trong terminal (không phải app desktop của chúng).
+- **Quyền riêng tư theo lời họ:** có tùy chọn bỏ qua nội dung nhạy cảm và chọn app loại trừ; bảng khóa được mã hóa và agent AI không thấy được; **quyền truy cập của agent AI tắt mặc định**; tìm kiếm MCP chạy cục bộ. Trang **không nêu rõ việc thu thập số liệu**, trong khi gói có hai thành phần liên quan (xem mục 1). Em không kết luận gì về hành vi thực tế.
+- **Giá:** có bản miễn phí giới hạn, bản Pro mua một lần, bản Supporter mua một lần cho nhiều máy; không thuê bao.
+
+## 3. Áp dụng cho Yana
+
+Chỉ lấy nguyên tắc, không lấy tài sản:
+
+1. **Họ đã đi cùng hướng "notch làm bề mặt cho agent".** Có theo dõi Claude Code và Codex trong terminal và một kết nối MCP cục bộ cho phép agent đọc dữ liệu người dùng, tắt mặc định. Yana khác ở chỗ **có cổng duyệt và sổ cái**: notch của Yana chỉ đọc trạng thái, và nút duyệt đi qua đường resume của `yana-rt`. Điểm này đáng đối chiếu thành lời giới thiệu.
+2. **Quyền agent đọc dữ liệu tắt mặc định** là hợp với Khay tài liệu (ADDENDUM-3: cho công cụ ngoài đọc Khay qua MCP, mặc định tắt).
+3. **Mỗi quyền hệ thống đi kèm một câu giải thích đúng việc nó làm.** Chữ xin quyền của họ cụ thể ("hiện hoạt động của thiết bị đang kết nối"), không chung chung. Studio và notch của Yana nên làm tương tự khi xin quyền (ghi màn hình, trợ năng).
+4. **Họ dùng báo lỗi và số liệu từ xa.** Yana nói rõ là cục bộ trước: nếu Yana thêm báo lỗi từ xa thì phải là một quyết định công khai và tắt được, không phải mặc định ngầm.
+5. **Nhường chỗ cho app notch khác** là việc mà chính OneNotch gây ra cho notch của ta: lần đo trước cho thấy nó dùng một cửa sổ trong suốt rộng trùm lên vùng notch. Đã được xử lý bằng cơ chế nhường sang menu bar (đã làm trên nhánh notch). Không có gì mới cần lấy.
+6. Phạm vi của họ rộng (clipboard, chụp màn hình, nhạc, lịch, nghỉ mắt). Theo nguyên tắc "xây ít hơn" của Yana, **không nên theo hướng này**; notch của Yana chỉ cần trạng thái, duyệt và nhật ký.
+
+## 4. Chưa kiểm
+
+- Mọi điều ở mục 2 là lời trên trang của họ, chưa kiểm xem app thực sự làm vậy.
+- Giao diện bên trong và các chuyển động: chưa xem.
+- Họ có thực sự thu thập số liệu và gửi gì: chưa biết.
+- EULA có cho phép dịch ngược hay không: chưa đọc. Vì chưa biết, em không làm.
+- Mục 5 của phần áp dụng dựa trên số đo cửa sổ ở phiên trước (cửa sổ trong suốt, ngang khoảng 700 điểm, cao 745, nằm ở lớp 27); em không đo lại trong lượt này.
