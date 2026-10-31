@@ -42,15 +42,15 @@
 <table>
   <tr>
     <td align="center" width="25%"><h3>19</h3><sub>模型 provider<br>云端 13，本地 6</sub></td>
-    <td align="center" width="25%"><h3>40</h3><sub>运行时子命令<br>同一个 Rust 二进制</sub></td>
+    <td align="center" width="25%"><h3>41</h3><sub>运行时子命令<br>同一个 Rust 二进制</sub></td>
     <td align="center" width="25%"><h3>66</h3><sub>工具调用 hook<br>Pre、Post、Stop</sub></td>
-    <td align="center" width="25%"><h3>288</h3><sub>核心文件<br>以 SHA-256 锁定</sub></td>
+    <td align="center" width="25%"><h3>290</h3><sub>核心文件<br>以 SHA-256 锁定</sub></td>
   </tr>
   <tr>
     <td align="center"><h3>4</h3><sub>agent 宿主<br>Claude Code、Codex、Cursor、Antigravity</sub></td>
     <td align="center"><h3>4.2 ms</h3><sub>运行时启动<br>release 构建，Apple M4</sub></td>
     <td align="center"><h3>100</h3><sub>专业 agent</sub></td>
-    <td align="center"><h3>2,026</h3><sub>工作知识 skill，<br>不授予权限</sub></td>
+    <td align="center"><h3>2,035</h3><sub>工作知识 skill，<br>不授予权限</sub></td>
   </tr>
 </table>
 
@@ -122,7 +122,7 @@ Skill 教 agent 如何工作。只有 capability 才能授予行动的权限。
 `已上线`表示已经发布并在使用。`开发中`表示已有真实代码但功能尚不完整。`实验性`表示需要手动开启，
 且尚未经过独立验证。
 
-`yana-rt` 有 40 个子命令，不依赖 Python。这是按源码统计、覆盖所有构建配置（包括 feature flag
+`yana-rt` 有 41 个子命令，不依赖 Python。这是按源码统计、覆盖所有构建配置（包括 feature flag
 之后的命令）的数量。
 
 ```text
@@ -130,10 +130,10 @@ core/
 ├── hooks/    # 66 个 PreToolUse / PostToolUse / Stop hook（63 个 shell，3 个 JavaScript）
 ├── rules/    # 71 条规则，大多是 agent 自行遵守的指引，只有一部分由 hook 强制执行
 ├── agents/   # 100 个专业 agent
-├── skills/   # 2,026 个 skill
+├── skills/   # 2,035 个 skill
 ├── commands/ # 170 个 Claude Code 斜杠命令
 └── config/
-    └── core-lock.json    # SHA-256 清单，锁定 288 个核心文件
+    └── core-lock.json    # SHA-256 清单，锁定 290 个核心文件
 ```
 
 ## Yana Studio

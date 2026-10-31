@@ -129,7 +129,22 @@ except Exception:
 fi
 
 # ── 2. Session trust score ────────────────────────────────────────────────────
+# The score is documented as per session (core/scripts/session-trust.sh) but
+# nothing ever reset it, so one bad session left it at the floor for every
+# later one. Reset it when the session id changes. The id is kept in its own
+# file because session-trust.sh rewrites session-trust.json on each decrement.
 TRUST_FILE="$STATE_DIR/session-trust.json"
+TRUST_SESSION_FILE="$STATE_DIR/session-trust.session"
+SESSION_ID=$(printf '%s' "$INPUT" | jq -r '.session_id // ""' 2>/dev/null || true)
+if [[ -n "$SESSION_ID" && "$(cat "$TRUST_SESSION_FILE" 2>/dev/null || true)" != "$SESSION_ID" ]]; then
+  # Written inline instead of calling session-trust.sh: .codex/hooks has no
+  # ../scripts directory, so a script lookup would silently skip the reset
+  # there. The id is stored only after the reset succeeded, so a failed
+  # reset is retried on the next prompt.
+  if mkdir -p "$STATE_DIR" 2>/dev/null && printf '{"score":100}\n' > "$TRUST_FILE" 2>/dev/null; then
+    printf '%s' "$SESSION_ID" > "$TRUST_SESSION_FILE" 2>/dev/null
+  fi
+fi
 if [[ -f "$TRUST_FILE" ]]; then
   SCORE=$(jq -r '.score // 100' "$TRUST_FILE" 2>/dev/null || echo 100)
   if [[ "$SCORE" =~ ^[0-9]+$ ]] && [[ "$SCORE" -lt 80 ]]; then

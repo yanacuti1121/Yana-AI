@@ -16,6 +16,68 @@ project_metadata = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(project_metadata)
 
 
+# Shapes of each README's stats table, structure table and file tree, with a
+# deliberately wrong number (9) so the fix tests can see the anchors repair it.
+README_SHAPES = {
+    "README.md": (
+        "<td><h3>9</h3><sub>runtime subcommands</sub></td>\n"
+        "<td><h3>9</h3><sub>core files<br>pinned</sub></td>\n"
+        "<td><h3>9</h3><sub>tool-call hooks</sub></td>\n"
+        "<td><h3>9 agents</h3></td>\n"
+        "<td><h3>9 skills</h3></td>\n"
+        "| **[Knowledge layer](core/skills)** | 9 agents, 9 skills, commands and rules |\n"
+        "├── agents/   # 9 specialist agents\n"
+        "├── skills/   # 9 skills\n"
+        "├── hooks/    # 9 PreToolUse / PostToolUse hooks\n"
+        "├── rules/    # 9 rules, most are guidance\n"
+        "├── commands/ # 9 Claude Code slash commands\n"
+    ),
+    "README.vi.md": (
+        "<td><h3>9</h3><sub>subcommand runtime</sub></td>\n"
+        "`yana-rt` có 9 subcommand, không phụ thuộc Python.\n"
+        "<td><h3>9</h3><sub>hook cho tool call</sub></td>\n"
+        "<td><h3>9</h3><sub>file lõi</sub></td>\n"
+        "└── core-lock.json    # manifest SHA-256, ghim 9 file lõi\n"
+        "<td><h3>9</h3><sub>agent chuyên biệt</sub></td>\n"
+        "<td><h3>9</h3><sub>skill kiến thức</sub></td>\n"
+        "| **[Lớp tri thức](core/skills)** | 9 agent, 9 skill, command và rule dạy |\n"
+        "├── hooks/    # 9 hook PreToolUse / PostToolUse\n"
+        "├── rules/    # 9 rule, phần lớn\n"
+        "├── agents/   # 9 agent chuyên biệt\n"
+        "├── skills/   # 9 skill\n"
+        "├── commands/ # 9 slash command của Claude Code\n"
+    ),
+    "README.ko.md": (
+        "<td><h3>9</h3><sub>런타임 하위 명령</sub></td>\n"
+        "`yana-rt`의 하위 명령은 9개이며 Python 의존성이 없습니다.\n"
+        "<td><h3>9</h3><sub>도구 호출 hook</sub></td>\n"
+        "<td><h3>9</h3><sub>핵심 파일</sub></td>\n"
+        "└── core-lock.json    # SHA-256 manifest, 핵심 파일 9개 고정\n"
+        "<td><h3>9</h3><sub>전문 에이전트</sub></td>\n"
+        "<td><h3>9</h3><sub>작업 지식 스킬</sub></td>\n"
+        "├── hooks/    # 9개 PreToolUse / PostToolUse\n"
+        "├── rules/    # 9개 rule, 대부분\n"
+        "├── agents/   # 9개 전문 에이전트\n"
+        "├── skills/   # 9개 스킬\n"
+        "├── commands/ # 9개 Claude Code 슬래시 명령\n"
+    ),
+    "README.zh.md": (
+        "<td><h3>9</h3><sub>运行时子命令</sub></td>\n"
+        "`yana-rt` 有 9 个子命令，不依赖 Python。\n"
+        "<td><h3>9</h3><sub>工具调用 hook</sub></td>\n"
+        "<td><h3>9</h3><sub>核心文件</sub></td>\n"
+        "└── core-lock.json    # SHA-256 清单，锁定 9 个核心文件\n"
+        "<td><h3>9</h3><sub>专业 agent</sub></td>\n"
+        "<td><h3>9</h3><sub>工作知识 skill</sub></td>\n"
+        "├── hooks/    # 9 个 PreToolUse / PostToolUse\n"
+        "├── rules/    # 9 条规则，大多\n"
+        "├── agents/   # 9 个专业 agent\n"
+        "├── skills/   # 9 个 skill\n"
+        "├── commands/ # 9 个 Claude Code 斜杠命令\n"
+    ),
+}
+
+
 class ProjectMetadataTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory()
@@ -157,6 +219,7 @@ class ProjectMetadataTests(unittest.TestCase):
                 handle.write(
                     "core-lock.json    # SHA-256 manifest — 9 core files pinned\n"
                     "9 subcommands. Zero Python dependency\n"
+                    + README_SHAPES.get(readme_relative, README_SHAPES["README.md"])
                 )
 
     def tearDown(self) -> None:
@@ -345,6 +408,42 @@ class ProjectMetadataTests(unittest.TestCase):
         readme = (self.root / "README.md").read_text(encoding="utf-8")
         self.assertIn("core-lock.json    # SHA-256 manifest — 2 core files pinned", readme)
         self.assertIn("3 subcommands. Zero Python dependency", readme)
+
+    def test_translated_readmes_are_checked_and_fixed(self) -> None:
+        # Regression for A12: the vi, ko and zh READMEs held 40 subcommands and
+        # 288 pinned files while this script printed CLEAN.
+        self.assertTrue(project_metadata.drift(self.root))
+
+        project_metadata.fix(self.root)
+        vi = (self.root / "README.vi.md").read_text(encoding="utf-8")
+        ko = (self.root / "README.ko.md").read_text(encoding="utf-8")
+        zh = (self.root / "README.zh.md").read_text(encoding="utf-8")
+        self.assertIn("<h3>3</h3><sub>subcommand runtime", vi)
+        self.assertIn("ghim 2 file lõi", vi)
+        self.assertIn("하위 명령은 3개이며", ko)
+        self.assertIn("锁定 2 个核心文件", zh)
+        for text in (vi, ko, zh):
+            self.assertNotIn("<h3>9</h3>", text)
+        self.assertEqual(project_metadata.drift(self.root), [])
+
+    def test_vietnamese_uses_a_dot_for_thousands(self) -> None:
+        self.assertEqual(project_metadata._format_count(2035, "README.vi.md"), "2.035")
+        self.assertEqual(project_metadata._format_count(2035, "README.md"), "2,035")
+        self.assertEqual(project_metadata._format_count(41, "README.vi.md"), "41")
+
+    def test_readme_stats_table_and_tree_counts_are_checked_and_fixed(self) -> None:
+        # Regression for A11: the stats table, structure table and file tree
+        # held wrong numbers while check_counts reported CLEAN.
+        self.assertTrue(project_metadata.drift(self.root))
+
+        project_metadata.fix(self.root)
+        readme = (self.root / "README.md").read_text(encoding="utf-8")
+        self.assertIn("<h3>3</h3><sub>runtime subcommands", readme)
+        self.assertIn("<h3>2</h3><sub>core files", readme)
+        self.assertNotIn("<h3>9</h3><sub>runtime subcommands", readme)
+        self.assertNotIn("<h3>9</h3><sub>core files", readme)
+        self.assertNotIn("# 9 specialist agents", readme)
+        self.assertEqual(project_metadata.drift(self.root), [])
 
 
 if __name__ == "__main__":

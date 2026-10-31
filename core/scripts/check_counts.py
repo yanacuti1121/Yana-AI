@@ -112,6 +112,19 @@ MIRROR_PAIRS: tuple[tuple[str, str], ...] = (
 # since it used a different aggregation, max(core, .claude) / basename
 # union, instead of this file's core/-only real_counts()). See
 # docs/RELEASE-CHECKLIST.md.
+# Vietnamese writes thousands with a dot (2.035); the other languages use a comma.
+_THOUSANDS_SEPARATOR = {"README.vi.md": "."}
+
+
+def _format_count(value: int, relative: str) -> str:
+    return f"{value:,}".replace(",", _THOUSANDS_SEPARATOR.get(relative, ","))
+
+
+def _anchor(label: str, pattern: str) -> tuple[str, re.Pattern[str], str]:
+    """An anchor whose pattern has the old number between capture groups 1 and 2."""
+    return (label, re.compile(pattern), r"\g<1>{value}\g<2>")
+
+
 _COUNT_ANCHORS: dict[str, list[tuple[str, re.Pattern[str], str]]] = {
     ARCHITECTURE_FILE: [
         ("agents", re.compile(r"(\*\*)\d[\d,]*(\*\*\s*specialist agents)"), r"\g<1>{value}\g<2>"),
@@ -132,6 +145,68 @@ _COUNT_ANCHORS: dict[str, list[tuple[str, re.Pattern[str], str]]] = {
             re.compile(r"(\b)\d[\d,]*( subcommands\. Zero Python dependency)"),
             r"\g<1>{value}\g<2>",
         ),
+        # The "At a glance" stats table sits below the 30-line window that
+        # _replace_claims() scans, and the structure table and file tree use
+        # their own wording. All of these held stale numbers while this
+        # script still reported CLEAN, so each is anchored explicitly.
+        ("subcommands", re.compile(r"(<h3>)\d[\d,]*(</h3><sub>runtime subcommands)"), r"\g<1>{value}\g<2>"),
+        ("core_lock_files", re.compile(r"(<h3>)\d[\d,]*(</h3><sub>core files)"), r"\g<1>{value}\g<2>"),
+        ("hooks", re.compile(r"(<h3>)\d[\d,]*(</h3><sub>tool-call hooks)"), r"\g<1>{value}\g<2>"),
+        ("agents", re.compile(r"(<h3>)\d[\d,]*( agents</h3>)"), r"\g<1>{value}\g<2>"),
+        ("skills", re.compile(r"(<h3>)\d[\d,]*( skills</h3>)"), r"\g<1>{value}\g<2>"),
+        ("agents", re.compile(r"(Knowledge layer\]\(core/skills\)\*\* \| )\d[\d,]*( agents,)"), r"\g<1>{value}\g<2>"),
+        ("skills", re.compile(r"( agents, )\d[\d,]*( skills, commands and rules)"), r"\g<1>{value}\g<2>"),
+        ("agents", re.compile(r"(agents/\s+# )\d[\d,]*( specialist agents)"), r"\g<1>{value}\g<2>"),
+        ("skills", re.compile(r"(skills/\s+# )\d[\d,]*( skills)"), r"\g<1>{value}\g<2>"),
+        ("hooks", re.compile(r"(hooks/\s+# )\d[\d,]*( PreToolUse)"), r"\g<1>{value}\g<2>"),
+        ("rules", re.compile(r"(rules/\s+# )\d[\d,]*( rules,)"), r"\g<1>{value}\g<2>"),
+        ("commands", re.compile(r"(commands/\s+# )\d[\d,]*( Claude Code slash commands)"), r"\g<1>{value}\g<2>"),
+    ],
+    # The translations had the same stale numbers (40 subcommands, 288 pinned
+    # files) while this script reported CLEAN, because only README.md was anchored.
+    "README.vi.md": [
+        _anchor("subcommands", r"(<h3>)\d[\d.,]*(</h3><sub>subcommand runtime)"),
+        _anchor("subcommands", r"(` có )\d[\d.,]*( subcommand, không phụ thuộc Python)"),
+        _anchor("hooks", r"(<h3>)\d[\d.,]*(</h3><sub>hook cho tool call)"),
+        _anchor("core_lock_files", r"(<h3>)\d[\d.,]*(</h3><sub>file lõi)"),
+        _anchor("core_lock_files", r"(ghim )\d[\d.,]*( file lõi)"),
+        _anchor("agents", r"(<h3>)\d[\d.,]*(</h3><sub>agent chuyên biệt)"),
+        _anchor("skills", r"(<h3>)\d[\d.,]*(</h3><sub>skill kiến thức)"),
+        _anchor("agents", r"(Lớp tri thức\]\(core/skills\)\*\* \| )\d[\d.,]*( agent,)"),
+        _anchor("skills", r"( agent, )\d[\d.,]*( skill, command và rule)"),
+        _anchor("hooks", r"(hooks/\s+# )\d[\d.,]*( hook PreToolUse)"),
+        _anchor("rules", r"(rules/\s+# )\d[\d.,]*( rule,)"),
+        _anchor("agents", r"(agents/\s+# )\d[\d.,]*( agent chuyên biệt)"),
+        _anchor("skills", r"(skills/\s+# )\d[\d.,]*( skill)"),
+        _anchor("commands", r"(commands/\s+# )\d[\d.,]*( slash command)"),
+    ],
+    "README.ko.md": [
+        _anchor("subcommands", r"(<h3>)\d[\d,]*(</h3><sub>런타임 하위 명령)"),
+        _anchor("subcommands", r"(하위 명령은 )\d[\d,]*(개이며)"),
+        _anchor("hooks", r"(<h3>)\d[\d,]*(</h3><sub>도구 호출 hook)"),
+        _anchor("core_lock_files", r"(<h3>)\d[\d,]*(</h3><sub>핵심 파일)"),
+        _anchor("core_lock_files", r"(핵심 파일 )\d[\d,]*(개 고정)"),
+        _anchor("agents", r"(<h3>)\d[\d,]*(</h3><sub>전문 에이전트)"),
+        _anchor("skills", r"(<h3>)\d[\d,]*(</h3><sub>작업 지식 스킬)"),
+        _anchor("hooks", r"(hooks/\s+# )\d[\d,]*(개 PreToolUse)"),
+        _anchor("rules", r"(rules/\s+# )\d[\d,]*(개 rule)"),
+        _anchor("agents", r"(agents/\s+# )\d[\d,]*(개 전문 에이전트)"),
+        _anchor("skills", r"(skills/\s+# )\d[\d,]*(개 스킬)"),
+        _anchor("commands", r"(commands/\s+# )\d[\d,]*(개 Claude Code 슬래시 명령)"),
+    ],
+    "README.zh.md": [
+        _anchor("subcommands", r"(<h3>)\d[\d,]*(</h3><sub>运行时子命令)"),
+        _anchor("subcommands", r"(yana-rt` 有 )\d[\d,]*( 个子命令)"),
+        _anchor("hooks", r"(<h3>)\d[\d,]*(</h3><sub>工具调用 hook)"),
+        _anchor("core_lock_files", r"(<h3>)\d[\d,]*(</h3><sub>核心文件)"),
+        _anchor("core_lock_files", r"(锁定 )\d[\d,]*( 个核心文件)"),
+        _anchor("agents", r"(<h3>)\d[\d,]*(</h3><sub>专业 agent)"),
+        _anchor("skills", r"(<h3>)\d[\d,]*(</h3><sub>工作知识 skill)"),
+        _anchor("hooks", r"(hooks/\s+# )\d[\d,]*( 个 PreToolUse)"),
+        _anchor("rules", r"(rules/\s+# )\d[\d,]*( 条规则)"),
+        _anchor("agents", r"(agents/\s+# )\d[\d,]*( 个专业 agent)"),
+        _anchor("skills", r"(skills/\s+# )\d[\d,]*( 个 skill)"),
+        _anchor("commands", r"(commands/\s+# )\d[\d,]*( 个 Claude Code)"),
     ],
 }
 
@@ -238,7 +313,7 @@ def _apply_count_anchors(text: str, relative: str, counts: dict[str, int]) -> st
                 f"{relative}: count anchor for '{label}' matched nothing -- "
                 "surrounding text changed? (see _COUNT_ANCHORS)"
             )
-        updated = pattern.sub(template.format(value=f"{counts[label]:,}"), updated)
+        updated = pattern.sub(template.format(value=_format_count(counts[label], relative)), updated)
     return updated
 
 

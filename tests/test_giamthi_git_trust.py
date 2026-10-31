@@ -54,6 +54,28 @@ class GitTrustTests(unittest.TestCase):
             watch(target)
             self.assertIn("chưa được con người duyệt", halt_text(target))
 
+    def test_workflow_halt_points_to_the_pin_check_only_when_the_repo_has_it(self) -> None:
+        for with_script in (True, False):
+            with self.subTest(with_script=with_script), tempfile.TemporaryDirectory() as temporary:
+                target = make_project(Path(temporary))
+                if with_script:
+                    script = target / "core/scripts/verify_action_pins.py"
+                    script.parent.mkdir(parents=True, exist_ok=True)
+                    script.write_text("# stub\n", encoding="utf-8")
+                    git(target, "add", ".")
+                    git(target, "commit", "-qm", "pin check")
+                commit_hook(target)
+                self.assertEqual(watch(target).returncode, 0)
+                workflow = target / ".github/workflows/ci.yml"
+                workflow.parent.mkdir(parents=True, exist_ok=True)
+                workflow.write_text("name: ci\n", encoding="utf-8")
+                git(target, "add", ".")
+                git(target, "commit", "-qm", "workflow")
+                watch(target)
+                text = halt_text(target)
+                self.assertIn("chưa được con người duyệt", text)
+                self.assertEqual("verify_action_pins.py" in text, with_script)
+
     def test_file_mode_false_cannot_hide_chmod(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             target = make_project(Path(temporary))

