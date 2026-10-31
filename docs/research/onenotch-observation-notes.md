@@ -41,6 +41,20 @@ Trong khung hình:
 
 Điều này xác nhận hai điểm của bản thiết kế notch hiện tại (thỏ pixel hai cánh, lưới chấm 3x3 bên phải, vùng giữa để trống) và cho thấy **hai dòng "tên agent + việc đang làm bằng lời thường"** là một mẫu đáng cân nhắc cho trạng thái thu gọn của Yana, thay vì chỉ biểu tượng.
 
+## 2c. Trạng thái mở rộng (quan sát bằng chụp liên tục 12 khung trong 60 giây)
+
+Cách làm: người dùng tự rê chuột và bấm vào chỗ nhân vật pixel; công cụ chụp màn hình chụp dải notch mỗi 5 giây. Chỉ quan sát hành vi như người dùng. Các khung đã bị xóa sau khi xem, không đưa vào repo, vì có lẫn nội dung phiên làm việc của người dùng. Em chỉ xem 3 trong 12 khung (một thu gọn lúc nghỉ, một thu gọn lúc đang nén hội thoại, một mở rộng).
+
+**Thay đổi ở trạng thái thu gọn:** nhân vật pixel **đổi hình theo trạng thái** (lúc chạy lệnh là hình người ngồi trước laptop, lúc nén hội thoại là một sinh vật pixel màu hồng khác), và dòng dưới tên agent đổi theo việc ("Running Bash", "Compacting the conversation...").
+
+**Trạng thái mở rộng là một bảng điều khiển nhiều agent**, rộng bằng khoảng cả dải chụp, cao khoảng 180 điểm, đáy bo tròn lớn, có nút mũi tên xuống ở góc dưới phải để mở thêm:
+- **Hàng đầu:** ba chấm (chỉ số trang, chấm thứ ba đang chọn, gợi ý có nhiều tab như clipboard, glance, tools), và ba biểu tượng nhỏ ở góc phải.
+- **Dòng tóm tắt:** "N running" cùng tổng số phiên; bên phải là **hai ô phần trăm theo từng agent** (ví dụ 52% và 100%), đọc như mức dùng hạn mức của từng nhà cung cấp.
+- **Mỗi phiên một hàng**, gồm: biểu tượng agent, **tiêu đề trạng thái** ("Compacting the conversation..." hoặc tên phiên), **thư mục làm việc và một con số** (có vẻ là số lượt hay số tin), **nhánh git** với biểu tượng nhánh, **số terminal**, **tên mô hình**, **thời gian đã chạy** (47s, 51s), và **một dòng xem trước nội dung** (nội dung lời nhắc gần nhất của phiên).
+- Hàng đầu được tô sáng nền khi đang hoạt động; màu chữ phân biệt trạng thái (hồng cho đang làm, xanh lá cho tên phiên).
+
+**Điều đáng chú ý về quyền riêng tư:** dòng xem trước **hiện nguyên văn nội dung lời nhắc** ngay trên notch. Đây là chỗ ngược với nguyên tắc của notch Yana (chỉ hiện loại hành động, không hiện lệnh thô hay nội dung hội thoại).
+
 ## 3. Áp dụng cho Yana
 
 Chỉ lấy nguyên tắc, không lấy tài sản:
