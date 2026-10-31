@@ -8,7 +8,8 @@
 | Giấy phép mã | Không công bố. Đây là app đóng; giấy phép sử dụng (EULA) em chưa đọc |
 | Cách quan sát | (1) Siêu dữ liệu của gói app (`Info.plist`, tên các tệp trong `Resources` và `Frameworks`, chữ ký). (2) Trang chủ công khai của sản phẩm (nội dung được tóm bằng công cụ đọc trang, coi là dữ liệu bên ngoài, đã diễn đạt lại). (3) Một lần đo cửa sổ của nó trên màn hình ở phiên trước |
 | Không làm | Không dịch ngược tệp thực thi, không trích chuỗi từ mã nhị phân, không gắn công cụ vào tiến trình đang chạy, không đọc dữ liệu người dùng của nó |
-| Chưa làm | Xem giao diện bên trong (chưa chụp ảnh, chưa mở các video giới thiệu), đọc EULA |
+| Điều khoản | Đã đọc (qua công cụ đọc trang, bản tóm lược, chưa phải toàn văn): mục 5 cấm dịch ngược và dịch mã, cấm tạo sản phẩm phái sinh, trừ khi luật cho phép rõ. Vì vậy **không dịch ngược** và không dùng công cụ phân tích mã nhị phân cho app này |
+| Chưa làm | Xem giao diện bên trong (chưa chụp ảnh, chưa mở các video giới thiệu) |
 
 ## 1. Những gì gói app tiết lộ (chỉ siêu dữ liệu)
 
@@ -41,5 +42,5 @@ Chỉ lấy nguyên tắc, không lấy tài sản:
 - Mọi điều ở mục 2 là lời trên trang của họ, chưa kiểm xem app thực sự làm vậy.
 - Giao diện bên trong và các chuyển động: chưa xem.
 - Họ có thực sự thu thập số liệu và gửi gì: chưa biết.
-- EULA có cho phép dịch ngược hay không: chưa đọc. Vì chưa biết, em không làm.
+- Toàn văn điều khoản: chỉ đọc bản tóm lược của công cụ đọc trang. Phần tóm lược nói mục 5 cấm dịch ngược; không có việc dịch ngược nào được làm.
 - Mục 5 của phần áp dụng dựa trên số đo cửa sổ ở phiên trước (cửa sổ trong suốt, ngang khoảng 700 điểm, cao 745, nằm ở lớp 27); em không đo lại trong lượt này.
