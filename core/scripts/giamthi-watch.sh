@@ -432,8 +432,13 @@ if [[ -n "$CURRENT_SHA" && -n "$LAST_SHA" && "$LAST_SHA" != "$CURRENT_SHA" ]]; t
     APPROVE_CMD="bash .claude/scripts/giamthi-watch.sh"
     [[ "$TRUSTED_HOME" -eq 1 ]] && APPROVE_CMD="YANA_WATCH_TARGET=$(printf '%q' "$REPO_DIR") bash $(printf '%q' "$SCRIPT_DIR/giamthi-watch.sh")"
     RISKY=$(printf '%s\n' "$CHANGED" | grep -E '^(\.claude/settings\.json|\.claude/hooks/|\.claude/scripts/|\.codex/hooks/|\.cursor/hooks\.json|\.cursor/hooks/|\.github/workflows/|core/rules/|core/gates/|core/hooks/|core/scripts/|src/guard/)' || true)
+    # Workflow files changed: point the reviewer at the SHA-to-tag check when the repo has it.
+    PIN_HINT=""
+    if printf '%s\n' "$RISKY" | grep -q '^\.github/workflows/' && [[ -f "$REPO_DIR/core/scripts/verify_action_pins.py" ]]; then
+      PIN_HINT=" Nếu workflow ghim action đổi, đối chiếu SHA với tag upstream: python3 core/scripts/verify_action_pins.py (chỉ cho biết SHA khớp tag, không phải kết luận an toàn)."
+    fi
     if [[ -n "$RISKY" ]]; then
-      ISSUES+=("Thay đổi đã commit ở vùng nhạy cảm từ $LAST_SHA đến $CURRENT_SHA chưa được con người duyệt: $(printf '%s' "$RISKY" | tr '\n' ' '). Xem nhanh các thay đổi: git --no-pager diff --stat $LAST_SHA $CURRENT_SHA. Sau khi review, chạy lệnh dưới đây (thay YOUR_NAME và WHAT_YOU_REVIEWED bằng chữ thật, giữ nguyên dấu nháy): ${APPROVE_CMD} --approve-baseline --approve --actor \"YOUR_NAME\" --reason \"WHAT_YOU_REVIEWED\"; lệnh này KHÔNG gỡ HALT.")
+      ISSUES+=("Thay đổi đã commit ở vùng nhạy cảm từ $LAST_SHA đến $CURRENT_SHA chưa được con người duyệt: $(printf '%s' "$RISKY" | tr '\n' ' '). Xem nhanh các thay đổi: git --no-pager diff --stat $LAST_SHA $CURRENT_SHA.${PIN_HINT} Sau khi review, chạy lệnh dưới đây (thay YOUR_NAME và WHAT_YOU_REVIEWED bằng chữ thật, giữ nguyên dấu nháy): ${APPROVE_CMD} --approve-baseline --approve --actor \"YOUR_NAME\" --reason \"WHAT_YOU_REVIEWED\"; lệnh này KHÔNG gỡ HALT.")
     fi
   fi
 fi

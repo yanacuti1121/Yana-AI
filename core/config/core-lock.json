@@ -1,6 +1,6 @@
 {
   "algo": "sha256",
-  "generated": "2026-10-31T00:02:09+00:00",
+  "generated": "2026-10-31T00:07:20+00:00",
   "count": 290,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
@@ -194,7 +194,7 @@
     "core/scripts/generate-agents-data.py": "6614fe5aeaa3bf6e51ff9ae1be610db66d5a1af0e7b23a59099b4553a3cff2b3",
     "core/scripts/generate-coverage-report.sh": "5ee3927b99709adb6b239cd85a719673e2f649c7d3d043fbdc25e07a96ca7e88",
     "core/scripts/generate-wiki.sh": "ea8067fc3faa71398d7c7966f1a8b4cc2cf9337ebfdd30327a94dd17ad42a078",
-    "core/scripts/giamthi-watch.sh": "b2e0c60c966e2323675d4aaa5ce8cf2a7db3241fe12a64bc80e8ec9a6b97d08c",
+    "core/scripts/giamthi-watch.sh": "dc1f548016573836149b9514838813f15d8811fae30bb2498cbd456d18e3b72a",
     "core/scripts/giamthi_service.py": "e8d50cab3cf78e0d71416e4bf8545f6ec888cad21ee3c0f7caef1cd574ed73c7",
     "core/scripts/graph_builder.py": "ff35f2661aeab5bb60cd88acc932e728efe1811fd8afacc8838a5d82818710c0",
     "core/scripts/graph_query.py": "b934bb81e3344a308e818245f2e9c095a11b346c7e5a2312981abc0da213cd6c",
