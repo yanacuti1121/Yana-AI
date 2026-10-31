@@ -8,7 +8,7 @@
 | Giấy phép | Apache-2.0 (kiểm bằng GitHub API, 2026-10-31) |
 | Commit đã đọc | `7de00e425848d5f1a2a845cb4784851b87d8cad2` |
 | Cách đọc | Qua API của GitHub, không clone, không chạy mã, không cài gói |
-| Đã đọc | `server/auto-approve.ts`, `server/sse-fanout.ts`, `server/harness/http.ts`, `server/harness/engine-status-file.ts`, `src/components/ApprovalModeSelector.tsx`, `src/components/ApprovalCard.tsx` (phần đầu), danh sách toàn bộ file |
+| Đã đọc | `server/auto-approve.ts`, `server/sse-fanout.ts`, `server/harness/http.ts`, `server/harness/engine-status-file.ts`, `src/components/ApprovalModeSelector.tsx`, `src/components/ApprovalCard.tsx` (phần đầu), `src/components/menu-recipe.ts`, `src/components/MenuMotion.tsx`, các biến trong `src/styles.css`, ba ảnh chụp trong `docs/screenshots/`, danh sách toàn bộ file |
 | Chưa đọc | `server/harness/bus.ts`, `registry.ts`, `electron/approval-trusted-mode.cjs`, thành phần `AskCard`, `PendingApproval`, phần `cloudflare/` |
 
 Muốn dùng lại mã của họ thì phải làm bước riêng: giữ nguyên thông báo bản quyền, kèm LICENSE và NOTICE, ghi chỗ đã sửa, thêm vào `ACKNOWLEDGEMENTS.md`. Tên, logo, mascot và hình ảnh không dùng.
@@ -58,7 +58,43 @@ Muốn dùng lại mã của họ thì phải làm bước riêng: giữ nguyên
 | Ảnh chụp trạng thái engine (đăng nhập, bản, cập nhật, tính phí) | `status` mới chỉ có tên engine và số tiến trình | Mở rộng nhưng chỉ khi đọc được thật |
 | Phát lại SSE | Chưa có; thăm dò 2 đến 3 giây | Cân nhắc sau, vì mở cổng cục bộ có rủi ro (xem bản phân tích riêng) |
 
-## 6. Điều cần nhớ khi dùng ghi chú này
+## 6. Giao diện
+
+Nguồn: năm ảnh chụp trong `docs/screenshots/` (`approval-card`, `app-settings`, `agent-profile-desktop`, thanh chọn thread, `automations-needs-you`; em xem ba ảnh đầu), `src/components/menu-recipe.ts`, `MenuMotion.tsx`, và các biến trong `src/styles.css` (3061 dòng, chỉ đọc phần biến). Ảnh chỉ có giao diện tối trên macOS.
+
+**Bố cục**
+- Hai khung: cột trái hẹp (danh sách hội thoại, ô tìm kiếm ở trên, mục cố định ở dưới: tự động hóa, tiện ích, hàng người dùng kèm nút cài đặt) và khung chat ở giữa. Nút đèn giao thông macOS nằm trong cột trái.
+- Đầu khung chat: tên và avatar bên trái; bên phải là nút "+ Task" viền mảnh, ô chọn mô hình dạng viên thuốc kèm biểu tượng engine, và vài nút biểu tượng (có chấm cam nhỏ báo có việc).
+- Tin nhắn có nền xám đậm, bo tròn, ôm vừa nội dung. Ngày giờ nằm giữa, chữ mờ.
+- Câu hỏi của agent là một **thẻ ngay trong chat**: tiêu đề đậm, một dòng giải thích mờ, các lựa chọn đánh chữ A, B, C, D, và ô "Type your own answer". Có nút đóng.
+- Ô soạn tin là một viên thuốc dài ở đáy.
+- Chi tiết (hồ sơ agent) mở ra **bảng bên phải**, có nút quay lại và đóng. Nhãn nhóm viết hoa nhỏ (SHAPE, EXPRESSION, COLOR), điều khiển dạng nút phân đoạn và lưới màu.
+- Cài đặt là **hộp thoại giữa màn hình** nền mờ, cột trái là danh mục, bên phải là các thẻ. Mỗi dòng khóa API có tên, chip "OPTIONAL", chấm trạng thái, chữ "Connected" màu xanh, nút (?) trợ giúp, ô nhập, nút Save, và nút Clear màu đỏ. Lời mô tả nói thẳng: khóa lưu cục bộ, không bao giờ hiện lại.
+
+**Hệ màu và chữ** (đọc từ `styles.css`, giao diện tối)
+- Nền sâu, các lớp nổi dần: inset `#1b1b1b`, menu `#1f1f1f`, raised `#202020`, control `#282828`, viền mảnh `#383838`.
+- **Chỉ một màu chữ** `#f5f5f5`, còn bậc phụ và bậc ba chỉ là độ trong suốt của chính nó (khoảng 66% và 57%). Rê chuột và nhấn cũng chỉ là lớp phủ 6% và 8% của màu chữ.
+- Màu nhấn xanh `#1084fe`, chữ nhấn `#7fc0ff`. Màu chỉ dùng cho trạng thái: xanh lá là đã kết nối, đỏ là xóa, cam là báo.
+- Phông Geist (và Geist Mono) có dự phòng chữ hệ thống. Bo góc: menu 14 px, lớn 8 px và 12 px.
+
+**Công thức menu dùng chung** (một file hằng số, mọi menu theo đó): hàng cao 30 px, chữ 13 px, chữ phụ 12 px, viền 50% độ trong suốt, đường kẻ 0,5 px, biểu tượng nét mảnh 1,5 đến 1,75, bản cảm ứng cao 40 px. Nhờ vậy mọi menu trông cùng một bộ.
+
+**Chuyển động**
+- Một đường cong chung (kiểu ease-out mạnh) cho gần như mọi thứ, thời lượng ngắn: tin nhắn 180 ms, menu hiện và ẩn 200 ms, bảng 240 ms.
+- Có hiệu ứng riêng cho "đang làm" (nhấp nháy bước rời rạc, vệt sáng quét) thay vì xoay tròn.
+- **Tôn trọng giảm chuyển động** từ cả hệ điều hành lẫn một cài đặt riêng của app. Menu đang đóng bị vô hiệu hóa (`inert`) nên không bấm trúng được lúc mờ đi.
+
+**Điều rút ra cho giao diện Yana**
+- Dùng **một màu chữ và các độ trong suốt**, thay vì nhiều màu xám riêng. Dễ giữ đồng bộ giữa sáng và tối.
+- Màu chỉ để nói trạng thái. Yana đã có sẵn bộ ba ALLOW xanh, ASK hổ phách, DENY đỏ, đúng tinh thần này.
+- Câu hỏi và thẻ duyệt nên nằm **trong luồng chat**, không bắt người dùng sang chỗ khác.
+- Chi tiết mở ở **bảng bên** thay vì chuyển trang. Cài đặt là hộp thoại có danh mục bên trái.
+- Có một **file công thức** cho menu, thẻ, hàng cài đặt để mọi màn hình đồng nhất.
+- Văn bản trong giao diện nói thẳng sự thật ("lưu cục bộ, không bao giờ hiện lại").
+- **Lưu ý riêng của Yana:** Studio nằm trong khung VS Code, nên bố cục hai khung không áp nguyên. Phần dùng được là các màn hình web trong Studio (Cài đặt, Design Canvas, thẻ duyệt, panel Status), và các màn đó nên đọc biến màu `--vscode-*` để theo theme của người dùng thay vì tự đặt bảng màu cứng.
+- Phông Geist và bộ biểu tượng Lucide có giấy phép riêng (phải kiểm trước khi đóng gói). Em chưa kiểm hai giấy phép đó.
+
+## 7. Điều cần nhớ khi dùng ghi chú này
 
 - Đây là mô tả từ việc đọc sáu file ở một commit. Chưa chạy được ứng dụng nên chưa biết giao diện trông ra sao khi dùng thật.
 - Họ có nhiều tầng mà Yana không cần (đám mây, Composio, điện thoại, giọng nói).
