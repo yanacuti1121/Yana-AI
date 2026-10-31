@@ -55,6 +55,28 @@ Cách làm: người dùng tự rê chuột và bấm vào chỗ nhân vật pix
 
 **Điều đáng chú ý về quyền riêng tư:** dòng xem trước **hiện nguyên văn nội dung lời nhắc** ngay trên notch. Đây là chỗ ngược với nguyên tắc của notch Yana (chỉ hiện loại hành động, không hiện lệnh thô hay nội dung hội thoại).
 
+## 2d. Ba trang của notch mở rộng (từ một bản ghi màn hình 20 giây do người dùng đưa)
+
+Cách làm: người dùng tự ghi màn hình khi rê chuột và bấm qua các trang của notch; em cắt riêng vùng notch, lấy mỗi 2 giây một khung (10 khung, xem 8). Các khung đã xóa, bản ghi không đưa vào repo. Chỉ quan sát như người dùng. Chưa thấy các biểu tượng nhỏ ở góc phải làm gì.
+
+**Ba trang, chuyển bằng ba chấm ở góc trên bên trái:**
+1. **Lịch sử clipboard:** thanh trên có ô tìm kiếm, các tab "Tất cả", "Ghim" và dấu cộng (thêm bảng); mỗi mục là một thẻ có đoạn trích nội dung, biểu tượng app nguồn, "bao lâu trước" và dung lượng; có nút sắp xếp và nút đổi kiểu hiển thị.
+2. **Đang phát nhạc:** ảnh bìa có huy hiệu nguồn phát, tên bài, nghệ sĩ, nút xáo trộn, lùi, phát, tới, lời bài hát, thanh tiến độ có thời gian đã qua và còn lại.
+3. **Bảng agent:** dòng tóm tắt đổi theo trạng thái ("1 running" khi có phiên đang chạy, "All caught up" khi xong hết) kèm tổng số phiên và hai ô phần trăm theo nhà cung cấp; mỗi phiên một hàng.
+
+**Trong trang agent, khi một phiên bắt đầu làm việc:** tiêu đề hàng đổi sang màu khác với biểu tượng lấp lánh và chữ **"Prompt: ..."** (nội dung lời nhắn), kèm **bộ đếm giây chạy** ở góc phải; hàng bắt đầu sáng nền. Khi phiên rảnh, tiêu đề là tên phiên với biểu tượng thư mục màu xanh. Trạng thái thu gọn cũng đổi theo: "Prompt: ...", rồi "Running Bash", "Ran Bash" (khi vừa chạy xong), "Compacting the conversation...". Nhân vật pixel đổi hình theo từng trạng thái. **Suy luận (chưa kiểm):** các trạng thái này khớp với các sự kiện của Claude Code (nhận lời nhắn, bắt đầu và kết thúc dùng công cụ, nén hội thoại), tức là nó đọc luồng sự kiện của agent. Em chưa biết nó lấy bằng cách nào.
+
+Trang agent hiện **nguyên văn lời nhắn gần nhất** của phiên (xem mục 2c về quyền riêng tư), và các thông tin của phiên như thư mục, nhánh, số terminal, mô hình, thời gian.
+
+## 2e. Hai bản ghi khác trong thư mục docs
+
+- **Bản ghi màn hình 13,8 giây của một notch Yana** chạy trong cửa sổ trình duyệt (xem mục 2f).
+- **Một video giới thiệu Yana, dài 42 giây (24/10, 1920x1080):** các cảnh theo thứ tự: "Bắt đầu cùng Yana." (màn trò chuyện, thanh bên Trò chuyện, Mô hình, Công việc, Lịch sử), "Xem thay đổi. Bạn quyết định." (một so sánh diff của `theme.css`, 11 dòng thêm và 1 dòng bớt, cạnh khung chat), "Chọn model bạn muốn." (màn chọn nhà cung cấp, "Đã lưu lựa chọn cho dự án"), "Tất cả trong một nơi." (diff, bản xem trước trang, nút "Đã áp dụng"), cảnh cuối "Yana. Làm việc cùng AI." Thông điệp **"Bạn quyết định"** khớp với nguyên tắc con người trước tự động hóa. Em không biết ai làm video này; giao diện trong đó (bốn mục thanh bên) **khác** với Yana Studio hiện tại (Start, Conversations, Models & Runtime, Project, Tasks, Governance, Tools, System), nên đây là hình dung cho trang giới thiệu, không phải ảnh chụp app thật.
+
+## 2f. Notch Yana trong bản ghi (nguồn chưa rõ)
+
+Quan sát 6 khung: các trạng thái "Đang nghỉ" (nhân vật có chữ z z), "Đang chạy · edit src/ap...", "Chờ bạn duyệt" kèm thẻ hiện loại hành động và **lệnh thô** cùng hai nút **Cho phép (Enter)** và **Từ chối (esc)**, "Chặn theo chính sách" với bảng chấm đỏ; mở rộng hiện bốn dòng nhật ký (có chip "ASK -> ALLOW"). Hai điểm cần xem lại nếu đây là thiết kế định dùng: thẻ duyệt in lệnh thô, và **Enter là phím Cho phép** (trái nguyên tắc không có phím một phím cho Allow).
+
 ## 3. Áp dụng cho Yana
 
 Chỉ lấy nguyên tắc, không lấy tài sản:
