@@ -26,6 +26,21 @@
 - **Quyền riêng tư theo lời họ:** có tùy chọn bỏ qua nội dung nhạy cảm và chọn app loại trừ; bảng khóa được mã hóa và agent AI không thấy được; **quyền truy cập của agent AI tắt mặc định**; tìm kiếm MCP chạy cục bộ. Trang **không nêu rõ việc thu thập số liệu**, trong khi gói có hai thành phần liên quan (xem mục 1). Em không kết luận gì về hành vi thực tế.
 - **Giá:** có bản miễn phí giới hạn, bản Pro mua một lần, bản Supporter mua một lần cho nhiều máy; không thuê bao.
 
+## 2b. Quan sát giao diện thật (một khung hình, chụp ngày 2026-10-31)
+
+Cách làm: chụp **một dải 600x220 điểm ở giữa trên cùng màn hình** (chỗ notch) bằng công cụ chụp màn hình của hệ điều hành, khi OneNotch đang chạy và người dùng đang dùng Claude Code. Chỉ là quan sát hành vi như người dùng; không dịch ngược. Ảnh không đưa vào repo vì có lẫn nội dung cửa sổ khác của người dùng. Chỉ có **một trạng thái thu gọn**; chưa thấy trạng thái mở rộng hay chuyển động.
+
+Tiến trình đang chạy (kiểm bằng tên tiến trình): chỉ có OneNotch; app notch của Yana không chạy. Nên khung hình này là của OneNotch, đang hiện hoạt động của phiên Claude Code.
+
+Trong khung hình:
+- Viên đen **trùm lên vùng notch phần cứng**, hai cánh trái và phải của viên chứa nội dung, phần giữa trống (trùng với cách ta đã thiết kế). Đáy bo tròn, đỉnh sát mép màn hình.
+- **Trái:** nhân vật pixel nhỏ (hình người ngồi trước laptop, màu cam và xanh).
+- **Giữa:** hai dòng chữ: tên agent ("Claude") đậm, trắng; dòng dưới nhỏ hơn, xám, ghi **việc đang làm bằng lời thường** ("Running Bash"). Không in lệnh.
+- **Phải:** **lưới chấm 3x3** màu cam với độ sáng thay đổi theo chấm, đọc như thước đo mức hoạt động.
+- Ngay bên phải viên đen là các mục menu bar của app khác (không thuộc OneNotch).
+
+Điều này xác nhận hai điểm của bản thiết kế notch hiện tại (thỏ pixel hai cánh, lưới chấm 3x3 bên phải, vùng giữa để trống) và cho thấy **hai dòng "tên agent + việc đang làm bằng lời thường"** là một mẫu đáng cân nhắc cho trạng thái thu gọn của Yana, thay vì chỉ biểu tượng.
+
 ## 3. Áp dụng cho Yana
 
 Chỉ lấy nguyên tắc, không lấy tài sản:
