@@ -44,7 +44,7 @@
     <td align="center" width="25%"><h3>19</h3><sub>provider model<br>13 cloud, 6 local</sub></td>
     <td align="center" width="25%"><h3>41</h3><sub>subcommand runtime<br>trong một binary Rust</sub></td>
     <td align="center" width="25%"><h3>66</h3><sub>hook cho tool call<br>Pre, Post và Stop</sub></td>
-    <td align="center" width="25%"><h3>289</h3><sub>file lõi<br>được ghim bằng SHA-256</sub></td>
+    <td align="center" width="25%"><h3>290</h3><sub>file lõi<br>được ghim bằng SHA-256</sub></td>
   </tr>
   <tr>
     <td align="center"><h3>4</h3><sub>host agent<br>Claude Code, Codex, Cursor, Antigravity</sub></td>

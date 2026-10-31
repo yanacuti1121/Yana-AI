@@ -45,7 +45,7 @@
     <td align="center" width="25%"><h3>19</h3><sub>model providers<br>13 cloud, 6 local</sub></td>
     <td align="center" width="25%"><h3>41</h3><sub>runtime subcommands<br>in one Rust binary</sub></td>
     <td align="center" width="25%"><h3>66</h3><sub>tool-call hooks<br>Pre, Post and Stop</sub></td>
-    <td align="center" width="25%"><h3>289</h3><sub>core files<br>pinned by SHA-256</sub></td>
+    <td align="center" width="25%"><h3>290</h3><sub>core files<br>pinned by SHA-256</sub></td>
   </tr>
   <tr>
     <td align="center"><h3>4</h3><sub>agent hosts<br>Claude Code, Codex, Cursor, Antigravity</sub></td>
@@ -136,7 +136,7 @@ core/
 ├── skills/   # 2,035 skills
 ├── commands/ # 170 Claude Code slash commands
 └── config/
-    └── core-lock.json    # SHA-256 manifest — 289 core files pinned
+    └── core-lock.json    # SHA-256 manifest — 290 core files pinned
 ```
 
 ## Yana Studio (v1.7.0)

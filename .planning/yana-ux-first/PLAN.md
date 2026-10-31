@@ -32,7 +32,7 @@ Phase 4, verify and report.
 ## Research source rules (provisional, set by the maintainer 2026-10-29)
 
 1. External sources are vetted to keep junk out. Vetting is a filter, not a wall: it can be switched off for a given lookup, and the report says when it was off.
-2. Vetting overhead is capped. Provisional reading: it may not add more than 50% to the effort or token cost of a research step compared with doing the step unvetted. Pending confirmation of what the 50% is measured against.
+2. Vetting may discard a source that fails the check, and it is capped. The maintainer's answer on 2026-10-31, in their words: "50% là kiểm duyệt có kiểm xóa". Working reading until corrected: vetting is allowed to remove sources, and vetting as a whole may use at most half of a research step's effort.
 3. Fabrication is forbidden. A backlog item may only cite a path, a command output, or a URL that was actually opened in the same session. If a claim cannot be backed that way it is recorded as `unverified` and is not counted toward the 100.
 4. Secondary or aggregator pages (price trackers, content farms, unsigned blogs) are never the sole evidence for an item. Prefer primary pages: official docs, source repositories, release notes.
 
@@ -51,9 +51,10 @@ Phase 4, verify and report.
 
 ## Open decisions for the maintainer
 
-1. Trust score display: wire it to real data or hide it until a source exists.
-2. Whether the maintenance freeze from 2026-07 still applies.
-3. Which front door to standardize on (`yana`, the Studio app, or both).
+1. Trust score display: resolved. It was real state stuck at 0 because it was never reset per session; fixed by resetting when the session id changes.
+2. Whether the maintenance freeze from 2026-07 still applies: the maintainer does not know the current state (2026-10-31). Default until told otherwise: reduce surface, add no new feature without asking.
+3. Which front door to standardize on (`yana`, the Studio app, or both): open.
+4. Giám Thị review of Dependabot workflow bumps: decided 2026-10-31, the layer stays and Dependabot is not exempted. Friction is reduced by giving the reviewer evidence, not by skipping review.
 
 ## Files in this folder
 

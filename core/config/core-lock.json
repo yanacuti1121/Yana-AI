@@ -1,7 +1,7 @@
 {
   "algo": "sha256",
-  "generated": "2026-10-30T10:24:32+00:00",
-  "count": 289,
+  "generated": "2026-10-31T00:02:09+00:00",
+  "count": 290,
   "files": {
     "core/gates/anti-graffiti-guard.js": "09c6422e923ef6aa7f35381e73b98775788d872b68f15902102b9e2756aec40f",
     "core/gates/claim-audit.js": "6b7860085e1551d711e963b75d0f7150336792eba63e86bf3b90354b140282fc",
@@ -280,6 +280,7 @@
     "core/scripts/verify-required-checks-drift.sh": "037fde4c02d5837428c54a84d78a471609d28ad68295a50cf8d63674befd9bff",
     "core/scripts/verify-rules.sh": "d829604972f8cbf27a7dc4f4c62ec170cc6647093b0fde6df957999634045621",
     "core/scripts/verify-skills-lock.sh": "ba0e7825913d32a22657b39505ae3018ddafb38934d9a168b14fa3b5091b9999",
+    "core/scripts/verify_action_pins.py": "da412cf282b2e8b48f809bf0c23dfe2d4bd730f42e498514b13641aa8bfec0ac",
     "core/scripts/verify_audit_chain.py": "086a97edf989f37e7e3d719b36d8fa6b2b18b29fe86a019cd2d06a50f2030f5b",
     "core/scripts/verify_hooks.py": "8611528edad4d4ba30e85251aa0703d6b9fefc89252a58d59c91e1026d211021",
     "core/scripts/view-audit.sh": "c16b40b435e48ac782f186527c98670e11ceffff86383bbae4ddc22cf76d9f82",
