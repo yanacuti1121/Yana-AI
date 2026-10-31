@@ -31,6 +31,11 @@ See `git log fix/governance-cleanup-5f` for hashes. Backlog status lives in `BAC
 - Who removed `GIAMTHI_HALT.lock` from the shared checkout? It was gone when checked, and the baseline approval for the workflow changes was never run.
 - Should Dependabot action bumps be exempt from the HALT approval ceremony (F01)?
 
+## Merge notes
+
+- Session yana-ai-4c (worktree `Yana-AI-status`, branch `status-hub`) adds the `yana-rt status` subcommand, so the subcommand count goes from 41 to 42 in README.md and docs/reference/architecture.md. Both branches touch those lines. After a rebase run `python3 -I core/scripts/check_counts.py --fix`, then `bash core/scripts/update-core-lock.sh`, then check_counts again. The translations are checked now, so the fix covers them too.
+- That session owns E01 (decisions inbox): data side is `yana-rt status` and a Studio Status panel; the screen design is done elsewhere. Do not duplicate it here.
+
 ## Things to know
 
 - The shell hook rejects `$(`, backticks, `${` and `| python3` in command strings, even inside quoted text. Put such code in a script file under the session scratchpad and run that.
