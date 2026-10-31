@@ -126,7 +126,7 @@ Skill dạy agent cách làm việc. Chỉ capability mới cấp quyền hành 
 thật nhưng chưa đủ tính năng. `Thử nghiệm` nghĩa là tùy chọn bật và chưa được kiểm chứng
 độc lập.
 
-`yana-rt` có 40 subcommand, không phụ thuộc Python. Đây là số đếm theo mã nguồn trên mọi
+`yana-rt` có 41 subcommand, không phụ thuộc Python. Đây là số đếm theo mã nguồn trên mọi
 cấu hình build, kể cả các lệnh nằm sau feature flag.
 
 ```text
@@ -137,7 +137,7 @@ core/
 ├── skills/   # 2.035 skill
 ├── commands/ # 170 slash command của Claude Code
 └── config/
-    └── core-lock.json    # manifest SHA-256, ghim 288 file lõi
+    └── core-lock.json    # manifest SHA-256, ghim 290 file lõi
 ```
 
 ## Yana Studio (v1.7.0)

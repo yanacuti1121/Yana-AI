@@ -6,7 +6,7 @@ Rules: an item is listed only if its evidence was observed in this session. Evid
 
 Size: S under 1 hour, M under 1 day, L more. Status: open, unverified.
 
-Count so far: 39 verified items and 3 unverified (not counted). Solved: 7 (A01, A11, B01, B04, C01, C02, C10). Partial: 7 (A02, B02, C03, C06, C07, C08, D01). In progress elsewhere: 1 (E01). Closed by design: 1 (C05). Counted by a script over the tables.
+Count so far: 40 verified items and 3 unverified (not counted). Solved: 8 (A01, A11, A12, B01, B04, C01, C02, C10). Partial: 8 (A02, B02, C03, C06, C07, C08, D01, F03). In progress elsewhere: 1 (E01). Closed by design: 1 (C05). Counted by a script over the tables.
 
 ## A. First run and first impression
 
@@ -23,7 +23,7 @@ Count so far: 39 verified items and 3 unverified (not counted). Solved: 7 (A01, 
 | A09 | Four frontends are presented side by side (Studio, IDE, Desktop/Web, plus `tools/yana-notch` which the table omits) with no guidance on which to use | README "System structure"; `ls tools` | Docker Desktop vs CLI positioning | M | open |
 | A10 | `tools/` mixes product code with experiments (finetune-vi, moss-tts-nano, promo, codexmate-vi-patch) | `ls tools` (15 entries) | Monorepo hygiene in large OSS repos | M | open |
 | A11 | check_counts.py reported CLEAN while the README held wrong counts, so its patterns miss the stats table, the structure table, the file tree and the translations | Running python3 -I core/scripts/check_counts.py printed CLEAN (agents=100, skills=2035) while README.md said 2,026 and 2,027 skills, 60 agents and 288 files | Docs-as-code link checkers | M | solved (4b531c48) |
-| A12 | The vi, ko and zh READMEs are not covered by the count anchors, so their numbers can drift again. vi writes thousands with a dot, which the anchor formatter would overwrite | Before the fixes in 3f5e2d54 and 4b531c48 the translations held 2.026 and 40 while the canonical counts were 2035 and 41; `_COUNT_ANCHORS` in core/scripts/check_counts.py has an entry only for README.md. Seen again 2026-10-31: after core-lock grew to 290 files the three translations still said 289 while check_counts printed CLEAN | Docs-as-code checks | M | open |
+| A12 | The vi, ko and zh READMEs are not covered by the count anchors, so their numbers can drift again. vi writes thousands with a dot, which the anchor formatter would overwrite | Before the fixes in 3f5e2d54 and 4b531c48 the translations held 2.026 and 40 while the canonical counts were 2035 and 41; `_COUNT_ANCHORS` in core/scripts/check_counts.py has an entry only for README.md. Seen again 2026-10-31: after core-lock grew to 290 files the three translations still said 289 while check_counts printed CLEAN | Docs-as-code checks | M | solved (this commit): check_counts.py now anchors the vi, ko and zh READMEs (vi keeps its dot thousands separator). It found six more stale numbers on its first run (40 subcommands and 288 pinned files in all three) |
 
 ## B. Command line
 

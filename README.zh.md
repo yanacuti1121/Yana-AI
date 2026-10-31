@@ -122,7 +122,7 @@ Skill 教 agent 如何工作。只有 capability 才能授予行动的权限。
 `已上线`表示已经发布并在使用。`开发中`表示已有真实代码但功能尚不完整。`实验性`表示需要手动开启，
 且尚未经过独立验证。
 
-`yana-rt` 有 40 个子命令，不依赖 Python。这是按源码统计、覆盖所有构建配置（包括 feature flag
+`yana-rt` 有 41 个子命令，不依赖 Python。这是按源码统计、覆盖所有构建配置（包括 feature flag
 之后的命令）的数量。
 
 ```text
@@ -133,7 +133,7 @@ core/
 ├── skills/   # 2,035 个 skill
 ├── commands/ # 170 个 Claude Code 斜杠命令
 └── config/
-    └── core-lock.json    # SHA-256 清单，锁定 288 个核心文件
+    └── core-lock.json    # SHA-256 清单，锁定 290 个核心文件
 ```
 
 ## Yana Studio

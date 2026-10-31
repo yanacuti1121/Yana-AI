@@ -123,7 +123,7 @@ flowchart LR
 `사용 중`은 배포되어 실제로 쓰이고 있다는 뜻입니다. `개발 중`은 실제 코드는 있지만 기능이
 완성되지 않았다는 뜻입니다. `실험적`은 선택적으로 켜야 하고 독립적으로 검증되지 않았다는 뜻입니다.
 
-`yana-rt`의 하위 명령은 40개이며 Python 의존성이 없습니다. feature flag 뒤에 있는 명령까지
+`yana-rt`의 하위 명령은 41개이며 Python 의존성이 없습니다. feature flag 뒤에 있는 명령까지
 포함해, 모든 빌드 구성에 걸친 소스 기준 개수입니다.
 
 ```text
@@ -134,7 +134,7 @@ core/
 ├── skills/   # 2,035개 스킬
 ├── commands/ # 170개 Claude Code 슬래시 명령
 └── config/
-    └── core-lock.json    # SHA-256 manifest, 핵심 파일 288개 고정
+    └── core-lock.json    # SHA-256 manifest, 핵심 파일 290개 고정
 ```
 
 ## Yana Studio
