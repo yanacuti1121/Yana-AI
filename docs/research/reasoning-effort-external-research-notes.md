@@ -8,7 +8,8 @@
 | Cách đọc | Tìm kiếm web và đọc trang. Nội dung trang web được coi là dữ liệu bên ngoài, đã diễn đạt lại |
 | Đọc đầy đủ qua công cụ đọc trang | [Tài liệu của Anthropic về điều khiển suy nghĩ](https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost) (nguồn chính thức, đáng tin nhất), [tài liệu suy luận của OpenRouter](https://openrouter.ai/docs/guides/best-practices/reasoning-tokens) (nguồn chính thức của họ) |
 | Chỉ có tóm tắt từ kết quả tìm kiếm (**chưa xác minh**) | OpenAI (qua tài liệu bên thứ ba của Vercel, Venice, docs.rs), Gemini (qua bộ thư viện và bình luận mã bên thứ ba), LiteLLM (qua trang tài liệu và các issue của người dùng) |
-| Chưa làm | Đọc tài liệu chính thức của OpenAI và Google, đọc `effort` availability table của Anthropic, thử gọi API thật |
+| Đọc thêm (cùng ngày) | [Trang Effort chính thức của Anthropic](https://platform.claude.com/docs/en/build-with-claude/effort): bảng khả năng theo mô hình, ràng buộc giữa chế độ suy nghĩ và mức, đổi mức giữa hội thoại (xem mục 1b) |
+| Chưa làm | Đọc tài liệu chính thức của OpenAI và Google, thử gọi API thật |
 
 ## 1. Hình dạng yêu cầu khác nhau theo nhà cung cấp
 
@@ -24,6 +25,18 @@
 **OpenAI (chỉ tóm tắt từ bên thứ ba, chưa xác minh):** tập giá trị rộng nhất là none, minimal, low, medium, high, xhigh; mỗi đời mô hình hỗ trợ một tập con (có nguồn nói minimal chỉ ở dòng GPT-5 đời đầu, none không có ở một số dòng chuyên mã hay dòng pro; các nguồn **mâu thuẫn nhau** ở vài hàng). Mặc định cũng khác theo mô hình. Gửi giá trị mô hình không nhận (ví dụ `xhigh` tới Claude, `max` tới GPT-5.2) thì thất bại.
 
 **Gemini (chỉ tóm tắt từ bên thứ ba, chưa xác minh):** Gemini 2.5 dùng **ngân sách token số**; Gemini 3 dùng **mức rời rạc** (minimal, low, medium, high). Hai trường này **loại trừ nhau**, gửi cả hai thì báo lỗi 400. Tập mức cũng khác theo mô hình (có nguồn nói bản Pro chỉ có low và high).
+
+### 1b. Bảng khả năng của Anthropic (đọc từ [trang Effort chính thức](https://platform.claude.com/docs/en/build-with-claude/effort))
+
+Các mô hình nhận `effort`: Fable 5.1, Mythos 5.1, Fable 5, Mythos 5, Mythos Preview, Opus 5.5, Opus 5, Sonnet 5.5, Sonnet 5, Haiku 5.5, Opus 4.8, Opus 4.7, Opus 4.6, Sonnet 4.6, Opus 4.5. Không phải mô hình nào cũng đủ năm mức:
+- **`max`:** mọi mô hình trong danh sách **trừ Opus 4.5**.
+- **`xhigh`:** Fable 5.1, Mythos 5.1, Fable 5, Mythos 5, Opus 5.5, Opus 5, Opus 4.8, Opus 4.7, Sonnet 5.5, Sonnet 5, Haiku 5.5. **Không có** ở Mythos Preview, Opus 4.6, Sonnet 4.6, Opus 4.5. Trang ghi rõ: không phải mô hình nào có `max` cũng có `xhigh`.
+- **Mặc định:** `high`, **trừ Opus 5.5 và Haiku 5.5 là `medium`**. Đặt đúng mức mặc định tương đương không đặt gì.
+- **Mức tác động lên mọi token của phản hồi**, gồm cả lời gọi công cụ, không chỉ phần suy nghĩ. Mức thấp nghĩa là ít và ngắn gọn hơn cả lượt gọi công cụ. Nghĩa là **"mức suy luận" gọi như vậy là chưa đúng với Anthropic: đó là mức nỗ lực của cả phản hồi.**
+- **Đổi mức giữa hội thoại:** chỉ sáu mô hình (Fable 5.1, Mythos 5.1, Opus 5.5, Opus 5, Sonnet 5.5, Haiku 5.5) có đổi theo từng tin nhắn (beta, cần một tiêu đề beta riêng) và giữ bộ nhớ đệm. Các mô hình khác đổi mức ở yêu cầu kế tiếp thì **mất bộ nhớ đệm**. Gửi đổi theo từng tin nhắn tới mô hình không hỗ trợ thì trả lỗi 400.
+- **Chế độ suy nghĩ ràng buộc với mức:** Opus 5.5 **không tắt được** suy nghĩ (đặt tắt trả 400 ở mọi mức). Sonnet 5.5 có chế độ "chỉ giữa các công cụ" dùng được ở low, medium, high, nhưng **trả 400 ở xhigh và max**. Haiku 5.5 tắt được ở high trở xuống, **trả 400 ở xhigh và max**. Khi đang ở các chế độ này thì không đổi mức theo từng tin nhắn được.
+
+**Hệ quả quan trọng cho giao diện:** công tắc "Suy nghĩ bật/tắt" không thể độc lập với thanh mức. Tính hợp lệ của tổ hợp (mô hình, chế độ suy nghĩ, mức) do bảng khả năng quyết định, và giao diện phải **vô hiệu hóa hoặc ẩn đúng tổ hợp** thay vì để người dùng gửi rồi nhận lỗi 400.
 
 ## 2. Cách các lớp gộp chuẩn hóa
 
@@ -50,6 +63,6 @@
 ## 5. Chưa kiểm
 
 - Tài liệu chính thức của OpenAI và Google: chưa đọc, chỉ có tóm tắt bên thứ ba, có chỗ mâu thuẫn.
-- Bảng "effort availability" của Anthropic và danh sách mô hình hỗ trợ từng mức: chưa đọc.
+- Bảng khả năng của Anthropic đã đọc (mục 1b) nhưng **thay đổi theo từng đời mô hình**: tin vào trang tại thời điểm làm, không sao chép thành dữ liệu cố định của Yana.
 - Hành vi thật khi gửi mức không được hỗ trợ tới từng nhà cung cấp: chưa thử gọi API.
 - Cách `yana-rt` hiện chọn mô hình và truyền tham số tới `anthropic.rs`, và việc thêm trường `output_config` có phù hợp kiến trúc `ChatProvider` hiện tại không: chưa đọc kỹ.
