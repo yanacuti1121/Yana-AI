@@ -842,6 +842,30 @@ enum AuthorityAction {
         #[arg(long)]
         json: bool,
     },
+    /// Ask the real authority chain for one decision about one capability
+    /// call. Model-free and deterministic: any engine's hook or adapter can
+    /// call it before running a tool. It asks for a REAL decision (a lease's
+    /// invocation budget is consumed and a decision receipt is recorded).
+    /// The caller is never treated as a human. Exit code 0 is the ONLY
+    /// "allowed"; 2 = denied, 3 = a person must approve, 1 = error. Treat
+    /// every non-zero code as not allowed.
+    Check {
+        /// Who is asking, e.g. `agent:cursor`. Leases belong to one subject.
+        #[arg(long)]
+        subject: String,
+        /// Which engine is calling: terminal, desktop, remote, claude, codex,
+        /// cursor, scheduler, governor, subagent, api, mcp
+        #[arg(long, default_value = "api")]
+        origin: String,
+        /// Provider tool name, e.g. `run_command` or `read_file`
+        #[arg(long)]
+        tool: String,
+        /// The call's arguments as JSON, e.g. '{"command":"npm test"}'
+        #[arg(long, default_value = "{}")]
+        arguments_json: String,
+        #[arg(long)]
+        json: bool,
+    },
     /// List durable pending approvals (Authority Hardening item #5) — a
     /// remote-client turn paused awaiting a human decision, and every
     /// decision already recorded against it.
@@ -1273,6 +1297,15 @@ fn main() {
                 if let Err(error) = runtime::cmd_authority_executions(last, json) {
                     eprintln!("[authority] {error:#}");
                     std::process::exit(2);
+                }
+            }
+            AuthorityAction::Check { subject, origin, tool, arguments_json, json } => {
+                match runtime::cmd_authority_check(subject, origin, tool, arguments_json, json) {
+                    Ok(code) => std::process::exit(code),
+                    Err(error) => {
+                        eprintln!("[authority] {error:#}");
+                        std::process::exit(1);
+                    }
                 }
             }
             AuthorityAction::PendingApprovals { id, json } => {

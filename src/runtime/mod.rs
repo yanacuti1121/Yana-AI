@@ -5,6 +5,7 @@
 //! fail-closed root authority above both.
 
 mod authority;
+mod check;
 mod controller;
 mod events;
 mod origin;
@@ -20,6 +21,7 @@ pub(crate) use controller::{
     execute_approved_tool, push_tool_result, ApprovedTool, CancellationToken, ToolExecutor,
     TurnEngine, TurnError,
 };
+pub(crate) use check::cmd_authority_check;
 pub(crate) use events::RuntimeEvent;
 pub(crate) use origin::{TurnContext, TurnOrigin};
 pub(crate) use outcome::TurnOutcome;
