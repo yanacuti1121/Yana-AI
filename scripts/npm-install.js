@@ -89,7 +89,12 @@ async function maybeInstallGiamthiWatcher(targetPath) {
   const yes = await askYesNo(
     "  Install OS-level Giám thị supervisor (launchd/systemd/Task Scheduler)? (y/N) "
   );
-  if (yes) installGiamthiWatcher(targetPath);
+  if (yes) {
+    installGiamthiWatcher(targetPath);
+    return;
+  }
+  console.log("  Giám thị (independent watcher) was not installed. It is optional.");
+  console.log(`    Turn on later: yana-ai giamthi install "${targetPath}"`);
 }
 
 function copyDir(src, dest) {
