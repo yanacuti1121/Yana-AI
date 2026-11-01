@@ -292,6 +292,96 @@ mod tests {
         assert!(receipts[0].lease_id.is_some());
     }
 
+    // A receipt must say WHICH rule refused the call, not only that it was refused.
+
+    fn denial_reason(outcome: CheckOutcome) -> String {
+        assert_eq!(outcome.verdict, CheckVerdict::Deny);
+        outcome.reason.unwrap()
+    }
+
+    #[test]
+    fn denial_says_no_lease_was_granted() {
+        let root = project();
+        let reason = denial_reason(run(root.path(), "agent:cursor", "npm test"));
+        assert!(reason.contains("no lease granted to 'agent:cursor'"), "{reason}");
+    }
+
+    #[test]
+    fn denial_names_the_deny_list_entry() {
+        let root = project();
+        grant(root.path(), "agent:cursor", &["git"], &["git push"], Some(5));
+        let reason = denial_reason(run(root.path(), "agent:cursor", "git push origin main"));
+        assert!(reason.contains("deny list ('git push')"), "{reason}");
+    }
+
+    #[test]
+    fn denial_says_the_command_is_outside_the_lease_scope() {
+        let root = project();
+        grant(root.path(), "agent:cursor", &["npm test"], &[], Some(5));
+        let reason = denial_reason(run(root.path(), "agent:cursor", "rm -rf build"));
+        assert!(reason.contains("outside the lease scope"), "{reason}");
+    }
+
+    #[test]
+    fn denial_says_the_invocation_budget_is_exhausted() {
+        let root = project();
+        grant(root.path(), "agent:cursor", &["npm test"], &[], Some(1));
+        run(root.path(), "agent:cursor", "npm test");
+        let reason = denial_reason(run(root.path(), "agent:cursor", "npm test"));
+        assert!(reason.contains("invocation budget exhausted"), "{reason}");
+    }
+
+    #[test]
+    fn denial_says_the_lease_was_revoked() {
+        let root = project();
+        let store = LeaseStore::for_root(root.path());
+        let lease = store
+            .grant(
+                "agent:cursor".into(),
+                "command.execute".into(),
+                vec!["npm".into()],
+                vec![],
+                "human".into(),
+                20,
+                None,
+                None,
+            )
+            .unwrap();
+        store.revoke(&lease.id).unwrap();
+        let reason = denial_reason(run(root.path(), "agent:cursor", "npm test"));
+        assert!(reason.contains("revoked"), "{reason}");
+    }
+
+    #[test]
+    fn denial_says_the_lease_has_expired() {
+        let root = project();
+        // Zero minutes: expires the moment it is granted.
+        LeaseStore::for_root(root.path())
+            .grant(
+                "agent:cursor".into(),
+                "command.execute".into(),
+                vec!["npm".into()],
+                vec![],
+                "human".into(),
+                0,
+                None,
+                None,
+            )
+            .unwrap();
+        let reason = denial_reason(run(root.path(), "agent:cursor", "npm test"));
+        assert!(reason.contains("expired"), "{reason}");
+    }
+
+    #[test]
+    fn the_reason_never_changes_the_verdict() {
+        // Explaining a denial is read-only: it must not consume budget or flip a decision.
+        let root = project();
+        grant(root.path(), "agent:cursor", &["npm test"], &[], Some(1));
+        run(root.path(), "agent:cursor", "rm -rf build");
+        run(root.path(), "agent:cursor", "rm -rf build");
+        assert_eq!(run(root.path(), "agent:cursor", "npm test").verdict, CheckVerdict::Allow);
+    }
+
     #[test]
     fn origin_names_parse_and_unknown_names_are_errors() {
         assert_eq!(parse_origin("Cursor").unwrap(), TurnOrigin::Cursor);
