@@ -276,12 +276,24 @@ impl YanaAuthorityChain {
             && !context.human_initiated
         {
             let decision_id = uuid::Uuid::new_v4().to_string();
+            let mut reason = format!(
+                "non-human-initiated {:?} turn cannot execute capability '{}'",
+                context.origin, descriptor.name
+            );
+            // Say which lease rule refused the call (read-only; never changes the verdict).
+            if let Some(subject) = context.agent_id.as_deref().filter(|s| !s.is_empty()) {
+                if let Some(detail) = LeaseStore::for_root(&context.session.repo_root).explain_miss(
+                    subject,
+                    descriptor.name,
+                    &context.session.repo_root,
+                    command_text.as_deref(),
+                ) {
+                    reason.push_str(&format!("; {detail}"));
+                }
+            }
             let decision = AuthorityDecision::Deny {
                 authority: AuthorityLayer::YanaControlPlane,
-                reason: format!(
-                    "non-human-initiated {:?} turn cannot execute capability '{}'",
-                    context.origin, descriptor.name
-                ),
+                reason,
             };
             super::receipt::record(&decision_id, context, descriptor.name, &decision, None);
             return decision;
