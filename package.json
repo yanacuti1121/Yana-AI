@@ -78,13 +78,13 @@
     "electron:install": "cd tools/yana-desktop && npm install"
   },
   "devDependencies": {
-    "wrangler": "^4.147.0"
+    "wrangler": "^4.154.0"
   },
   "dependencies": {
     "acorn": "^8.19.0",
     "clsx": "^2.1.1",
-    "framer-motion": "^14.3.0",
-    "lucide-react": "^1.58.0",
+    "framer-motion": "^14.7.1",
+    "lucide-react": "^1.62.0",
     "tailwind-merge": "^3.7.0"
   },
   "overrides": {
