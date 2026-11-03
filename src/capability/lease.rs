@@ -330,6 +330,58 @@ impl LeaseStore {
             Ok(Some(id))
         })
     }
+
+    /// Read-only: names the first reason `try_consume_matching` found no
+    /// lease for this call, so a denial receipt can say WHICH rule refused
+    /// it. Never consumes budget and never changes a decision; an
+    /// unreadable lease store yields `None` (the denial stands, just without
+    /// the detail). Checks run from the broadest cause to the narrowest:
+    /// no lease, revoked, expired, budget, deny list, scope.
+    pub fn explain_miss(
+        &self,
+        subject: &str,
+        capability: &str,
+        repo_root: &Path,
+        command_text: Option<&str>,
+    ) -> Option<String> {
+        let leases = read_leases(&self.root).ok()?;
+        let now = Utc::now();
+        let mine: Vec<&Lease> = leases
+            .iter()
+            .filter(|l| l.subject == subject && l.capability == capability && l.repo_root == repo_root)
+            .collect();
+        if mine.is_empty() {
+            return Some(format!("no lease granted to '{subject}' for '{capability}'"));
+        }
+        let not_revoked: Vec<&Lease> = mine.into_iter().filter(|l| !l.revoked).collect();
+        if not_revoked.is_empty() {
+            return Some("every matching lease is revoked".to_string());
+        }
+        let unexpired: Vec<&Lease> = not_revoked.into_iter().filter(|l| l.expires_at > now).collect();
+        if unexpired.is_empty() {
+            return Some("every matching lease has expired".to_string());
+        }
+        let with_budget: Vec<&Lease> = unexpired
+            .into_iter()
+            .filter(|l| l.remaining.is_none_or(|remaining| remaining > 0))
+            .collect();
+        if with_budget.is_empty() {
+            return Some("invocation budget exhausted".to_string());
+        }
+        if let Some(text) = command_text {
+            if let Some(entry) = with_budget
+                .iter()
+                .flat_map(|l| l.deny.iter())
+                .find(|entry| command_matches(entry, text))
+            {
+                return Some(format!("command is on the lease deny list ('{entry}')"));
+            }
+            if !with_budget.iter().any(|l| lease_scope_allows(l, command_text)) {
+                return Some("command is outside the lease scope".to_string());
+            }
+        }
+        Some("a parent lease in the delegation chain no longer permits this call".to_string())
+    }
 }
 
 /// `true` if `lease`'s own allow/deny scope permits `command_text` (or
