@@ -8,6 +8,42 @@ All notable changes to Yana AI release packs are documented here.
 
 ---
 
+## yana-rt (crates.io) and yana-ai (PyPI) 1.5.2: first-run fixes, honest counts, harness audit (2026-11-03)
+
+Both axes ship 1.5.2 from the same commit. npm is not published.
+
+CLI and messages:
+- `yana-ai --help` starts with the Usage line and a short "Start here" block.
+  Bare `yana-ai` still shows the banner.
+- `yana-ai doctor` says when the optional Giám Thị watcher is not active for
+  the folder and how to turn it on. The exit code of doctor is unchanged. The
+  installer prints the same note when the watcher was not installed. Giám Thị
+  is still never installed without an explicit yes.
+- The Giám Thị HALT message has a copy-pasteable approval example and a real
+  unlock command.
+- `tool-proxy-enforcer` deny messages say which text matched and how to
+  rewrite it. The decision logic is unchanged.
+- The session trust score resets when the session id changes.
+
+Runtime (`yana-rt`):
+- `yana-rt harness audit` (Rust core, phase 1).
+- Chat: approval previews, `patch_file`, read-only tools, plan mode, reply
+  limits.
+- MCP: `list_processes` works on macOS, and the MCP server has an end to end
+  test.
+- 13 RUSTSEC advisories that failed CI were cleared by dependency updates.
+
+Packaging and checks:
+- The wheel and sdist no longer ship per-user `core/memory` state.
+- `check_counts.py` now checks the README stats table, tree and sentences in
+  all four languages, and the README counts were corrected.
+- New `core/scripts/verify_action_pins.py` compares each pinned action SHA
+  with the upstream tag named in its comment.
+
+Upgrade: `pip install -U yana-ai` and `cargo install yana-rt --force`.
+
+---
+
 ## yana-rt (crates.io) 1.5.1: provider failover, session store, capability tools, hardening — 2026-10-05
 
 Runtime axis only. The Python package (`yana-ai` 1.5.1) shipped separately
