@@ -1,0 +1,32 @@
+diff --git a/src/vs/workbench/services/themes/common/workbenchThemeService.ts b/src/vs/workbench/services/themes/common/workbenchThemeService.ts
+index 35917200..7ca78ad8 100644
+--- a/src/vs/workbench/services/themes/common/workbenchThemeService.ts
++++ b/src/vs/workbench/services/themes/common/workbenchThemeService.ts
+@@ -40,10 +40,10 @@ export enum ThemeSettings {
+ }
+ 
+ export namespace ThemeSettingDefaults {
+-	export const COLOR_THEME_DARK = 'Dark 2026';
+-	export const COLOR_THEME_LIGHT = 'Light 2026';
+-	export const COLOR_THEME_HC_DARK = 'Default High Contrast';
+-	export const COLOR_THEME_HC_LIGHT = 'Default High Contrast Light';
++	export const COLOR_THEME_DARK = 'Yana Dark';
++	export const COLOR_THEME_LIGHT = 'Yana Light';
++	export const COLOR_THEME_HC_DARK = 'Yana High Contrast';
++	export const COLOR_THEME_HC_LIGHT = 'Yana High Contrast Light';
+ 
+ 	export const FILE_ICON_THEME = 'vs-seti';
+ 	export const PRODUCT_ICON_THEME = 'Default';
+diff --git a/src/vs/workbench/services/themes/common/themeConfiguration.ts b/src/vs/workbench/services/themes/common/themeConfiguration.ts
+index 98c5d5b..68f17c7 100644
+--- a/src/vs/workbench/services/themes/common/themeConfiguration.ts
++++ b/src/vs/workbench/services/themes/common/themeConfiguration.ts
+@@ -35,7 +35,7 @@ export const COLOR_THEME_CONFIGURATION_SETTINGS_TAG = 'colorThemeConfiguration';
+ const colorThemeSettingSchema: IConfigurationPropertySchema = {
+ 	type: 'string',
+ 	markdownDescription: nls.localize({ key: 'colorTheme', comment: ['{0} will become a link to another setting.'] }, "Specifies the color theme used in the workbench when {0} is not enabled.", formatSettingAsLink(ThemeSettings.DETECT_COLOR_SCHEME)),
+-	default: isWeb ? ThemeSettingDefaults.COLOR_THEME_LIGHT : ThemeSettingDefaults.COLOR_THEME_DARK,
++	default: ThemeSettingDefaults.COLOR_THEME_LIGHT,
+ 	tags: [COLOR_THEME_CONFIGURATION_SETTINGS_TAG],
+ 	enum: colorThemeSettingEnum,
+ 	enumDescriptions: colorThemeSettingEnumDescriptions,
