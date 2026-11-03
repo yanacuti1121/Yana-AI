@@ -1,70 +1,143 @@
-// Sinh Yana Light và hai bản High Contrast từ Yana Dark, để 4 theme dùng chung một bảng màu Cockpit
-// (docs/stitch_yana_studio_ide_evolution/autonomous_runtime_cockpit/DESIGN.md).
-// Chạy: node tools/yana-ide/scripts/build-themes.mjs   (sửa màu ở Yana Dark hoặc bảng LIGHT bên dưới, rồi chạy lại)
+// Sinh Yana Dark, Yana Light và hai bản High Contrast từ MỘT nguồn: theme-source/yana-dark.source.json
+// (Yana Dark viết tay, đóng băng, không bao giờ bị ghi đè). Nguồn giữ nguyên toàn bộ khóa màu; script chỉ đổi
+// BẢNG ÁNH XẠ VAI TRÒ: mỗi mã hex cũ của nguồn (nền, viền, chữ, nhấn, trạng thái) ứng với một màu 2026 sinh trong
+// OKLCH, một cho Dark và một cho Light. Phong cách 2026: nền xám ấm gần trung tính, ít đường kẻ, thanh bên lùi lại.
+// Chạy: node tools/yana-ide/scripts/build-themes.mjs   (sửa bảng ROLES hoặc ACCENT_HUE rồi chạy lại; kết quả lặp lại được)
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { oklchToHex } from './oklch.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
+const sourceFile = path.join(here, '..', 'theme-source', 'yana-dark.source.json');
 const themesDir = path.join(here, '..', 'extensions', 'yana-theme', 'themes');
-const dark = JSON.parse(fs.readFileSync(path.join(themesDir, 'yana-dark-color-theme.json'), 'utf8'));
 
-// Mỗi màu của Yana Dark có một màu Light tương ứng cùng vai trò (nền, viền, chữ, accent). Accent được
-// làm đậm hơn để đạt tương phản WCAG AA trên nền sáng. Phần alpha (#rrggbbAA) giữ nguyên.
-const LIGHT = {
-	'#0c0e12': '#eef0f4', '#12151c': '#ffffff', '#161a22': '#f5f6f8', '#1a1e27': '#e9ecf1', '#1c212c': '#e4e8ef',
-	'#1e222b': '#dde1e8', '#252a36': '#cfd5df', '#3a3f4c': '#b7bfcc', '#4b5160': '#9aa3b2', '#5c6270': '#8a93a3',
-	'#64748b': '#667085', '#94a3b8': '#4b5565', '#c3c6d7': '#343b48', '#e2e2e8': '#1b1f27', '#f8fafc': '#0f1218',
-	'#ffffff': '#ffffff', '#000000': '#000000',
-	'#7c8698': '#5d6677', '#3461d6': '#2f5fd8', '#3d6ae0': '#264fbf',
-	'#4f80ff': '#2f5fd8', '#6690ff': '#3d6ce6', '#7aa0ff': '#244db8', '#b4c5ff': '#2f4fa8',
-	'#00d2c4': '#00857c', '#46eee0': '#00756d', '#4edea3': '#0f7a52', '#10b981': '#0f8a5f',
-	'#f59e0b': '#a35f00', '#fcd34d': '#8a5a00', '#ff8a65': '#c2410c', '#ef4444': '#c62828', '#ffb4ab': '#b3261e',
-	'#d4c8ff': '#5b3fc4', '#b4a5ff': '#6a4fd1',
+// Màu nhấn của bản sắc. 265 giữ đúng hệ xanh dương hiện tại của Yana; đổi một số này là đổi cả hai theme.
+// Gợi ý đã cài để xem: Iris (tím) = 285, Tide (xanh ngọc) = 190, Ember (cam hổ phách) = 45.
+export const ACCENT_HUE = 265;
+const BASE_HUE = 70; // xám ấm
+const BASE_CHROMA = 0.006; // rất thấp: gần trung tính
+const HUE = { magenta: 300, green: 160, mint: 165, teal: 190, red: 25, amber: 75, yellow: 95, orange: 45 };
+
+const n = (L, C = BASE_CHROMA) => oklchToHex(L, C, BASE_HUE); // bề mặt trung tính
+const c = (L, C, h) => oklchToHex(L, C, h); // màu có sắc
+const A = ACCENT_HUE;
+
+// hex cũ của Yana Dark -> { dark, light }. Cùng vai trò, độ sáng L đảo chiều giữa hai theme.
+const ROLES = {
+	// Bề mặt và viền, từ tối sâu đến sáng dần (theo Dark).
+	'#0c0e12': { dark: n(0.15), light: n(0.955) }, // chrome: thanh tiêu đề, thanh trạng thái, ô nhập
+	'#12151c': { dark: n(0.17), light: n(1, 0) }, // nền trình soạn thảo
+	'#161a22': { dark: n(0.195), light: n(0.972) }, // thanh bên, panel
+	'#1a1e27': { dark: n(0.225), light: n(0.945) }, // hover
+	'#1c212c': { dark: n(0.24), light: n(0.935) }, // widget nổi, mục chọn
+	'#1e222b': { dark: n(0.25), light: n(0.915) }, // viền rất nhẹ
+	'#252a36': { dark: n(0.29), light: n(0.88) }, // viền
+	'#3a3f4c': { dark: n(0.38), light: n(0.8) },
+	// Chữ và biểu tượng, từ mờ đến rõ.
+	'#5c6270': { dark: n(0.52), light: n(0.62) }, // vô hiệu hóa
+	'#64748b': { dark: n(0.65), light: n(0.55) }, // chú thích, biểu tượng không hoạt động
+	'#7c8698': { dark: n(0.7), light: n(0.52) }, // số dòng, gợi ý trong ô nhập
+	'#94a3b8': { dark: n(0.76), light: n(0.46) }, // chữ phụ
+	'#c3c6d7': { dark: n(0.87, 0.004), light: n(0.33) },
+	'#e2e2e8': { dark: n(0.93, 0.004), light: n(0.24) }, // chữ chính
+	'#f8fafc': { dark: n(0.97, 0.003), light: n(0.16) }, // chữ nhấn mạnh
+	'#ffffff': { dark: '#ffffff', light: '#ffffff' },
+	'#000000': { dark: '#000000', light: '#000000' },
+	// Màu nhấn.
+	'#4f80ff': { dark: c(0.72, 0.15, A), light: c(0.52, 0.17, A) },
+	'#3461d6': { dark: c(0.53, 0.17, A), light: c(0.5, 0.18, A) }, // nền nút
+	'#3d6ae0': { dark: c(0.56, 0.17, A), light: c(0.46, 0.18, A) }, // nút khi hover
+	'#7aa0ff': { dark: c(0.8, 0.12, A), light: c(0.44, 0.16, A) }, // liên kết khi hover
+	'#b4c5ff': { dark: c(0.87, 0.06, A), light: c(0.42, 0.12, A) },
+	'#b4a5ff': { dark: c(0.78, 0.1, HUE.magenta), light: c(0.52, 0.15, HUE.magenta) },
+	'#d4c8ff': { dark: c(0.86, 0.06, HUE.magenta), light: c(0.46, 0.15, HUE.magenta) },
+	// Trạng thái và cú pháp.
+	'#10b981': { dark: c(0.72, 0.15, HUE.green), light: c(0.55, 0.13, HUE.green) },
+	'#4edea3': { dark: c(0.8, 0.15, HUE.mint), light: c(0.5, 0.12, HUE.mint) },
+	'#00d2c4': { dark: c(0.78, 0.12, HUE.teal), light: c(0.55, 0.1, HUE.teal) },
+	'#46eee0': { dark: c(0.87, 0.12, HUE.teal), light: c(0.48, 0.09, HUE.teal) },
+	'#ef4444': { dark: c(0.66, 0.19, HUE.red), light: c(0.55, 0.19, HUE.red) },
+	'#ffb4ab': { dark: c(0.83, 0.08, HUE.red), light: c(0.5, 0.17, HUE.red) },
+	'#f59e0b': { dark: c(0.78, 0.15, HUE.amber), light: c(0.52, 0.13, HUE.amber) },
+	'#fcd34d': { dark: c(0.88, 0.14, HUE.yellow), light: c(0.5, 0.1, 85) },
+	'#ff8a65': { dark: c(0.75, 0.13, HUE.orange), light: c(0.56, 0.15, HUE.orange) },
 };
 
-function toLight(value) {
+// Kiểu "mềm": bỏ đường kẻ cấu trúc, để các mảng nền tự phân vùng. Viền của widget tương tác (ô nhập, menu) giữ lại.
+const NO_LINE = '#00000000';
+const SOFT_STRUCTURAL_BORDERS = [
+	'titleBar.border', 'activityBar.border', 'sideBar.border', 'sideBarSectionHeader.border', 'editorGroupHeader.tabsBorder',
+	'tab.border', 'tab.activeBorderTop', 'statusBar.border', 'panel.border', 'panelSection.border', 'editorStickyScroll.border',
+	'editorOverviewRuler.border',
+];
+
+function mapHex(value, kind) {
 	if (typeof value !== 'string' || !value.startsWith('#')) return value;
 	const base = value.slice(0, 7).toLowerCase();
-	const alpha = value.slice(7);
-	if (!(base in LIGHT)) throw new Error('Thiếu màu Light cho ' + value);
-	return LIGHT[base] + alpha;
+	if (!(base in ROLES)) throw new Error(`Thiếu vai trò màu cho ${value}`);
+	return ROLES[base][kind] + value.slice(7); // phần alpha (#rrggbbAA) giữ nguyên
 }
 
-function mapColors(colors, fn) {
-	return Object.fromEntries(Object.entries(colors).map(([key, value]) => [key, fn(value)]));
-}
+const mapColors = (colors, kind) => Object.fromEntries(Object.entries(colors).map(([key, value]) => [key, mapHex(value, kind)]));
+const mapTokens = (tokens, kind) => tokens.map((token) => ({ ...token, settings: mapColors(token.settings, kind) }));
 
-function mapTokens(tokens, fn) {
-	return tokens.map(token => ({ ...token, settings: mapColors(token.settings, fn) }));
-}
-
-const light = {
-	$schema: dark.$schema,
-	name: 'Yana Light',
-	type: 'light',
-	semanticHighlighting: true,
-	colors: { ...mapColors(dark.colors, toLight), 'widget.shadow': '#1b1f2724', 'button.foreground': '#ffffff', 'activityBarBadge.foreground': '#ffffff' },
-	tokenColors: mapTokens(dark.tokenColors, toLight),
-};
-
-// High Contrast: để VS Code tự dựng phần lớn màu tương phản cao; chỉ đặt accent và viền focus theo Yana.
-function highContrast(name, type, accent, border) {
+/** Một theme đầy đủ cho `kind` ('dark' | 'light') từ nguồn đóng băng. */
+function buildTheme(source, kind) {
+	const colors = mapColors(source.colors, kind);
+	const role = (old) => ROLES[old][kind];
+	for (const key of SOFT_STRUCTURAL_BORDERS) if (key in colors) colors[key] = NO_LINE;
+	// Thanh bên lùi lại: chữ phụ thay cho chữ chính, mục đang chọn vẫn rõ nhờ nền.
+	colors['sideBar.foreground'] = role('#94a3b8');
+	colors['sideBarTitle.foreground'] = role('#7c8698');
+	if (kind === 'dark') {
+		// Chữ trên nền nhấn sáng phải tối, không phải trắng, để đạt tương phản AA.
+		const ink = c(0.2, 0.03, A);
+		for (const key of ['button.foreground', 'badge.foreground', 'activityBarBadge.foreground', 'statusBarItem.remoteForeground', 'extensionButton.prominentForeground']) {
+			if (key in colors) colors[key] = key.startsWith('button') || key.startsWith('extension') ? '#ffffff' : ink;
+		}
+	} else {
+		Object.assign(colors, { 'widget.shadow': '#1b1f2724' });
+	}
 	return {
-		$schema: dark.$schema,
-		name,
-		type,
-		colors: { focusBorder: accent, contrastActiveBorder: accent, contrastBorder: border, 'activityBar.activeBorder': accent, 'tab.activeBorderTop': accent, 'button.background': accent, 'textLink.foreground': accent },
-		tokenColors: type === 'hc' ? dark.tokenColors : light.tokenColors,
+		$schema: source.$schema,
+		name: kind === 'dark' ? 'Yana Dark' : 'Yana Light',
+		type: kind,
+		semanticHighlighting: true,
+		colors,
+		tokenColors: mapTokens(source.tokenColors, kind),
 	};
 }
 
-const outputs = {
-	'yana-light-color-theme.json': light,
-	'yana-hc-dark-color-theme.json': highContrast('Yana High Contrast', 'hc', '#7aa0ff', '#6690ff'),
-	'yana-hc-light-color-theme.json': highContrast('Yana High Contrast Light', 'hcLight', '#1f47b0', '#1f47b0'),
-};
-for (const [file, theme] of Object.entries(outputs)) {
-	fs.writeFileSync(path.join(themesDir, file), JSON.stringify(theme, null, '\t') + '\n');
-	console.log('wrote', file, Object.keys(theme.colors).length, 'colors');
+// High Contrast: để VS Code tự dựng phần lớn màu tương phản cao; chỉ đặt accent và viền focus theo Yana.
+function highContrast(name, type, accent, border, tokenColors) {
+	return {
+		$schema: 'vscode://schemas/color-theme',
+		name,
+		type,
+		colors: { focusBorder: accent, contrastActiveBorder: accent, contrastBorder: border, 'activityBar.activeBorder': accent, 'tab.activeBorderTop': accent, 'button.background': accent, 'textLink.foreground': accent },
+		tokenColors,
+	};
+}
+
+/** Trả về { tên file: theme } mà không ghi gì ra đĩa (test dùng hàm này). */
+export function buildAll() {
+	const source = JSON.parse(fs.readFileSync(sourceFile, 'utf8'));
+	const dark = buildTheme(source, 'dark');
+	const light = buildTheme(source, 'light');
+	return {
+		'yana-dark-color-theme.json': dark,
+		'yana-light-color-theme.json': light,
+		'yana-hc-dark-color-theme.json': highContrast('Yana High Contrast', 'hc', ROLES['#7aa0ff'].dark, ROLES['#4f80ff'].dark, dark.tokenColors),
+		'yana-hc-light-color-theme.json': highContrast('Yana High Contrast Light', 'hcLight', ROLES['#7aa0ff'].light, ROLES['#7aa0ff'].light, light.tokenColors),
+	};
+}
+
+export { ROLES };
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+	for (const [file, theme] of Object.entries(buildAll())) {
+		fs.writeFileSync(path.join(themesDir, file), JSON.stringify(theme, null, '\t') + '\n');
+		console.log('wrote', file, Object.keys(theme.colors).length, 'colors');
+	}
 }

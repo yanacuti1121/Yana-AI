@@ -3,13 +3,13 @@
 	"name": "Yana High Contrast Light",
 	"type": "hcLight",
 	"colors": {
-		"focusBorder": "#1f47b0",
-		"contrastActiveBorder": "#1f47b0",
-		"contrastBorder": "#1f47b0",
-		"activityBar.activeBorder": "#1f47b0",
-		"tab.activeBorderTop": "#1f47b0",
-		"button.background": "#1f47b0",
-		"textLink.foreground": "#1f47b0"
+		"focusBorder": "#2549a9",
+		"contrastActiveBorder": "#2549a9",
+		"contrastBorder": "#2549a9",
+		"activityBar.activeBorder": "#2549a9",
+		"tab.activeBorderTop": "#2549a9",
+		"button.background": "#2549a9",
+		"textLink.foreground": "#2549a9"
 	},
 	"tokenColors": [
 		{
@@ -18,7 +18,7 @@
 				"punctuation.definition.comment"
 			],
 			"settings": {
-				"foreground": "#667085",
+				"foreground": "#74716e",
 				"fontStyle": "italic"
 			}
 		},
@@ -30,7 +30,7 @@
 				"keyword.control"
 			],
 			"settings": {
-				"foreground": "#c2410c"
+				"foreground": "#b95115"
 			}
 		},
 		{
@@ -39,7 +39,7 @@
 				"string.quoted"
 			],
 			"settings": {
-				"foreground": "#0f7a52"
+				"foreground": "#007852"
 			}
 		},
 		{
@@ -48,7 +48,7 @@
 				"constant.language"
 			],
 			"settings": {
-				"foreground": "#a35f00"
+				"foreground": "#935b00"
 			}
 		},
 		{
@@ -59,7 +59,7 @@
 				"support.class"
 			],
 			"settings": {
-				"foreground": "#8a5a00"
+				"foreground": "#7d5e07"
 			}
 		},
 		{
@@ -69,7 +69,7 @@
 				"meta.function-call"
 			],
 			"settings": {
-				"foreground": "#00756d"
+				"foreground": "#006d69"
 			}
 		},
 		{
@@ -78,7 +78,7 @@
 				"meta.definition.variable"
 			],
 			"settings": {
-				"foreground": "#1b1f27"
+				"foreground": "#211f1c"
 			}
 		},
 		{
@@ -87,7 +87,7 @@
 				"meta.object-literal.key"
 			],
 			"settings": {
-				"foreground": "#2f4fa8"
+				"foreground": "#2c488e"
 			}
 		},
 		{
@@ -96,7 +96,7 @@
 				"variable.language.self"
 			],
 			"settings": {
-				"foreground": "#c2410c"
+				"foreground": "#b95115"
 			}
 		},
 		{
@@ -105,7 +105,7 @@
 				"meta.brace"
 			],
 			"settings": {
-				"foreground": "#4b5565"
+				"foreground": "#5a5754"
 			}
 		},
 		{
@@ -113,7 +113,7 @@
 				"markup.heading"
 			],
 			"settings": {
-				"foreground": "#2f5fd8",
+				"foreground": "#3760c9",
 				"fontStyle": "bold"
 			}
 		},
@@ -122,7 +122,7 @@
 				"invalid"
 			],
 			"settings": {
-				"foreground": "#c62828"
+				"foreground": "#c92f33"
 			}
 		}
 	]
