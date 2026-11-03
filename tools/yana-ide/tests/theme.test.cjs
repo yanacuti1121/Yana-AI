@@ -45,6 +45,14 @@ const check = (name, ok, extra = '') => { (ok ? pass++ : fail++); console.log(ok
 	check('Dark bỏ đường kẻ thanh bên', dark.colors['sideBar.border'] === '#00000000');
 	check('Dark vẫn có viền ô nhập', dark.colors['input.border'] !== '#00000000');
 
+	// Theme sáng khớp bảng màu của giao diện mới (trang web thử), để hai bên trông giống nhau.
+	const palette = JSON.parse(fs.readFileSync(path.join(ide, 'theme-source', 'light-palette.json'), 'utf8'));
+	const same = (a, b) => String(a).toLowerCase() === String(b).toLowerCase();
+	check('Light: nền editor là thẻ trắng của giao diện mới', same(light.colors['editor.background'], palette.surface.card));
+	check('Light: thanh bên là nền canvas của giao diện mới', same(light.colors['sideBar.background'], palette.surface.canvas));
+	check('Light: thanh tiêu đề là nền inset của giao diện mới', same(light.colors['titleBar.activeBackground'], palette.surface.inset));
+	check('Light: chữ chính là mực xanh đen của giao diện mới', same(light.colors.foreground, palette.ink.primary));
+
 	const pairs = (theme) => {
 		const c = theme.colors;
 		const list = [

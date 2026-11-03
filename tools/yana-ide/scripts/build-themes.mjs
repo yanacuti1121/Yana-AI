@@ -1,7 +1,7 @@
 // Sinh Yana Dark, Yana Light và hai bản High Contrast từ MỘT nguồn: theme-source/yana-dark.source.json
 // (Yana Dark viết tay, đóng băng, không bao giờ bị ghi đè). Nguồn giữ nguyên toàn bộ khóa màu; script chỉ đổi
 // BẢNG ÁNH XẠ VAI TRÒ: mỗi mã hex cũ của nguồn (nền, viền, chữ, nhấn, trạng thái) ứng với một màu 2026 sinh trong
-// OKLCH, một cho Dark và một cho Light. Phong cách 2026: nền xám ấm gần trung tính, ít đường kẻ, thanh bên lùi lại.
+// OKLCH cho Dark, và lấy từ bảng màu của giao diện mới (theme-source/light-palette.json) cho Light. Ít đường kẻ, thanh bên lùi lại.
 // Chạy: node tools/yana-ide/scripts/build-themes.mjs   (sửa bảng ROLES hoặc ACCENT_HUE rồi chạy lại; kết quả lặp lại được)
 import fs from 'node:fs';
 import path from 'node:path';
@@ -19,49 +19,59 @@ const BASE_HUE = 70; // xám ấm
 const BASE_CHROMA = 0.006; // rất thấp: gần trung tính
 const HUE = { magenta: 300, green: 160, mint: 165, teal: 190, red: 25, amber: 75, yellow: 95, orange: 45 };
 
-const n = (L, C = BASE_CHROMA) => oklchToHex(L, C, BASE_HUE); // bề mặt trung tính
+// Bảng màu sáng của giao diện mới. Chữ và viền là mực xanh đen với độ trong suốt; theme của VS Code cần màu đặc,
+// nên trộn mực lên nền trắng (đúng cách mắt thấy chúng trên thẻ trắng của trang web thử).
+const PALETTE = JSON.parse(fs.readFileSync(path.join(here, '..', 'theme-source', 'light-palette.json'), 'utf8'));
+const { alpha: ALPHA, surface: SURFACE, status: STATUS, syntax: SYNTAX } = PALETTE;
+const inkOverWhite = (alpha) => {
+	const channel = (value) => Math.round(255 - (255 - value) * alpha).toString(16).padStart(2, '0');
+	return `#${PALETTE.inkRgb.map(channel).join('')}`;
+};
+
+const n = (L, C = BASE_CHROMA) => oklchToHex(L, C, BASE_HUE); // bề mặt trung tính của bản tối
 const c = (L, C, h) => oklchToHex(L, C, h); // màu có sắc
 const A = ACCENT_HUE;
 
 // hex cũ của Yana Dark -> { dark, light }. Cùng vai trò, độ sáng L đảo chiều giữa hai theme.
 const ROLES = {
 	// Bề mặt và viền, từ tối sâu đến sáng dần (theo Dark).
-	'#0c0e12': { dark: n(0.15), light: n(0.955) }, // chrome: thanh tiêu đề, thanh trạng thái, ô nhập
-	'#12151c': { dark: n(0.17), light: n(1, 0) }, // nền trình soạn thảo
-	'#161a22': { dark: n(0.195), light: n(0.972) }, // thanh bên, panel
-	'#1a1e27': { dark: n(0.225), light: n(0.945) }, // hover
-	'#1c212c': { dark: n(0.24), light: n(0.935) }, // widget nổi, mục chọn
-	'#1e222b': { dark: n(0.25), light: n(0.915) }, // viền rất nhẹ
-	'#252a36': { dark: n(0.29), light: n(0.88) }, // viền
-	'#3a3f4c': { dark: n(0.38), light: n(0.8) },
+	// Cột light lấy từ bảng màu của giao diện mới (theme-source/light-palette.json), không sinh bằng OKLCH.
+	'#0c0e12': { dark: n(0.15), light: SURFACE.inset }, // chrome: thanh tiêu đề, thanh trạng thái, ô nhập
+	'#12151c': { dark: n(0.17), light: SURFACE.card }, // nền trình soạn thảo
+	'#161a22': { dark: n(0.195), light: SURFACE.canvas }, // thanh bên, panel
+	'#1a1e27': { dark: n(0.225), light: inkOverWhite(ALPHA.hover) }, // hover
+	'#1c212c': { dark: n(0.24), light: SURFACE.control }, // widget nổi, mục chọn
+	'#1e222b': { dark: n(0.25), light: inkOverWhite(ALPHA.borderHairline) }, // viền rất nhẹ
+	'#252a36': { dark: n(0.29), light: inkOverWhite(ALPHA.border) }, // viền
+	'#3a3f4c': { dark: n(0.38), light: inkOverWhite(ALPHA.guide) },
 	// Chữ và biểu tượng, từ mờ đến rõ.
-	'#5c6270': { dark: n(0.52), light: n(0.62) }, // vô hiệu hóa
-	'#64748b': { dark: n(0.65), light: n(0.55) }, // chú thích, biểu tượng không hoạt động
-	'#7c8698': { dark: n(0.7), light: n(0.52) }, // số dòng, gợi ý trong ô nhập
-	'#94a3b8': { dark: n(0.76), light: n(0.46) }, // chữ phụ
-	'#c3c6d7': { dark: n(0.87, 0.004), light: n(0.33) },
-	'#e2e2e8': { dark: n(0.93, 0.004), light: n(0.24) }, // chữ chính
-	'#f8fafc': { dark: n(0.97, 0.003), light: n(0.16) }, // chữ nhấn mạnh
+	'#5c6270': { dark: n(0.52), light: inkOverWhite(ALPHA.disabled) }, // vô hiệu hóa
+	'#64748b': { dark: n(0.65), light: inkOverWhite(ALPHA.tertiary) }, // chú thích, biểu tượng không hoạt động
+	'#7c8698': { dark: n(0.7), light: inkOverWhite(ALPHA.tertiary) }, // số dòng, gợi ý trong ô nhập
+	'#94a3b8': { dark: n(0.76), light: inkOverWhite(ALPHA.secondary) }, // chữ phụ
+	'#c3c6d7': { dark: n(0.87, 0.004), light: inkOverWhite(ALPHA.strong) },
+	'#e2e2e8': { dark: n(0.93, 0.004), light: PALETTE.ink.primary }, // chữ chính
+	'#f8fafc': { dark: n(0.97, 0.003), light: PALETTE.ink.primary }, // chữ nhấn mạnh
 	'#ffffff': { dark: '#ffffff', light: '#ffffff' },
 	'#000000': { dark: '#000000', light: '#000000' },
 	// Màu nhấn.
-	'#4f80ff': { dark: c(0.72, 0.15, A), light: c(0.52, 0.17, A) },
-	'#3461d6': { dark: c(0.53, 0.17, A), light: c(0.5, 0.18, A) }, // nền nút
-	'#3d6ae0': { dark: c(0.56, 0.17, A), light: c(0.46, 0.18, A) }, // nút khi hover
-	'#7aa0ff': { dark: c(0.8, 0.12, A), light: c(0.44, 0.16, A) }, // liên kết khi hover
-	'#b4c5ff': { dark: c(0.87, 0.06, A), light: c(0.42, 0.12, A) },
+	'#4f80ff': { dark: c(0.72, 0.15, A), light: STATUS.runFg }, // màu nhấn tạm của bản sáng cho đến khi chọn bản sắc
+	'#3461d6': { dark: c(0.53, 0.17, A), light: STATUS.runFg }, // nền nút
+	'#3d6ae0': { dark: c(0.56, 0.17, A), light: SYNTAX.runHover }, // nút khi hover
+	'#7aa0ff': { dark: c(0.8, 0.12, A), light: SYNTAX.runHover }, // liên kết khi hover
+	'#b4c5ff': { dark: c(0.87, 0.06, A), light: STATUS.runFg },
 	'#b4a5ff': { dark: c(0.78, 0.1, HUE.magenta), light: c(0.52, 0.15, HUE.magenta) },
 	'#d4c8ff': { dark: c(0.86, 0.06, HUE.magenta), light: c(0.46, 0.15, HUE.magenta) },
 	// Trạng thái và cú pháp.
-	'#10b981': { dark: c(0.72, 0.15, HUE.green), light: c(0.55, 0.13, HUE.green) },
-	'#4edea3': { dark: c(0.8, 0.15, HUE.mint), light: c(0.5, 0.12, HUE.mint) },
-	'#00d2c4': { dark: c(0.78, 0.12, HUE.teal), light: c(0.55, 0.1, HUE.teal) },
-	'#46eee0': { dark: c(0.87, 0.12, HUE.teal), light: c(0.48, 0.09, HUE.teal) },
-	'#ef4444': { dark: c(0.66, 0.19, HUE.red), light: c(0.55, 0.19, HUE.red) },
-	'#ffb4ab': { dark: c(0.83, 0.08, HUE.red), light: c(0.5, 0.17, HUE.red) },
-	'#f59e0b': { dark: c(0.78, 0.15, HUE.amber), light: c(0.52, 0.13, HUE.amber) },
-	'#fcd34d': { dark: c(0.88, 0.14, HUE.yellow), light: c(0.5, 0.1, 85) },
-	'#ff8a65': { dark: c(0.75, 0.13, HUE.orange), light: c(0.56, 0.15, HUE.orange) },
+	'#10b981': { dark: c(0.72, 0.15, HUE.green), light: STATUS.allowDot },
+	'#4edea3': { dark: c(0.8, 0.15, HUE.mint), light: STATUS.allowFg },
+	'#00d2c4': { dark: c(0.78, 0.12, HUE.teal), light: SYNTAX.teal },
+	'#46eee0': { dark: c(0.87, 0.12, HUE.teal), light: SYNTAX.cyan },
+	'#ef4444': { dark: c(0.66, 0.19, HUE.red), light: STATUS.denyDot },
+	'#ffb4ab': { dark: c(0.83, 0.08, HUE.red), light: STATUS.denyFg },
+	'#f59e0b': { dark: c(0.78, 0.15, HUE.amber), light: STATUS.askFg },
+	'#fcd34d': { dark: c(0.88, 0.14, HUE.yellow), light: SYNTAX.yellow },
+	'#ff8a65': { dark: c(0.75, 0.13, HUE.orange), light: SYNTAX.orange },
 };
 
 // Kiểu "mềm": bỏ đường kẻ cấu trúc, để các mảng nền tự phân vùng. Viền của widget tương tác (ô nhập, menu) giữ lại.

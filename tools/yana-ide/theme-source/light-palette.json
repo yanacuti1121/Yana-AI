@@ -1,0 +1,15 @@
+{
+  "_note": "Bảng màu sáng của giao diện mới, chép từ design/tokens.json (themes.light) của khung xương đang chạy ở trang web thử. Theme Yana Light của trình soạn thảo lấy đúng các giá trị này để hai bên trông giống nhau. Khi token ở khung xương đổi, chép lại tệp này rồi chạy lại build-themes.mjs. Các màu cú pháp ngoài token là bậc 700 của dải màu Tailwind để đạt tương phản AA trên nền trắng.",
+  "source": "Yana-AI-agy-ui/design/tokens.json#themes.light",
+  "inkRgb": [15, 23, 42],
+  "ink": { "primary": "#0F172A" },
+  "alpha": { "hover": 0.06, "borderHairline": 0.09, "border": 0.12, "disabled": 0.36, "tertiary": 0.6, "secondary": 0.66, "strong": 0.8, "guide": 0.28 },
+  "surface": { "canvas": "#FBFBFD", "inset": "#F5F5F5", "card": "#FFFFFF", "control": "#EFEFF2" },
+  "status": {
+    "allowFg": "#15803D", "allowDot": "#16A34A",
+    "askFg": "#B45309",
+    "denyFg": "#B91C1C", "denyDot": "#DC2626",
+    "runFg": "#0369A1"
+  },
+  "syntax": { "runHover": "#075985", "teal": "#0F766E", "cyan": "#0E7490", "yellow": "#A16207", "orange": "#C2410C" }
+}
