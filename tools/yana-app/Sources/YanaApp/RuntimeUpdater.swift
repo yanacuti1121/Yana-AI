@@ -113,9 +113,39 @@ final class RuntimeUpdater: ObservableObject {
 	private static let markerPollSeconds = 3
 	private static let markerPolls = 1200 // one hour at most: cargo can take a long time on a cold cache
 
-	// `yana-ai --version` prints "yana-ai 1.5.0". It is a Python launcher, run with a fixed argument.
+	// The installed PyPI package version, which is what pypi.org's number compares with. `yana-ai --version`
+	// prints the Yana AI product version from plugin.json instead (a separate number by design, see
+	// VERSIONING.md: PyPI 1.5.1 printed "1.5.0"), so it is only a fallback when the pipx venv is not found.
 	private nonisolated static func localYanaAiVersion() -> String? {
 		guard let path = yanaAiCandidates.first(where: { FileManager.default.isExecutableFile(atPath: $0) }) else { return nil }
+		if let version = pipxPackageVersion() { return version }
+		return productVersionOutput(path)
+	}
+
+	// pipx keeps each tool in its own venv: .../venvs/yana-ai/lib/python3.X/site-packages/yana_ai-1.5.1.dist-info
+	private nonisolated static let pipxVenvs = ["\(home)/Library/Application Support/pipx/venvs/yana-ai",
+	                                           "\(home)/.local/pipx/venvs/yana-ai",
+	                                           "\(home)/.local/share/pipx/venvs/yana-ai"]
+
+	nonisolated static func pipxPackageVersion(venvs: [String] = pipxVenvs) -> String? {
+		let fm = FileManager.default
+		for venv in venvs {
+			let lib = URL(fileURLWithPath: venv).appendingPathComponent("lib")
+			guard let pythons = try? fm.contentsOfDirectory(atPath: lib.path) else { continue }
+			for python in pythons where python.hasPrefix("python") {
+				let site = lib.appendingPathComponent(python).appendingPathComponent("site-packages")
+				let entries = (try? fm.contentsOfDirectory(atPath: site.path)) ?? []
+				for entry in entries where entry.hasPrefix("yana_ai-") && entry.hasSuffix(".dist-info") {
+					let version = String(entry.dropFirst("yana_ai-".count).dropLast(".dist-info".count))
+					if version.range(of: #"^\d+(\.\d+)*$"#, options: .regularExpression) != nil { return version }
+				}
+			}
+		}
+		return nil
+	}
+
+	// `yana-ai --version` prints "yana-ai X.Y.Z". It is a Python launcher, run with a fixed argument.
+	private nonisolated static func productVersionOutput(_ path: String) -> String? {
 		let process = Process()
 		process.executableURL = URL(fileURLWithPath: path)
 		process.arguments = ["--version"]
