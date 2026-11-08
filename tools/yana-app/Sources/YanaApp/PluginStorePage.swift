@@ -36,6 +36,7 @@ struct PluginStorePage: View {
 	@ObservedObject private var catalog = PluginCatalog.shared
 	@State private var tab: Tab = .discover
 	@State private var query = ""
+	@State private var searched = ""               // `query` once typing pauses (filtering runs on this)
 	@State private var source: String? = nil      // StoreFeed.id
 	@State private var category: String? = nil
 	@State private var limit = Self.pageStep
@@ -44,15 +45,17 @@ struct PluginStorePage: View {
 	private static let shelfSize = 20
 
 	private var filtered: [StoreItem] {
-		let q = query.trimmingCharacters(in: .whitespaces).lowercased()
-		return catalog.items.filter { item in
-			(source == nil || item.feed == source) && (category == nil || item.category == category)
-				&& (q.isEmpty || item.name.lowercased().contains(q) || item.summary.lowercased().contains(q)
-					|| (item.author?.lowercased().contains(q) ?? false))
+		let q = searched.trimmingCharacters(in: .whitespaces)
+		let pool = source.map { catalog.byFeed[$0] ?? [] } ?? catalog.items
+		return pool.filter { item in
+			(category == nil || item.category == category)
+				&& (q.isEmpty || item.name.localizedCaseInsensitiveContains(q) || item.summary.localizedCaseInsensitiveContains(q)
+					|| (item.author?.localizedCaseInsensitiveContains(q) ?? false))
 		}
 	}
 
-	private var browsing: Bool { query.isEmpty && source == nil && category == nil }
+	private var browsing: Bool { searched.isEmpty && source == nil && category == nil }
+	private static let searchPause: Duration = .milliseconds(250)
 
 	var body: some View {
 		ScrollView {
@@ -91,7 +94,12 @@ struct PluginStorePage: View {
 						.padding(.horizontal, 14).frame(width: 320, height: 34)
 						.background(Capsule().fill(FB.surfaceSecondary))
 						.overlay(Capsule().stroke(FB.divider, lineWidth: 1))
-						.onChange(of: query) { _, _ in limit = Self.pageStep }
+						.task(id: query) {
+							try? await Task.sleep(for: Self.searchPause)
+							guard !Task.isCancelled else { return }
+							searched = query
+							limit = Self.pageStep
+						}
 				}
 			}
 			if !catalog.errors.isEmpty {
@@ -116,15 +124,17 @@ struct PluginStorePage: View {
 		} else if browsing {
 			featured
 			ForEach(catalog.feeds) { feed in
-				let list = catalog.items.filter { $0.feed == feed.id }
+				let list = catalog.byFeed[feed.id] ?? []
 				if !list.isEmpty {
 					StoreShelf(title: String(format: L("store.shelfFrom"), feed.label, list.count), items: Array(list.prefix(Self.shelfSize)),
 					           seeAll: { source = feed.id }) { detail = $0 }
 				}
 			}
-			ForEach(topCategories(in: catalog.items.filter { $0.kind == .marketplace }, count: 3), id: \.self) { cat in
-				let list = catalog.items.filter { $0.kind == .marketplace && $0.category == cat }
-				StoreShelf(title: StoreCategories.label(cat), items: Array(list.prefix(Self.shelfSize)), seeAll: { category = cat }) { detail = $0 }
+			let claudeFeed = StoreFeed.builtIns[0].id
+			let claudeItems = catalog.byFeed[claudeFeed] ?? []
+			ForEach(Array((catalog.categoriesByFeed[claudeFeed] ?? []).prefix(3)), id: \.self) { cat in
+				let list = claudeItems.lazy.filter { $0.category == cat }.prefix(Self.shelfSize)
+				StoreShelf(title: StoreCategories.label(cat), items: Array(list), seeAll: { source = claudeFeed; category = cat }) { detail = $0 }
 			}
 		} else {
 			let list = filtered
@@ -149,8 +159,7 @@ struct PluginStorePage: View {
 			ScrollView(.horizontal, showsIndicators: false) {
 				HStack(spacing: 6) {
 					pill(L("store.allCategories"), active: category == nil) { category = nil; limit = Self.pageStep }
-					let pool = catalog.items.filter { source == nil || $0.feed == source }
-					ForEach(topCategories(in: pool, count: 16), id: \.self) { cat in
+					ForEach(Array((catalog.categoriesByFeed[source ?? ""] ?? []).prefix(16)), id: \.self) { cat in
 						pill(StoreCategories.label(cat), active: category == cat) { category = cat; limit = Self.pageStep }
 					}
 				}
@@ -172,16 +181,15 @@ struct PluginStorePage: View {
 	private var featuredItems: [(item: StoreItem, eyebrow: String)] {
 		let day = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 0
 		return catalog.feeds.compactMap { feed in
-			let list = catalog.items.filter { $0.feed == feed.id && $0.summary.count > 20 }
+			let list = catalog.byFeed[feed.id] ?? []
 			guard !list.isEmpty else { return nil }
-			return (list[day % list.count], String(format: L("store.featuredFrom"), feed.label))
+			// Walk from today's position to the first entry with a real description.
+			for step in 0 ..< min(list.count, 50) {
+				let item = list[(day + step) % list.count]
+				if item.summary.count > 20 { return (item, String(format: L("store.featuredFrom"), feed.label)) }
+			}
+			return nil
 		}
-	}
-
-	private func topCategories(in items: [StoreItem], count: Int) -> [String] {
-		var counts: [String: Int] = [:]
-		for item in items where item.category != "other" { counts[item.category, default: 0] += 1 }
-		return counts.sorted { $0.value > $1.value || ($0.value == $1.value && $0.key < $1.key) }.prefix(count).map(\.key)
 	}
 
 	private func pill(_ title: String, active: Bool, action: @escaping () -> Void) -> some View {

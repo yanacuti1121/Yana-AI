@@ -44,7 +44,10 @@ struct StoreItem: Codable, Identifiable, Hashable {
 final class PluginCatalog: ObservableObject {
 	static let shared = PluginCatalog()
 
-	@Published private(set) var items: [StoreItem] = []
+	// Derived lists are built once per change of `items`, never per redraw (6,000+ entries).
+	@Published private(set) var items: [StoreItem] = [] { didSet { reindex() } }
+	private(set) var byFeed: [String: [StoreItem]] = [:]
+	private(set) var categoriesByFeed: [String: [String]] = [:]   // feed id ("" = all) -> categories by count
 	@Published private(set) var updated: Date?
 	@Published private(set) var loading = false
 	@Published private(set) var errors: [String] = []
@@ -119,6 +122,7 @@ final class PluginCatalog: ObservableObject {
 				let all = try await FeedReader.readRegistry(feed, hosts, since: since) { page in
 					await MainActor.run { self.merge(page) }
 				}
+				merge([], force: true) // show what is still held
 				if since == nil { replace(feed, with: all) } // a full read also drops servers that left
 				synced[feed.id] = started
 			} catch {
@@ -132,11 +136,38 @@ final class PluginCatalog: ObservableObject {
 		}
 	}
 
-	private func merge(_ page: [StoreItem]) {
-		guard !page.isEmpty else { return }
-		var index = Dictionary(uniqueKeysWithValues: items.enumerated().map { ($1.id, $0) })
-		for item in page {
-			if let at = index[item.id] { items[at] = item } else { index[item.id] = items.count; items.append(item) }
+	// Pages arrive several times a second; they are held and shown at most every `publishInterval`, so the
+	// store does not redraw thousands of entries on every page.
+	private var pending: [StoreItem] = []
+	private var lastPublish = Date.distantPast
+	private static let publishInterval: TimeInterval = 2
+
+	private func merge(_ page: [StoreItem], force: Bool = false) {
+		pending += page
+		guard !pending.isEmpty, force || Date().timeIntervalSince(lastPublish) >= Self.publishInterval else { return }
+		var next = items
+		var index = Dictionary(next.enumerated().map { ($1.id, $0) }, uniquingKeysWith: { first, _ in first })
+		for item in pending {
+			if let at = index[item.id] { next[at] = item } else { index[item.id] = next.count; next.append(item) }
+		}
+		pending = []
+		lastPublish = Date()
+		items = next // one publish, one reindex
+	}
+
+	private func reindex() {
+		var feeds: [String: [StoreItem]] = [:]
+		var counts: [String: [String: Int]] = [:]
+		for item in items {
+			feeds[item.feed, default: []].append(item)
+			if item.category != "other" {
+				counts[item.feed, default: [:]][item.category, default: 0] += 1
+				counts["", default: [:]][item.category, default: 0] += 1
+			}
+		}
+		byFeed = feeds
+		categoriesByFeed = counts.mapValues { table in
+			table.sorted { $0.value > $1.value || ($0.value == $1.value && $0.key < $1.key) }.map(\.key)
 		}
 	}
 
