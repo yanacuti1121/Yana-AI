@@ -41,6 +41,7 @@ struct PluginStorePage: View {
 	@State private var category: String? = nil
 	@State private var limit = Self.pageStep
 	@State private var detail: StoreItem? = nil
+	@State private var guide = StoreTour.shouldShow || ProcessInfo.processInfo.environment["YANA_STORE_TOUR"] == "1"
 	private static let pageStep = 60
 	private static let shelfSize = 20
 
@@ -72,6 +73,9 @@ struct PluginStorePage: View {
 		}
 		.task { await catalog.loadIfNeeded() }
 		.sheet(item: $detail) { item in StoreDetailSheet(item: item) { detail = nil } }
+		.background(EmptyView().sheet(isPresented: $guide) {
+			OnboardingTourView(pages: StoreTour.pages, seenKey: StoreTour.seenKey) { guide = false }
+		})
 	}
 
 	private var header: some View {
@@ -80,6 +84,7 @@ struct PluginStorePage: View {
 				Text(L("nav.Plugins")).font(.system(size: 30, weight: .bold)).foregroundStyle(FB.text)
 				Spacer()
 				Text(status).font(.fbCaption).foregroundStyle(FB.textSecondary)
+				FBIconButton(icon: "help", variant: .secondary, size: .small, tooltip: L("store.guide")) { guide = true }
 				FBIconButton(icon: "refresh", variant: .secondary, size: .small, tooltip: L("store.refresh")) { Task { await catalog.refresh() } }
 					.disabled(catalog.loading)
 			}

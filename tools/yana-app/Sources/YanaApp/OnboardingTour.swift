@@ -27,13 +27,28 @@ enum OnboardingTour {
 	static func markSeen() { UserDefaults.standard.set(true, forKey: seenKey) }
 }
 
+// The plugin store's own guide: shown on the first visit, and from the "?" button on the store page.
+enum StoreTour {
+	static let seenKey = "yana.storeTour.seen"
+	static let pages: [TourPage] = [
+		TourPage(id: "store-browse", layout: .mediaLeft, tint: FB.primarySubtle),
+		TourPage(id: "store-sources", layout: .mediaRight, tint: FB.successSubtle),
+		TourPage(id: "store-get", layout: .mediaTop, tint: FB.warningSubtle),
+		TourPage(id: "store-installed", layout: .mediaLeft, tint: FB.surfaceTertiary),
+	]
+	static var shouldShow: Bool { !UserDefaults.standard.bool(forKey: seenKey) }
+}
+
 struct OnboardingTourView: View {
+	// The app guide by default; other guides (the plugin store) pass their own pages and "seen" key.
+	var pages: [TourPage] = OnboardingTour.pages
+	var seenKey: String = OnboardingTour.seenKey
 	let close: () -> Void
 	// YANA_TOUR_PAGE=<n> opens page n (1-5) to check its look in the live window.
 	@State private var index = ProcessInfo.processInfo.environment["YANA_TOUR_PAGE"]
 		.flatMap(Int.init).map { min(max($0 - 1, 0), OnboardingTour.pages.count - 1) } ?? 0
-	private var page: TourPage { OnboardingTour.pages[index] }
-	private var isLast: Bool { index == OnboardingTour.pages.count - 1 }
+	private var page: TourPage { pages[min(index, pages.count - 1)] }
+	private var isLast: Bool { index >= pages.count - 1 }
 
 	var body: some View {
 		VStack(spacing: 0) {
@@ -105,7 +120,7 @@ struct OnboardingTourView: View {
 	private var footer: some View {
 		HStack(alignment: .center) {
 			HStack(spacing: 6) {
-				ForEach(OnboardingTour.pages.indices, id: \.self) { i in
+				ForEach(pages.indices, id: \.self) { i in
 					Capsule().fill(i == index ? FB.text : FB.borderStrong).frame(width: i == index ? 22 : 7, height: 7)
 				}
 			}
@@ -134,7 +149,7 @@ struct OnboardingTourView: View {
 	}
 
 	private func finish() {
-		OnboardingTour.markSeen()
+		UserDefaults.standard.set(true, forKey: seenKey)
 		close()
 	}
 }

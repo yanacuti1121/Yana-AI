@@ -21,6 +21,10 @@ struct TourMedia: View {
 				case "models": ModelDemo(t: t)
 				case "approve": ApproveDemo(t: t)
 				case "tools": ToolsDemo(t: t)
+				case "store-browse": StoreBrowseDemo(t: t)
+				case "store-sources": StoreSourcesDemo(t: t)
+				case "store-get": StoreGetDemo(t: t)
+				case "store-installed": StoreInstalledDemo(t: t)
 				default: MemoryDemo(t: t)
 				}
 			}
@@ -269,6 +273,150 @@ private struct MemoryDemo: View {
 				Spacer(minLength: 0)
 			}
 			.padding(.horizontal, 14).padding(.bottom, 12)
+		}
+	}
+}
+
+// MARK: plugin store guide (StoreTour)
+
+private struct MiniTile: View {
+	let name: String
+	var body: some View { AppIconTile(name: name, size: 30) }
+}
+
+private struct StoreBrowseDemo: View {
+	let t: Double
+	private let query = "github"
+	var body: some View {
+		let p = phase(t, 7)
+		let typed = String(query.prefix(Int(max(p - 0.8, 0) / 0.25)))
+		let searching = !typed.isEmpty
+		MiniWindow {
+			VStack(alignment: .leading, spacing: 8) {
+				HStack(spacing: 6) {
+					Image(systemName: "magnifyingglass").font(.system(size: 10))
+					Text(typed.isEmpty ? "Tìm plugin" : typed).font(.system(size: 11)).foregroundStyle(typed.isEmpty ? FB.textTertiary : FB.text)
+					Spacer()
+				}
+				.padding(6).background(Capsule().fill(FB.surfaceSecondary))
+				HStack(spacing: 5) {
+					ForEach(["Mọi nguồn", "Claude", "MCP", "ChatGPT"], id: \.self) { label in
+						Text(label).font(.system(size: 9, weight: .medium)).foregroundStyle(label == "Mọi nguồn" ? FB.onPrimary : FB.text)
+							.padding(.horizontal, 7).padding(.vertical, 3)
+							.background(Capsule().fill(label == "Mọi nguồn" ? FB.primary : FB.surfaceTertiary))
+					}
+				}
+				ForEach(searching ? ["GitHub", "GitHub Actions"] : ["Airtable", "Notion", "Figma"], id: \.self) { name in
+					HStack(spacing: 8) {
+						MiniTile(name: name)
+						Text(name).font(.system(size: 11, weight: .medium)).foregroundStyle(FB.text)
+						Spacer()
+						Text("Xem").font(.system(size: 9, weight: .semibold)).foregroundStyle(FB.primaryText)
+							.padding(.horizontal, 7).padding(.vertical, 2).background(Capsule().fill(FB.primarySubtle))
+					}
+				}
+				Spacer(minLength: 0)
+			}
+			.padding(.horizontal, 12).padding(.bottom, 10)
+		}
+	}
+}
+
+private struct StoreSourcesDemo: View {
+	let t: Double
+	private let rows = [("Claude", "317"), ("MCP Registry", "59 470"), ("ChatGPT", "1 640")]
+	var body: some View {
+		let p = phase(t, 6)
+		let added = p > 3.2
+		MiniWindow {
+			VStack(alignment: .leading, spacing: 6) {
+				ForEach(rows, id: \.0) { row in
+					HStack {
+						Text(row.0).font(.system(size: 11, weight: .medium)).foregroundStyle(FB.text)
+						Spacer()
+						Text("\(row.1) mục").font(.system(size: 10)).foregroundStyle(FB.textSecondary)
+					}
+					.padding(7).background(RoundedRectangle(cornerRadius: 7).fill(FB.surfaceSecondary))
+				}
+				if added {
+					HStack {
+						Text("Nguồn của bạn").font(.system(size: 11, weight: .medium)).foregroundStyle(FB.text)
+						Spacer()
+						Text("mới").font(.system(size: 10, weight: .semibold)).foregroundStyle(FB.successText)
+					}
+					.padding(7).background(RoundedRectangle(cornerRadius: 7).fill(FB.successSubtle)).opacity(ramp(p, 3.2))
+				} else {
+					Text("+ Thêm nguồn (https://…)").font(.system(size: 10)).foregroundStyle(FB.primaryText)
+						.padding(7).frame(maxWidth: .infinity, alignment: .leading)
+						.background(RoundedRectangle(cornerRadius: 7).stroke(FB.primaryBorder, style: StrokeStyle(lineWidth: 1, dash: [4])))
+				}
+				Spacer(minLength: 0)
+			}
+			.padding(.horizontal, 12).padding(.bottom, 10)
+		}
+	}
+}
+
+private struct StoreGetDemo: View {
+	let t: Double
+	var body: some View {
+		let p = phase(t, 8)
+		MiniWindow {
+			VStack(alignment: .leading, spacing: 7) {
+				if p < 2.5 {
+					HStack(spacing: 8) {
+						MiniTile(name: "Time Server")
+						VStack(alignment: .leading) {
+							Text("Time Server").font(.system(size: 12, weight: .semibold)).foregroundStyle(FB.text)
+							Text("MCP Registry").font(.system(size: 9)).foregroundStyle(FB.textSecondary)
+						}
+						Spacer()
+						Text("Nhận").font(.system(size: 11, weight: .bold)).foregroundStyle(FB.onPrimary)
+							.padding(.horizontal, 12).padding(.vertical, 4)
+							.background(Capsule().fill(p > 1.8 ? FB.primaryPressed : FB.primary))
+					}
+				} else if p < 5 {
+					Text("Sẽ thêm máy chủ này").font(.system(size: 11, weight: .semibold)).foregroundStyle(FB.text)
+					Text("uvx mcp-server-time==0.6.2").font(.system(size: 10, design: .monospaced)).foregroundStyle(FB.text)
+						.padding(6).frame(maxWidth: .infinity, alignment: .leading)
+						.background(RoundedRectangle(cornerRadius: 6).fill(FB.surfaceTertiary))
+					HStack { Spacer(); Text("Thêm và xác nhận").font(.system(size: 10, weight: .semibold)).foregroundStyle(FB.onPrimary)
+						.padding(.horizontal, 9).padding(.vertical, 4).background(Capsule().fill(p > 4.4 ? FB.primaryPressed : FB.primary)) }
+				} else {
+					Text("Terminal").font(.system(size: 9, weight: .semibold)).foregroundStyle(FB.textSecondary)
+					Text("Confirm mcp-servers.json? [yes/no]").font(.system(size: 10, design: .monospaced)).foregroundStyle(FB.text)
+					Text(p > 6 ? "yes" : "").font(.system(size: 10, design: .monospaced)).foregroundStyle(FB.primaryText)
+					if p > 6.6 { Text("✓ trusted").font(.system(size: 10, design: .monospaced)).foregroundStyle(FB.successText) }
+				}
+				Spacer(minLength: 0)
+			}
+			.padding(.horizontal, 12).padding(.bottom, 10)
+		}
+	}
+}
+
+private struct StoreInstalledDemo: View {
+	let t: Double
+	var body: some View {
+		let p = phase(t, 6)
+		MiniWindow {
+			VStack(alignment: .leading, spacing: 7) {
+				ForEach(["GitHub", "Notion", "Google Drive"], id: \.self) { name in
+					let on = name != "Google Drive" || p > 3
+					HStack(spacing: 8) {
+						MiniTile(name: name)
+						Text(name).font(.system(size: 11, weight: .medium)).foregroundStyle(FB.text)
+						Spacer()
+						Text(on ? "Gỡ" : "Nhận").font(.system(size: 9, weight: .semibold))
+							.foregroundStyle(on ? FB.text : FB.onPrimary)
+							.padding(.horizontal, 8).padding(.vertical, 3)
+							.background(Capsule().fill(on ? FB.surfaceTertiary : FB.primary))
+					}
+				}
+				Text("Máy chủ MCP: đã xác nhận").font(.system(size: 10)).foregroundStyle(FB.successText)
+				Spacer(minLength: 0)
+			}
+			.padding(.horizontal, 12).padding(.bottom, 10)
 		}
 	}
 }
