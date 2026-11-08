@@ -108,6 +108,47 @@ AI. Câu 1 bên dưới vì thế đã có một nửa lời đáp: mọi AI; c�
 4. Có cho plugin tự chạy mà không hỏi (kiểu "lease" có hạn), hay mọi lệnh đều phải duyệt?
 5. Chữ `plugin` hiện dùng cho guard script trong `yana-rt plugin`: đổi tên lệnh cũ, hay đặt tên khác cho khái niệm mới?
 
+## Quyết định mới của anh Tâm (2026-11-08)
+
+- Chợ plugin trình bày **kiểu App Store**.
+- Danh mục **tự lấy và tự cập nhật** từ nguồn của Claude/ChatGPT; người dùng không phải tự tìm, tự cài bằng tay.
+- Phần **kết nối MCP** cần thiết kế chi tiết hơn (không bắt người dùng sửa tệp JSON).
+- Câu 4 đã có lời đáp ở tầng app: chế độ **Tự động** dùng Capability Lease có hạn (app commit `70b80825`,
+  `6622ce6a`; yana-rt `d391491e` thêm `agent_id` cho headless).
+
+## Phase 7: Research (2026-11-08, đã truy cập thật)
+
+| Nguồn | API công khai | Đã kiểm |
+|---|---|---|
+| Claude: `anthropics/claude-plugins-official`, tệp `.claude-plugin/marketplace.json` | Có (tệp JSON công khai trên GitHub, `raw.githubusercontent.com`) | 317 plugin; trường `name, displayName, description, category, author, homepage, keywords, version, source, skills, lspServers`; nguồn ghi kèm `sha` cố định; giấy phép repo Apache-2.0; `pushed_at` 2026-11-08 |
+| Registry MCP chính thức: `registry.modelcontextprotocol.io/v0.1/servers` | Có, không cần tài khoản, phân trang bằng cursor | HTTP 200; mỗi mục có `name, title, description, version, remotes[] (type, url)`, `_meta` trạng thái active và `isLatest` |
+| ChatGPT App Directory (`chatgpt.com/apps`) | **Không có API công khai** (chỉ có danh sách cộng đồng không chính thức) | Không dùng: đọc trang bằng máy là cào dữ liệu, rủi ro điều khoản và dễ hỏng |
+
+## Phase 3/4: Thiết kế đề xuất (chờ anh duyệt)
+
+**Dữ liệu:** `yana-rt` (không phải app) tải hai nguồn trên qua https, chỉ hai host trong danh sách cho
+phép (`raw.githubusercontent.com`, `registry.modelcontextprotocol.io`), lưu đệm cục bộ, làm mới 6 giờ một
+lần và khi bấm Làm mới; mất mạng thì dùng bản đệm. Mọi tầng (app, IDE, terminal) đọc chung một lệnh
+`yana-rt plugin-store list --json` (tên lệnh tạm, tránh trùng `yana-rt plugin` hiện có).
+
+**Giao diện kiểu App Store:** trang Khám phá (băng nổi bật, các hàng theo nhóm cuộn ngang), thanh nhóm,
+ô tìm kiếm, tab Đã cài; thẻ có biểu tượng, tên hiển thị, một dòng mô tả, nguồn (Claude / MCP), nút Nhận;
+trang chi tiết: mô tả, nhà phát triển, phiên bản, nguồn và mã commit, những gì plugin thêm vào (skill,
+máy chủ MCP, LSP), quyền cần cấp, nút Nhận/Gỡ.
+
+**Nhận (cài) một chạm:** không có bước gõ lệnh; nhưng mã của bên thứ ba vẫn phải qua
+`44-supply-chain-vetting.md` (nguồn ghim theo `sha`, quét trước khi bật) và mọi hành động vẫn qua cổng duyệt
+của `yana-rt`. Plugin của Claude dùng được với mọi AI ở phần skill, MCP, LSP; phần hook/lệnh riêng của
+Claude Code thì ghi rõ "chỉ dùng trong Claude Code".
+
+**Kết nối MCP chi tiết:** nút "Thêm máy chủ MCP" mở biểu mẫu: chọn từ registry hoặc nhập tay; kiểu
+kết nối (từ xa qua https / chạy trên máy bằng lệnh); xem trước đúng cấu hình sẽ ghi; xác nhận tin cậy
+(thay cho gõ `yes` ở terminal, nhưng vẫn là một thao tác có chủ ý của người, có màn hình xem nội dung);
+kiểm tra kết nối; danh sách công cụ máy chủ cung cấp; mỗi công cụ hiện mức quyền; nút ngắt kết nối.
+
+**Cần anh quyết:** (a) bỏ ChatGPT vì không có API, đồng ý không; (b) xác nhận tin cậy MCP trong app thay
+cho gõ `yes` ở terminal, có chấp nhận không; (c) thứ tự làm: Khám phá chỉ xem trước, rồi mới đến Nhận.
+
 ## Readiness (Phase 5, ước tính sơ bộ)
 
 Dưới 80%: Goals, Scope, Capability List và Architecture còn trống. Theo
