@@ -245,13 +245,74 @@ struct SystemSettings: View {
 }
 
 struct AboutSettings: View {
+	@EnvironmentObject private var runtime: RuntimeUpdater
+	@EnvironmentObject private var appUpdater: AppUpdater
+	private static let repo = URL(string: "https://github.com/yanacuti1121/Yana-AI")!
+	private static let releases = URL(string: "https://github.com/yanacuti1121/Yana-AI/releases")!
+	private static let license = URL(string: "https://www.apache.org/licenses/LICENSE-2.0")!
+
+	// Yana Studio's own version: product.json "yanaStudioVersion" (stamped by builds since 2026-11-08).
+	// Older builds lack it, so they show as installed without a number.
+	private static func studioVersion() -> String {
+		let candidates = [Bundle.main.bundleURL.appendingPathComponent("Contents/Applications/Yana Studio.app"),
+		                  URL(fileURLWithPath: "/Applications/Yana Studio.app")]
+		guard let app = candidates.first(where: { FileManager.default.fileExists(atPath: $0.path) }) else {
+			return L("rt.notInstalled")
+		}
+		let product = app.appendingPathComponent("Contents/Resources/app/product.json")
+		if let data = try? Data(contentsOf: product),
+		   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+		   let version = json["yanaStudioVersion"] as? String {
+			return version
+		}
+		return L("about.studioNoNumber")
+	}
+
+	private var appVersion: String {
+		let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "?"
+		return "\(AppUpdater.installedVersion ?? "?") (\(build))"
+	}
+
 	var body: some View {
 		Form {
 			Section {
-				LabeledContent("Yana", value: L("set.aboutBuild"))
+				HStack(alignment: .center, spacing: 18) {
+					RabbitLogo(cell: 4)
+					VStack(alignment: .leading, spacing: 4) {
+						Text("Yana").font(.system(size: 26, weight: .semibold)).foregroundStyle(FB.text)
+						Text("\(L("about.version")) \(appVersion)").font(.fbBody).foregroundStyle(FB.textSecondary)
+						Text(L("about.tagline")).font(.fbBody).foregroundStyle(FB.text)
+							.fixedSize(horizontal: false, vertical: true)
+					}
+				}
+				.padding(.vertical, 8)
+				Text(L("about.what")).font(.fbBody).foregroundStyle(FB.textSecondary)
+					.fixedSize(horizontal: false, vertical: true)
+			}
+
+			Section(L("about.parts")) {
+				LabeledContent(L("about.partApp"), value: appVersion)
+				LabeledContent("yana-rt", value: runtime.rtInstalled ?? L("rt.notInstalled"))
+				LabeledContent("yana-ai (PyPI)", value: runtime.pyInstalled ?? L("rt.notInstalled"))
+				LabeledContent(L("about.partStudio"), value: Self.studioVersion())
+			}
+
+			Section {
+				Link(L("about.github"), destination: Self.repo)
+				Link(L("about.releases"), destination: Self.releases)
+				Button(L("menu.checkUpdates")) { Task { await appUpdater.check(userAsked: true) } }
+			}
+
+			Section(L("about.legal")) {
+				LabeledContent(L("about.license")) { Link("Apache License 2.0", destination: Self.license) }
+				LabeledContent(L("about.author"), value: "Vũ Văn Tâm")
+				LabeledContent(L("about.privacy"), value: L("about.privacyValue"))
+			}
+
+			Section {
 				LabeledContent("Fluent Blue", value: "MIT")
 				LabeledContent("SwiftTerm 1.20.0", value: "MIT")
-			} footer: { SettingsNote(L("set.aboutNote")) }
+			} header: { Text(L("about.thirdParty")) } footer: { SettingsNote(L("set.aboutNote")) }
 		}
 	}
 }
