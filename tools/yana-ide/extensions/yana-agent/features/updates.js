@@ -1,6 +1,6 @@
 'use strict';
 // Quản lý kiểm tra và cập nhật TÁCH BIỆT giữa:
-// 1. Yana Studio: Ứng dụng Desktop IDE (phiên bản hiện tại 1.6.2, tag studio-v*)
+// 1. Yana Studio: Ứng dụng Desktop IDE (phiên bản đọc từ product.json "yanaStudioVersion", tag studio-v*)
 // 2. Yana Runtime: Binary lõi yana-rt (phiên bản crates.io hoặc git tag rt-v*)
 // Hai bản phát hành song song, hoàn toàn độc lập, không gộp chung thông báo.
 
@@ -12,7 +12,19 @@ const os = require('node:os');
 const { binary, workspaceRoot } = require('../cli');
 const { getActiveLanguage } = require('./language');
 
-const STUDIO_CURRENT_VERSION = '1.6.2';
+// The installed build's own version, stamped into product.json by scripts/merge-product.mjs. A number
+// written here by hand went stale (1.6.2 while 1.7.0 was installed) and the update prompt never stopped.
+// Unknown version (a dev build without the stamp) means no Studio update prompt rather than a false one.
+function studioCurrentVersion() {
+	try {
+		const product = JSON.parse(fs.readFileSync(path.join(vscode.env.appRoot, 'product.json'), 'utf8'));
+		const version = product.yanaStudioVersion;
+		return typeof version === 'string' && /^\d+\.\d+\.\d+/.test(version) ? version : null;
+	} catch (error) {
+		console.warn(`[yana-agent] updates: cannot read product.json version: ${error.message}`);
+		return null;
+	}
+}
 const GITHUB_RELEASES_API = 'https://api.github.com/repos/yanacuti1121/Yana-AI/releases?per_page=15';
 const CRATES_IO_YANA_RT_API = 'https://crates.io/api/v1/crates/yana-rt';
 
@@ -187,10 +199,12 @@ async function fetchLatestRuntimeVersion() {
 async function checkStudioUpdate(silent, t) {
 	const release = await fetchLatestStudioRelease();
 	if (!release) return false;
+	const current = studioCurrentVersion();
+	if (!current) return false;
 
-	if (compareSemver(release.version, STUDIO_CURRENT_VERSION) > 0) {
+	if (compareSemver(release.version, current) > 0) {
 		const choice = await vscode.window.showInformationMessage(
-			t.studioFound(release.version, STUDIO_CURRENT_VERSION),
+			t.studioFound(release.version, current),
 			t.btnDownloadStudio,
 			t.btnChangelog,
 			t.btnLater
@@ -318,12 +332,13 @@ async function checkForUpdates(silent = false) {
 
 		if (!silent && !studioHasUpdate && !runtimeHasUpdate) {
 			const currentRtVersion = await getRuntimeVersion();
-			vscode.window.showInformationMessage(t.allUpToDate(STUDIO_CURRENT_VERSION, currentRtVersion));
+			vscode.window.showInformationMessage(t.allUpToDate(studioCurrentVersion() || '?', currentRtVersion));
 		}
 	} catch (error) {
+		console.warn(`[yana-agent] updates: check failed: ${error.message}`);
 		if (!silent) {
 			const currentRtVersion = await getRuntimeVersion();
-			vscode.window.showInformationMessage(t.allUpToDate(STUDIO_CURRENT_VERSION, currentRtVersion));
+			vscode.window.showInformationMessage(t.allUpToDate(studioCurrentVersion() || '?', currentRtVersion));
 		}
 	}
 }
@@ -344,7 +359,7 @@ module.exports = {
 	id: 'updates',
 	activate,
 	checkForUpdates,
-	STUDIO_CURRENT_VERSION,
+	studioCurrentVersion,
 	parseSemver,
 	compareSemver,
 	getRuntimeVersion,
