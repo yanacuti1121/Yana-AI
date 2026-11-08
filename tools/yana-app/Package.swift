@@ -17,7 +17,10 @@ let package = Package(
 			name: "YanaApp",
 			dependencies: [.product(name: "SwiftTerm", package: "SwiftTerm")],
 			path: "Sources/YanaApp",
-			resources: [.process("Resources")]
+			resources: [.process("Resources")],
+			// Embeds Info.plist (CFBundleName "Yana") in the executable so the menu bar reads "Yana".
+			linkerSettings: [.unsafeFlags(["-Xlinker", "-sectcreate", "-Xlinker", "__TEXT",
+			                               "-Xlinker", "__info_plist", "-Xlinker", "Info.plist"])]
 		),
 	]
 )

@@ -31,6 +31,7 @@ struct ChatHome: View {
 	@State private var text = ""
 	@State private var showModels = false
 	@AppStorage("yana.ui.chatSidebar") private var chatSidebar = true
+	@EnvironmentObject private var terminals: TerminalStore
 	@State private var right: RightMode = .tools
 	@State private var browserExpanded = false
 	@State private var browserWidth: CGFloat = 520
@@ -104,7 +105,7 @@ struct ChatHome: View {
 
 	var body: some View {
 		HStack(spacing: 0) {
-			if !(right == .browser && browserExpanded) {
+			if !((right == .browser || right == .terminal) && browserExpanded) {
 				chatColumn
 				.overlay(alignment: .topLeading) {
 					if !chatSidebar {
@@ -128,6 +129,14 @@ struct ChatHome: View {
 					resizeHandle
 					browserView.frame(width: browserWidth)
 				}
+			case .terminal:
+				// Same slot, width, drag handle and expand state as the browser.
+				if browserExpanded {
+					TerminalPage(expanded: $browserExpanded) { right = .tools }.frame(maxWidth: .infinity)
+				} else {
+					resizeHandle
+					TerminalPage(expanded: $browserExpanded) { right = .tools }.frame(width: browserWidth)
+				}
 			case .tools:
 				sidePanel(L("panel.tools"), back: false) {
 					RightPanel(mode: $right, fill: { prompt, plan in text = prompt; engine.planMode = plan },
@@ -137,6 +146,15 @@ struct ChatHome: View {
 				sidePanel(L("panel.files"), back: true) { FilesPanel() }
 			}
 		}
+		// The start chooser or the start page asked for the terminal: open it in this panel.
+		.onAppear(perform: openTerminalIfAsked)
+		.onChange(of: terminals.wantsPanel) { _, _ in openTerminalIfAsked() }
+	}
+
+	private func openTerminalIfAsked() {
+		guard terminals.wantsPanel else { return }
+		terminals.wantsPanel = false
+		right = .terminal
 	}
 
 	private var browserView: some View {

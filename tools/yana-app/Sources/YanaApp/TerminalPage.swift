@@ -49,6 +49,8 @@ final class TerminalTab: NSObject, ObservableObject, Identifiable, LocalProcessT
 @MainActor
 final class TerminalStore: ObservableObject {
 	@Published private(set) var tabs: [TerminalTab] = []
+	// Set when the terminal should open in the chat page's right panel (start chooser, start page).
+	@Published var wantsPanel = false
 	@Published var selected: UUID?
 	@Published private(set) var fontSize: CGFloat
 	private static let fontKey = "yana.terminal.fontSize"
@@ -126,9 +128,14 @@ private struct TerminalHost: NSViewRepresentable {
 	}
 }
 
+// Shown in the chat page's right-hand panel, in the same slot as the browser (it is its own tool, not
+// the code editor: Yana Studio opens in a separate window). Expand fills the page; close hides the panel
+// without ending any shell.
 struct TerminalPage: View {
 	@EnvironmentObject private var store: TerminalStore
 	@EnvironmentObject private var engine: ChatEngine
+	@Binding var expanded: Bool
+	let close: () -> Void
 
 	var body: some View {
 		VStack(spacing: 0) {
@@ -159,6 +166,9 @@ struct TerminalPage: View {
 				}
 			}
 			FBIconButton(icon: "plus", variant: .ghost, size: .small, tooltip: L("term.new")) { store.newTab(folder: engine.workspace) }
+			FBIconButton(icon: "maximize", variant: .ghost, size: .small,
+			             tooltip: expanded ? L("browser.restore") : L("browser.expand")) { expanded.toggle() }
+			FBIconButton(icon: "close", variant: .ghost, size: .small, tooltip: L("term.hidePanel"), action: close)
 		}
 		.padding(EdgeInsets(top: titleBarClearance, leading: 14, bottom: 8, trailing: 14))
 		.background(FB.chrome)

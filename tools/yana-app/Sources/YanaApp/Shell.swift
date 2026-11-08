@@ -22,7 +22,6 @@ struct RailEntry: Identifiable {
 // Scheduler, Sessions, Providers, Context, System) come back here once each is wired to yana-rt.
 let railEntries: [RailEntry] = [
 	.init(id: "Chat", icon: "message"),
-	.init(id: "Terminal", icon: "terminal"),
 	.init(id: "Overview", icon: "dashboard"),
 	.init(id: "Tool approvals", icon: "shield"),
 	.init(id: "Tasks", icon: "check-circle"),

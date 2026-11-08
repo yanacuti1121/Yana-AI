@@ -22,10 +22,13 @@ struct RootView: View {
 	// YANA_PAGE wins; otherwise the start page from Settings ("ask" shows the start chooser).
 	init(page: String? = ProcessInfo.processInfo.environment["YANA_PAGE"], rendering: Bool = false) {
 		let start = AppSettings.shared.startPage
-		let page = page ?? (start == "ask" ? "Start" : start)
-		_selected = State(initialValue: page)
+		let wanted = page ?? (start == "ask" ? "Start" : start)
+		// The terminal lives in the chat page's right panel, so "Terminal" opens Chat with that panel.
+		openTerminal = wanted == "Terminal"
+		_selected = State(initialValue: openTerminal ? "Chat" : wanted)
 		self.rendering = rendering
 	}
+	private let openTerminal: Bool
 
 	@ViewBuilder
 	private var page: some View {
@@ -34,7 +37,6 @@ struct RootView: View {
 			// The "show chat list" button sits on the chat column itself (ChatHome), so a full-width
 			// browser never has it drawn over its own toolbar.
 			ChatHome(openSettings: { selected = "Settings" }, openApprovals: { selected = "Tool approvals" })
-		case "Terminal": TerminalPage()
 		case "Settings": SettingsPage { selected = $0 }
 		case "Tool approvals": ApprovalsPage().padding(.top, 30)
 		case "Overview": HomePage().padding(.top, 30)
@@ -55,7 +57,10 @@ struct RootView: View {
 	var body: some View {
 		HStack(spacing: 0) {
 			if selected == "Start" {
-				StartChooser { selected = "Terminal" }
+				StartChooser {
+					terminals.wantsPanel = true
+					selected = "Chat"
+				}
 			} else {
 				IconRail(selected: $selected)
 				if selected == "Chat" && chatSidebar { ChatSidebar { chatSidebar = false } }
@@ -80,10 +85,35 @@ struct RootView: View {
 		// Light only: without this, a Mac in dark mode gives the window a dark title area.
 		.preferredColorScheme(.light)
 		.onAppear {
+			if openTerminal { terminals.wantsPanel = true }
 			NSApplication.shared.appearance = NSAppearance(named: .aqua)
 			// Launched from a terminal the app starts without focus; bring it to the front.
 			NSApplication.shared.setActivationPolicy(.regular)
 			NSApplication.shared.activate(ignoringOtherApps: true)
+		}
+		.onReceive(NotificationCenter.default.publisher(for: .yanaMenu)) { note in
+			guard let raw = note.object as? String, let action = MenuAction(rawValue: raw) else { return }
+			perform(action)
+		}
+	}
+
+	// Menu bar actions (AppCommands.swift).
+	private func perform(_ action: MenuAction) {
+		switch action {
+		case .settings: selected = "Settings"
+		case .checkUpdates: Task { await runtime.check() }
+		case .newChat: engine.reset(); selected = "Chat"
+		case .openFolder:
+			let panel = NSOpenPanel()
+			panel.canChooseDirectories = true
+			panel.canChooseFiles = false
+			if panel.runModal() == .OK, let url = panel.url { engine.workspace = url.path }
+		case .openStudio: editor.open(folder: engine.workspace)
+		case .terminal: terminals.wantsPanel = true; selected = "Chat"
+		case .toggleChatList: chatSidebar.toggle(); selected = "Chat"
+		default:
+			let index = (Int(action.rawValue.dropFirst(4)) ?? 1) - 1
+			if railEntries.indices.contains(index) { selected = railEntries[index].id }
 		}
 	}
 }
@@ -122,5 +152,6 @@ struct YanaApp: App {
 	var body: some Scene {
 		WindowGroup("Yana") { RootView() }
 			.windowStyle(.hiddenTitleBar)
+			.commands { YanaCommands() }
 	}
 }

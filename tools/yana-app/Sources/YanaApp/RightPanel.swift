@@ -5,7 +5,7 @@ import SwiftUI
 // project file list; the browser takes the same slot (ChatHome decides which one shows).
 // Status values come from yana-rt and git; quick starts only fill the composer, the user still sends.
 
-enum RightMode { case hidden, tools, files, browser }
+enum RightMode { case hidden, tools, files, browser, terminal }
 
 struct PanelStatus {
 	var version = "…"
@@ -34,10 +34,13 @@ struct RightPanel: View {
 				// No heading: the panel header already says "Tools".
 				section(nil) {
 					// Yana Studio starts only here, on demand, in its own window.
-					ToolRow(icon: "code", title: L("ide.title")) { editor.open(folder: engine.workspace) }
+					// Two different tools, named apart on purpose: the editor leaves the app (↗ separate window),
+					// the terminal opens right here in this panel.
+					ToolRow(icon: "code", title: L("panel.editorExternal")) { editor.open(folder: engine.workspace) }
 					if case .failed(let why) = editor.status {
 						Text(why).font(.fbCaption).foregroundStyle(FB.errorText).padding(.horizontal, 10)
 					}
+					ToolRow(icon: "terminal", title: L("panel.terminalHere")) { mode = .terminal }
 					ToolRow(icon: "globe", title: L("browser.show")) { mode = .browser }
 					ToolRow(icon: "folder", title: L("panel.files")) { mode = .files }
 					ToolRow(icon: "shield", title: L("nav.Tool approvals"), badge: status.pending, action: openApprovals)
