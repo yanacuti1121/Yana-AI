@@ -53,6 +53,39 @@ struct ChatHome: View {
 		return !engine.running && engine.model != nil && hasContent && imagesOK
 	}
 	@State private var dropTargeted = false
+	@State private var showPlus = false
+	@EnvironmentObject private var editor: EditorLauncher
+
+	// The + menu: everything the chat can pull in or open, each item wired to an existing feature.
+	private var plusMenu: some View {
+		VStack(alignment: .leading, spacing: 2) {
+			plusItem("image", L("plus.images"), L("plus.imagesSub")) { pickImages() }
+			plusItem("folder", L("plus.folder"), URL(fileURLWithPath: engine.workspace).lastPathComponent) { chooseFolder() }
+			plusItem("zap", L("plus.skills"), L("plus.skillsSub")) { text = "/"; engine.loadSkillsIfNeeded() }
+			plusItem(engine.planMode ? "zap" : "eye", engine.planMode ? L("chat.modeAct") : L("chat.modePlan"), L("plus.modeSub")) {
+				if !engine.running { engine.planMode.toggle() }
+			}
+			Divider().padding(.vertical, 4)
+			plusItem("terminal", L("panel.terminalHere"), nil) { right = .terminal }
+			plusItem("globe", L("browser.show"), nil) { right = .browser }
+			plusItem("code", L("panel.editorExternal"), nil) { editor.open(folder: engine.workspace) }
+			plusItem("shield", L("nav.Tool approvals"), nil) { openApprovals() }
+		}
+		.padding(8)
+		.frame(width: 340)
+	}
+
+	private func plusItem(_ icon: String, _ title: String, _ subtitle: String?, action: @escaping () -> Void) -> some View {
+		HStack(spacing: 10) {
+			FBIcon(name: icon, size: 15, color: FB.textSecondary).frame(width: 18)
+			Text(title).font(.fbBody).foregroundStyle(FB.text).lineLimit(1)
+			if let subtitle { Text(subtitle).font(.fbCaption).foregroundStyle(FB.textTertiary).lineLimit(1) }
+			Spacer(minLength: 0)
+		}
+		.padding(.horizontal, 10).frame(height: 32)
+		.contentShape(Rectangle())
+		.onTapGesture { showPlus = false; action() }
+	}
 
 	// "/" at the start of an empty word opens the skill list; typing filters it (name first, then text).
 	private static let slashLimit = 60
@@ -270,7 +303,8 @@ struct ChatHome: View {
 			}
 
 			HStack(spacing: 4) {
-				FBIconButton(icon: "plus", variant: .ghost, size: .small, tooltip: L("attach.add")) { pickImages() }
+				FBIconButton(icon: "plus", variant: .ghost, size: .small, tooltip: L("plus.title")) { showPlus = true }
+					.popover(isPresented: $showPlus, arrowEdge: .bottom) { plusMenu }
 				// Act or Plan, passed to yana-rt as `mode`. Approval for risky tools is enforced by yana-rt either way.
 				Chip(icon: engine.planMode ? "eye" : "zap", title: engine.planMode ? L("chat.modePlan") : L("chat.modeAct"), trailing: "chevron-down")
 					.help(L("chat.modeHelp"))
