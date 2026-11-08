@@ -194,7 +194,7 @@ struct StudioSettings: View {
 
 struct UpdateSettings: View {
 	@EnvironmentObject private var runtime: RuntimeUpdater
-	@EnvironmentObject private var editor: EditorLauncher
+	@EnvironmentObject private var terminals: TerminalStore
 	@EnvironmentObject private var engine: ChatEngine
 
 	var body: some View {
@@ -205,7 +205,7 @@ struct UpdateSettings: View {
 				HStack {
 					Button(L("rt.recheck")) { Task { await runtime.check() } }
 					if runtime.showsBanner {
-						Button(L("rt.installNow")) { runtime.install(via: editor, folder: engine.workspace) }
+						Button(L("rt.installNow")) { runtime.install(in: terminals, folder: engine.workspace) }
 							.buttonStyle(.borderedProminent)
 					}
 				}

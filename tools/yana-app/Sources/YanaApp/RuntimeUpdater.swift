@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import Foundation
 import SwiftUI
 
@@ -66,18 +67,29 @@ final class RuntimeUpdater: ObservableObject {
 		}
 	}
 
-	// Runs the install in Yana Studio's own terminal, not macOS Terminal. The app only names the job; the
-	// steps (yana-ai via pipx, then yana-rt via cargo) are fixed in the yana-agent extension,
-	// features/app-bridge.js.
-	func install(via editor: EditorLauncher, folder: String) {
+	// Runs the fixed install script (RuntimeInstallScript) in the app's own terminal panel after the user
+	// agrees. The app keeps running; when the script ends, the versions are checked again.
+	func install(in terminals: TerminalStore, folder: String) {
 		guard phase != .installing else { return }
 		do {
-			try editor.request(action: "install-runtime", folder: folder)
+			let script = try RuntimeInstallScript.write()
+			terminals.run(TerminalTab.Job(executable: "/bin/bash", args: [script.path], title: L("rt.installTab")), folder: folder)
 			phase = .installing
+			watch(terminals.current)
 		} catch {
 			phase = .failed(error.localizedDescription)
 		}
 	}
+
+	// Re-checks once the install tab's program has exited.
+	private func watch(_ tab: TerminalTab?) {
+		guard let tab else { return }
+		finishWatch = tab.$exited.first { $0 }.sink { [weak self] _ in
+			Task { @MainActor in await self?.check() }
+		}
+	}
+
+	private var finishWatch: AnyCancellable?
 
 	// `yana-ai --version` prints "yana-ai 1.5.0". It is a Python launcher, run with a fixed argument.
 	private nonisolated static func localYanaAiVersion() -> String? {

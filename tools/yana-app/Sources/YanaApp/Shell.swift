@@ -81,7 +81,7 @@ struct RailButton: View {
 struct IconRail: View {
 	@Binding var selected: String
 	@EnvironmentObject private var runtime: RuntimeUpdater
-	@EnvironmentObject private var editor: EditorLauncher
+	@EnvironmentObject private var terminals: TerminalStore
 	@EnvironmentObject private var engine: ChatEngine
 	@State private var showUpdate = false
 
@@ -98,9 +98,10 @@ struct IconRail: View {
 					.overlay(alignment: .topTrailing) { Circle().fill(FB.error).frame(width: 8, height: 8).offset(x: -6, y: 6) }
 					.onTapGesture { showUpdate.toggle() }
 					.popover(isPresented: $showUpdate, arrowEdge: .trailing) {
-						// Install runs in Yana Studio's terminal: this opens Yana Studio with the job queued.
+						// Install runs in the app's own terminal panel; the app keeps working meanwhile.
 						RuntimeBanner(updater: runtime) {
-							runtime.install(via: editor, folder: engine.workspace)
+							runtime.install(in: terminals, folder: engine.workspace)
+							selected = "Chat" // the terminal panel lives on the chat page
 							showUpdate = false
 						}
 						.frame(width: 520).padding(10)

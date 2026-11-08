@@ -14,13 +14,25 @@ final class TerminalTab: NSObject, ObservableObject, Identifiable, LocalProcessT
 	@Published var title: String
 	@Published var exited = false
 
-	init(folder: String, fontSize: CGFloat) {
+	// A fixed program this tab runs instead of a shell (the runtime installer), with its title.
+	struct Job {
+		let executable: String
+		let args: [String]
+		let title: String
+	}
+
+	init(folder: String, fontSize: CGFloat, job: Job? = nil) {
 		view = LocalProcessTerminalView(frame: NSRect(x: 0, y: 0, width: 800, height: 500))
-		title = URL(fileURLWithPath: folder).lastPathComponent
+		title = job?.title ?? URL(fileURLWithPath: folder).lastPathComponent
 		super.init()
 		TerminalStyle.apply(to: view, fontSize: fontSize)
 		view.processDelegate = self
-		start(in: folder)
+		if let job {
+			let environment = Terminal.getEnvironmentVariables(termName: "xterm-256color", trueColor: true) + ["TERM_PROGRAM=Yana"]
+			view.startProcess(executable: job.executable, args: job.args, environment: environment, execName: nil, currentDirectory: folder)
+		} else {
+			start(in: folder)
+		}
 	}
 
 	func start(in folder: String) {
@@ -68,6 +80,15 @@ final class TerminalStore: ObservableObject {
 		let tab = TerminalTab(folder: folder, fontSize: fontSize)
 		tabs.append(tab)
 		selected = tab.id
+	}
+
+	// Runs a fixed job in a new tab and opens the terminal panel, so the user watches it while the app
+	// keeps working.
+	func run(_ job: TerminalTab.Job, folder: String) {
+		let tab = TerminalTab(folder: folder, fontSize: fontSize, job: job)
+		tabs.append(tab)
+		selected = tab.id
+		wantsPanel = true
 	}
 
 	func close(_ id: UUID) {
