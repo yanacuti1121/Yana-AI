@@ -102,6 +102,8 @@ struct RootView: View {
 		.preferredColorScheme(.light)
 		.onAppear {
 			if openTerminal { terminals.wantsPanel = true }
+			// The chat list starts hidden at every launch for a wide chat; the sidebar button shows it.
+			if !rendering { chatSidebar = false }
 			NSApplication.shared.appearance = NSAppearance(named: .aqua)
 			// Launched from a terminal the app starts without focus; bring it to the front.
 			NSApplication.shared.setActivationPolicy(.regular)

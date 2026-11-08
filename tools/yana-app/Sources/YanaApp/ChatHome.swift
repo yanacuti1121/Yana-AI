@@ -32,7 +32,8 @@ struct ChatHome: View {
 	@State private var showModels = false
 	@AppStorage("yana.ui.chatSidebar") private var chatSidebar = true
 	@EnvironmentObject private var terminals: TerminalStore
-	@State private var right: RightMode = .tools
+	// Starts hidden so the chat gets the whole width; the button at the top right opens it.
+	@State private var right: RightMode = .hidden
 	@State private var browserExpanded = false
 	@State private var browserWidth: CGFloat = 520
 	@State private var dragStartWidth: CGFloat? = nil
