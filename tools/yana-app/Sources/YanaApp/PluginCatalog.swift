@@ -38,6 +38,16 @@ struct StoreItem: Codable, Identifiable, Hashable {
 	let version: String?
 	let pin: String?        // marketplace: git sha of the plugin source
 	let parts: [String]     // marketplace: what it adds; MCP: how to connect (remote URL / package)
+	var package: McpPackage? = nil // MCP: a local (stdio) npm or PyPI package yana-rt can run; nil = remote only
+}
+
+// The one local package of an MCP registry entry that yana-rt can start (it runs stdio servers only).
+struct McpPackage: Codable, Hashable {
+	let registryType: String   // "npm" or "pypi"
+	let identifier: String
+	let version: String
+	let env: [String]          // variable names the server reads (required ones first)
+	let requiredEnv: [String]
 }
 
 @MainActor
@@ -185,7 +195,7 @@ final class PluginCatalog: ObservableObject {
 
 	private var cacheURL: URL {
 		FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-			.appendingPathComponent("YanaApp/plugin-catalog.json")
+			.appendingPathComponent("YanaApp/plugin-catalog-v2.json")
 	}
 
 	private func readCache() {

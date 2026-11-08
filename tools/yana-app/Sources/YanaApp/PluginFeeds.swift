@@ -118,9 +118,27 @@ enum FeedReader {
 			return StoreItem(id: "\(feed.id)#\(name)", feed: feed.id, feedLabel: feed.label, kind: .mcpRegistry,
 			                 name: (s["title"] as? String) ?? prettify(String(name.split(separator: "/").last ?? Substring(name))),
 			                 summary: (s["description"] as? String) ?? "", category: "mcp", author: owner, link: link,
-			                 version: s["version"] as? String, pin: (official?["isLatest"] as? Bool) == true ? "latest" : nil, parts: parts)
+			                 version: s["version"] as? String, pin: (official?["isLatest"] as? Bool) == true ? "latest" : nil, parts: parts,
+			                 package: localPackage(s["packages"] as? [[String: Any]] ?? []))
 		}
 		return (items, (json["metadata"] as? [String: Any])?["nextCursor"] as? String)
+	}
+
+	// First npm or PyPI package that runs over stdio, with a pinned version and plain names.
+	static func localPackage(_ packages: [[String: Any]]) -> McpPackage? {
+		for p in packages {
+			guard let type = p["registryType"] as? String, type == "npm" || type == "pypi",
+			      (p["transport"] as? [String: Any])?["type"] as? String == "stdio",
+			      let id = p["identifier"] as? String, let version = p["version"] as? String,
+			      id.range(of: #"^[@A-Za-z0-9._/-]{1,100}$"#, options: .regularExpression) != nil,
+			      version.range(of: #"^[0-9A-Za-z.+-]{1,40}$"#, options: .regularExpression) != nil else { continue }
+			let vars = (p["environmentVariables"] as? [[String: Any]]) ?? []
+			let names = vars.compactMap { $0["name"] as? String }.filter { $0.range(of: #"^[A-Z0-9_]{1,64}$"#, options: .regularExpression) != nil }
+			let required = vars.filter { ($0["isRequired"] as? Bool) == true }.compactMap { $0["name"] as? String }.filter(names.contains)
+			return McpPackage(registryType: type, identifier: id, version: version,
+			                  env: required + names.filter { !required.contains($0) }, requiredEnv: required)
+		}
+		return nil
 	}
 
 	// MARK: awesome-style Markdown list

@@ -8,6 +8,11 @@ import SwiftUI
 struct StoreDetailSheet: View {
 	let item: StoreItem
 	let close: () -> Void
+	@EnvironmentObject private var engine: ChatEngine
+	@EnvironmentObject private var terminals: TerminalStore
+	@State private var preview: McpInstaller.Entry?
+	@State private var problem: String?
+	@State private var installed = false
 
 	var body: some View {
 		VStack(alignment: .leading, spacing: 0) {
@@ -39,6 +44,8 @@ struct StoreDetailSheet: View {
 			FB.divider.frame(height: 1)
 			ScrollView {
 				VStack(alignment: .leading, spacing: 18) {
+					if let problem { FBAlert(kind: .error, text: problem, closable: false) }
+					if let preview { previewPanel(preview) }
 					Text(item.summary.isEmpty ? L("store.noDescription") : item.summary).font(.system(size: 14)).foregroundStyle(FB.text)
 						.textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
 					if !item.parts.isEmpty {
@@ -64,18 +71,96 @@ struct StoreDetailSheet: View {
 		}
 		.frame(width: 640, height: 560)
 		.background(FB.canvas)
+		.onAppear { installed = McpInstaller.installedNames(in: engine.workspace).contains(McpInstaller.serverName(item)) }
 	}
 
 	@ViewBuilder
 	private var mainButton: some View {
-		if item.kind == .awesomeList {
-			Text(L("store.chatgptOnly")).font(.system(size: 12, weight: .semibold)).foregroundStyle(FB.textSecondary)
-				.padding(.horizontal, 14).padding(.vertical, 6).background(Capsule().fill(FB.surfaceTertiary))
-		} else {
-			Text(L("store.getSoon")).font(.system(size: 13, weight: .bold)).foregroundStyle(FB.onPrimary)
-				.padding(.horizontal, 18).padding(.vertical, 6).background(Capsule().fill(FB.primary.opacity(0.45)))
-				.help(L("store.getSoonHelp"))
+		switch item.kind {
+		case .awesomeList:
+			label(L("store.chatgptOnly"))
+		case .mcpRegistry where item.package == nil:
+			label(L("mcp.remoteOnlyShort")).help(L("mcp.remoteOnly"))
+		case .mcpRegistry where installed:
+			HStack(spacing: 8) {
+				label(L("mcp.added"))
+				FBButton(title: L("store.remove"), variant: .secondary, size: .small) { remove() }
+			}
+		case .mcpRegistry:
+			Button(action: startGet) {
+				Text(L("store.get")).font(.system(size: 13, weight: .bold)).foregroundStyle(FB.onPrimary)
+					.padding(.horizontal, 20).padding(.vertical, 6).background(Capsule().fill(FB.primary))
+			}
+			.buttonStyle(.plain)
+		case .marketplace:
+			label(L("store.getSoon")).help(L("store.getSoonHelp"))
 		}
+	}
+
+	private func label(_ text: String) -> some View {
+		Text(text).font(.system(size: 12, weight: .semibold)).foregroundStyle(FB.textSecondary)
+			.padding(.horizontal, 14).padding(.vertical, 6).background(Capsule().fill(FB.surfaceTertiary))
+	}
+
+	// Step 1 of Get: show exactly what will be written, before anything is written.
+	private func startGet() {
+		problem = nil
+		do { preview = try McpInstaller.entry(for: item) } catch { problem = error.localizedDescription }
+	}
+
+	// Step 2: write the entry, then open the app terminal on `yana-rt trust allow mcp-servers` for the typed yes.
+	private func confirmGet(_ entry: McpInstaller.Entry) {
+		do {
+			try McpInstaller.add(item, workspace: engine.workspace)
+		} catch {
+			problem = error.localizedDescription
+			return
+		}
+		guard let job = McpInstaller.confirmJob() else { problem = RtError.notInstalled.message; return }
+		terminals.run(job, folder: engine.workspace)
+		close()
+	}
+
+	private func remove() {
+		do {
+			try McpInstaller.remove(McpInstaller.serverName(item), workspace: engine.workspace)
+			installed = false
+			// The file changed, so the servers left need a new confirmation before yana-rt uses them again.
+			if !McpInstaller.installedNames(in: engine.workspace).isEmpty, let job = McpInstaller.confirmJob() {
+				terminals.run(job, folder: engine.workspace)
+				close()
+			}
+		} catch {
+			problem = error.localizedDescription
+		}
+	}
+
+	private func previewPanel(_ entry: McpInstaller.Entry) -> some View {
+		VStack(alignment: .leading, spacing: 10) {
+			Text(L("mcp.previewTitle")).font(.system(size: 15, weight: .bold)).foregroundStyle(FB.text)
+			Text(String(format: L("mcp.previewWhere"), McpInstaller.configPath, URL(fileURLWithPath: engine.workspace).lastPathComponent))
+				.font(.fbCaption).foregroundStyle(FB.textSecondary)
+			VStack(alignment: .leading, spacing: 4) {
+				Text("\(L("mcp.name")): \(entry.name)")
+				Text("\(L("mcp.command")): \(entry.commandLine)")
+				if !entry.env.isEmpty { Text("\(L("mcp.envNames")): \(entry.env.joined(separator: ", "))") }
+			}
+			.font(.system(size: 12, design: .monospaced)).foregroundStyle(FB.text).textSelection(.enabled)
+			.padding(10).frame(maxWidth: .infinity, alignment: .leading)
+			.background(RoundedRectangle(cornerRadius: 8).fill(FB.surfaceTertiary))
+			if let required = item.package?.requiredEnv, !required.isEmpty {
+				Text(String(format: L("mcp.needsEnv"), required.joined(separator: ", "))).font(.fbCaption).foregroundStyle(FB.warningText)
+					.fixedSize(horizontal: false, vertical: true)
+			}
+			Text(L("mcp.previewSteps")).font(.fbCaption).foregroundStyle(FB.textSecondary).fixedSize(horizontal: false, vertical: true)
+			HStack {
+				Spacer()
+				FBButton(title: L("store.cancel"), variant: .secondary, size: .small) { preview = nil }
+				FBButton(title: L("mcp.addAndConfirm"), variant: .primary, size: .small) { confirmGet(entry) }
+			}
+		}
+		.padding(14)
+		.background(RoundedRectangle(cornerRadius: 12).stroke(FB.primaryBorder))
 	}
 
 	private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
