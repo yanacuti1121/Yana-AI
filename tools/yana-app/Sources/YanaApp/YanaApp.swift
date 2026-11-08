@@ -77,6 +77,7 @@ struct RootView: View {
 			guard !rendering else { return }
 			if ProcessInfo.processInfo.environment["YANA_UPDATE_DEMO"] == "1" { appUpdater.demo(); return }
 			appUpdater.showWhatsNewIfUpdated()
+			MemoryStore.shared.backupIfDue()
 			guard AppSettings.shared.checkUpdatesOnLaunch else { return }
 			await runtime.check()
 			await appUpdater.check()
@@ -126,6 +127,7 @@ struct RootView: View {
 		case .openStudio: editor.open(folder: engine.workspace)
 		case .terminal: terminals.wantsPanel = true; selected = "Chat"
 		case .toggleChatList: chatSidebar.toggle(); selected = "Chat"
+		case .uninstall: Uninstaller.run()
 		default:
 			let index = (Int(action.rawValue.dropFirst(4)) ?? 1) - 1
 			if railEntries.indices.contains(index) { selected = railEntries[index].id }

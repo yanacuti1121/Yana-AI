@@ -48,6 +48,14 @@ final class AppSettings: ObservableObject {
 	@Published var showTokens: Bool { didSet { store.set(showTokens, forKey: "yana.chat.showTokens") } }
 	// Voice for "read aloud" (an NSSpeechSynthesizer voice id). Empty: the system voice.
 	@Published var voice: String { didSet { store.set(voice, forKey: "yana.chat.voice") } }
+	// Long-term memory across sessions (MemoryStore). Off by default: nothing is kept until the user turns it on.
+	@Published var persistentMemory: Bool { didSet { store.set(persistentMemory, forKey: "yana.memory.enabled") } }
+	// Folder for the daily memory backup (empty: no automatic backup), and when the last one ran.
+	@Published var backupFolder: String { didSet { store.set(backupFolder, forKey: "yana.memory.backupFolder") } }
+	var lastBackup: TimeInterval {
+		get { store.double(forKey: "yana.memory.lastBackup") }
+		set { store.set(newValue, forKey: "yana.memory.lastBackup") }
+	}
 	// Bumped when a key is saved or removed, so views that show key status refresh.
 	@Published private(set) var keyVersion = 0
 
@@ -66,6 +74,8 @@ final class AppSettings: ObservableObject {
 		defaultPlanMode = store.bool(forKey: "yana.chat.defaultPlan")
 		showTokens = store.object(forKey: "yana.chat.showTokens") as? Bool ?? true
 		voice = store.string(forKey: "yana.chat.voice") ?? ""
+		persistentMemory = store.bool(forKey: "yana.memory.enabled")
+		backupFolder = store.string(forKey: "yana.memory.backupFolder") ?? ""
 	}
 
 	// Empty or invalid values mean "provider default"; yana-rt validates the ranges again (1-32000, 0-2).

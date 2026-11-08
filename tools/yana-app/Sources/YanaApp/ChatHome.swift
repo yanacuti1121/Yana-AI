@@ -505,6 +505,10 @@ struct MessageView: View {
 				}
 				if let error = line.error { FBAlert(kind: .error, text: error, closable: false) }
 				if let ask = line.approval { ApprovalCard(ask: ask, running: running, decide: decide) }
+				if let used = line.memoryUsed {
+					Label(used, systemImage: "brain").font(.fbCaption).foregroundStyle(FB.textTertiary)
+				}
+				if let fact = line.memoryProposal { MemoryProposalCard(lineID: line.id, fact: fact) }
 			}
 		}
 	}

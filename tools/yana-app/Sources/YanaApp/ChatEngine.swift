@@ -28,6 +28,9 @@ struct ChatLine: Identifiable {
 	var outputTokens = 0
 	// Thumbnails of the images sent with a user message.
 	var images: [NSImage] = []
+	// Long-term memory: what the reply drew on, and a fact Yana proposes to remember (user decides).
+	var memoryUsed: String? = nil
+	var memoryProposal: String? = nil
 }
 
 @MainActor
@@ -200,9 +203,20 @@ final class ChatEngine: ObservableObject {
 		if !sending.isEmpty {
 			payload["images"] = sending.map { ["mime_type": $0.mimeType, "data": $0.base64] }
 		}
+		var system: [String] = []
 		if let skill = skillInstructions(for: text) {
-			payload["system"] = "Follow this Yana skill (\(skill.name)) for this request:\n\n\(skill.text)"
+			system.append("Follow this Yana skill (\(skill.name)) for this request:\n\n\(skill.text)")
 		}
+		let memory = MemoryStore.shared
+		if memory.enabled {
+			memory.keep(docs)
+			if let context = memory.context(for: text) {
+				system.append(context.text)
+				lines[lines.count - 1].memoryUsed = String(format: L("mem.used"), context.memories, context.passages)
+			}
+			system.append(Self.rememberInstruction)
+		}
+		if !system.isEmpty { payload["system"] = system.joined(separator: "\n\n") }
 		let settings = AppSettings.shared
 		if let key = settings.apiKey(provider) { payload["api_key"] = key }
 		if provider == "custom" {
@@ -314,10 +328,44 @@ final class ChatEngine: ObservableObject {
 		}
 	}
 
+	// Asks the model to propose (never save) one lasting fact per reply, on a line the app takes out.
+	static let rememberInstruction = """
+	Long-term memory is on. If the user stated a lasting fact or preference worth keeping across sessions \
+	(not a one-off detail, never a password or key), end your reply with one line exactly like: \
+	[[remember: <the fact, one short sentence>]]. The user decides whether it is saved. Otherwise add nothing.
+	"""
+
+	// Takes a "[[remember: ...]]" line out of the reply and keeps it as a proposal for the user.
+	static func extractProposal(_ text: String) -> (text: String, proposal: String?) {
+		guard let range = text.range(of: #"\[\[remember:\s*(.+?)\]\]"#, options: .regularExpression) else { return (text, nil) }
+		let tag = String(text[range])
+		let fact = tag.dropFirst("[[remember:".count).dropLast(2).trimmingCharacters(in: .whitespacesAndNewlines)
+		var rest = text
+		rest.removeSubrange(range)
+		return (rest.trimmingCharacters(in: .whitespacesAndNewlines), fact.isEmpty ? nil : String(fact))
+	}
+
+	func acceptProposal(_ id: UUID) {
+		guard let index = lines.firstIndex(where: { $0.id == id }), let fact = lines[index].memoryProposal else { return }
+		MemoryStore.shared.remember(fact)
+		lines[index].memoryProposal = nil
+		lines[index].memoryUsed = "\(L("mem.saved")): \(fact)"
+	}
+
+	func dismissProposal(_ id: UUID) {
+		guard let index = lines.firstIndex(where: { $0.id == id }) else { return }
+		lines[index].memoryProposal = nil
+	}
+
 	private func finish(status: Int32, stderr: String) {
 		running = false
 		process = nil
 		guard let last = lines.indices.last else { return }
+		if lines[last].role == .assistant, MemoryStore.shared.enabled {
+			let split = Self.extractProposal(lines[last].text)
+			lines[last].text = split.text
+			lines[last].memoryProposal = split.proposal
+		}
 		let line = lines[last]
 		if status != 0, line.error == nil, line.approval == nil, line.text.isEmpty {
 			let detail = stderr.trimmingCharacters(in: .whitespacesAndNewlines)

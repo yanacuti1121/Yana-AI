@@ -7,12 +7,13 @@ import SwiftUI
 // SettingsInfo.swift. API keys go to the macOS Keychain only and are never shown again after saving.
 
 enum SettingsSection: String, CaseIterable, Identifiable {
-	case general, chat, models, terminal, studio, security, data, updates, system, shortcuts, about
+	case general, chat, memory, models, terminal, studio, security, data, updates, system, shortcuts, about
 	var id: String { rawValue }
 	var icon: String {
 		switch self {
 		case .general: return "settings"
 		case .chat: return "message"
+		case .memory: return "bookmark"
 		case .models: return "cpu"
 		case .terminal: return "terminal"
 		case .studio: return "code"
@@ -68,6 +69,7 @@ struct SettingsPage: View {
 		switch section {
 		case .general: GeneralSettings()
 		case .chat: ChatSettings()
+		case .memory: MemorySettings()
 		case .models: ModelSettings()
 		case .terminal: TerminalSettings()
 		case .studio: StudioSettings()

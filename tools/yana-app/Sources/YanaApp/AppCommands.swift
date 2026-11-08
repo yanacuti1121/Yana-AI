@@ -5,7 +5,7 @@ import SwiftUI
 // Titles are read when the menu is built: after a language change they update on the next launch.
 
 enum MenuAction: String {
-	case settings, checkUpdates, newChat, openFolder, openStudio, terminal, toggleChatList
+	case settings, checkUpdates, newChat, openFolder, openStudio, terminal, toggleChatList, uninstall
 	case page1, page2, page3, page4, page5, page6, page7
 }
 
@@ -22,6 +22,8 @@ struct YanaCommands: Commands {
 		CommandGroup(replacing: .appSettings) {
 			Button(L("nav.Settings") + "…") { post(.settings) }.keyboardShortcut(",", modifiers: .command)
 			Button(L("menu.checkUpdates")) { post(.checkUpdates) }
+			Divider()
+			Button(L("menu.uninstall")) { post(.uninstall) }
 		}
 		CommandGroup(replacing: .newItem) {
 			Button(L("chat.new")) { post(.newChat) }.keyboardShortcut("n", modifiers: .command)
