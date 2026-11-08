@@ -97,7 +97,7 @@ final class RuntimeUpdater: ObservableObject {
 			for _ in 0 ..< Self.markerPolls {
 				try? await Task.sleep(for: .seconds(Self.markerPollSeconds))
 				if Task.isCancelled { return }
-				if FileManager.default.fileExists(atPath: marker.path) { await self?.installEnded(); return }
+				if FileManager.default.fileExists(atPath: marker.path) { self?.installEnded(); return }
 			}
 		}
 	}
