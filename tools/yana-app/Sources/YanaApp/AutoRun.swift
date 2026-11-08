@@ -32,14 +32,60 @@ final class AutoRunStore: ObservableObject {
 
 	var isOn: Bool { until.map { $0 > Date() } ?? false }
 
+	// What the user picked under "Custom…", remembered between launches.
+	struct Choice: Codable, Equatable {
+		var minutes = 60
+		var commands = true
+		var files = true
+		var extraAllow: [String] = []
+	}
+	static let minuteRange = 5 ... 480
+	static let maxExtraAllow = 20
+	static let maxEntryLength = 60
+	private static let choiceKey = "yana.auto.custom"
+
+	static var savedChoice: Choice {
+		get {
+			guard let data = UserDefaults.standard.data(forKey: choiceKey),
+			      let choice = try? JSONDecoder().decode(Choice.self, from: data) else { return Choice() }
+			return choice
+		}
+		set { if let data = try? JSONEncoder().encode(newValue) { UserDefaults.standard.set(data, forKey: choiceKey) } }
+	}
+
+	// Extra allowed commands typed by the user: trimmed, short, at most 20, and never one that starts
+	// like a blocked command (yana-rt checks the deny list first anyway; this keeps the list honest).
+	static func cleanExtraAllow(_ text: String) -> [String] {
+		let entries = text.split(whereSeparator: { $0 == "," || $0 == "\n" })
+			.map { $0.trimmingCharacters(in: .whitespaces) }
+			.filter { !$0.isEmpty && $0.count <= maxEntryLength && !$0.contains(where: \.isNewline) }
+		let allowed = entries.filter { entry in
+			let first = entry.split(separator: " ").first.map(String.init) ?? entry
+			return !deny.contains { $0 == first || entry.hasPrefix($0 + " ") || entry == $0 }
+		}
+		var seen = Set<String>()
+		return Array(allowed.filter { seen.insert($0).inserted }.prefix(maxExtraAllow))
+	}
+
 	func start(minutes: Int, folder: String) {
+		start(Choice(minutes: minutes), folder: folder)
+	}
+
+	func start(_ choice: Choice, folder: String) {
 		stop()
 		self.folder = folder
 		error = nil
+		guard choice.commands || choice.files else { error = L("auto.pickOne"); return }
+		let minutes = min(max(choice.minutes, Self.minuteRange.lowerBound), Self.minuteRange.upperBound)
 		var ids: [String] = []
 		do {
-			ids.append(try grant("command.execute", minutes: minutes, scope: Self.allow.flatMap { ["--allow", $0] } + Self.deny.flatMap { ["--deny", $0] }))
-			for capability in Self.fileCapabilities { ids.append(try grant(capability, minutes: minutes, scope: [])) }
+			if choice.commands {
+				let allow = Self.allow + choice.extraAllow
+				ids.append(try grant("command.execute", minutes: minutes, scope: allow.flatMap { ["--allow", $0] } + Self.deny.flatMap { ["--deny", $0] }))
+			}
+			if choice.files {
+				for capability in Self.fileCapabilities { ids.append(try grant(capability, minutes: minutes, scope: [])) }
+			}
 		} catch {
 			for id in ids { revoke(id) } // all or nothing
 			self.error = error.localizedDescription
@@ -121,6 +167,9 @@ struct AutoRunChip: View {
 	@ObservedObject var store: AutoRunStore
 	let folder: String
 	@State private var open = false
+	@State private var custom = false
+	@State private var choice = AutoRunStore.savedChoice
+	@State private var extraText = AutoRunStore.savedChoice.extraAllow.joined(separator: ", ")
 
 	private var remaining: String {
 		guard let until = store.until else { return "" }
@@ -151,7 +200,9 @@ struct AutoRunChip: View {
 							if store.error == nil { open = false }
 						}
 					}
+					FBButton(title: L("auto.custom"), variant: custom ? .primary : .outline) { custom.toggle() }
 				}
+				if custom { customForm }
 			}
 			DisclosureGroup(L("auto.scope")) {
 				Text("\(L("auto.allowed")): \(AutoRunStore.allow.joined(separator: ", "))")
@@ -161,6 +212,36 @@ struct AutoRunChip: View {
 			.font(.fbCaption).foregroundStyle(FB.textSecondary)
 			if let error = store.error { Text(error).font(.fbCaption).foregroundStyle(FB.errorText).fixedSize(horizontal: false, vertical: true) }
 		}
-		.padding(16).frame(width: 380)
+		.padding(16).frame(width: 420)
+	}
+
+	// Custom: any duration, which kinds of work, and extra commands added to the allowed list.
+	private var customForm: some View {
+		VStack(alignment: .leading, spacing: 10) {
+			Stepper(value: $choice.minutes, in: AutoRunStore.minuteRange, step: 5) {
+				Text("\(L("auto.duration")): \(choice.minutes) \(L("auto.min"))").font(.fbBody)
+			}
+			Toggle(L("auto.runCommands"), isOn: $choice.commands)
+			Toggle(L("auto.editFiles"), isOn: $choice.files)
+			VStack(alignment: .leading, spacing: 4) {
+				Text(L("auto.extraAllow")).font(.fbCaption).foregroundStyle(FB.textSecondary)
+				TextField(L("auto.extraAllowHint"), text: $extraText, axis: .vertical)
+					.lineLimit(1 ... 3).textFieldStyle(.roundedBorder)
+					.disabled(!choice.commands)
+			}
+			HStack {
+				Spacer()
+				FBButton(title: L("auto.startCustom"), variant: .primary) {
+					choice.extraAllow = AutoRunStore.cleanExtraAllow(extraText)
+					extraText = choice.extraAllow.joined(separator: ", ")
+					AutoRunStore.savedChoice = choice
+					store.start(choice, folder: folder)
+					if store.error == nil { open = false; custom = false }
+				}
+			}
+		}
+		.font(.fbBody)
+		.padding(12)
+		.background(RoundedRectangle(cornerRadius: FB.radiusLG).fill(FB.surfaceSecondary))
 	}
 }
