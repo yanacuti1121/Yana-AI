@@ -49,7 +49,8 @@ enum RuntimeInstallScript {
 	    exit 1
 	  fi
 	fi
-	cargo install yana-rt --force
+	# No --force: cargo skips the build when the newest yana-rt is already installed.
+	cargo install yana-rt
 	mkdir -p "$HOME/.local/bin"
 	if [ -L "$HOME/.local/bin/yana-rt" ]; then unlink "$HOME/.local/bin/yana-rt"; fi
 	cp "$HOME/.cargo/bin/yana-rt" "$HOME/.local/bin/yana-rt"
