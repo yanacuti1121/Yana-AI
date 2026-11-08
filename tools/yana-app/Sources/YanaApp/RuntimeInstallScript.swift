@@ -60,7 +60,21 @@ enum RuntimeInstallScript {
 	yana-ai --version || true
 	echo
 	echo "Xong. App Yana đang kiểm tra lại phiên bản."
+	# Tells the app the install part is over (the chat below keeps this tab open).
+	touch "$HOME/Library/Application Support/YanaApp/install-runtime.done"
+
+	step "yana-rt chat --provider ollama"
+	if curl -s -m 2 http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
+	  exec yana-rt chat --provider ollama
+	else
+	  echo "Ollama chưa chạy trên máy này. Mở Ollama rồi chạy: yana-rt chat --provider ollama"
+	fi
 	"""#
+
+	static var doneMarker: URL {
+		FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+			.appendingPathComponent("YanaApp/install-runtime.done")
+	}
 
 	// Writes the script into the app's own folder (not a shared temp dir), readable only by this user.
 	static func write() throws -> URL {

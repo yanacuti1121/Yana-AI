@@ -72,6 +72,7 @@ final class RuntimeUpdater: ObservableObject {
 	func install(in terminals: TerminalStore, folder: String) {
 		guard phase != .installing else { return }
 		do {
+			try? FileManager.default.removeItem(at: RuntimeInstallScript.doneMarker)
 			let script = try RuntimeInstallScript.write()
 			terminals.run(TerminalTab.Job(executable: "/bin/bash", args: [script.path], title: L("rt.installTab")), folder: folder)
 			phase = .installing
@@ -81,15 +82,36 @@ final class RuntimeUpdater: ObservableObject {
 		}
 	}
 
-	// Re-checks once the install tab's program has exited.
+	// Re-checks once the install part is over: the script's done marker appears (it then may keep the tab
+	// open with `yana-rt chat --provider ollama`), or the tab's program exits (install failed or no Ollama).
 	private func watch(_ tab: TerminalTab?) {
 		guard let tab else { return }
 		finishWatch = tab.$exited.first { $0 }.sink { [weak self] _ in
-			Task { @MainActor in await self?.check() }
+			Task { @MainActor in self?.installEnded() }
+		}
+		markerWatch?.cancel()
+		markerWatch = Task { [weak self] in
+			let marker = RuntimeInstallScript.doneMarker
+			for _ in 0 ..< Self.markerPolls {
+				try? await Task.sleep(for: .seconds(Self.markerPollSeconds))
+				if Task.isCancelled { return }
+				if FileManager.default.fileExists(atPath: marker.path) { await self?.installEnded(); return }
+			}
 		}
 	}
 
+	private func installEnded() {
+		guard phase == .installing else { return }
+		finishWatch = nil
+		markerWatch?.cancel()
+		try? FileManager.default.removeItem(at: RuntimeInstallScript.doneMarker)
+		Task { await check() }
+	}
+
 	private var finishWatch: AnyCancellable?
+	private var markerWatch: Task<Void, Never>?
+	private static let markerPollSeconds = 3
+	private static let markerPolls = 1200 // one hour at most: cargo can take a long time on a cold cache
 
 	// `yana-ai --version` prints "yana-ai 1.5.0". It is a Python launcher, run with a fixed argument.
 	private nonisolated static func localYanaAiVersion() -> String? {
