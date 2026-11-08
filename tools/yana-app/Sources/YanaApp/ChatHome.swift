@@ -49,6 +49,7 @@ struct ChatHome: View {
 	// A model must be picked first: there is no "auto" model.
 	private var canSend: Bool {
 		let hasContent = !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !engine.attachments.isEmpty
+			|| !engine.documents.isEmpty
 		let imagesOK = engine.attachments.isEmpty || engine.acceptsImages
 		return !engine.running && engine.model != nil && hasContent && imagesOK
 	}
@@ -286,7 +287,7 @@ struct ChatHome: View {
 
 	private var composer: some View {
 		VStack(alignment: .leading, spacing: 10) {
-			if !engine.attachments.isEmpty { attachmentStrip }
+			if !engine.attachments.isEmpty || !engine.documents.isEmpty { attachmentStrip }
 			if let warning = imageWarning {
 				Text(warning).font(.fbCaption).foregroundStyle(FB.warningText)
 			}
@@ -337,6 +338,23 @@ struct ChatHome: View {
 	private var attachmentStrip: some View {
 		ScrollView(.horizontal, showsIndicators: false) {
 			HStack(spacing: 8) {
+				// Documents: name plus how much text was read, with a remove button.
+				ForEach(engine.documents) { doc in
+					HStack(spacing: 6) {
+						FBIcon(name: "file-text", size: 14, color: FB.primaryText)
+						VStack(alignment: .leading, spacing: 1) {
+							Text(doc.name).font(.fbCaption).foregroundStyle(FB.text).lineLimit(1)
+							Text("\(doc.text.count) \(L("doc.chars"))\(doc.truncated ? " · \(L("doc.truncated"))" : "")")
+								.font(.system(size: 10)).foregroundStyle(FB.textTertiary)
+						}
+						FBIcon(name: "close", size: 10, color: FB.textSecondary)
+							.onTapGesture { engine.documents.removeAll { $0.id == doc.id } }
+							.help(L("attach.remove"))
+					}
+					.padding(.horizontal, 10).frame(height: 44)
+					.frame(maxWidth: 220)
+					.background(RoundedRectangle(cornerRadius: 10).fill(FB.surfaceSecondary))
+				}
 				ForEach(engine.attachments) { image in
 					Image(nsImage: image.preview).resizable().scaledToFill()
 						.frame(width: 56, height: 56)
@@ -366,7 +384,8 @@ struct ChatHome: View {
 
 	private func pickImages() {
 		let panel = NSOpenPanel()
-		panel.allowedContentTypes = [.image]
+		// Any file: images go as images, documents are read into text (DocumentText.swift).
+		panel.allowedContentTypes = [.item]
 		panel.allowsMultipleSelection = true
 		if panel.runModal() == .OK { engine.attach(panel.urls) }
 	}

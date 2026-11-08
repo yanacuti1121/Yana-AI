@@ -1,6 +1,7 @@
 import AppKit
 import Foundation
 import SwiftUI
+import UniformTypeIdentifiers
 
 // Runs chat turns through yana-rt's machine-readable adapter, `yana-rt chat --headless`.
 // Protocol (src/chat/headless.rs): one JSON object on stdin, NDJSON events on stdout:
@@ -49,12 +50,34 @@ final class ChatEngine: ObservableObject {
 	@Published var attachError: String? = nil
 	var acceptsImages: Bool { ChatImages.visionProviders.contains(provider) }
 
+	// Documents whose text goes out with the next message (DocumentText.swift).
+	@Published var documents: [ChatDocument] = []
+	private static let maxDocuments = 10
+
+	// Images go to yana-rt as images; every other file is read into text here.
 	func attach(_ urls: [URL]) {
 		attachError = nil
 		for url in urls {
-			guard attachments.count < ChatImages.maxCount else { attachError = L("attach.tooMany"); break }
-			do { attachments.append(try ChatImages.load(url)) } catch { attachError = error.localizedDescription }
+			let isImage = UTType(filenameExtension: url.pathExtension)?.conforms(to: .image) ?? false
+			do {
+				if isImage {
+					guard attachments.count < ChatImages.maxCount else { attachError = L("attach.tooMany"); continue }
+					attachments.append(try ChatImages.load(url))
+				} else {
+					guard documents.count < Self.maxDocuments else { attachError = L("doc.tooMany"); continue }
+					documents.append(try DocumentText.read(url))
+				}
+			} catch { attachError = error.localizedDescription }
 		}
+	}
+
+	// The message text plus each attached document, fenced and named, so the model sees what came from where.
+	private func withDocuments(_ text: String, _ docs: [ChatDocument]) -> String {
+		guard !docs.isEmpty else { return text }
+		let parts = docs.map { doc in
+			"\(L("doc.attached")): \(doc.name)\(doc.truncated ? " (\(L("doc.truncated")))" : "")\n```\n\(doc.text)\n```"
+		}
+		return ([text] + parts).filter { !$0.isEmpty }.joined(separator: "\n\n")
 	}
 
 	func attach(_ image: NSImage, name: String) {
@@ -140,11 +163,15 @@ final class ChatEngine: ObservableObject {
 			.suffix(Self.maxHistoryTurns)
 			.map { ["role": $0.role == .user ? "user" : "assistant", "content": $0.text] }
 		let sending = attachments
+		let docs = documents
 		attachments = []
+		documents = []
 		attachError = nil
-		lines.append(ChatLine(role: .user, text: text, images: sending.map(\.preview)))
+		let shown = ([text] + docs.map { "📎 \($0.name)" }).filter { !$0.isEmpty }.joined(separator: "\n")
+		lines.append(ChatLine(role: .user, text: shown, images: sending.map(\.preview)))
 		lines.append(ChatLine(role: .assistant, text: ""))
-		var payload: [String: Any] = ["task": text, "session_id": sessionId, "history": Array(history), "mode": planMode ? "plan" : "act"]
+		let task = withDocuments(text, docs)
+		var payload: [String: Any] = ["task": task, "session_id": sessionId, "history": Array(history), "mode": planMode ? "plan" : "act"]
 		if !sending.isEmpty {
 			payload["images"] = sending.map { ["mime_type": $0.mimeType, "data": $0.base64] }
 		}
