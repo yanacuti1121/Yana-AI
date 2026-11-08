@@ -29,6 +29,7 @@ const FEATURES = [
 	require('./updates'),
 	require('./edits'),
 	require('./onboarding'),
+	require('./app-bridge'),
 ];
 
 const FIRST_RUN_KEY = 'yana.firstRunRevealed';
