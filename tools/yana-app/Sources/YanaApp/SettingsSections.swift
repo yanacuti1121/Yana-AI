@@ -204,12 +204,21 @@ struct UpdateSettings: View {
 				versionRow("yana-ai (PyPI)", runtime.pyInstalled, runtime.pyLatest)
 				HStack {
 					Button(L("rt.recheck")) { Task { await runtime.check() } }
-					if runtime.showsBanner {
-						Button(L("rt.installNow")) { runtime.install(in: terminals, folder: engine.workspace) }
+					if runtime.phase == .installing {
+						ProgressView().controlSize(.small)
+						Text(L("rt.installingShort")).font(.fbCaption).foregroundStyle(FB.textSecondary)
+					} else if runtime.showsBanner {
+						Button(L("rt.installNow")) { runtime.install(in: terminals, folder: engine.workspace, openPanel: false) }
 							.buttonStyle(.borderedProminent)
 					}
 				}
 			} footer: { SettingsNote(L("set.updatesNote")) }
+			// The install runs right here, so a new user sees every step and can answer its questions.
+			if let tab = runtime.installTab {
+				Section {
+					InstallTerminal(tab: tab)
+				} header: { Text(L("rt.installTab")) } footer: { SettingsNote(L("rt.installHint")) }
+			}
 		}
 	}
 

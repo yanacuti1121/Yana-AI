@@ -69,14 +69,16 @@ final class RuntimeUpdater: ObservableObject {
 
 	// Runs the fixed install script (RuntimeInstallScript) in the app's own terminal panel after the user
 	// agrees. The app keeps running; when the script ends, the versions are checked again.
-	func install(in terminals: TerminalStore, folder: String) {
+	func install(in terminals: TerminalStore, folder: String, openPanel: Bool = true) {
 		guard phase != .installing else { return }
 		do {
 			try? FileManager.default.removeItem(at: RuntimeInstallScript.doneMarker)
 			let script = try RuntimeInstallScript.write()
-			terminals.run(TerminalTab.Job(executable: "/bin/bash", args: [script.path], title: L("rt.installTab")), folder: folder)
+			let tab = terminals.run(TerminalTab.Job(executable: "/bin/bash", args: [script.path], title: L("rt.installTab")),
+			                        folder: folder, openPanel: openPanel)
+			installTab = tab
 			phase = .installing
-			watch(terminals.current)
+			watch(tab)
 		} catch {
 			phase = .failed(error.localizedDescription)
 		}
@@ -108,6 +110,8 @@ final class RuntimeUpdater: ObservableObject {
 		Task { await check() }
 	}
 
+	// The tab of the latest install, shown in Settings > Updates while and after it runs.
+	@Published private(set) var installTab: TerminalTab?
 	private var finishWatch: AnyCancellable?
 	private var markerWatch: Task<Void, Never>?
 	private static let markerPollSeconds = 3

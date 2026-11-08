@@ -82,13 +82,15 @@ final class TerminalStore: ObservableObject {
 		selected = tab.id
 	}
 
-	// Runs a fixed job in a new tab and opens the terminal panel, so the user watches it while the app
-	// keeps working.
-	func run(_ job: TerminalTab.Job, folder: String) {
+	// Runs a fixed job in a new tab, so the user watches it while the app keeps working. `openPanel` also
+	// opens the chat page's terminal panel; Settings passes false and shows the tab in place instead.
+	@discardableResult
+	func run(_ job: TerminalTab.Job, folder: String, openPanel: Bool = true) -> TerminalTab {
 		let tab = TerminalTab(folder: folder, fontSize: fontSize, job: job)
 		tabs.append(tab)
 		selected = tab.id
-		wantsPanel = true
+		if openPanel { wantsPanel = true }
+		return tab
 	}
 
 	func close(_ id: UUID) {
@@ -134,7 +136,8 @@ enum TerminalStyle {
 }
 
 // Hosts the selected tab's AppKit view. Tabs keep their own views, so switching only swaps the child.
-private struct TerminalHost: NSViewRepresentable {
+// Also used by Settings > Updates to show the install tab in place.
+struct TerminalHost: NSViewRepresentable {
 	let tab: TerminalTab
 
 	func makeNSView(context: Context) -> NSView { NSView() }
@@ -243,5 +246,23 @@ private struct TerminalTabChip: View {
 		.contentShape(Rectangle())
 		.onTapGesture(perform: select)
 		.onHover { hover = $0 }
+	}
+}
+
+// The install tab shown in place (Settings > Updates): a framed terminal with its state above it.
+struct InstallTerminal: View {
+	@ObservedObject var tab: TerminalTab
+	static let height: CGFloat = 300
+
+	var body: some View {
+		VStack(alignment: .leading, spacing: 8) {
+			Label(L(tab.exited ? "rt.installEnded" : "rt.installRunning"),
+			      systemImage: tab.exited ? "checkmark.circle" : "terminal")
+				.font(.fbCaption).foregroundStyle(tab.exited ? FB.successText : FB.textSecondary)
+			TerminalHost(tab: tab)
+				.frame(height: Self.height)
+				.clipShape(RoundedRectangle(cornerRadius: FB.radiusLG))
+				.overlay(RoundedRectangle(cornerRadius: FB.radiusLG).stroke(FB.border, lineWidth: 1))
+		}
 	}
 }
