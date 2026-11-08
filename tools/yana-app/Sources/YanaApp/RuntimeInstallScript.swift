@@ -18,7 +18,7 @@ enum RuntimeInstallScript {
 	  if command -v brew >/dev/null 2>&1; then
 	    brew install pipx
 	  else
-	    echo "Không có pipx và Homebrew. Cài bằng pip trong môi trường Python của anh: pip install yana-ai"
+	    echo "Không có pipx và Homebrew. Cài bằng pip trong môi trường Python của bạn: pip install yana-ai"
 	    echo "(Python của Homebrew chặn 'pip install' ngoài venv theo PEP 668, nên Yana dùng pipx.)"
 	    exit 1
 	  fi
