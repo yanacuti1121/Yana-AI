@@ -16,6 +16,8 @@ struct RootView: View {
 	@StateObject private var terminals = TerminalStore()
 	// Models the user's keys can reach, asked from each provider (shared by the chat bar and Settings).
 	@StateObject private var models = ModelCatalog()
+	// New versions of this app, from GitHub Releases (app-vX.Y.Z).
+	@StateObject private var appUpdater = AppUpdater()
 	private let rendering: Bool
 
 	// YANA_PAGE opens a given page at launch (used to check pages in the live window).
@@ -71,13 +73,26 @@ struct RootView: View {
 		}
 		// A new id on a language change rebuilds the whole tree so every L(...) is read again.
 		// `selected` lives on RootView, outside this subtree, so the open page is kept.
-		.task { if !rendering && AppSettings.shared.checkUpdatesOnLaunch { await runtime.check() } }
+		.task {
+			guard !rendering else { return }
+			if ProcessInfo.processInfo.environment["YANA_UPDATE_DEMO"] == "1" { appUpdater.demo(); return }
+			appUpdater.showWhatsNewIfUpdated()
+			guard AppSettings.shared.checkUpdatesOnLaunch else { return }
+			await runtime.check()
+			await appUpdater.check()
+		}
+		.sheet(isPresented: $appUpdater.showSheet) { UpdateSheet(updater: appUpdater) }
+		.sheet(isPresented: Binding(get: { appUpdater.whatsNew != nil && !appUpdater.showSheet },
+		                            set: { if !$0 { appUpdater.whatsNew = nil } })) {
+			if let release = appUpdater.whatsNew { WhatsNewSheet(release: release) { appUpdater.whatsNew = nil } }
+		}
 		.id(loc.lang)
 		.environmentObject(engine)
 		.environmentObject(editor)
 		.environmentObject(terminals)
 		.environmentObject(models)
 		.environmentObject(runtime)
+		.environmentObject(appUpdater)
 		// Draw under the hidden title bar too, so the sidebars run to the top edge without a band.
 		.ignoresSafeArea()
 		.frame(minWidth: rendering ? 1536 : 1040, idealWidth: 1360, maxWidth: rendering ? 1536 : .infinity,
@@ -101,7 +116,7 @@ struct RootView: View {
 	private func perform(_ action: MenuAction) {
 		switch action {
 		case .settings: selected = "Settings"
-		case .checkUpdates: Task { await runtime.check() }
+		case .checkUpdates: Task { await runtime.check(); await appUpdater.check(userAsked: true) }
 		case .newChat: engine.reset(); selected = "Chat"
 		case .openFolder:
 			let panel = NSOpenPanel()

@@ -82,6 +82,7 @@ struct IconRail: View {
 	@Binding var selected: String
 	@EnvironmentObject private var runtime: RuntimeUpdater
 	@EnvironmentObject private var terminals: TerminalStore
+	@EnvironmentObject private var appUpdater: AppUpdater
 	@EnvironmentObject private var engine: ChatEngine
 	@State private var showUpdate = false
 
@@ -92,6 +93,10 @@ struct IconRail: View {
 					.onTapGesture { selected = entry.id }
 			}
 			Spacer(minLength: 0)
+			// A newer Yana app on GitHub Releases, kept reachable after "Remind me later".
+			if appUpdater.available != nil && !appUpdater.showSheet {
+				UpdatePill { appUpdater.showSheet = true }.padding(.bottom, 4)
+			}
 			// Install/update notice, folded into one button (red dot) instead of a banner over the content.
 			if runtime.showsBanner {
 				RailButton(icon: "download", label: L("rt.updateButton"), selected: showUpdate)
