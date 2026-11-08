@@ -225,6 +225,8 @@ final class ChatEngine: ObservableObject {
 		}
 		if let value = settings.maxTokensValue { payload["max_tokens"] = value }
 		if let value = settings.temperatureValue { payload["temperature"] = value }
+		// Auto mode: name the lease subject so yana-rt can find the leases the user granted (AutoRun.swift).
+		if AutoRunStore.shared.isOn { payload["agent_id"] = AutoRunStore.subject }
 		turnProvider = provider
 		var args = ["chat", "--headless", "--provider", provider]
 		if let model { args += ["--model", model] }
@@ -369,6 +371,11 @@ final class ChatEngine: ObservableObject {
 		let line = lines[last]
 		if status != 0, line.error == nil, line.approval == nil, line.text.isEmpty {
 			let detail = stderr.trimmingCharacters(in: .whitespacesAndNewlines)
+			// yana-rt before 2026-11-08 rejects the agent_id field Auto mode sends.
+			if detail.contains("agent_id") && detail.contains("unknown field") {
+				lines[last].error = L("auto.needsNewRt")
+				return
+			}
 			lines[last].error = detail.isEmpty ? "yana-rt exited with code \(status)" : String(detail.suffix(Self.errorTailChars))
 		}
 	}

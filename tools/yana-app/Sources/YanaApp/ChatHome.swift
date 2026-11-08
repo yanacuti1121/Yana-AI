@@ -311,6 +311,8 @@ struct ChatHome: View {
 				Chip(icon: engine.planMode ? "eye" : "zap", title: engine.planMode ? L("chat.modePlan") : L("chat.modeAct"), trailing: "chevron-down")
 					.help(L("chat.modeHelp"))
 					.onTapGesture { if !engine.running { engine.planMode.toggle() } }
+				// Auto: yana-rt leases let commands and file edits run without a click per call, for a set time.
+				AutoRunChip(store: AutoRunStore.shared, folder: engine.workspace)
 				Spacer(minLength: 8)
 				// Reasoning depth: yana-rt's headless adapter has no such parameter, so it is shown but off.
 				Chip(icon: "layers", title: L("chat.reasoning"))

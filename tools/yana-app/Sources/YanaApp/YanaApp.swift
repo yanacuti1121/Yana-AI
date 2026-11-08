@@ -77,6 +77,8 @@ struct RootView: View {
 		// `selected` lives on RootView, outside this subtree, so the open page is kept.
 		.task {
 			guard !rendering else { return }
+			// Auto-mode leases left active by an app that quit are revoked: Auto never outlives its window.
+			AutoRunStore.shared.revokeLeftovers(folder: engine.workspace)
 			if ProcessInfo.processInfo.environment["YANA_UPDATE_DEMO"] == "1" { appUpdater.demo(); return }
 			// YANA_TOUR=1 shows the guide again (to check it in the live window).
 			if ProcessInfo.processInfo.environment["YANA_TOUR"] == "1" || OnboardingTour.shouldShowAtLaunch {
