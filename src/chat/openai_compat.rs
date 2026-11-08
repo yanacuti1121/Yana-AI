@@ -273,6 +273,114 @@ mod detect_tests {
     }
 }
 
+// OpenAI-compatible providers that Yana Studio's catalog already lists (host/model-catalog.cjs) but that
+// yana-rt did not run, so picking them in Studio failed with "unknown provider". Each endpoint was
+// checked live 2026-11-07 with no key: 401 (key required), or 400 "model is required" for fireworks,
+// sambanova, qwen and ai21 ("missing authentication"), i.e. the path exists. Env var names match Studio's
+// catalog. Default models are each provider's documented general model; they were not called with a
+// real key here, and the Yana app always passes the model the user picked from the provider's own list.
+// Left out on purpose: hyperbolic (endpoint answers "decommissioned"), anyscale (404), octoai (domain
+// gone), and lepton / replicate / bedrock / azure / cloudflare (per-account URLs or non-OpenAI auth).
+
+pub fn mistral() -> OpenAiCompatProvider {
+    remote("mistral", "https://api.mistral.ai/v1/chat/completions", "mistral-large-latest", "MISTRAL_API_KEY")
+}
+
+pub fn together() -> OpenAiCompatProvider {
+    remote(
+        "together",
+        "https://api.together.xyz/v1/chat/completions",
+        "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+        "TOGETHER_API_KEY",
+    )
+}
+
+pub fn fireworks() -> OpenAiCompatProvider {
+    remote(
+        "fireworks",
+        "https://api.fireworks.ai/inference/v1/chat/completions",
+        "accounts/fireworks/models/llama-v3p3-70b-instruct",
+        "FIREWORKS_API_KEY",
+    )
+}
+
+pub fn deepinfra() -> OpenAiCompatProvider {
+    remote(
+        "deepinfra",
+        "https://api.deepinfra.com/v1/openai/chat/completions",
+        "meta-llama/Llama-3.3-70B-Instruct",
+        "DEEPINFRA_API_KEY",
+    )
+}
+
+pub fn cerebras() -> OpenAiCompatProvider {
+    remote("cerebras", "https://api.cerebras.ai/v1/chat/completions", "llama-3.3-70b", "CEREBRAS_API_KEY")
+}
+
+pub fn sambanova() -> OpenAiCompatProvider {
+    remote(
+        "sambanova",
+        "https://api.sambanova.ai/v1/chat/completions",
+        "Meta-Llama-3.3-70B-Instruct",
+        "SAMBANOVA_API_KEY",
+    )
+}
+
+pub fn perplexity() -> OpenAiCompatProvider {
+    remote("perplexity", "https://api.perplexity.ai/chat/completions", "sonar-pro", "PERPLEXITY_API_KEY")
+}
+
+/// Alibaba Cloud Model Studio (DashScope), international OpenAI-compatible mode.
+pub fn qwen() -> OpenAiCompatProvider {
+    remote(
+        "qwen",
+        "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions",
+        "qwen-plus",
+        "QWEN_API_KEY",
+    )
+}
+
+/// Cohere's OpenAI compatibility API.
+pub fn cohere() -> OpenAiCompatProvider {
+    remote(
+        "cohere",
+        "https://api.cohere.ai/compatibility/v1/chat/completions",
+        "command-r-plus",
+        "COHERE_API_KEY",
+    )
+}
+
+pub fn ai21() -> OpenAiCompatProvider {
+    remote("ai21", "https://api.ai21.com/studio/v1/chat/completions", "jamba-large", "AI21_API_KEY")
+}
+
+/// Baidu Qianfan v2 (OpenAI-compatible, Bearer key) for the ERNIE models.
+pub fn ernie() -> OpenAiCompatProvider {
+    remote("ernie", "https://qianfan.baidubce.com/v2/chat/completions", "ernie-4.0-8k", "ERNIE_API_KEY")
+}
+
+/// vLLM's OpenAI-compatible server on its default port. Keyless like the other local servers.
+pub fn vllm() -> OpenAiCompatProvider {
+    OpenAiCompatProvider {
+        provider_name: "vllm".into(),
+        url: "http://127.0.0.1:8000/v1/chat/completions".into(),
+        default_model: "local-model".into(),
+        keyless: true,
+        env_var: String::new(),
+    }
+}
+
+/// Jan's local API server on its default port.
+pub fn jan() -> OpenAiCompatProvider {
+    OpenAiCompatProvider {
+        provider_name: "jan".into(),
+        url: "http://127.0.0.1:1337/v1/chat/completions".into(),
+        default_model: "local-model".into(),
+        keyless: true,
+        env_var: String::new(),
+    }
+}
+
 pub fn lm_studio() -> OpenAiCompatProvider {
     OpenAiCompatProvider {
         provider_name: "lmstudio".into(),

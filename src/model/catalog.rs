@@ -61,6 +61,19 @@ openai_compat_factory!(minimax);
 openai_compat_factory!(glm);
 openai_compat_factory!(huggingface);
 openai_compat_factory!(nine_router);
+openai_compat_factory!(mistral);
+openai_compat_factory!(together);
+openai_compat_factory!(fireworks);
+openai_compat_factory!(deepinfra);
+openai_compat_factory!(cerebras);
+openai_compat_factory!(sambanova);
+openai_compat_factory!(perplexity);
+openai_compat_factory!(qwen);
+openai_compat_factory!(cohere);
+openai_compat_factory!(ai21);
+openai_compat_factory!(ernie);
+openai_compat_factory!(vllm);
+openai_compat_factory!(jan);
 
 fn kimi() -> Arc<dyn ChatProvider> {
     Arc::new(openai_compat::kimi())
@@ -158,6 +171,61 @@ const PROVIDERS: &[ProviderRegistration] = &[
         factory: kimi,
     },
     ProviderRegistration {
+        name: "mistral",
+        aliases: &[],
+        factory: mistral,
+    },
+    ProviderRegistration {
+        name: "together",
+        aliases: &["togetherai"],
+        factory: together,
+    },
+    ProviderRegistration {
+        name: "fireworks",
+        aliases: &[],
+        factory: fireworks,
+    },
+    ProviderRegistration {
+        name: "deepinfra",
+        aliases: &[],
+        factory: deepinfra,
+    },
+    ProviderRegistration {
+        name: "cerebras",
+        aliases: &[],
+        factory: cerebras,
+    },
+    ProviderRegistration {
+        name: "sambanova",
+        aliases: &[],
+        factory: sambanova,
+    },
+    ProviderRegistration {
+        name: "perplexity",
+        aliases: &[],
+        factory: perplexity,
+    },
+    ProviderRegistration {
+        name: "qwen",
+        aliases: &["dashscope"],
+        factory: qwen,
+    },
+    ProviderRegistration {
+        name: "cohere",
+        aliases: &[],
+        factory: cohere,
+    },
+    ProviderRegistration {
+        name: "ai21",
+        aliases: &[],
+        factory: ai21,
+    },
+    ProviderRegistration {
+        name: "ernie",
+        aliases: &["qianfan"],
+        factory: ernie,
+    },
+    ProviderRegistration {
         name: "ollama",
         aliases: &[],
         factory: ollama,
@@ -181,6 +249,16 @@ const PROVIDERS: &[ProviderRegistration] = &[
         name: "airllm",
         aliases: &[],
         factory: airllm,
+    },
+    ProviderRegistration {
+        name: "vllm",
+        aliases: &[],
+        factory: vllm,
+    },
+    ProviderRegistration {
+        name: "jan",
+        aliases: &[],
+        factory: jan,
     },
 ];
 
@@ -266,13 +344,62 @@ mod tests {
                 "huggingface",
                 "9router",
                 "kimi",
+                "mistral",
+                "together",
+                "fireworks",
+                "deepinfra",
+                "cerebras",
+                "sambanova",
+                "perplexity",
+                "qwen",
+                "cohere",
+                "ai21",
+                "ernie",
                 "ollama",
                 "lmstudio",
                 "llamacpp",
                 "turbofieldfare",
-                "airllm"
+                "airllm",
+                "vllm",
+                "jan"
             ]
         );
+    }
+
+    #[test]
+    fn studio_openai_compatible_providers_are_selectable() {
+        // These were listed in Yana Studio's catalog but rejected as "unknown provider" before.
+        for name in [
+            "mistral", "together", "fireworks", "deepinfra", "cerebras", "sambanova", "perplexity", "qwen",
+            "cohere", "ai21", "ernie", "vllm", "jan",
+        ] {
+            let provider = try_select_provider(name).unwrap_or_else(|error| panic!("{name}: {error}"));
+            assert_eq!(provider.name(), name);
+        }
+        assert_eq!(try_select_provider("dashscope").unwrap().name(), "qwen");
+        assert_eq!(try_select_provider("qianfan").unwrap().name(), "ernie");
+    }
+
+    #[test]
+    fn new_cloud_providers_need_a_key_and_local_ones_do_not() {
+        for name in [
+            "mistral", "together", "fireworks", "deepinfra", "cerebras", "sambanova", "perplexity", "qwen",
+            "cohere", "ai21", "ernie",
+        ] {
+            let provider = try_select_provider(name).unwrap();
+            assert!(provider.requires_key(), "{name} should require a key");
+            assert!(!provider.env_var().is_empty(), "{name} should name its key variable");
+        }
+        for name in ["vllm", "jan"] {
+            assert!(!try_select_provider(name).unwrap().requires_key(), "{name} is a keyless local server");
+        }
+    }
+
+    #[test]
+    fn decommissioned_or_account_specific_providers_stay_unknown() {
+        for name in ["hyperbolic", "anyscale", "octoai", "bedrock", "azure", "cloudflare", "replicate", "lepton"] {
+            assert!(try_select_provider(name).is_err(), "{name} should not be selectable");
+        }
     }
 
     #[test]
