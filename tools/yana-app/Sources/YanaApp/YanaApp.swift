@@ -18,6 +18,8 @@ struct RootView: View {
 	@StateObject private var models = ModelCatalog()
 	// New versions of this app, from GitHub Releases (app-vX.Y.Z).
 	@StateObject private var appUpdater = AppUpdater()
+	// The first-run guide (OnboardingTour), also opened from Help and Settings > About.
+	@State private var showTour = false
 	private let rendering: Bool
 
 	// YANA_PAGE opens a given page at launch (used to check pages in the live window).
@@ -76,6 +78,11 @@ struct RootView: View {
 		.task {
 			guard !rendering else { return }
 			if ProcessInfo.processInfo.environment["YANA_UPDATE_DEMO"] == "1" { appUpdater.demo(); return }
+			// YANA_TOUR=1 shows the guide again (to check it in the live window).
+			if ProcessInfo.processInfo.environment["YANA_TOUR"] == "1" || OnboardingTour.shouldShowAtLaunch {
+				showTour = true
+				return // no update prompt on top of the first-run guide
+			}
 			appUpdater.showWhatsNewIfUpdated()
 			MemoryStore.shared.backupIfDue()
 			guard AppSettings.shared.checkUpdatesOnLaunch else { return }
@@ -83,6 +90,7 @@ struct RootView: View {
 			await appUpdater.check()
 		}
 		.sheet(isPresented: $appUpdater.showSheet) { UpdateSheet(updater: appUpdater) }
+		.background(EmptyView().sheet(isPresented: $showTour) { OnboardingTourView { showTour = false } })
 		.sheet(isPresented: Binding(get: { appUpdater.whatsNew != nil && !appUpdater.showSheet },
 		                            set: { if !$0 { appUpdater.whatsNew = nil } })) {
 			if let release = appUpdater.whatsNew { WhatsNewSheet(release: release) { appUpdater.whatsNew = nil } }
@@ -135,6 +143,7 @@ struct RootView: View {
 		case .terminal: terminals.wantsPanel = true; selected = "Chat"
 		case .toggleChatList: chatSidebar.toggle(); selected = "Chat"
 		case .uninstall: Uninstaller.run()
+		case .tour: showTour = true
 		default:
 			let index = (Int(action.rawValue.dropFirst(4)) ?? 1) - 1
 			if railEntries.indices.contains(index) { selected = railEntries[index].id }

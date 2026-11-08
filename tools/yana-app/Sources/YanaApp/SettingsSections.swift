@@ -250,6 +250,8 @@ struct AboutSettings: View {
 	private static let repo = URL(string: "https://github.com/yanacuti1121/Yana-AI")!
 	private static let releases = URL(string: "https://github.com/yanacuti1121/Yana-AI/releases")!
 	private static let license = URL(string: "https://www.apache.org/licenses/LICENSE-2.0")!
+	private static let contactEmail = "phamlongh230@gmail.com"
+	private static let contactMail = URL(string: "mailto:phamlongh230@gmail.com")!
 
 	// Yana Studio's own version: product.json "yanaStudioVersion" (stamped by builds since 2026-11-08).
 	// Older builds lack it, so they show as installed without a number.
@@ -301,6 +303,7 @@ struct AboutSettings: View {
 				Link(L("about.github"), destination: Self.repo)
 				Link(L("about.releases"), destination: Self.releases)
 				Button(L("menu.checkUpdates")) { Task { await appUpdater.check(userAsked: true) } }
+				Button(L("menu.tour")) { post(.tour) }
 			}
 
 			Section(L("about.legal")) {
@@ -313,6 +316,10 @@ struct AboutSettings: View {
 				LabeledContent("Fluent Blue", value: "MIT")
 				LabeledContent("SwiftTerm 1.20.0", value: "MIT")
 			} header: { Text(L("about.thirdParty")) } footer: { SettingsNote(L("set.aboutNote")) }
+
+			Section {
+				LabeledContent(L("about.email")) { Link(Self.contactEmail, destination: Self.contactMail) }
+			} header: { Text(L("about.contact")) } footer: { SettingsNote(L("about.contactNote")) }
 		}
 	}
 }

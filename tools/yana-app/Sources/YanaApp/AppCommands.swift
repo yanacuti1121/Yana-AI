@@ -5,7 +5,7 @@ import SwiftUI
 // Titles are read when the menu is built: after a language change they update on the next launch.
 
 enum MenuAction: String {
-	case settings, checkUpdates, newChat, openFolder, openStudio, terminal, toggleChatList, uninstall
+	case settings, checkUpdates, newChat, openFolder, openStudio, terminal, toggleChatList, uninstall, tour
 	case page1, page2, page3, page4, page5, page6, page7
 }
 
@@ -13,7 +13,7 @@ extension Notification.Name {
 	static let yanaMenu = Notification.Name("ai.yana.menu")
 }
 
-private func post(_ action: MenuAction) {
+func post(_ action: MenuAction) {
 	NotificationCenter.default.post(name: .yanaMenu, object: action.rawValue)
 }
 
@@ -24,6 +24,9 @@ struct YanaCommands: Commands {
 			Button(L("menu.checkUpdates")) { post(.checkUpdates) }
 			Divider()
 			Button(L("menu.uninstall")) { post(.uninstall) }
+		}
+		CommandGroup(replacing: .help) {
+			Button(L("menu.tour")) { post(.tour) }
 		}
 		CommandGroup(replacing: .newItem) {
 			Button(L("chat.new")) { post(.newChat) }.keyboardShortcut("n", modifiers: .command)
