@@ -109,6 +109,11 @@ struct RootView: View {
 			NSApplication.shared.setActivationPolicy(.regular)
 			NSApplication.shared.activate(ignoringOtherApps: true)
 		}
+		// The terminal lives in the chat page's right panel: a request for it from any page (Settings'
+		// Install now, the update popover) brings the chat page forward, which opens the panel.
+		.onChange(of: terminals.wantsPanel) { _, wanted in
+			if wanted && selected != "Chat" && selected != "Start" { selected = "Chat" }
+		}
 		.onReceive(NotificationCenter.default.publisher(for: .yanaMenu)) { note in
 			guard let raw = note.object as? String, let action = MenuAction(rawValue: raw) else { return }
 			perform(action)
