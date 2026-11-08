@@ -17,8 +17,15 @@ struct ChatImage: Identifiable {
 
 enum ChatImages {
 	static let maxCount = 8
-	private static let maxBase64 = 8 * 1024 * 1024
-	private static let maxSide: CGFloat = 2048
+	// yana-rt allows 8 MiB and some providers stop at ~5 MB; images are compressed well below both, to
+	// this budget (base64 bytes), so uploads stay fast and cheap in tokens.
+	private static let maxBase64 = 1_500_000
+	// PNG is kept only when it is already this small (screenshots, text: stays sharp); else JPEG.
+	private static let pngBudget = 600_000
+	private static let jpegQualities: [Double] = [0.85, 0.75, 0.65, 0.5]
+	private static let minSide = 512
+	// Longest edge in real pixels; bigger images are scaled down before sending.
+	private static let maxSide = 2048
 	private static let accepted: Set<String> = ["image/jpeg", "image/png", "image/webp", "image/gif"]
 	// Providers whose yana-rt adapter accepts images (supports_vision in src/chat/*.rs).
 	static let visionProviders: Set<String> = ["anthropic", "gemini", "openai", "groq", "openrouter", "xai", "glm"]
@@ -40,7 +47,7 @@ enum ChatImages {
 		}
 		guard let data = try? Data(contentsOf: url), let image = NSImage(data: data) else { throw LoadError.unreadable(name) }
 		let mime = type.preferredMIMEType ?? ""
-		if accepted.contains(mime), data.base64EncodedString().count <= maxBase64 {
+		if accepted.contains(mime), pixelSide(image) <= maxSide, data.base64EncodedString().count <= maxBase64 {
 			return ChatImage(name: name, mimeType: mime, base64: data.base64EncodedString(), preview: image)
 		}
 		return try reencode(image, name: name)
@@ -48,32 +55,54 @@ enum ChatImages {
 
 	static func from(_ image: NSImage, name: String) throws -> ChatImage { try reencode(image, name: name) }
 
-	// PNG when it fits, otherwise a scaled-down JPEG.
+	static func from(_ cgImage: CGImage, name: String) throws -> ChatImage {
+		try reencode(NSImage(cgImage: cgImage, size: NSSize(width: cgImage.width, height: cgImage.height)), name: name)
+	}
+
+	// Compression: scale to maxSide real pixels; keep PNG if it is small; otherwise JPEG at falling quality
+	// until it fits the budget; if even the lowest quality is too big, shrink the image by a quarter and
+	// try again (never below minSide).
 	private static func reencode(_ image: NSImage, name: String) throws -> ChatImage {
-		if let png = encode(image, as: .png), png.base64EncodedString().count <= maxBase64 {
-			return ChatImage(name: name, mimeType: "image/png", base64: png.base64EncodedString(), preview: image)
+		var side = maxSide
+		while side >= minSide {
+			guard let rep = bitmap(image, maxSide: side) else { throw LoadError.unreadable(name) }
+			let preview = NSImage(size: NSSize(width: rep.pixelsWide, height: rep.pixelsHigh))
+			preview.addRepresentation(rep)
+			if let png = rep.representation(using: .png, properties: [:]), png.base64EncodedString().count <= pngBudget {
+				return ChatImage(name: name, mimeType: "image/png", base64: png.base64EncodedString(), preview: preview)
+			}
+			for quality in jpegQualities {
+				if let jpeg = rep.representation(using: .jpeg, properties: [.compressionFactor: quality]),
+				   jpeg.base64EncodedString().count <= maxBase64 {
+					return ChatImage(name: name, mimeType: "image/jpeg", base64: jpeg.base64EncodedString(), preview: preview)
+				}
+			}
+			side = side * 3 / 4
 		}
-		let scaled = scale(image, maxSide: maxSide)
-		guard let jpeg = encode(scaled, as: .jpeg), jpeg.base64EncodedString().count <= maxBase64 else {
-			throw LoadError.unreadable(name)
-		}
-		return ChatImage(name: name, mimeType: "image/jpeg", base64: jpeg.base64EncodedString(), preview: scaled)
+		throw LoadError.unreadable(name)
 	}
 
-	private static func encode(_ image: NSImage, as type: NSBitmapImageRep.FileType) -> Data? {
-		guard let tiff = image.tiffRepresentation, let rep = NSBitmapImageRep(data: tiff) else { return nil }
-		return rep.representation(using: type, properties: type == .jpeg ? [.compressionFactor: 0.85] : [:])
+	// The largest pixel edge of an image (points can be half of that on Retina-tagged files).
+	private static func pixelSide(_ image: NSImage) -> Int {
+		image.representations.map { max($0.pixelsWide, $0.pixelsHigh) }.max() ?? Int(max(image.size.width, image.size.height))
 	}
 
-	private static func scale(_ image: NSImage, maxSide: CGFloat) -> NSImage {
-		let size = image.size
-		let factor = min(1, maxSide / max(size.width, size.height, 1))
-		guard factor < 1 else { return image }
-		let target = NSSize(width: (size.width * factor).rounded(), height: (size.height * factor).rounded())
-		let result = NSImage(size: target)
-		result.lockFocus()
-		image.draw(in: NSRect(origin: .zero, size: target))
-		result.unlockFocus()
-		return result
+	// Draws the image into a bitmap of at most maxSide pixels on the longest edge, in real pixels.
+	private static func bitmap(_ image: NSImage, maxSide: Int) -> NSBitmapImageRep? {
+		var rect = NSRect(origin: .zero, size: image.size)
+		guard let cg = image.cgImage(forProposedRect: &rect, context: nil, hints: nil) else { return nil }
+		let factor = min(1, Double(maxSide) / Double(max(cg.width, cg.height, 1)))
+		let width = max(1, Int((Double(cg.width) * factor).rounded()))
+		let height = max(1, Int((Double(cg.height) * factor).rounded()))
+		guard let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: width, pixelsHigh: height, bitsPerSample: 8,
+		                                 samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB,
+		                                 bytesPerRow: 0, bitsPerPixel: 0),
+		      let context = NSGraphicsContext(bitmapImageRep: rep) else { return nil }
+		NSGraphicsContext.saveGraphicsState()
+		NSGraphicsContext.current = context
+		context.cgContext.interpolationQuality = .high
+		context.cgContext.draw(cg, in: CGRect(x: 0, y: 0, width: width, height: height))
+		NSGraphicsContext.restoreGraphicsState()
+		return rep
 	}
 }

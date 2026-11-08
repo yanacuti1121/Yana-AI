@@ -54,11 +54,20 @@ final class ChatEngine: ObservableObject {
 	@Published var documents: [ChatDocument] = []
 	private static let maxDocuments = 10
 
-	// Images go to yana-rt as images; every other file is read into text here.
+	// Notes describing attached videos (name, length, frame times), sent with the next message.
+	@Published var videoNotes: [String] = []
+
+	// Images go to yana-rt as images; videos become a few frames (VideoFrames.swift); every other file is
+	// read into text here.
 	func attach(_ urls: [URL]) {
 		attachError = nil
 		for url in urls {
-			let isImage = UTType(filenameExtension: url.pathExtension)?.conforms(to: .image) ?? false
+			let type = UTType(filenameExtension: url.pathExtension)
+			if type?.conforms(to: .movie) == true || type?.conforms(to: .video) == true {
+				attachVideo(url)
+				continue
+			}
+			let isImage = type?.conforms(to: .image) ?? false
 			do {
 				if isImage {
 					guard attachments.count < ChatImages.maxCount else { attachError = L("attach.tooMany"); continue }
@@ -68,6 +77,20 @@ final class ChatEngine: ObservableObject {
 					documents.append(try DocumentText.read(url))
 				}
 			} catch { attachError = error.localizedDescription }
+		}
+	}
+
+	private func attachVideo(_ url: URL) {
+		let room = ChatImages.maxCount - attachments.count
+		guard room > 0 else { attachError = L("attach.tooMany"); return }
+		Task {
+			do {
+				let result = try await VideoFrames.extract(url, count: room)
+				attachments.append(contentsOf: result.frames.prefix(ChatImages.maxCount - attachments.count))
+				videoNotes.append(result.note)
+			} catch {
+				attachError = error.localizedDescription
+			}
 		}
 	}
 
@@ -164,13 +187,15 @@ final class ChatEngine: ObservableObject {
 			.map { ["role": $0.role == .user ? "user" : "assistant", "content": $0.text] }
 		let sending = attachments
 		let docs = documents
+		let notes = videoNotes
 		attachments = []
 		documents = []
+		videoNotes = []
 		attachError = nil
 		let shown = ([text] + docs.map { "📎 \($0.name)" }).filter { !$0.isEmpty }.joined(separator: "\n")
 		lines.append(ChatLine(role: .user, text: shown, images: sending.map(\.preview)))
 		lines.append(ChatLine(role: .assistant, text: ""))
-		let task = withDocuments(text, docs)
+		let task = ([withDocuments(text, docs)] + notes).filter { !$0.isEmpty }.joined(separator: "\n\n")
 		var payload: [String: Any] = ["task": task, "session_id": sessionId, "history": Array(history), "mode": planMode ? "plan" : "act"]
 		if !sending.isEmpty {
 			payload["images"] = sending.map { ["mime_type": $0.mimeType, "data": $0.base64] }
