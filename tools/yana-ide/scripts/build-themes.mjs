@@ -12,12 +12,15 @@ const dark = JSON.parse(fs.readFileSync(path.join(themesDir, 'yana-dark-color-th
 // Mỗi màu của Yana Dark có một màu Light tương ứng cùng vai trò (nền, viền, chữ, accent). Accent được
 // làm đậm hơn để đạt tương phản WCAG AA trên nền sáng. Phần alpha (#rrggbbAA) giữ nguyên.
 const LIGHT = {
-	'#0c0e12': '#eef0f4', '#12151c': '#ffffff', '#161a22': '#f5f6f8', '#1a1e27': '#e9ecf1', '#1c212c': '#e4e8ef',
-	'#1e222b': '#dde1e8', '#252a36': '#cfd5df', '#3a3f4c': '#b7bfcc', '#4b5160': '#9aa3b2', '#5c6270': '#8a93a3',
-	'#64748b': '#667085', '#94a3b8': '#4b5565', '#c3c6d7': '#343b48', '#e2e2e8': '#1b1f27', '#f8fafc': '#0f1218',
+	// Neutrals and blues follow the Fluent Blue light theme (MIT, github.com/danieldev23/fluent-blue), the same
+	// values as studio-web/vendor/cline-ui/theme/palette.css: grays #f5f5f5 / #d9d9d9 / #595959 / #141414 and the
+	// primary blue #1470f0 (the lightest blue that keeps white text at 4.5:1).
+	'#0c0e12': '#f0f0f0', '#12151c': '#ffffff', '#161a22': '#f5f5f5', '#1a1e27': '#f0f0f0', '#1c212c': '#e8e8e8',
+	'#1e222b': '#e0e0e0', '#252a36': '#d9d9d9', '#3a3f4c': '#bfbfbf', '#4b5160': '#a6a6a6', '#5c6270': '#8c8c8c',
+	'#64748b': '#6e6e6e', '#94a3b8': '#595959', '#c3c6d7': '#3a3a3a', '#e2e2e8': '#141414', '#f8fafc': '#141414',
 	'#ffffff': '#ffffff', '#000000': '#000000',
-	'#7c8698': '#5d6677', '#3461d6': '#2f5fd8', '#3d6ae0': '#264fbf',
-	'#4f80ff': '#2f5fd8', '#6690ff': '#3d6ce6', '#7aa0ff': '#244db8', '#b4c5ff': '#2f4fa8',
+	'#7c8698': '#595959', '#3461d6': '#1470f0', '#3d6ae0': '#0f62dc',
+	'#4f80ff': '#1470f0', '#6690ff': '#4096ff', '#7aa0ff': '#0958d9', '#b4c5ff': '#0958d9',
 	'#00d2c4': '#00857c', '#46eee0': '#00756d', '#4edea3': '#0f7a52', '#10b981': '#0f8a5f',
 	'#f59e0b': '#a35f00', '#fcd34d': '#8a5a00', '#ff8a65': '#c2410c', '#ef4444': '#c62828', '#ffb4ab': '#b3261e',
 	'#d4c8ff': '#5b3fc4', '#b4a5ff': '#6a4fd1',

@@ -1,0 +1,178 @@
+/*
+ * Yana palette. Light only, no dark scale.
+ *
+ * MODIFIED by Yana AI (2026-11-06) from Cline's palette.css (cline/cline, sdk/packages/ui,
+ * commit d3ecc4890e8f9bcb77182b96c77fa90575e8e145, Apache-2.0), which copied Radix Colors 3.0.0
+ * (MIT, see ../RADIX-COLORS-LICENSE). Every color value was replaced and the .dark block removed.
+ * The structure (12 solid steps and 12 alpha steps per scale) is unchanged, so Cline's components
+ * keep working.
+ *
+ * Values follow the Fluent Blue design system (https://github.com/danieldev23/fluent-blue, MIT, light
+ * theme). Scale mapping: Slate -> neutral (Fluent grays), Violet -> accent (blue), Ruby -> error,
+ * Green -> success, Amber -> warning, Sky -> info (same blue as accent).
+ *
+ * Primary blue is step 9 of accent, #1470f0. It is the lightest blue that keeps white text at 4.5:1
+ * (4.56:1); Fluent Blue's own #0e68ea is slightly darker. Status text steps (11) are the darker
+ * variants (#237804, #9a5c00, #cf1322, #0958d9) so small text stays readable.
+ * Steps 3 to 6 of success, warning and error are interpolated by Yana between steps 2 and 7;
+ * accent steps 1, 2, 4 and 6 are interpolated by hand. Alpha steps 1 to 8 are computed so that each
+ * one over white reproduces its solid step. Steps 9 to 12 are solid.
+ */
+
+:root {
+	/* Neutral */
+	--neutral-1: #ffffff;
+	--neutral-2: #fafafa;
+	--neutral-3: #f5f5f5;
+	--neutral-4: #f0f0f0;
+	--neutral-5: #e8e8e8;
+	--neutral-6: #d9d9d9;
+	--neutral-7: #cccccc;
+	--neutral-8: #bfbfbf;
+	--neutral-9: #8c8c8c;
+	--neutral-10: #7a7a7a;
+	--neutral-11: #595959;
+	--neutral-12: #141414;
+	--neutral-a1: #14141400;
+	--neutral-a2: #14141405;
+	--neutral-a3: #1414140b;
+	--neutral-a4: #14141410;
+	--neutral-a5: #14141419;
+	--neutral-a6: #14141429;
+	--neutral-a7: #14141437;
+	--neutral-a8: #14141445;
+	--neutral-a9: #8c8c8c;
+	--neutral-a10: #7a7a7a;
+	--neutral-a11: #595959;
+	--neutral-a12: #141414;
+
+	/* Accent */
+	--accent-1: #f7fbff;
+	--accent-2: #eef7ff;
+	--accent-3: #e6f4ff;
+	--accent-4: #d6ebff;
+	--accent-5: #bae0ff;
+	--accent-6: #a5d3ff;
+	--accent-7: #91caff;
+	--accent-8: #69b1ff;
+	--accent-9: #1470f0;
+	--accent-10: #0f62dc;
+	--accent-11: #0958d9;
+	--accent-12: #002c8c;
+	--accent-a1: #1470f009;
+	--accent-a2: #1470f012;
+	--accent-a3: #1470f01b;
+	--accent-a4: #1470f02c;
+	--accent-a5: #1470f04b;
+	--accent-a6: #1470f062;
+	--accent-a7: #1470f077;
+	--accent-a8: #1470f0a3;
+	--accent-a9: #1470f0;
+	--accent-a10: #0f62dc;
+	--accent-a11: #0958d9;
+	--accent-a12: #002c8c;
+
+	/* Error */
+	--error-1: #fff8f7;
+	--error-2: #fff2f0;
+	--error-3: #ffeae8;
+	--error-4: #ffe3e0;
+	--error-5: #ffdbd7;
+	--error-6: #ffd4cf;
+	--error-7: #ffccc7;
+	--error-8: #ffa39e;
+	--error-9: #d92d30;
+	--error-10: #c4262a;
+	--error-11: #cf1322;
+	--error-12: #820014;
+	--error-a1: #d92d3009;
+	--error-a2: #d92d3010;
+	--error-a3: #d92d301a;
+	--error-a4: #d92d3022;
+	--error-a5: #d92d302c;
+	--error-a6: #d92d3034;
+	--error-a7: #d92d303e;
+	--error-a8: #d92d3070;
+	--error-a9: #d92d30;
+	--error-a10: #c4262a;
+	--error-a11: #cf1322;
+	--error-a12: #820014;
+
+	/* Success */
+	--success-1: #fbfff7;
+	--success-2: #f6ffed;
+	--success-3: #e9fbda;
+	--success-4: #ddf7c7;
+	--success-5: #d0f3b5;
+	--success-6: #c4efa2;
+	--success-7: #b7eb8f;
+	--success-8: #95de64;
+	--success-9: #52c41a;
+	--success-10: #389e0d;
+	--success-11: #237804;
+	--success-12: #135200;
+	--success-a1: #52c41a09;
+	--success-a2: #52c41a14;
+	--success-a3: #52c41a29;
+	--success-a4: #52c41a3e;
+	--success-a5: #52c41a52;
+	--success-a6: #52c41a68;
+	--success-a7: #52c41a7d;
+	--success-a8: #52c41aad;
+	--success-a9: #52c41a;
+	--success-a10: #389e0d;
+	--success-a11: #237804;
+	--success-a12: #135200;
+
+	/* Warning */
+	--warning-1: #fffdf2;
+	--warning-2: #fffbe6;
+	--warning-3: #fff7d5;
+	--warning-4: #fff2c3;
+	--warning-5: #ffeeb2;
+	--warning-6: #ffe9a0;
+	--warning-7: #ffe58f;
+	--warning-8: #ffd666;
+	--warning-9: #faad14;
+	--warning-10: #d48806;
+	--warning-11: #9a5c00;
+	--warning-12: #613400;
+	--warning-a1: #faad140e;
+	--warning-a2: #faad141b;
+	--warning-a3: #faad142e;
+	--warning-a4: #faad1441;
+	--warning-a5: #faad1454;
+	--warning-a6: #faad1467;
+	--warning-a7: #faad147a;
+	--warning-a8: #faad14a6;
+	--warning-a9: #faad14;
+	--warning-a10: #d48806;
+	--warning-a11: #9a5c00;
+	--warning-a12: #613400;
+
+	/* Info */
+	--info-1: #f7fbff;
+	--info-2: #eef7ff;
+	--info-3: #e6f4ff;
+	--info-4: #d6ebff;
+	--info-5: #bae0ff;
+	--info-6: #a5d3ff;
+	--info-7: #91caff;
+	--info-8: #69b1ff;
+	--info-9: #1470f0;
+	--info-10: #0f62dc;
+	--info-11: #0958d9;
+	--info-12: #002c8c;
+	--info-a1: #1470f009;
+	--info-a2: #1470f012;
+	--info-a3: #1470f01b;
+	--info-a4: #1470f02c;
+	--info-a5: #1470f04b;
+	--info-a6: #1470f062;
+	--info-a7: #1470f077;
+	--info-a8: #1470f0a3;
+	--info-a9: #1470f0;
+	--info-a10: #0f62dc;
+	--info-a11: #0958d9;
+	--info-a12: #002c8c;
+}

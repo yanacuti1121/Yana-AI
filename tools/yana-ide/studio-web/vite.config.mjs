@@ -1,8 +1,10 @@
 // Đóng gói các màn React của app Yana Studio cũ để chạy trong webview của IDE.
-// Dùng node_modules sẵn có của tools/yana-studio (react, react-dom, lucide-react, @vitejs/plugin-react),
-// không cài thêm gói nào. Kết quả ghi vào extensions/yana-agent/media/studio/.
+// Dùng node_modules sẵn có của tools/yana-studio (react, react-dom, lucide-react, @vitejs/plugin-react).
+// Riêng Tailwind v4 (chỉ dùng lúc build, cho giao diện lấy từ Cline ở vendor/cline-ui) nằm trong
+// node_modules của chính thư mục studio-web (xem package.json). Kết quả ghi vào extensions/yana-agent/media/studio/.
 import { defineConfig } from '../../yana-studio/node_modules/vite/dist/node/index.js';
 import react from '../../yana-studio/node_modules/@vitejs/plugin-react/dist/index.js';
+import tailwindcss from './node_modules/@tailwindcss/vite/dist/index.mjs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -12,7 +14,7 @@ const studioModules = path.resolve(here, '../../yana-studio/node_modules');
 export default defineConfig({
 	root: here,
 	base: './',
-	plugins: [react()],
+	plugins: [react(), tailwindcss()],
 	resolve: {
 		alias: {
 			react: path.join(studioModules, 'react'),
@@ -28,7 +30,7 @@ export default defineConfig({
 		// manifest: features/studio-screens.js đọc nó để biết mỗi màn cần file JS/CSS nào (tên CSS dùng chung do Vite đặt).
 		manifest: 'manifest.json',
 		rollupOptions: {
-			input: { canvas: path.join(here, 'canvas-entry.tsx'), settings: path.join(here, 'settings-entry.tsx'), tasks: path.join(here, 'tasks-entry.tsx'), permissions: path.join(here, 'permissions-entry.tsx') },
+			input: { canvas: path.join(here, 'canvas-entry.tsx'), settings: path.join(here, 'settings-entry.tsx'), tasks: path.join(here, 'tasks-entry.tsx'), permissions: path.join(here, 'permissions-entry.tsx'), start: path.join(here, 'start-entry.tsx') },
 			output: { entryFileNames: '[name].js', assetFileNames: '[name][extname]', chunkFileNames: 'shared-[name].js' },
 		},
 	},

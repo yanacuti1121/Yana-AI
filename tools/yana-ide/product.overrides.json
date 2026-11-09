@@ -29,5 +29,8 @@
 	},
 	"linkProtectionTrustedDomains": [
 		"https://open-vsx.org"
-	]
+	],
+	"configurationDefaults": {
+		"workbench.colorTheme": "Yana Light"
+	}
 }

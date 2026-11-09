@@ -1,0 +1,1900 @@
+"use client";
+
+import { isChatWorkspacePath } from "@cline/shared/browser";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { normalizeTitle } from "@/components/utils";
+import { toast } from "@/hooks/use-toast";
+import { humanizeCloudSessionError } from "@/lib/cloud-session-error";
+import { desktopClient } from "@/lib/desktop-client";
+import type {
+	SessionHistoryItem,
+	SessionHistoryStatus,
+	SessionMetadata,
+} from "@/lib/session-history";
+import {
+	getSessionMetadataGitBranch,
+	getSessionMetadataIsScheduled,
+	getSessionMetadataPinned,
+	getSessionMetadataSchedule,
+	getSessionMetadataTitle,
+	getSessionSource,
+	PINNED_METADATA_KEY,
+} from "@/lib/session-history";
+import { eventEnvironmentId, sessionKey } from "@/lib/session-identity";
+import { LOCAL_WORKSPACE_ENVIRONMENT_ID } from "@/lib/workspace-paths";
+
+type CliDiscoveredSession = Omit<SessionHistoryItem, "status"> & {
+	status: string;
+};
+
+export interface SessionThread {
+	id: string;
+	origin?: "local" | "cloud";
+	repoUrl?: string;
+	title: string;
+	source?: string;
+	codebase: string;
+	workspacePath: string;
+	time: string;
+	provider: string;
+	model: string;
+	gitBranch?: string;
+	inputTokens?: number;
+	outputTokens?: number;
+	totalCostUsd?: number;
+	status: SessionHistoryStatus;
+	pinned?: boolean;
+	isScheduled: boolean;
+	/** Raw start timestamp; the sidebar labels un-numbered scheduled runs with it. */
+	startedAt?: string;
+	/** Schedule provenance for scheduled runs (metadata or executions list). */
+	scheduleId?: string;
+	scheduleName?: string;
+	scheduleRunNumber?: number;
+}
+
+/** What the schedule executions list knows about a session it started. */
+type ScheduledSessionLink = {
+	scheduleId?: string;
+	scheduleName?: string;
+};
+
+type SessionHookEvent = {
+	inputTokens?: number;
+	outputTokens?: number;
+	totalCost?: number;
+};
+
+type SessionMessageMeta = {
+	inputTokens?: number;
+	outputTokens?: number;
+	totalCost?: number;
+	providerId?: string;
+	modelId?: string;
+};
+
+type SessionMessage = {
+	id?: string;
+	role?: string;
+	content?: string;
+	meta?: SessionMessageMeta;
+};
+
+type SessionUsage = {
+	inputTokens: number;
+	outputTokens: number;
+	totalCostUsd: number;
+};
+
+type SessionTitleUpdatedEvent = CustomEvent<{
+	environmentId?: string;
+	sessionId: string;
+	title: string;
+}>;
+
+type SessionDeletedEvent = CustomEvent<{
+	environmentId?: string;
+	sessionId: string;
+}>;
+
+type SidecarSessionStateEvent = {
+	environmentId?: string;
+	sessionId?: string;
+	status?: string;
+};
+
+type SidecarChatEvent = {
+	environmentId?: string;
+	sessionId?: string;
+	stream?: string;
+};
+
+export type SessionPendingAction = {
+	sessionId: string;
+	action: "rename" | "fork" | "delete";
+} | null;
+
+export type UseSessionHistoryOptions = {
+	activeSessionId?: string | null;
+	onOpenSession?: (session: SessionHistoryItem) => void;
+	onDeleteSession?: (sessionId: string, environmentId: string) => void;
+	onUpdateSessionMetadata?: (
+		sessionId: string,
+		metadata: SessionMetadata,
+		environmentId?: string,
+	) => void;
+};
+
+// Kept small on purpose: the sidebar shows 10 threads and the sessions view
+// pages 10 at a time, so the mount fetch (and every 12s poll after it) only
+// needs enough rows for the first few pages. Older pages are fetched on demand.
+const INITIAL_HISTORY_FETCH_LIMIT = 50;
+// Discovery rows carry no token or cost totals; those are summed from each
+// session's transcript in a second round trip. Only the rows that are on
+// screen get that read: the first page of the sessions view (and the
+// sidebar's first threads) by default, plus whatever page a view asks for
+// via requestUsage as the user moves through older sessions.
+const USAGE_HYDRATION_WINDOW = 10;
+// Each usage read parses a whole transcript in the sidecar, so a page of rows
+// is drained a few at a time instead of all at once.
+const MAX_CONCURRENT_USAGE_FETCHES = 4;
+const HISTORY_REFRESH_INTERVAL_MS = 12_000;
+const MIN_EVENT_HISTORY_REFRESH_INTERVAL_MS = 2_000;
+const HISTORY_EVENT_REFRESH_DELAY_MS = 1_000;
+const HISTORY_FAST_REFRESH_DELAY_MS = 50;
+const HISTORY_TERMINAL_REFRESH_DELAY_MS = 250;
+
+export function parseTimestamp(value?: string): number {
+	if (!value) return Number.NEGATIVE_INFINITY;
+	const trimmed = value.trim();
+	const maybeEpoch = Number(trimmed);
+	if (Number.isFinite(maybeEpoch)) {
+		if (/^\d{10}$/.test(trimmed)) {
+			return maybeEpoch * 1000;
+		}
+		return maybeEpoch;
+	}
+	const parsed = new Date(trimmed).getTime();
+	return Number.isNaN(parsed) ? Number.NEGATIVE_INFINITY : parsed;
+}
+
+export function sessionActivityTimestamp(session: SessionHistoryItem): number {
+	const lastActivityAt = parseTimestamp(session.lastActivityAt);
+	const endedAt = parseTimestamp(session.endedAt);
+	const startedAt = parseTimestamp(session.startedAt);
+	return Math.max(lastActivityAt, endedAt, startedAt);
+}
+
+// Order by last activity, not by start time: a long-running session that was
+// resumed today must outrank one that started later but has been idle for
+// days. This is also the timestamp both the sidebar and the sessions view
+// render, so the list order matches the "1d"/"3d" labels next to each row.
+function compareSessionsByActivityDesc(
+	a: SessionHistoryItem,
+	b: SessionHistoryItem,
+): number {
+	const timeDelta = sessionActivityTimestamp(b) - sessionActivityTimestamp(a);
+	if (timeDelta !== 0) {
+		return timeDelta;
+	}
+	return b.sessionId.localeCompare(a.sessionId);
+}
+
+export function normalizeDiscoveredStatus(
+	status?: string,
+	prompt?: string,
+): SessionHistoryStatus {
+	const normalized = (status || "").toLowerCase();
+	const hasPrompt = Boolean(prompt?.trim());
+	if (
+		normalized === "ended" ||
+		normalized === "expired" ||
+		normalized.includes("complete") ||
+		normalized.includes("done")
+	) {
+		return "completed";
+	}
+	if (
+		normalized.includes("cancel") ||
+		normalized.includes("abort") ||
+		normalized.includes("interrupt")
+	) {
+		return "cancelled";
+	}
+	if (normalized.includes("provision")) {
+		return "provisioning";
+	}
+	if (normalized.includes("fail") || normalized.includes("error")) {
+		return "failed";
+	}
+	if (normalized.includes("run") || normalized.includes("start")) {
+		return hasPrompt ? "running" : "idle";
+	}
+	if (normalized === "idle") return "idle";
+	return "idle";
+}
+
+function isTerminalHistoryStatus(status: SessionHistoryStatus): boolean {
+	return (
+		status === "completed" || status === "failed" || status === "cancelled"
+	);
+}
+
+export function formatRelativeTime(value?: string): string {
+	if (!value) return "just now";
+	const timestamp = parseTimestamp(value);
+	const date = Number.isFinite(timestamp)
+		? new Date(timestamp)
+		: new Date(value);
+	if (Number.isNaN(date.getTime())) return "";
+
+	const diffMs = Date.now() - date.getTime();
+	const minute = 60 * 1000;
+	const hour = 60 * minute;
+	const day = 24 * hour;
+
+	if (diffMs < minute) return "now";
+	if (diffMs < hour) return `${Math.max(1, Math.floor(diffMs / minute))}m`;
+	if (diffMs < day) return `${Math.max(1, Math.floor(diffMs / hour))}h`;
+	return `${Math.max(1, Math.floor(diffMs / day))}d`;
+}
+
+export function basenamePath(input?: string): string {
+	if (!input) return "workspace";
+	if (isChatWorkspacePath(input)) return "Chat";
+	const trimmed = input.replace(/[\\/]+$/, "");
+	if (!trimmed) return "workspace";
+	const parts = trimmed.split(/[\\/]/);
+	return parts[parts.length - 1] || "workspace";
+}
+
+function toTitle(session: SessionHistoryItem): string {
+	const metadataTitle = getSessionMetadataTitle(session.metadata);
+	if (metadataTitle) {
+		return metadataTitle;
+	}
+	const line = normalizeTitle(session.prompt).trim().split("\n")[0]?.trim();
+	if (line) return line;
+	return `Session ${session.sessionId.slice(-6)}`;
+}
+
+function titleFromMessages(messages: SessionMessage[]): string | null {
+	for (const role of ["user", "assistant"] as const) {
+		for (const message of messages) {
+			if (message.role !== role) {
+				continue;
+			}
+			const content =
+				typeof message.content === "string" ? message.content : "";
+			const line = normalizeTitle(content).trim().split("\n")[0]?.trim();
+			if (line) {
+				return line;
+			}
+		}
+	}
+	return null;
+}
+
+function inferStatusFromMessages(
+	status: SessionHistoryStatus,
+	messages: SessionMessage[],
+): SessionHistoryStatus {
+	const meaningfulMessages = messages.filter((message) => {
+		if (message.role !== "user" && message.role !== "assistant") {
+			return false;
+		}
+		const content = typeof message.content === "string" ? message.content : "";
+		return content.trim().length > 0;
+	});
+	if (meaningfulMessages.length === 0) {
+		// Empty provisioning history must not reset the status to idle.
+		if (status === "running" || status === "provisioning") {
+			return status;
+		}
+		return "idle";
+	}
+	const lastMeaningful = meaningfulMessages[meaningfulMessages.length - 1];
+	if (status === "failed" && lastMeaningful.role === "assistant") {
+		return "completed";
+	}
+	return status;
+}
+
+function toThread(session: SessionHistoryItem): SessionThread {
+	const workspacePath =
+		session.origin === "cloud" && session.repoUrl?.trim()
+			? session.repoUrl.trim()
+			: (session.workspaceRoot || session.cwd).trim();
+	const schedule = getSessionMetadataSchedule(session.metadata);
+	return {
+		id: sessionKey(session),
+		origin: session.origin,
+		repoUrl: session.repoUrl,
+		title: toTitle(session),
+		source: getSessionSource(session) || undefined,
+		codebase: basenamePath(workspacePath),
+		workspacePath,
+		time: formatRelativeTime(
+			session.lastActivityAt || session.endedAt || session.startedAt,
+		),
+		provider: session.provider || "",
+		model: session.model || "",
+		gitBranch: getSessionMetadataGitBranch(session.metadata) || undefined,
+		status: normalizeDiscoveredStatus(session.status, session.prompt),
+		pinned: getSessionMetadataPinned(session.metadata),
+		isScheduled: getSessionMetadataIsScheduled(session.metadata),
+		startedAt: session.startedAt?.trim() || undefined,
+		scheduleId: schedule.scheduleId,
+		scheduleName: schedule.scheduleName,
+		scheduleRunNumber: schedule.runNumber,
+	};
+}
+
+function isKnownModelField(value?: string): boolean {
+	const trimmed = value?.trim().toLowerCase() ?? "";
+	return trimmed.length > 0 && trimmed !== "unknown";
+}
+
+function isValidHistorySession(session: SessionHistoryItem): boolean {
+	return (
+		Boolean(session.sessionId.trim()) &&
+		isKnownModelField(session.provider) &&
+		isKnownModelField(session.model)
+	);
+}
+
+export function formatTokenCount(
+	inputTokens?: number,
+	outputTokens?: number,
+): string | null {
+	const inCount = inputTokens ?? 0;
+	const outCount = outputTokens ?? 0;
+	const total = inCount + outCount;
+	if (total <= 0) {
+		return null;
+	}
+	if (total >= 1000) {
+		return `${(total / 1000).toFixed(total >= 10000 ? 0 : 1)}k`;
+	}
+	return `${total}`;
+}
+
+export function formatCostUsd(value?: number): string | null {
+	if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+		return null;
+	}
+	if (value < 0.01) {
+		return `$${value.toFixed(4)}`;
+	}
+	if (value < 1) {
+		return `$${value.toFixed(3)}`;
+	}
+	return `$${value.toFixed(2)}`;
+}
+
+function summarizeUsageFromMessages(messages: SessionMessage[]): {
+	inputTokens: number;
+	outputTokens: number;
+	totalCostUsd: number;
+} | null {
+	let inputTokens = 0;
+	let outputTokens = 0;
+	let totalCostUsd = 0;
+	let hasUsage = false;
+
+	for (const message of messages) {
+		const meta = message.meta;
+		if (!meta) {
+			continue;
+		}
+		if (typeof meta.inputTokens === "number") {
+			inputTokens += meta.inputTokens;
+			hasUsage = true;
+		}
+		if (typeof meta.outputTokens === "number") {
+			outputTokens += meta.outputTokens;
+			hasUsage = true;
+		}
+		if (typeof meta.totalCost === "number") {
+			totalCostUsd += meta.totalCost;
+			hasUsage = true;
+		}
+	}
+
+	if (!hasUsage) {
+		return null;
+	}
+	return { inputTokens, outputTokens, totalCostUsd };
+}
+
+function areScheduleInfosEqual(
+	a: ReturnType<typeof getSessionMetadataSchedule>,
+	b: ReturnType<typeof getSessionMetadataSchedule>,
+): boolean {
+	return (
+		a.scheduleId === b.scheduleId &&
+		a.scheduleName === b.scheduleName &&
+		a.runNumber === b.runNumber
+	);
+}
+
+function areSessionsEquivalent(
+	current: SessionHistoryItem[],
+	next: SessionHistoryItem[],
+): boolean {
+	if (current.length !== next.length) {
+		return false;
+	}
+	for (let i = 0; i < current.length; i += 1) {
+		const a = current[i];
+		const b = next[i];
+		if (
+			a.sessionId !== b.sessionId ||
+			a.origin !== b.origin ||
+			a.repoUrl !== b.repoUrl ||
+			getSessionSource(a) !== getSessionSource(b) ||
+			a.status !== b.status ||
+			a.startedAt !== b.startedAt ||
+			a.endedAt !== b.endedAt ||
+			a.lastActivityAt !== b.lastActivityAt ||
+			a.prompt !== b.prompt ||
+			getSessionMetadataIsScheduled(a.metadata) !==
+				getSessionMetadataIsScheduled(b.metadata) ||
+			getSessionMetadataGitBranch(a.metadata) !==
+				getSessionMetadataGitBranch(b.metadata) ||
+			getSessionMetadataTitle(a.metadata) !==
+				getSessionMetadataTitle(b.metadata) ||
+			getSessionMetadataPinned(a.metadata) !==
+				getSessionMetadataPinned(b.metadata) ||
+			a.metadata?.provisioningPhase !== b.metadata?.provisioningPhase ||
+			!areScheduleInfosEqual(
+				getSessionMetadataSchedule(a.metadata),
+				getSessionMetadataSchedule(b.metadata),
+			) ||
+			a.environmentId !== b.environmentId ||
+			a.workspaceRoot !== b.workspaceRoot ||
+			a.cwd !== b.cwd ||
+			a.provider !== b.provider ||
+			a.model !== b.model
+		) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function areThreadsEquivalent(
+	current: SessionThread[],
+	next: SessionThread[],
+): boolean {
+	if (current.length !== next.length) {
+		return false;
+	}
+	for (let i = 0; i < current.length; i += 1) {
+		const a = current[i];
+		const b = next[i];
+		if (
+			a.id !== b.id ||
+			a.origin !== b.origin ||
+			a.repoUrl !== b.repoUrl ||
+			a.title !== b.title ||
+			a.source !== b.source ||
+			a.codebase !== b.codebase ||
+			a.workspacePath !== b.workspacePath ||
+			a.time !== b.time ||
+			a.provider !== b.provider ||
+			a.model !== b.model ||
+			a.gitBranch !== b.gitBranch ||
+			a.inputTokens !== b.inputTokens ||
+			a.outputTokens !== b.outputTokens ||
+			a.totalCostUsd !== b.totalCostUsd ||
+			a.status !== b.status ||
+			a.pinned !== b.pinned ||
+			a.isScheduled !== b.isScheduled ||
+			a.startedAt !== b.startedAt ||
+			a.scheduleId !== b.scheduleId ||
+			a.scheduleName !== b.scheduleName ||
+			a.scheduleRunNumber !== b.scheduleRunNumber
+		) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function updateThreadById(
+	current: SessionThread[],
+	threadId: string,
+	updater: (thread: SessionThread) => SessionThread,
+): SessionThread[] {
+	let changed = false;
+	const next = current.map((thread) => {
+		if (thread.id !== threadId) {
+			return thread;
+		}
+		const updated = updater(thread);
+		if (updated !== thread) {
+			changed = true;
+		}
+		return updated;
+	});
+	return changed ? next : current;
+}
+
+function updateSessionById(
+	current: SessionHistoryItem[],
+	sessionId: string,
+	updater: (session: SessionHistoryItem) => SessionHistoryItem,
+): SessionHistoryItem[] {
+	let changed = false;
+	const next = current.map((session) => {
+		if (sessionKey(session) !== sessionId) {
+			return session;
+		}
+		const updated = updater(session);
+		if (updated !== session) {
+			changed = true;
+		}
+		return updated;
+	});
+	return changed ? next : current;
+}
+
+function mergeDiscoveredSessions(
+	current: SessionHistoryItem[],
+	discovered: SessionHistoryItem[],
+	beforeRefresh: SessionHistoryItem[],
+): SessionHistoryItem[] {
+	if (current.length === 0) {
+		return discovered;
+	}
+	const currentById = new Map(
+		current.map((session) => [sessionKey(session), session]),
+	);
+	const titlesBeforeRefresh = new Map(
+		beforeRefresh.map((session) => [
+			sessionKey(session),
+			getSessionMetadataTitle(session.metadata),
+		]),
+	);
+	return discovered.map((session) => {
+		const existing = currentById.get(sessionKey(session));
+		if (!existing) {
+			return session;
+		}
+		const existingTitle = getSessionMetadataTitle(existing.metadata);
+		if (!existingTitle) {
+			return session;
+		}
+		const incomingTitle = getSessionMetadataTitle(session.metadata);
+		// Cloud refreshes may include web renames; retain cached titles for other runtimes.
+		if (
+			incomingTitle === existingTitle ||
+			(session.origin === "cloud" &&
+				incomingTitle &&
+				existingTitle === titlesBeforeRefresh.get(sessionKey(session)))
+		) {
+			return session;
+		}
+		return {
+			...session,
+			metadata: {
+				...(session.metadata ?? {}),
+				title: existingTitle,
+			},
+		};
+	});
+}
+
+export function useSessionHistory({
+	activeSessionId,
+	onOpenSession,
+	onDeleteSession,
+	onUpdateSessionMetadata,
+}: UseSessionHistoryOptions) {
+	const [sessions, setSessions] = useState<SessionHistoryItem[]>([]);
+	const [threads, setThreads] = useState<SessionThread[]>([]);
+	// False until the backend has answered a history request at least once.
+	// Consumers use this to tell "still loading" apart from "loaded, zero
+	// sessions": an empty-state copy shown before the first response reads as
+	// lost history whenever fetching takes more than an instant.
+	const [hasLoadedHistory, setHasLoadedHistory] = useState(false);
+	const [isLoadingMore, setIsLoadingMore] = useState(false);
+	const [mayHaveMoreSessions, setMayHaveMoreSessions] = useState(false);
+	const [pendingAction, setPendingAction] =
+		useState<SessionPendingAction>(null);
+	const [unreadSessionIds, setUnreadSessionIds] = useState<Set<string>>(
+		() => new Set(),
+	);
+	// Rows a view currently has on screen beyond the default window (the
+	// sessions view reports its visible page and clears it on unmount). Each
+	// call replaces the previous set rather than adding to it, so the set is
+	// bounded by one page and a running session the user has paged away from
+	// is not re-read on every refresh.
+	const [requestedUsageIds, setRequestedUsageIds] = useState<Set<string>>(
+		() => new Set(),
+	);
+	// Sessions that schedule executions report as their own, keyed by session
+	// id. Scheduled runs executed by the local hub do not reliably carry the
+	// "hub-schedule" origin trigger in their session metadata (the runtime
+	// that claims the run doesn't always stamp provenance), so the metadata
+	// check alone would miss them; the executions list is the authoritative
+	// link. It also supplies the schedule id/name for sessions recorded
+	// before the runner stamped those into metadata.
+	const [scheduledSessionLinks, setScheduledSessionLinks] = useState<
+		Map<string, ScheduledSessionLink>
+	>(() => new Map());
+	const fetchLimitRef = useRef(INITIAL_HISTORY_FETCH_LIMIT);
+	// Limit of the most recent refresh that actually returned sessions. Failed
+	// attempts roll back to this rather than to a caller-local snapshot, which
+	// may itself name a batch that was never fetched.
+	const loadedLimitRef = useRef(0);
+	const mayHaveMoreSessionsRef = useRef(false);
+	// Every usage read in flight, across effect runs, with the status the read
+	// was started under. Its size is the gauge the concurrency cap is enforced
+	// on; the status tells a restarted run whether the pending read already
+	// covers the row's current status or the row must be read again after it.
+	const usageLoadingRef = useRef<Map<string, SessionHistoryStatus>>(new Map());
+	// Queue drainer of the current hydration run. Finished reads call it so a
+	// freed slot goes to the newest run, not to the run that started the read.
+	const usagePumpRef = useRef<(() => void) | null>(null);
+	// Usage each row was last hydrated with, written the moment a read settles.
+	// threadsRef only catches up after React commits, so the queue consults
+	// this to tell "hydrated" from "not yet" without a stale window in between.
+	// Refreshes also rebuild threads from it, so a row keeps its totals.
+	const usageByIdRef = useRef<Map<string, SessionUsage>>(new Map());
+	const usageHydratedStatusRef = useRef<Map<string, SessionHistoryStatus>>(
+		new Map(),
+	);
+	const titleLoadingRef = useRef<Set<string>>(new Set());
+	const messageHydratedStatusRef = useRef<Map<string, SessionHistoryStatus>>(
+		new Map(),
+	);
+	const sessionsRef = useRef<SessionHistoryItem[]>([]);
+	const threadsRef = useRef<SessionThread[]>([]);
+	const refreshTimeoutRef = useRef<number | null>(null);
+	const scheduledRefreshAtRef = useRef<number | null>(null);
+	const refreshPromiseRef = useRef<Promise<boolean> | null>(null);
+	const refreshLimitRef = useRef(0);
+	const cloudScopeInvalidatedRef = useRef(false);
+	const loadAllPromiseRef = useRef<Promise<boolean> | null>(null);
+	const lastRefreshStartedAtRef = useRef(0);
+	// Guards scheduleRefresh against continuations that settle after unmount
+	// (e.g. the fast retry of a failed initial fetch), which would otherwise
+	// re-arm a timer the cleanup has already cleared and poll forever.
+	const disposedRef = useRef(false);
+
+	useEffect(() => {
+		sessionsRef.current = sessions;
+	}, [sessions]);
+
+	useEffect(() => {
+		threadsRef.current = threads;
+	}, [threads]);
+
+	useEffect(() => {
+		if (!activeSessionId) {
+			return;
+		}
+		setUnreadSessionIds((current) => {
+			if (!current.has(activeSessionId)) {
+				return current;
+			}
+			const next = new Set(current);
+			next.delete(activeSessionId);
+			return next;
+		});
+	}, [activeSessionId]);
+
+	useEffect(() => {
+		let cancelled = false;
+		const collectScheduledSessionLinks = async () => {
+			const response = await desktopClient
+				.invoke<{
+					schedules?: Array<{ scheduleId?: unknown; name?: unknown }>;
+					activeExecutions?: Array<{
+						sessionId?: unknown;
+						scheduleId?: unknown;
+					}>;
+					lastExecutions?: Array<{
+						sessionId?: unknown;
+						scheduleId?: unknown;
+					}>;
+				}>("list_routine_schedules")
+				.catch(() => null);
+			if (cancelled || !response) {
+				return;
+			}
+			const scheduleNames = new Map<string, string>();
+			for (const schedule of response.schedules ?? []) {
+				const scheduleId =
+					typeof schedule?.scheduleId === "string"
+						? schedule.scheduleId.trim()
+						: "";
+				const name =
+					typeof schedule?.name === "string" ? schedule.name.trim() : "";
+				if (scheduleId && name) {
+					scheduleNames.set(scheduleId, name);
+				}
+			}
+			const links = new Map<string, ScheduledSessionLink>();
+			for (const execution of [
+				...(response.activeExecutions ?? []),
+				...(response.lastExecutions ?? []),
+			]) {
+				const sessionId =
+					typeof execution?.sessionId === "string"
+						? execution.sessionId.trim()
+						: "";
+				if (!sessionId) {
+					continue;
+				}
+				const scheduleId =
+					typeof execution?.scheduleId === "string"
+						? execution.scheduleId.trim()
+						: "";
+				links.set(sessionKey({ sessionId }), {
+					...(scheduleId ? { scheduleId } : {}),
+					...(scheduleId && scheduleNames.has(scheduleId)
+						? { scheduleName: scheduleNames.get(scheduleId) }
+						: {}),
+				});
+			}
+			setScheduledSessionLinks((current) => {
+				// Merge instead of replace: the executions list is a rolling
+				// window, so ids that fell out of it are still scheduled runs.
+				let changed = false;
+				const next = new Map(current);
+				for (const [sessionId, link] of links) {
+					const existing = next.get(sessionId);
+					if (
+						existing &&
+						existing.scheduleId === link.scheduleId &&
+						existing.scheduleName === link.scheduleName
+					) {
+						continue;
+					}
+					next.set(sessionId, link);
+					changed = true;
+				}
+				return changed ? next : current;
+			});
+		};
+		void collectScheduledSessionLinks();
+		const interval = window.setInterval(
+			() => void collectScheduledSessionLinks(),
+			2 * 60 * 1000,
+		);
+		return () => {
+			cancelled = true;
+			window.clearInterval(interval);
+		};
+	}, []);
+
+	const refreshSessions = useCallback(async () => {
+		// Reuse an in-flight refresh only when it already asked for at least as
+		// many sessions as we need now. "Load more" raises the limit and then
+		// awaits a refresh; sharing a request that captured the smaller limit
+		// would resolve without the larger batch ever being fetched.
+		// Account changes must also wait for a fresh request in the new scope.
+		while (refreshPromiseRef.current) {
+			const pending = refreshPromiseRef.current;
+			if (
+				refreshLimitRef.current >= fetchLimitRef.current &&
+				!cloudScopeInvalidatedRef.current
+			) {
+				return pending;
+			}
+			await pending;
+		}
+
+		if (disposedRef.current) return false;
+		cloudScopeInvalidatedRef.current = false;
+		const refreshPromise = (async (): Promise<boolean> => {
+			lastRefreshStartedAtRef.current = Date.now();
+			const sessionsBeforeRefresh = sessionsRef.current;
+			const limit = fetchLimitRef.current;
+			refreshLimitRef.current = limit;
+			try {
+				const discovered = await desktopClient
+					.invoke<CliDiscoveredSession[]>("list_discovered_sessions", { limit })
+					.catch(() => null);
+				// A scope change queues a fresh request after this one settles.
+				// Its old-account rows must not be applied in the meantime.
+				if (cloudScopeInvalidatedRef.current) return false;
+				// A rejected request is not an empty history. Treating it as one
+				// would blank the list (the merge below is keyed off the response)
+				// and mark the backend exhausted, hiding sessions that still exist
+				// and disabling "load more" until some later poll happened to work.
+				if (!Array.isArray(discovered)) {
+					return false;
+				}
+				// Ask the raw response, not the filtered list: subagents and
+				// sessions without a known model are dropped below, so a filtered
+				// count under the limit does not mean the backend is exhausted.
+				const hasMoreSessions = discovered.length >= limit;
+				mayHaveMoreSessionsRef.current = hasMoreSessions;
+				setMayHaveMoreSessions(hasMoreSessions);
+				const topLevelSessions = discovered
+					.map((session) => {
+						const normalized: SessionHistoryItem = {
+							...session,
+							sessionId: String(session.sessionId ?? "").trim(),
+							status: normalizeDiscoveredStatus(session.status, session.prompt),
+							provider: session.provider || "",
+							model: session.model || "",
+							cwd: session.cwd || "",
+							workspaceRoot: session.workspaceRoot || session.cwd || "",
+							startedAt: String(session.startedAt ?? ""),
+							metadata:
+								session.metadata && typeof session.metadata === "object"
+									? (session.metadata as SessionMetadata)
+									: undefined,
+						};
+						return normalized;
+					})
+					.filter((session) => Boolean(session.sessionId))
+					.filter(isValidHistorySession)
+					.filter((session) => !session.isSubagent && !session.parentSessionId)
+					.sort(compareSessionsByActivityDesc);
+				const mergedSessions = mergeDiscoveredSessions(
+					sessionsRef.current,
+					topLevelSessions,
+					sessionsBeforeRefresh,
+				);
+
+				setSessions((current) =>
+					areSessionsEquivalent(current, mergedSessions)
+						? current
+						: mergedSessions,
+				);
+				const mapped = mergedSessions.map(toThread);
+				const metadataTitleById = new Map(
+					mergedSessions.map((session) => [
+						sessionKey(session),
+						getSessionMetadataTitle(session.metadata),
+					]),
+				);
+				setThreads((current) => {
+					const existingById = new Map(
+						current.map((thread) => [thread.id, thread]),
+					);
+					const next = mapped.map((thread) => {
+						const existing = existingById.get(thread.id);
+						const incomingMetadataTitle = metadataTitleById.get(thread.id);
+						const keepExistingTitle =
+							Boolean(existing) &&
+							!incomingMetadataTitle &&
+							!(existing?.title.startsWith("Session ") ?? true);
+						return {
+							...thread,
+							title:
+								keepExistingTitle && existing ? existing.title : thread.title,
+							...usageByIdRef.current.get(thread.id),
+						};
+					});
+					return areThreadsEquivalent(current, next) ? current : next;
+				});
+				loadedLimitRef.current = Math.max(loadedLimitRef.current, limit);
+				setHasLoadedHistory(true);
+				return true;
+			} catch {
+				// Ignore in browser mode or when tauri command is unavailable.
+				return false;
+			}
+		})();
+
+		refreshPromiseRef.current = refreshPromise;
+		// Release the slot from the promise itself rather than from this caller,
+		// so a waiter in the loop above always observes a cleared ref when it
+		// resumes instead of spinning on a settled promise.
+		refreshPromise.finally(() => {
+			if (refreshPromiseRef.current === refreshPromise) {
+				refreshPromiseRef.current = null;
+			}
+		});
+		return await refreshPromise;
+	}, []);
+
+	const scheduleRefresh = useCallback(
+		(delayMs = 0, options: { force?: boolean } = {}) => {
+			if (disposedRef.current) {
+				return;
+			}
+			const now = Date.now();
+			const minTarget = options.force
+				? now
+				: lastRefreshStartedAtRef.current +
+					MIN_EVENT_HISTORY_REFRESH_INTERVAL_MS;
+			const target = Math.max(now + delayMs, minTarget);
+			if (
+				refreshTimeoutRef.current !== null &&
+				scheduledRefreshAtRef.current !== null &&
+				scheduledRefreshAtRef.current <= target
+			) {
+				return;
+			}
+			if (refreshTimeoutRef.current !== null) {
+				window.clearTimeout(refreshTimeoutRef.current);
+			}
+			scheduledRefreshAtRef.current = target;
+			refreshTimeoutRef.current = window.setTimeout(
+				() => {
+					refreshTimeoutRef.current = null;
+					scheduledRefreshAtRef.current = null;
+					void refreshSessions().then((loaded) => {
+						// Until something has loaded the UI has nothing but a
+						// loading state to show, so a failed fetch (e.g. the
+						// websocket losing the race with a webview reload) retries
+						// on the short event cadence instead of stranding the
+						// sidebar until the periodic poll fires.
+						if (!loaded && loadedLimitRef.current === 0) {
+							scheduleRefresh(MIN_EVENT_HISTORY_REFRESH_INTERVAL_MS);
+						}
+					});
+				},
+				Math.max(0, target - now),
+			);
+		},
+		[refreshSessions],
+	);
+
+	useEffect(() => {
+		let disposed = false;
+		disposedRef.current = false;
+
+		const runRefresh = () => {
+			if (!disposed) {
+				scheduleRefresh(0, { force: true });
+			}
+		};
+
+		runRefresh();
+		const interval = window.setInterval(() => {
+			if (document.hidden) {
+				return;
+			}
+			runRefresh();
+		}, HISTORY_REFRESH_INTERVAL_MS);
+
+		return () => {
+			disposed = true;
+			disposedRef.current = true;
+			window.clearInterval(interval);
+			if (refreshTimeoutRef.current !== null) {
+				window.clearTimeout(refreshTimeoutRef.current);
+				refreshTimeoutRef.current = null;
+				scheduledRefreshAtRef.current = null;
+			}
+		};
+	}, [scheduleRefresh]);
+
+	const requestUsage = useCallback((sessionIds: readonly string[]) => {
+		setRequestedUsageIds((current) => {
+			const next = new Set<string>();
+			for (const raw of sessionIds) {
+				const sessionId = raw?.trim();
+				if (sessionId) {
+					next.add(sessionId);
+				}
+			}
+			// Same members, same instance: the sessions view re-reports its
+			// page on every threads change, and a fresh Set would restart the
+			// hydration effect (and its 800ms delay) each time a row filled in.
+			if (
+				next.size === current.size &&
+				[...next].every((sessionId) => current.has(sessionId))
+			) {
+				return current;
+			}
+			return next;
+		});
+	}, []);
+
+	useEffect(() => {
+		// The active session is skipped: its transcript is still being written
+		// and the chat tracks its usage live.
+		const inactiveSessions = sessions.filter(
+			(session) =>
+				sessionKey(session) !== activeSessionId && session.origin !== "cloud",
+		);
+		const targets = inactiveSessions.slice(0, USAGE_HYDRATION_WINDOW);
+		if (requestedUsageIds.size > 0) {
+			const queued = new Set(targets.map(sessionKey));
+			for (const session of inactiveSessions) {
+				if (
+					requestedUsageIds.has(sessionKey(session)) &&
+					!queued.has(sessionKey(session))
+				) {
+					targets.push(session);
+					queued.add(sessionKey(session));
+				}
+			}
+		}
+		let cancelled = false;
+		const timer = window.setTimeout(() => {
+			// "fetch": the row was never hydrated, is running (its totals keep
+			// moving), or was hydrated under a different status.
+			// "defer": a read is in flight, but it was started under a different
+			// status than the row has now, so its result will already be stale;
+			// keep the row queued and read it again once that read finishes.
+			// "skip": nothing to do, drop the row from this run's queue.
+			const usageFetchVerdict = (
+				session: SessionHistoryItem,
+			): "fetch" | "defer" | "skip" => {
+				const sessionId = sessionKey(session);
+				if (!sessionId) {
+					return "skip";
+				}
+				const inFlightStatus = usageLoadingRef.current.get(sessionId);
+				if (inFlightStatus !== undefined) {
+					return inFlightStatus === session.status ? "skip" : "defer";
+				}
+				const needsFetch =
+					!usageByIdRef.current.has(sessionId) ||
+					session.status === "running" ||
+					usageHydratedStatusRef.current.get(sessionId) !== session.status;
+				return needsFetch ? "fetch" : "skip";
+			};
+
+			const startUsageFetch = (session: SessionHistoryItem): void => {
+				const sessionId = sessionKey(session);
+				usageLoadingRef.current.set(sessionId, session.status);
+				void desktopClient
+					.invoke<SessionMessage[]>("read_session_messages", {
+						environmentId: session.environmentId,
+						sessionId: session.sessionId,
+						maxMessages: 1200,
+					})
+					.then(async (sessionMessages): Promise<SessionUsage> => {
+						const usage = summarizeUsageFromMessages(sessionMessages);
+						if (!usage) {
+							const events = await desktopClient.invoke<SessionHookEvent[]>(
+								"read_session_hooks",
+								{
+									environmentId: session.environmentId,
+									sessionId: session.sessionId,
+									limit: 1200,
+								},
+							);
+							return {
+								inputTokens: events.reduce(
+									(sum, event) => sum + (event.inputTokens ?? 0),
+									0,
+								),
+								outputTokens: events.reduce(
+									(sum, event) => sum + (event.outputTokens ?? 0),
+									0,
+								),
+								totalCostUsd: events.reduce(
+									(sum, event) => sum + (event.totalCost ?? 0),
+									0,
+								),
+							};
+						}
+						return usage;
+					})
+					.then((usage) => {
+						usageByIdRef.current.set(sessionId, usage);
+						setThreads((current) =>
+							updateThreadById(current, sessionId, (thread) => {
+								if (
+									thread.inputTokens === usage.inputTokens &&
+									thread.outputTokens === usage.outputTokens &&
+									thread.totalCostUsd === usage.totalCostUsd
+								) {
+									return thread;
+								}
+								return { ...thread, ...usage };
+							}),
+						);
+					})
+					.catch(() => {
+						// A failed read on a row that was never hydrated is recorded
+						// as zero usage so the row is not retried on every pass; a
+						// later status change reads it again. A row that already has
+						// totals keeps them.
+						if (usageByIdRef.current.has(sessionId)) {
+							return;
+						}
+						const usage: SessionUsage = {
+							inputTokens: 0,
+							outputTokens: 0,
+							totalCostUsd: 0,
+						};
+						usageByIdRef.current.set(sessionId, usage);
+						setThreads((current) =>
+							updateThreadById(current, sessionId, (thread) => {
+								if (
+									thread.inputTokens === 0 &&
+									thread.outputTokens === 0 &&
+									(thread.totalCostUsd ?? 0) === 0
+								) {
+									return thread;
+								}
+								return { ...thread, ...usage };
+							}),
+						);
+					})
+					.finally(() => {
+						// Record the status the read was started under, not the
+						// row's current one: if the status moved while the read was
+						// pending, the mismatch is what makes the row read again.
+						usageHydratedStatusRef.current.set(sessionId, session.status);
+						usageLoadingRef.current.delete(sessionId);
+						// Hand the freed slot to whichever run is current: this
+						// run may have been replaced while the read was pending.
+						usagePumpRef.current?.();
+					});
+			};
+
+			// The cap is checked against usageLoadingRef, which counts reads in
+			// flight across effect runs, not against a per-run counter. A refresh
+			// or page change restarts this effect while reads are still pending;
+			// a per-run counter would start at zero and let the new run add four
+			// more on top of them. Each pass walks the whole queue: rows that
+			// need nothing are dropped, rows waiting on a pending read that will
+			// be stale are kept for the next pass, and the rest start as slots
+			// allow, in order.
+			const queue = [...targets];
+			const pump = () => {
+				if (cancelled) {
+					return;
+				}
+				const remaining: SessionHistoryItem[] = [];
+				for (const session of queue) {
+					const verdict = usageFetchVerdict(session);
+					if (verdict === "skip") {
+						continue;
+					}
+					if (
+						verdict === "defer" ||
+						usageLoadingRef.current.size >= MAX_CONCURRENT_USAGE_FETCHES
+					) {
+						remaining.push(session);
+						continue;
+					}
+					startUsageFetch(session);
+				}
+				queue.splice(0, queue.length, ...remaining);
+			};
+			usagePumpRef.current = pump;
+			pump();
+		}, 800);
+		return () => {
+			// Rows still queued are picked up again by the next run; reads
+			// already in flight finish, land on their threads, and pump the run
+			// that is current by then.
+			cancelled = true;
+			window.clearTimeout(timer);
+		};
+	}, [activeSessionId, requestedUsageIds, sessions]);
+
+	useEffect(() => {
+		const handleTitleUpdated = (event: Event) => {
+			const detail = (event as SessionTitleUpdatedEvent).detail;
+			const sessionId = detail?.sessionId?.trim()
+				? sessionKey(detail)
+				: undefined;
+			if (!sessionId) {
+				return;
+			}
+			const nextTitle = detail.title.trim();
+			const withTitle = (session: SessionHistoryItem) => ({
+				...session,
+				metadata: {
+					...(session.metadata ?? {}),
+					title: nextTitle || undefined,
+				},
+			});
+			// Refresh continuations can run before React commits this update.
+			sessionsRef.current = updateSessionById(
+				sessionsRef.current,
+				sessionId,
+				withTitle,
+			);
+			setSessions((current) =>
+				updateSessionById(current, sessionId, withTitle),
+			);
+			setThreads((current) =>
+				updateThreadById(current, sessionId, (thread) => ({
+					...thread,
+					title: nextTitle || `Session ${sessionId.slice(-6)}`,
+				})),
+			);
+		};
+
+		const handleSessionDeleted = (event: Event) => {
+			const detail = (event as SessionDeletedEvent).detail;
+			const sessionId = detail?.sessionId?.trim()
+				? sessionKey(detail)
+				: undefined;
+			if (!sessionId) {
+				return;
+			}
+			// usageLoadingRef is left to the pending read's own finally: it is
+			// the in-flight gauge for the read cap, so freeing the slot here would
+			// let a fifth read start while the deleted row's read is still running.
+			titleLoadingRef.current.delete(sessionId);
+			usageHydratedStatusRef.current.delete(sessionId);
+			usageByIdRef.current.delete(sessionId);
+			messageHydratedStatusRef.current.delete(sessionId);
+			setSessions((current) =>
+				current.filter((session) => sessionKey(session) !== sessionId),
+			);
+			setThreads((current) =>
+				current.filter((thread) => thread.id !== sessionId),
+			);
+			scheduleRefresh(HISTORY_FAST_REFRESH_DELAY_MS, { force: true });
+		};
+
+		window.addEventListener(
+			"cline:session-title-updated",
+			handleTitleUpdated as EventListener,
+		);
+		window.addEventListener(
+			"cline:session-deleted",
+			handleSessionDeleted as EventListener,
+		);
+		const unsubscribeTransportDelete = desktopClient.subscribe(
+			"session_deleted",
+			(payload) => {
+				if (!payload || typeof payload !== "object") {
+					return;
+				}
+				const sessionId =
+					typeof (payload as { sessionId?: unknown }).sessionId === "string"
+						? (payload as { sessionId: string }).sessionId.trim()
+						: "";
+				if (!sessionId) {
+					return;
+				}
+				handleSessionDeleted(
+					new CustomEvent("cline:session-deleted", {
+						detail: { sessionId, environmentId: eventEnvironmentId(payload) },
+					}),
+				);
+			},
+		);
+		const unsubscribeTransportStatus = desktopClient.subscribe(
+			"chat_session_status",
+			(payload) => {
+				if (!payload || typeof payload !== "object") {
+					return;
+				}
+				const record = payload as SidecarSessionStateEvent;
+				const sessionId = record.sessionId?.trim()
+					? sessionKey({
+							sessionId: record.sessionId,
+							environmentId: record.environmentId,
+						})
+					: undefined;
+				if (!sessionId) {
+					return;
+				}
+				const known = sessionsRef.current.some(
+					(session) => sessionKey(session) === sessionId,
+				);
+				const status = normalizeDiscoveredStatus(
+					record.status,
+					"active session",
+				);
+				setThreads((current) =>
+					updateThreadById(current, sessionId, (thread) =>
+						thread.status === status ? thread : { ...thread, status },
+					),
+				);
+				setSessions((current) =>
+					updateSessionById(current, sessionId, (session) =>
+						session.status === status ? session : { ...session, status },
+					),
+				);
+				if (!known) {
+					scheduleRefresh(HISTORY_EVENT_REFRESH_DELAY_MS);
+				} else if (isTerminalHistoryStatus(status)) {
+					scheduleRefresh(HISTORY_TERMINAL_REFRESH_DELAY_MS, {
+						force: true,
+					});
+				}
+				if (sessionId !== activeSessionId) {
+					setUnreadSessionIds((current) => {
+						const next = new Set(current);
+						next.add(sessionId);
+						return next;
+					});
+				}
+			},
+		);
+		// Account/org switches must refresh the sidebar without waiting for polling.
+		const unsubscribeCloudScope = desktopClient.subscribe(
+			"cloud_sessions_changed",
+			() => {
+				cloudScopeInvalidatedRef.current = true;
+				sessionsRef.current = sessionsRef.current.filter(
+					(session) => session.origin !== "cloud",
+				);
+				threadsRef.current = threadsRef.current.filter(
+					(thread) => thread.origin !== "cloud",
+				);
+				setSessions((current) =>
+					current.filter((session) => session.origin !== "cloud"),
+				);
+				setThreads((current) =>
+					current.filter((thread) => thread.origin !== "cloud"),
+				);
+				scheduleRefresh(HISTORY_FAST_REFRESH_DELAY_MS, { force: true });
+			},
+		);
+		const unsubscribeTransportEnded = desktopClient.subscribe(
+			"chat_session_ended",
+			(payload) => {
+				if (!payload || typeof payload !== "object") {
+					return;
+				}
+				const record = payload as SidecarSessionStateEvent;
+				if (record.sessionId?.trim()) {
+					scheduleRefresh(HISTORY_TERMINAL_REFRESH_DELAY_MS, {
+						force: true,
+					});
+					const sessionId = sessionKey({
+						sessionId: record.sessionId.trim(),
+						environmentId: record.environmentId,
+					});
+					if (sessionId !== activeSessionId) {
+						setUnreadSessionIds((current) => {
+							const next = new Set(current);
+							next.add(sessionId);
+							return next;
+						});
+					}
+				}
+			},
+		);
+		const unsubscribeTransportImport = desktopClient.subscribe(
+			"session_import_progress",
+			(payload) => {
+				if (!payload || typeof payload !== "object") {
+					return;
+				}
+				// Imported sessions land directly in the store; refresh so they
+				// appear in history no matter where the import was started from.
+				const result = (payload as { result?: { ok?: boolean } }).result;
+				if (result?.ok) {
+					scheduleRefresh(HISTORY_EVENT_REFRESH_DELAY_MS, { force: true });
+				}
+			},
+		);
+		const unsubscribeTransportChatEvent = desktopClient.subscribe(
+			"chat_event",
+			(payload) => {
+				if (!payload || typeof payload !== "object") {
+					return;
+				}
+				const record = payload as SidecarChatEvent;
+				const sessionId = record.sessionId?.trim()
+					? sessionKey({
+							sessionId: record.sessionId,
+							environmentId: record.environmentId,
+						})
+					: undefined;
+				if (!sessionId) {
+					return;
+				}
+				const known = sessionsRef.current.some(
+					(session) => sessionKey(session) === sessionId,
+				);
+				if (!known) {
+					scheduleRefresh(HISTORY_EVENT_REFRESH_DELAY_MS);
+				}
+				if (sessionId !== activeSessionId) {
+					setUnreadSessionIds((current) => {
+						const next = new Set(current);
+						next.add(sessionId);
+						return next;
+					});
+				}
+			},
+		);
+		return () => {
+			window.removeEventListener(
+				"cline:session-title-updated",
+				handleTitleUpdated as EventListener,
+			);
+			window.removeEventListener(
+				"cline:session-deleted",
+				handleSessionDeleted as EventListener,
+			);
+			unsubscribeTransportDelete();
+			unsubscribeTransportStatus();
+			unsubscribeCloudScope();
+			unsubscribeTransportEnded();
+			unsubscribeTransportImport();
+			unsubscribeTransportChatEvent();
+		};
+	}, [activeSessionId, scheduleRefresh]);
+
+	useEffect(() => {
+		const recent = sessions
+			.filter(
+				(session) =>
+					sessionKey(session) !== activeSessionId && session.origin !== "cloud",
+			)
+			.slice(0, 4);
+		let cancelled = false;
+		const timer = window.setTimeout(() => {
+			for (const session of recent) {
+				if (cancelled) {
+					return;
+				}
+				const sessionId = sessionKey(session);
+				if (!sessionId) {
+					continue;
+				}
+				if (titleLoadingRef.current.has(sessionId)) {
+					continue;
+				}
+				const existing = threadsRef.current.find(
+					(item) => item.id === sessionId,
+				);
+				if (!existing) {
+					continue;
+				}
+				const lastHydratedStatus =
+					messageHydratedStatusRef.current.get(sessionId);
+				const shouldHydrateTitle = existing.title.startsWith("Session ");
+				const hasManualTitle = Boolean(
+					getSessionMetadataTitle(session.metadata),
+				);
+				const shouldHydrateStatus =
+					existing.status === "failed" ||
+					existing.status === "completed" ||
+					existing.status === "idle" ||
+					lastHydratedStatus !== session.status;
+				if ((!shouldHydrateTitle || hasManualTitle) && !shouldHydrateStatus) {
+					continue;
+				}
+				titleLoadingRef.current.add(sessionId);
+				void desktopClient
+					.invoke<SessionMessage[]>("read_session_messages", {
+						environmentId: session.environmentId,
+						sessionId: session.sessionId,
+						maxMessages: 80,
+					})
+					.then((messages) => {
+						const nextTitle = hasManualTitle
+							? null
+							: titleFromMessages(messages);
+						setThreads((current) =>
+							updateThreadById(current, sessionId, (thread) => {
+								const nextStatus = inferStatusFromMessages(
+									thread.status,
+									messages,
+								);
+								const title = nextTitle ?? thread.title;
+								if (title === thread.title && nextStatus === thread.status) {
+									return thread;
+								}
+								return { ...thread, title, status: nextStatus };
+							}),
+						);
+						setSessions((current) =>
+							updateSessionById(current, sessionId, (item) => {
+								const nextStatus = inferStatusFromMessages(
+									item.status,
+									messages,
+								);
+								if (nextStatus === item.status) {
+									return item;
+								}
+								return { ...item, status: nextStatus };
+							}),
+						);
+					})
+					.catch(() => {
+						// Ignore sessions that cannot be hydrated.
+					})
+					.finally(() => {
+						messageHydratedStatusRef.current.set(sessionId, session.status);
+						titleLoadingRef.current.delete(sessionId);
+					});
+			}
+		}, 1200);
+		return () => {
+			cancelled = true;
+			window.clearTimeout(timer);
+		};
+	}, [activeSessionId, sessions]);
+
+	const getSessionByThreadId = useCallback(
+		(threadId: string) =>
+			sessionsRef.current.find((session) => sessionKey(session) === threadId),
+		[],
+	);
+
+	const openThread = useCallback(
+		(threadId: string) => {
+			const session = getSessionByThreadId(threadId);
+			if (session) {
+				setUnreadSessionIds((current) => {
+					if (!current.has(threadId)) {
+						return current;
+					}
+					const next = new Set(current);
+					next.delete(threadId);
+					return next;
+				});
+				onOpenSession?.(session);
+			}
+		},
+		[getSessionByThreadId, onOpenSession],
+	);
+
+	const renameThread = useCallback(
+		async (threadId: string, title: string) => {
+			if (pendingAction?.action === "rename") {
+				return false;
+			}
+			const thread = threadsRef.current.find((item) => item.id === threadId);
+			const currentTitle = normalizeTitle(thread?.title ?? "");
+			const normalizedTitle = normalizeTitle(title).trim();
+			if (normalizedTitle === currentTitle) {
+				return true;
+			}
+			setPendingAction({ sessionId: threadId, action: "rename" });
+			try {
+				const sourceSession = getSessionByThreadId(threadId);
+				if (!sourceSession) return false;
+				await desktopClient.invoke("update_chat_session_title", {
+					environmentId:
+						sourceSession?.environmentId ?? LOCAL_WORKSPACE_ENVIRONMENT_ID,
+					sessionId: sourceSession?.sessionId,
+					title: normalizedTitle,
+				});
+				const metadata = {
+					...(sourceSession?.metadata ?? {}),
+					title: normalizedTitle || undefined,
+				};
+				onUpdateSessionMetadata?.(
+					sourceSession.sessionId,
+					metadata,
+					sourceSession.environmentId,
+				);
+				window.dispatchEvent(
+					new CustomEvent("cline:session-title-updated", {
+						detail: {
+							sessionId: sourceSession.sessionId,
+							environmentId: sourceSession.environmentId,
+							title: normalizedTitle,
+						},
+					}),
+				);
+				return true;
+			} catch (error) {
+				toast({
+					variant: "destructive",
+					title: "Rename failed",
+					// Cloud failures arrive as a machine envelope; never show it raw.
+					description: humanizeCloudSessionError(
+						error instanceof Error
+							? error.message
+							: "The session title could not be updated.",
+					),
+				});
+				return false;
+			} finally {
+				setPendingAction(null);
+			}
+		},
+		[getSessionByThreadId, onUpdateSessionMetadata, pendingAction],
+	);
+
+	const setThreadPinned = useCallback(
+		async (threadId: string, pinned: boolean) => {
+			const applyPinned = (next: boolean) => {
+				setThreads((current) =>
+					updateThreadById(current, threadId, (thread) =>
+						thread.pinned === next ? thread : { ...thread, pinned: next },
+					),
+				);
+				setSessions((current) =>
+					updateSessionById(current, threadId, (session) => ({
+						...session,
+						metadata: {
+							...(session.metadata ?? {}),
+							[PINNED_METADATA_KEY]: next || undefined,
+						},
+					})),
+				);
+			};
+
+			// Pinning is a single click, so apply it locally first and roll back
+			// if the write fails rather than blocking the row on a round trip.
+			applyPinned(pinned);
+			try {
+				const sourceSession = getSessionByThreadId(threadId);
+				if (!sourceSession) return false;
+				await desktopClient.invoke("update_chat_session_metadata", {
+					environmentId:
+						sourceSession?.environmentId ?? LOCAL_WORKSPACE_ENVIRONMENT_ID,
+					sessionId: sourceSession?.sessionId,
+					metadata: { [PINNED_METADATA_KEY]: pinned ? true : null },
+				});
+				onUpdateSessionMetadata?.(
+					sourceSession.sessionId,
+					{
+						...(sourceSession?.metadata ?? {}),
+						[PINNED_METADATA_KEY]: pinned || undefined,
+					},
+					sourceSession.environmentId,
+				);
+				scheduleRefresh(HISTORY_FAST_REFRESH_DELAY_MS);
+				return true;
+			} catch (error) {
+				applyPinned(!pinned);
+				toast({
+					variant: "destructive",
+					title: pinned ? "Pin failed" : "Unpin failed",
+					description:
+						error instanceof Error
+							? error.message
+							: "The session could not be updated.",
+				});
+				return false;
+			}
+		},
+		[getSessionByThreadId, onUpdateSessionMetadata, scheduleRefresh],
+	);
+
+	const forkThread = useCallback(
+		async (threadId: string) => {
+			const thread = threadsRef.current.find((item) => item.id === threadId);
+			if (!thread) {
+				return false;
+			}
+			const sourceSession = getSessionByThreadId(threadId);
+			if (!sourceSession) return false;
+			setPendingAction({ sessionId: threadId, action: "fork" });
+			try {
+				const payload = await desktopClient.invoke<{
+					sessionId?: string;
+					forkedFromSessionId?: string;
+				}>("chat_session_command", {
+					request: {
+						action: "fork",
+						sessionId: sourceSession?.sessionId,
+						config: {
+							environmentId:
+								sourceSession?.environmentId ?? LOCAL_WORKSPACE_ENVIRONMENT_ID,
+							provider: sourceSession?.provider || thread.provider,
+							model: sourceSession?.model || thread.model,
+							cwd: sourceSession?.cwd || sourceSession?.workspaceRoot || "",
+							workspaceRoot:
+								sourceSession?.workspaceRoot || sourceSession?.cwd || "",
+						},
+					},
+				});
+				const newSessionId = payload.sessionId?.trim();
+				if (!newSessionId) {
+					throw new Error("Fork did not return a new session id.");
+				}
+				const forkedSession: SessionHistoryItem = {
+					sessionId: newSessionId,
+					environmentId:
+						sourceSession?.environmentId ?? LOCAL_WORKSPACE_ENVIRONMENT_ID,
+					status: "completed",
+					provider: sourceSession?.provider || thread.provider,
+					model: sourceSession?.model || thread.model,
+					cwd: sourceSession?.cwd || "",
+					workspaceRoot:
+						sourceSession?.workspaceRoot || sourceSession?.cwd || "",
+					startedAt: new Date().toISOString(),
+					metadata: {
+						fork: {
+							forkedFromSessionId: payload.forkedFromSessionId || threadId,
+							forkedAt: new Date().toISOString(),
+						},
+					},
+				};
+				scheduleRefresh(HISTORY_FAST_REFRESH_DELAY_MS);
+				onOpenSession?.(forkedSession);
+				return true;
+			} catch (error) {
+				toast({
+					variant: "destructive",
+					title: "Fork failed",
+					description:
+						error instanceof Error
+							? error.message
+							: "The session could not be forked.",
+				});
+				return false;
+			} finally {
+				setPendingAction(null);
+			}
+		},
+		[getSessionByThreadId, onOpenSession, scheduleRefresh],
+	);
+
+	const deleteThread = useCallback(
+		async (threadId: string) => {
+			const sourceSession = getSessionByThreadId(threadId);
+			if (!sourceSession) return false;
+			setPendingAction({ sessionId: threadId, action: "delete" });
+			try {
+				const deleteResult = await desktopClient.invoke<
+					boolean | { deleted?: boolean }
+				>("delete_chat_session", {
+					environmentId:
+						sourceSession?.environmentId ?? LOCAL_WORKSPACE_ENVIRONMENT_ID,
+					sessionId: sourceSession?.sessionId,
+				});
+				const deleted =
+					typeof deleteResult === "boolean"
+						? deleteResult
+						: deleteResult.deleted === true;
+				if (!deleted) {
+					throw new Error(
+						"The session could not be removed from local history.",
+					);
+				}
+				onDeleteSession?.(sourceSession.sessionId, sourceSession.environmentId);
+				window.dispatchEvent(
+					new CustomEvent("cline:session-deleted", {
+						detail: {
+							sessionId: sourceSession.sessionId,
+							environmentId: sourceSession.environmentId,
+						},
+					}),
+				);
+				return true;
+			} catch (error) {
+				toast({
+					variant: "destructive",
+					title: "Delete failed",
+					description: humanizeCloudSessionError(
+						error instanceof Error
+							? error.message
+							: "The session could not be removed from local history.",
+					),
+				});
+				return false;
+			} finally {
+				setPendingAction(null);
+			}
+		},
+		[getSessionByThreadId, onDeleteSession],
+	);
+
+	const loadMoreSessions = useCallback(
+		async (nextLimit: number) => {
+			if (loadedLimitRef.current >= nextLimit) {
+				return true;
+			}
+			const requestedLimit = Math.max(fetchLimitRef.current, nextLimit);
+			fetchLimitRef.current = requestedLimit;
+			setIsLoadingMore(true);
+			try {
+				const loaded = await refreshSessions();
+				// Roll back to what was last fetched so a retry asks for this batch
+				// again instead of skipping past it — but only when no overlapping
+				// call has raised the limit further in the meantime, since lowering
+				// it would make that call fetch a smaller batch than it asked for
+				// and still report success.
+				if (!loaded && fetchLimitRef.current === requestedLimit) {
+					fetchLimitRef.current = loadedLimitRef.current;
+				}
+				if (!loaded) {
+					toast({
+						variant: "destructive",
+						title: "Could not load more sessions",
+						description: "Session history is unavailable right now.",
+					});
+				}
+				return loaded;
+			} finally {
+				setIsLoadingMore(false);
+			}
+		},
+		[refreshSessions],
+	);
+	const loadOlderSessions = useCallback(
+		() => loadMoreSessions(fetchLimitRef.current + INITIAL_HISTORY_FETCH_LIMIT),
+		[loadMoreSessions],
+	);
+	const loadAllSessions = useCallback(() => {
+		if (loadAllPromiseRef.current) {
+			return loadAllPromiseRef.current;
+		}
+		const loadAllPromise = (async () => {
+			// A global search, filter, or oldest-first sort can be selected while
+			// the mount request is still in flight. Wait for that request before
+			// deciding whether there is any older history to fetch.
+			if (loadedLimitRef.current === 0 && !(await refreshSessions())) {
+				return false;
+			}
+			// Grow exponentially so complete-history operations need only
+			// logarithmically many requests while ordinary paging stays in
+			// predictable 50-session increments.
+			while (mayHaveMoreSessionsRef.current) {
+				const currentLimit = Math.max(
+					fetchLimitRef.current,
+					loadedLimitRef.current,
+					INITIAL_HISTORY_FETCH_LIMIT,
+				);
+				const nextLimit = Math.max(
+					currentLimit + INITIAL_HISTORY_FETCH_LIMIT,
+					currentLimit * 2,
+				);
+				if (!(await loadMoreSessions(nextLimit))) {
+					return false;
+				}
+			}
+			return true;
+		})();
+		loadAllPromiseRef.current = loadAllPromise;
+		loadAllPromise.finally(() => {
+			if (loadAllPromiseRef.current === loadAllPromise) {
+				loadAllPromiseRef.current = null;
+			}
+		});
+		return loadAllPromise;
+	}, [loadMoreSessions, refreshSessions]);
+
+	const sessionById = useMemo(
+		() => new Map(sessions.map((session) => [sessionKey(session), session])),
+		[sessions],
+	);
+
+	const threadsWithScheduled = useMemo(() => {
+		if (scheduledSessionLinks.size === 0) {
+			return threads;
+		}
+		return threads.map((thread) => {
+			const link = scheduledSessionLinks.get(thread.id);
+			if (!link) {
+				return thread;
+			}
+			// Metadata stamped by the runner wins; the executions list only
+			// fills in what the session record itself doesn't carry.
+			const scheduleId = thread.scheduleId ?? link.scheduleId;
+			const scheduleName = thread.scheduleName ?? link.scheduleName;
+			if (
+				thread.isScheduled &&
+				scheduleId === thread.scheduleId &&
+				scheduleName === thread.scheduleName
+			) {
+				return thread;
+			}
+			return {
+				...thread,
+				isScheduled: true,
+				...(scheduleId ? { scheduleId } : {}),
+				...(scheduleName ? { scheduleName } : {}),
+			};
+		});
+	}, [scheduledSessionLinks, threads]);
+
+	return {
+		getSessionByThreadId,
+		hasLoadedHistory,
+		isLoadingMore,
+		loadAllSessions,
+		loadOlderSessions,
+		loadMoreSessions,
+		mayHaveMoreSessions,
+		openThread,
+		pendingAction,
+		refreshSessions,
+		renameThread,
+		requestUsage,
+		setThreadPinned,
+		deleteThread,
+		forkThread,
+		sessionById,
+		sessions,
+		threads: threadsWithScheduled,
+		unreadSessionIds,
+	};
+}
+
+export type UseSessionHistoryResult = ReturnType<typeof useSessionHistory>;

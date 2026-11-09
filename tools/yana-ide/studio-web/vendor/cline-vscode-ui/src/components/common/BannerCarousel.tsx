@@ -1,0 +1,239 @@
+import { ChevronLeft, ChevronRight, XIcon } from "lucide-react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useRemark } from "react-remark"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+
+interface BannerActions {
+	label: string
+	onClick: () => void
+	disabled?: boolean
+}
+
+export interface BannerData {
+	id: string
+	icon?: React.ReactNode
+	title: string
+	description: string | React.ReactNode
+	actions?: BannerActions[]
+	onDismiss?: () => void
+}
+
+interface BannerCarouselProps {
+	banners: BannerData[]
+}
+
+interface BannerCardContentProps {
+	banner: BannerData
+	isActive: boolean
+	isTransitioning: boolean
+	showDismissButton: boolean
+}
+
+const BannerCardContent: React.FC<BannerCardContentProps> = ({ banner, isActive, isTransitioning, showDismissButton }) => {
+	const [markdownContent, setMarkdown] = useRemark()
+
+	useEffect(() => {
+		setMarkdown(typeof banner.description === "string" ? banner.description : "")
+	}, [banner.description, setMarkdown])
+
+	return (
+		<div
+			className={cn("p-3 transition-opacity duration-400 ease-in-out opacity-0", {
+				"opacity-100": isActive && !isTransitioning,
+				"cursor-auto": isActive,
+			})}
+			style={{
+				gridArea: "stack",
+				pointerEvents: isActive ? "auto" : "none", // Disable interaction on inactive cards
+			}}>
+			{/* Title with optional icon */}
+			<h3
+				className={cn("font-semibold mb-2 flex items-center text-base pr-0", {
+					"gap-2": banner.icon,
+					"pr-6": showDismissButton,
+				})}>
+				{banner.icon && <span className="shrink-0">{banner.icon}</span>}
+				{banner.title}
+			</h3>
+
+			{/* Description */}
+			{typeof banner.description === "string" ? (
+				<div className="text-sm text-description leading-relaxed [&>*:last-child]:mb-0 [&_a]:hover:underline">
+					{markdownContent}
+				</div>
+			) : (
+				<div className="text-sm text-description leading-relaxed">{banner.description}</div>
+			)}
+
+			{/* Action buttons */}
+			{banner.actions?.length ? (
+				<div className="flex flex-wrap gap-2 mt-3">
+					{banner.actions.map((action) => (
+						<Button disabled={action.disabled} key={action.label} onClick={action.onClick} size="sm">
+							{action.label}
+						</Button>
+					))}
+				</div>
+			) : null}
+		</div>
+	)
+}
+
+const BannerCarousel: React.FC<BannerCarouselProps> = ({ banners }) => {
+	const [currentIndex, setCurrentIndex] = useState(0)
+	const [isPaused, setIsPaused] = useState(false)
+	const [isTransitioning, setIsTransitioning] = useState(false)
+	const autoPlayIntervalRef = useRef<NodeJS.Timeout | null>(null)
+
+	// Compute a safe index that's always within bounds
+	const safeCurrentIndex = useMemo(
+		() => (banners.length === 0 ? 0 : Math.min(currentIndex, banners.length - 1)),
+		[currentIndex, banners.length],
+	)
+
+	const transitionToIndex = useCallback((newIndex: number) => {
+		setIsTransitioning(true)
+		setTimeout(() => {
+			setCurrentIndex(newIndex)
+			setIsTransitioning(false)
+		}, 200) // Match half of transition duration
+	}, [])
+
+	const handlePrevious = useCallback(() => {
+		const newIndex = currentIndex === 0 ? banners.length - 1 : currentIndex - 1
+		transitionToIndex(newIndex)
+		setIsPaused(true) // Pause auto-rotation when user manually navigates
+	}, [currentIndex, banners.length, transitionToIndex])
+
+	const handleNext = useCallback(() => {
+		const newIndex = currentIndex === banners.length - 1 ? 0 : currentIndex + 1
+		transitionToIndex(newIndex)
+		setIsPaused(true) // Pause auto-rotation when user manually navigates
+	}, [currentIndex, banners.length, transitionToIndex])
+
+	// When the banners array changes (e.g. a banner is added or removed), keep
+	// showing the banner the user was viewing by remapping its id to the new
+	// index; fall back to clamping when it no longer exists.
+	const prevBannersRef = useRef(banners)
+	useEffect(() => {
+		const prevBanners = prevBannersRef.current
+		if (prevBanners === banners) {
+			return
+		}
+		prevBannersRef.current = banners
+		const activeBannerId = prevBanners[Math.min(currentIndex, prevBanners.length - 1)]?.id
+		const newIndex = activeBannerId ? banners.findIndex((banner) => banner.id === activeBannerId) : -1
+		if (newIndex >= 0) {
+			if (newIndex !== currentIndex) {
+				setCurrentIndex(newIndex)
+			}
+		} else if (currentIndex >= banners.length && banners.length > 0) {
+			setCurrentIndex(banners.length - 1)
+		}
+	}, [banners, currentIndex])
+
+	// Auto-rotation effect
+	useEffect(() => {
+		// Only auto-rotate if there's more than one banner and not paused
+		if (banners.length <= 1 || isPaused) {
+			return
+		}
+
+		autoPlayIntervalRef.current = setInterval(() => {
+			setCurrentIndex((prevIndex) => (prevIndex + 1) % banners.length)
+		}, 6500) // Rotate every 6.5 seconds
+
+		return () => {
+			if (autoPlayIntervalRef.current) {
+				clearInterval(autoPlayIntervalRef.current)
+			}
+		}
+	}, [banners.length, isPaused])
+
+	// Early return AFTER all hooks have been called
+	if (banners.length === 0) {
+		return null
+	}
+
+	// Use the safe index to get the current banner
+	const currentBanner = banners[safeCurrentIndex]
+
+	// Safety check: if currentBanner is undefined (shouldn't happen with above logic, but just in case)
+	if (!currentBanner) {
+		return null
+	}
+
+	const showDismissButton = !!currentBanner.onDismiss
+
+	return (
+		<div
+			aria-label="Announcements"
+			aria-live="polite"
+			aria-roledescription="carousel"
+			className="mx-3 mb-3"
+			onMouseEnter={() => setIsPaused(true)}
+			onMouseLeave={() => setIsPaused(false)}
+			role="region">
+			{/* Card container */}
+			<div className="relative bg-muted rounded-sm">
+				{/* Dismiss button - shows on each card that has onDismiss defined */}
+				{showDismissButton && (
+					<Button
+						aria-label="Dismiss banner"
+						className="absolute top-2.5 right-2 z-10"
+						data-testid="banner-dismiss-button"
+						onClick={(e) => {
+							e.stopPropagation()
+							// Dismiss only the current banner
+							currentBanner.onDismiss?.()
+						}}
+						size="icon"
+						variant="icon">
+						<XIcon className="w-4 h-4" />
+					</Button>
+				)}
+
+				{/* Card content - grid stack makes container size to tallest */}
+				<div className="grid" style={{ gridTemplateAreas: "'stack'" }}>
+					{banners.map((banner, idx) => {
+						const isActive = idx === safeCurrentIndex
+						const showDismiss = !!banner.onDismiss
+
+						return (
+							<BannerCardContent
+								banner={banner}
+								isActive={isActive}
+								isTransitioning={isTransitioning}
+								key={banner.id}
+								showDismissButton={showDismiss}
+							/>
+						)
+					})}
+				</div>
+
+				{/* Navigation footer - only show if more than 1 banner */}
+				{banners.length > 1 && (
+					<div className="flex justify-between items-center px-3 py-1.5 border-t border-description/15">
+						{/* Page indicator */}
+						<div className="text-sm text-description">
+							{safeCurrentIndex + 1} / {banners.length}
+						</div>
+
+						{/* Navigation arrows */}
+						<div className="flex gap-0.5">
+							<Button aria-label="Previous banner" onClick={handlePrevious} size="icon" variant="icon">
+								<ChevronLeft className="size-4" />
+							</Button>
+							<Button aria-label="Next banner" onClick={handleNext} size="icon" variant="icon">
+								<ChevronRight className="size-4" />
+							</Button>
+						</div>
+					</div>
+				)}
+			</div>
+		</div>
+	)
+}
+
+export default BannerCarousel
