@@ -290,6 +290,7 @@ struct ChatHome: View {
 
 	private var composer: some View {
 		VStack(alignment: .leading, spacing: 10) {
+			if let quote = engine.quote { quoteStrip(quote) }
 			if !engine.attachments.isEmpty || !engine.documents.isEmpty { attachmentStrip }
 			if let warning = imageWarning {
 				Text(warning).font(.fbCaption).foregroundStyle(FB.warningText)
@@ -342,6 +343,22 @@ struct ChatHome: View {
 	}
 
 	// Thumbnails of the images waiting to be sent, each with a remove button.
+	// The reply being answered: a short excerpt with a bar on the left, and a button to drop it.
+	private func quoteStrip(_ quote: String) -> some View {
+		HStack(alignment: .top, spacing: 8) {
+			RoundedRectangle(cornerRadius: 2).fill(FB.primary).frame(width: 3)
+			VStack(alignment: .leading, spacing: 2) {
+				Text(L("msg.quoting")).font(.fbCaption).foregroundStyle(FB.primaryText)
+				Text(quote).font(.fbCaption).foregroundStyle(FB.textSecondary).lineLimit(2)
+			}
+			Spacer(minLength: 6)
+			FBIconButton(icon: "close", variant: .ghost, size: .small, tooltip: L("msg.unquote")) { engine.quote = nil }
+		}
+		.padding(8)
+		.background(RoundedRectangle(cornerRadius: 10).fill(FB.primarySubtle))
+		.fixedSize(horizontal: false, vertical: true)
+	}
+
 	private var attachmentStrip: some View {
 		ScrollView(.horizontal, showsIndicators: false) {
 			HStack(spacing: 8) {
@@ -529,11 +546,14 @@ struct MessageView: View {
 // Under each reply: copy to the clipboard, and read aloud with the macOS voice (on this Mac, no network).
 struct MessageActions: View {
 	let text: String
+	@EnvironmentObject private var engine: ChatEngine
 	@State private var copied = false
 	@StateObject private var speaker = Speaker()
 
 	var body: some View {
 		HStack(spacing: 2) {
+			// Pins this reply above the chat box; the next message is sent as a reply to it.
+			FBIconButton(icon: "quote", variant: .ghost, size: .small, tooltip: L("msg.quote")) { engine.quote = text }
 			FBIconButton(icon: copied ? "check" : "copy", variant: .ghost, size: .small, tooltip: L("msg.copy")) {
 				NSPasteboard.general.clearContents()
 				NSPasteboard.general.setString(text, forType: .string)

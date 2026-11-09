@@ -60,6 +60,24 @@ final class ChatEngine: ObservableObject {
 	// Notes describing attached videos (name, length, frame times), sent with the next message.
 	@Published var videoNotes: [String] = []
 
+	// A reply the user is answering (the quote button under a reply): sent as a quoted block with the next
+	// message, so the model knows exactly which of its own words are being questioned.
+	@Published var quote: String? = nil
+	static let maxQuoteChars = 4_000
+
+	// The first line of a quote, shortened, for the user's own bubble.
+	static func quotePreview(_ quote: String) -> String {
+		let first = quote.split(separator: "\n").first.map(String.init) ?? ""
+		return first.count > 80 ? String(first.prefix(80)) + "…" : first
+	}
+
+	static func withQuote(_ text: String, _ quote: String?) -> String {
+		guard let quote, !quote.isEmpty else { return text }
+		let block = String(quote.prefix(maxQuoteChars)).split(separator: "\n", omittingEmptySubsequences: false)
+			.map { "> \($0)" }.joined(separator: "\n")
+		return "\(L("msg.quoteIntro"))\n\(block)\n\n\(text)"
+	}
+
 	// Images go to yana-rt as images; videos become a few frames (VideoFrames.swift); every other file is
 	// read into text here.
 	func attach(_ urls: [URL]) {
@@ -222,11 +240,14 @@ final class ChatEngine: ObservableObject {
 		attachments = []
 		documents = []
 		videoNotes = []
+		let quoted = quote
+		quote = nil
 		attachError = nil
-		let shown = ([text] + docs.map { "📎 \($0.name)" }).filter { !$0.isEmpty }.joined(separator: "\n")
+		let quoteLine = quoted.map { "↩︎ " + Self.quotePreview($0) }
+		let shown = ([quoteLine ?? "", text] + docs.map { "📎 \($0.name)" }).filter { !$0.isEmpty }.joined(separator: "\n")
 		lines.append(ChatLine(role: .user, text: shown, images: sending.map(\.preview)))
 		lines.append(ChatLine(role: .assistant, text: ""))
-		let task = ([withDocuments(text, docs)] + notes).filter { !$0.isEmpty }.joined(separator: "\n\n")
+		let task = ([Self.withQuote(withDocuments(text, docs), quoted)] + notes).filter { !$0.isEmpty }.joined(separator: "\n\n")
 		var payload: [String: Any] = ["task": task, "session_id": sessionId, "history": Array(history), "mode": planMode ? "plan" : "act"]
 		if !sending.isEmpty {
 			payload["images"] = sending.map { ["mime_type": $0.mimeType, "data": $0.base64] }
