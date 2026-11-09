@@ -60,7 +60,8 @@ enum RtClient {
 	}
 
 	// The project the receipts belong to: YANA_WORKSPACE, else the folder chosen in Settings, else the
-	// nearest folder with a .git above the cwd.
+	// nearest folder with a .git above the cwd, else the cwd. Opened from Finder the cwd is "/", which is
+	// never a sensible project: the home folder is used instead.
 	static func workspace() -> String {
 		if let env = ProcessInfo.processInfo.environment["YANA_WORKSPACE"], !env.isEmpty { return env }
 		let chosen = AppSettings.shared.workspace
@@ -70,7 +71,8 @@ enum RtClient {
 			if FileManager.default.fileExists(atPath: url.appendingPathComponent(".git").path) { return url.path }
 			url.deleteLastPathComponent()
 		}
-		return FileManager.default.currentDirectoryPath
+		let cwd = FileManager.default.currentDirectoryPath
+		return cwd == "/" ? FileManager.default.homeDirectoryForCurrentUser.path : cwd
 	}
 
 	static func run<T: Decodable>(_ args: [String], as type: T.Type) throws -> T {
