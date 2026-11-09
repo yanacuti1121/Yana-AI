@@ -575,10 +575,18 @@ export const highlight = (fuseSearchResult: FuseResult<any>[], highlightClassNam
 		let i: number
 
 		for (i = 0; i < pathValue.length - 1; i++) {
-			obj = obj[pathValue[i]] as Record<string, any>
+			const key = pathValue[i]
+			if (key === "__proto__" || key === "constructor" || key === "prototype") {
+				return
+			}
+			obj = obj[key] as Record<string, any>
 		}
 
-		obj[pathValue[i]] = value
+		const finalKey = pathValue[i]
+		if (finalKey === "__proto__" || finalKey === "constructor" || finalKey === "prototype") {
+			return
+		}
+		obj[finalKey] = value
 	}
 
 	// Function to merge overlapping regions
