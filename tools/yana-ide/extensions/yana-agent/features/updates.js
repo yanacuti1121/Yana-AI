@@ -196,7 +196,14 @@ async function fetchLatestRuntimeVersion() {
 	return null;
 }
 
+// Studio shipped inside Yana.app (Contents/Applications/Yana Studio.app) is updated together with Yana by
+// the Yana app's own app-v* check; a separate studio-v* prompt here would offer the wrong download.
+function bundledInYanaApp() {
+	return vscode.env.appRoot.includes('.app/Contents/Applications/');
+}
+
 async function checkStudioUpdate(silent, t) {
+	if (bundledInYanaApp()) return false;
 	const release = await fetchLatestStudioRelease();
 	if (!release) return false;
 	const current = studioCurrentVersion();

@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<!-- Linked into the executable's __TEXT,__info_plist section (Package.swift), so even the bare SwiftPM
-     binary shows "Yana" in the menu bar instead of the executable name "YanaApp". -->
 <plist version="1.0">
 <dict>
-	<key>CFBundleName</key>
-	<string>Yana</string>
 	<key>CFBundleDisplayName</key>
 	<string>Yana</string>
 	<key>CFBundleIdentifier</key>
 	<string>ai.yana.app</string>
+	<key>CFBundleName</key>
+	<string>Yana</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.1.0</string>
+	<string>1.0.0</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>1.0.0</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>14.0</string>
 	<key>NSHighResolutionCapable</key>

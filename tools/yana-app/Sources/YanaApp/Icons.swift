@@ -101,3 +101,44 @@ struct RabbitLogo: View {
 		.accessibilityLabel("Yana")
 	}
 }
+
+// The macOS app icon, drawn from RabbitLogo so the icon and the in-app mark never drift apart.
+// .app is the light chat app; .studio is the dark IDE with a code badge, so the two never look alike in
+// the Dock. 1024 x 1024 with Apple's icon grid: an 824 pt rounded square centred, room for the shadow.
+struct AppIconArt: View {
+	enum Variant: String { case app, studio }
+	var variant: Variant
+	private static let canvas: CGFloat = 1024
+	private static let tile: CGFloat = 824
+	private static let corner: CGFloat = 185
+	private static let rabbitCell: CGFloat = 28 // 22 x 28 = 616 pt wide inside the 824 tile
+
+	private var background: LinearGradient {
+		switch variant {
+		case .app: LinearGradient(colors: [Color(hex: 0xFFFFFF), Color(hex: 0xDCE9FD)], startPoint: .top, endPoint: .bottom)
+		case .studio: LinearGradient(colors: [Color(hex: 0x1C2C4C), Color(hex: 0x0D1526)], startPoint: .top, endPoint: .bottom)
+		}
+	}
+
+	var body: some View {
+		ZStack {
+			RoundedRectangle(cornerRadius: Self.corner, style: .continuous)
+				.fill(background)
+				.frame(width: Self.tile, height: Self.tile)
+				.shadow(color: .black.opacity(0.28), radius: 18, y: 12)
+			RabbitLogo(cell: Self.rabbitCell)
+				.offset(y: variant == .studio ? -24 : 0)
+			if variant == .studio { codeBadge.offset(x: 250, y: 250) }
+		}
+		.frame(width: Self.canvas, height: Self.canvas)
+	}
+
+	// "</>" on a Fluent Blue disc at the lower right: the one mark that says "the editor".
+	private var codeBadge: some View {
+		ZStack {
+			Circle().fill(Color(hex: 0x1470F0)).frame(width: 260, height: 260)
+				.overlay(Circle().stroke(Color(hex: 0x0D1526), lineWidth: 18))
+			Text("</>").font(.system(size: 112, weight: .heavy, design: .rounded)).foregroundStyle(.white)
+		}
+	}
+}

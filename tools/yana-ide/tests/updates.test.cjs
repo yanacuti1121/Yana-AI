@@ -110,6 +110,14 @@ async function promptTests() {
 	writeProduct({ nameShort: 'Yana Studio' });
 	prompts = 0;
 	check('unknown installed version: no prompt', (await updates.checkStudioUpdate(true, t)) === false && prompts === 0);
+	// Inside Yana.app the Yana app's app-v* check updates both, so an older studio-v* number never prompts.
+	writeProduct({ yanaStudioVersion: '1.0.0' });
+	fakeVscode.env.appRoot = '/Applications/Yana.app/Contents/Applications/Yana Studio.app/Contents/Resources/app';
+	prompts = 0;
+	check('bundled in Yana.app, 1.0.0 vs studio-v1.7.0: no prompt', (await updates.checkStudioUpdate(true, t)) === false && prompts === 0);
+	fakeVscode.env.appRoot = appRoot;
+	prompts = 0;
+	check('standalone 1.0.0 vs studio-v1.7.0: prompt', (await updates.checkStudioUpdate(true, t)) === true && prompts === 1);
 }
 
 promptTests().then(() => {

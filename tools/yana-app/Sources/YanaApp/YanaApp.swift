@@ -154,6 +154,40 @@ struct RootView: View {
 	}
 }
 
+// `YanaApp --icon out.png app|studio` draws the 1024 x 1024 app icon (AppIconArt) and exits; package.sh turns it
+// into the .icns files for Yana and the bundled Studio.
+@MainActor
+func renderIcon(to path: String, variant raw: String) {
+	guard let variant = AppIconArt.Variant(rawValue: raw) else {
+		FileHandle.standardError.write(Data("unknown icon variant \(raw), use app or studio\n".utf8))
+		exit(2)
+	}
+	writePNG(AppIconArt(variant: variant), scale: 1, to: path)
+}
+
+// `YanaApp --dmg-background out.png` draws the install-window picture (DmgBackground) at 2x.
+@MainActor
+func renderDmgBackground(to path: String) {
+	writePNG(DmgBackground(), scale: 2, to: path)
+}
+
+@MainActor
+private func writePNG(_ view: some View, scale: CGFloat, to path: String) {
+	let renderer = ImageRenderer(content: view)
+	renderer.scale = scale
+	guard let image = renderer.cgImage else {
+		FileHandle.standardError.write(Data("render failed\n".utf8))
+		exit(1)
+	}
+	let rep = NSBitmapImageRep(cgImage: image)
+	guard let png = rep.representation(using: .png, properties: [:]) else { exit(1) }
+	do { try png.write(to: URL(fileURLWithPath: path)) } catch {
+		FileHandle.standardError.write(Data("cannot write \(path): \(error)\n".utf8))
+		exit(1)
+	}
+	print("wrote \(path)")
+}
+
 // `YanaApp --render out.png [page]` draws the window to a 1536 x 1024 image and exits, without opening a window.
 @MainActor
 func renderPNG(to path: String, page: String) {
@@ -178,6 +212,14 @@ func renderPNG(to path: String, page: String) {
 struct YanaApp: App {
 	init() {
 		let args = CommandLine.arguments
+		if let index = args.firstIndex(of: "--dmg-background"), index + 1 < args.count {
+			renderDmgBackground(to: args[index + 1])
+			exit(0)
+		}
+		if let index = args.firstIndex(of: "--icon"), index + 2 < args.count {
+			renderIcon(to: args[index + 1], variant: args[index + 2])
+			exit(0)
+		}
 		if let index = args.firstIndex(of: "--render"), index + 1 < args.count {
 			// Optional third argument picks the page, e.g. `--render out.png "Tool approvals"`.
 			renderPNG(to: args[index + 1], page: index + 2 < args.count ? args[index + 2] : "Chat")
