@@ -11,6 +11,7 @@ struct ModelPicker: View {
 	let close: () -> Void
 	@State private var query = ""
 	@State private var manual: [String: String] = [:]
+	private static let listHeight: CGFloat = 210
 
 	private func filtered(_ group: ProviderModels) -> [String] {
 		let q = query.trimmingCharacters(in: .whitespaces).lowercased()
@@ -37,13 +38,17 @@ struct ModelPicker: View {
 					ForEach(catalog.groups) { group in groupView(group) }
 				}
 			}
-			.frame(maxHeight: 400)
+			// A fixed height: a popover gives a ScrollView only its minimum (one row) otherwise, and this
+			// list opens above the chat box, where about 300 pt are free when the box sits mid-window.
+			.frame(height: Self.listHeight)
 			Divider()
 			SidebarRow(icon: "key", title: L("model.manageKeys"), strong: false)
 				.onTapGesture { close(); openSettings() }
 		}
 		.padding(10)
 		.frame(width: 360)
+		// Solid light background: the default popover glass let a dark window behind it show through.
+		.background(FB.canvas)
 		.onAppear { catalog.refreshIfStale() }
 	}
 

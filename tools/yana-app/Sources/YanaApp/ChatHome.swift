@@ -45,6 +45,8 @@ struct ChatHome: View {
 	private static let panelWidth: CGFloat = 300
 	private var project: String { URL(fileURLWithPath: engine.workspace).lastPathComponent }
 	private static let maxInputChars = 20_000 // well under yana-rt's 10 MB stdin cap
+	// Which edge chat-bar popovers open from (YANA_POPOVER_EDGE=top|bottom while checking it live).
+	static let popoverEdge: Edge = ProcessInfo.processInfo.environment["YANA_POPOVER_EDGE"] == "bottom" ? .bottom : .top
 	private static let browserWidth: CGFloat = 520
 
 	// A model must be picked first: there is no "auto" model.
@@ -320,9 +322,11 @@ struct ChatHome: View {
 					.help(L("chat.reasoningNA"))
 				Chip(icon: "cpu", title: engine.model.map { "\(engine.provider) · \($0)" } ?? L("model.choose"), trailing: "chevron-down")
 					.onTapGesture { showModels = true }
-					.popover(isPresented: $showModels, arrowEdge: .top) {
+					.popover(isPresented: $showModels, arrowEdge: Self.popoverEdge) {
 						ModelPicker(engine: engine, openSettings: openSettings) { showModels = false }
 					}
+					// YANA_OPEN_MODELS=1 opens the model list at launch (to check where it opens in the live window).
+					.onAppear { if ProcessInfo.processInfo.environment["YANA_OPEN_MODELS"] == "1" { showModels = true } }
 				Button(action: engine.running ? engine.stop : send) {
 					FBIcon(name: engine.running ? "stop" : "arrow-up", size: 15, color: FB.onPrimary)
 						.frame(width: 32, height: 32)
