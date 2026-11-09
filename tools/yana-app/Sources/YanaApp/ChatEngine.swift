@@ -150,11 +150,39 @@ final class ChatEngine: ObservableObject {
 	var chatInputTokens: Int { lines.reduce(0) { $0 + $1.inputTokens } }
 	var chatOutputTokens: Int { lines.reduce(0) { $0 + $1.outputTokens } }
 
-	// Starts a new chat: empty conversation, new yana-rt session id.
+	// Starts a new chat: the current one is saved first, then an empty conversation with a new session id.
 	func reset() {
 		guard !running else { return }
+		saveToHistory()
 		lines = []
 		sessionId = UUID().uuidString.lowercased()
+	}
+
+	var currentChatID: String { sessionId }
+
+	// Reopens a saved chat (the current one is saved first). It keeps its own yana-rt session id.
+	func open(_ chat: SavedChat) {
+		guard !running, chat.id != sessionId else { return }
+		saveToHistory()
+		sessionId = chat.id
+		lines = chat.lines.map { line in
+			var restored = ChatLine(role: line.user ? .user : .assistant, text: line.text)
+			restored.error = line.error
+			restored.inputTokens = line.inputTokens
+			restored.outputTokens = line.outputTokens
+			return restored
+		}
+	}
+
+	// Writes this chat to the history (nothing for an empty chat). Called after each reply and before switching.
+	func saveToHistory() {
+		guard let title else { return }
+		let saved = lines.filter { !$0.text.isEmpty || $0.error != nil }.map {
+			SavedLine(user: $0.role == .user, text: $0.text, error: $0.error, inputTokens: $0.inputTokens, outputTokens: $0.outputTokens)
+		}
+		let firstLine = title.split(separator: "\n").first.map(String.init) ?? title
+		ChatHistoryStore.shared.save(SavedChat(id: sessionId, title: String(firstLine.prefix(ChatHistoryStore.titleChars)),
+		                                       updated: Date(), provider: turnProvider, model: model, lines: saved))
 	}
 
 	// Reads the pulled models from `ollama list` (first column, header skipped). Empty when Ollama is missing.
@@ -362,6 +390,7 @@ final class ChatEngine: ObservableObject {
 	private func finish(status: Int32, stderr: String) {
 		running = false
 		process = nil
+		defer { saveToHistory() } // every finished turn lands in "Recent", errors included
 		guard let last = lines.indices.last else { return }
 		if lines[last].role == .assistant, MemoryStore.shared.enabled {
 			let split = Self.extractProposal(lines[last].text)

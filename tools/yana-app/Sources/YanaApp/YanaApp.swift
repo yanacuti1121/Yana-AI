@@ -113,7 +113,8 @@ struct RootView: View {
 		.onAppear {
 			if openTerminal { terminals.wantsPanel = true }
 			// The chat list starts hidden at every launch for a wide chat; the sidebar button shows it.
-			if !rendering { chatSidebar = false }
+			// YANA_CHAT_LIST=1 keeps it open (to check it in the live window).
+			if !rendering { chatSidebar = ProcessInfo.processInfo.environment["YANA_CHAT_LIST"] == "1" }
 			NSApplication.shared.appearance = NSAppearance(named: .aqua)
 			// Launched from a terminal the app starts without focus; bring it to the front.
 			NSApplication.shared.setActivationPolicy(.regular)

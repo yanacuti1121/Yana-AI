@@ -128,6 +128,7 @@ struct IconRail: View {
 // yana-rt can list them, chats. Today there is nothing to list, and it says so instead of inventing rows.
 struct ChatSidebar: View {
 	@EnvironmentObject private var engine: ChatEngine
+	@ObservedObject private var history = ChatHistoryStore.shared
 	let collapse: () -> Void
 
 	var body: some View {
@@ -149,21 +150,60 @@ struct ChatSidebar: View {
 			SidebarRow(icon: "folder", title: URL(fileURLWithPath: engine.workspace).lastPathComponent, strong: false)
 				.help(engine.workspace)
 
-			// Only the chat open in this window. Past chats need a session list from yana-rt (not available yet).
+			// Saved chats (ChatHistory.swift), newest first; the open one is highlighted. Right-click deletes.
 			SidebarHeading(L("chat.recent"))
-			if let title = engine.title {
-				SidebarRow(icon: "message", title: title, strong: false)
-			} else {
-				Text(L("chat.noChats")).font(.fbCaption).foregroundStyle(FB.textSecondary)
-					.padding(.horizontal, 10).padding(.vertical, 6)
+			ScrollView {
+				LazyVStack(alignment: .leading, spacing: 2) {
+					if engine.title != nil && history.chat(engine.currentChatID) == nil {
+						RecentRow(title: engine.title ?? "", date: nil, current: true)
+					}
+					ForEach(history.chats) { chat in
+						RecentRow(title: chat.title, date: chat.updated, current: chat.id == engine.currentChatID)
+							.onTapGesture { engine.open(chat) }
+							.contextMenu {
+								Button(L("history.delete"), role: .destructive) {
+									if chat.id == engine.currentChatID { engine.reset() }
+									history.delete(chat.id)
+								}
+							}
+					}
+					if history.chats.isEmpty && engine.title == nil {
+						Text(L("chat.noChats")).font(.fbCaption).foregroundStyle(FB.textSecondary)
+							.padding(.horizontal, 10).padding(.vertical, 6)
+					}
+				}
 			}
-
-			Spacer(minLength: 0)
+			.opacity(engine.running ? 0.6 : 1)
+			if let error = history.lastError { Text(error).font(.fbCaption).foregroundStyle(FB.errorText).padding(.horizontal, 10) }
 		}
 		.padding(EdgeInsets(top: 38, leading: 12, bottom: 14, trailing: 12))
 		.frame(width: 252)
 		.frame(maxHeight: .infinity)
 		.background(SidebarBackground(color: sidebarColor))
+	}
+}
+
+// One saved chat in "Recent": its first message and when it was last used.
+struct RecentRow: View {
+	let title: String
+	let date: Date?
+	let current: Bool
+	@State private var hover = false
+
+	var body: some View {
+		HStack(spacing: 8) {
+			Text(title).font(.system(size: 13, weight: current ? .semibold : .regular)).foregroundStyle(FB.text).lineLimit(1)
+			Spacer(minLength: 4)
+			if let date {
+				Text(date, format: .relative(presentation: .numeric)).font(.system(size: 10)).foregroundStyle(FB.textTertiary).lineLimit(1)
+			}
+		}
+		.padding(.horizontal, 10)
+		.frame(height: 30)
+		.background(RoundedRectangle(cornerRadius: 9).fill(current ? FB.primarySubtle : (hover ? FB.hoverOnChrome : .clear)))
+		.contentShape(Rectangle())
+		.onHover { hover = $0 }
+		.help(title)
 	}
 }
 
