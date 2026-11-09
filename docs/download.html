@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tải Yana Studio (v1.7.0) — IDE Native Code-OSS 2026</title>
+  <title>Tải Yana 1.0 cho macOS: Yana và Yana Studio trong một app</title>
   <link rel="icon" type="image/svg+xml" href="yana-mark.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -165,6 +165,24 @@
       margin: 0;
     }
   </style>
+  <style>
+    .shot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 24px; max-width: 1080px; margin: 0 auto 72px; padding: 0 24px; }
+    .shot-grid figure { margin: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px -12px rgba(15, 23, 42, 0.12); }
+    .shot-grid figure.wide { grid-column: 1 / -1; }
+    .shot-grid img { display: block; width: 100%; height: auto; }
+    .shot-grid figcaption { padding: 14px 18px; font-size: 14px; line-height: 1.5; color: #475569; }
+    .ver-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 20px; max-width: 1080px; margin: 0 auto 28px; padding: 0 24px; }
+    .ver-card { background: rgba(255, 255, 255, 0.94); border: 1px solid #e2e8f0; border-radius: 24px; padding: 26px 26px 22px; display: flex; flex-direction: column; gap: 6px; }
+    .ver-kind { font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: #2563eb; }
+    .ver-name { font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #0f172a; margin: 2px 0 0; }
+    .ver-num { font-family: var(--font-mono); font-size: 38px; font-weight: 800; color: #0f172a; line-height: 1.15; }
+    .ver-date { font-size: 13px; color: #64748b; min-height: 20px; }
+    .ver-desc { font-size: 14px; line-height: 1.55; color: #475569; margin: 6px 0 10px; }
+    .ver-how { background: #0f172a; color: #e2e8f0; border-radius: 12px; padding: 10px 14px; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.5; margin-top: auto; overflow-x: auto; }
+    .ver-link { margin-top: 12px; font-size: 13.5px; font-weight: 700; color: #2563eb; text-decoration: none; }
+    .ver-note { max-width: 780px; margin: 0 auto 72px; padding: 0 24px; text-align: center; font-size: 14px; line-height: 1.6; color: #64748b; }
+    .dl-sha { font-family: var(--font-mono); font-size: 11.5px; color: #64748b; word-break: break-all; padding: 4px 8px; }
+  </style>
 </head>
 <body class="sakura-site home-page">
   <div class="site26-bg-canvas" aria-hidden="true"></div>
@@ -175,140 +193,199 @@
   <main id="main">
     <section class="download-hero">
       <div class="floating-hero-pill">
-        <span>✨ Yana Studio</span>
+        <span>✨ Yana 1.0</span>
         <span style="opacity: 0.4;">·</span>
-        <span style="color: #059669;">Code-OSS Core + Supervised Cockpit</span>
+        <span style="color: #059669;">Chat · Terminal · Studio</span>
       </div>
-      <h1 class="studio-hero-2026" style="padding:0;margin:16px 0 20px;">Mặt bàn làm việc của AI.<br><span class="text-rainbow-2026">Bộ cài Yana Studio chính thức.</span></h1>
-      <p class="lead-text" style="margin:0 auto 30px;">Kế thừa trọn vẹn extension của VS Code nhưng đặt bạn làm trung tâm kiểm soát: AI không thể tự ý chạy lệnh shell hay sửa file khi chưa có sự phê duyệt của bạn.</p>
+      <h1 class="studio-hero-2026" style="padding:0;margin:16px 0 20px;">Trợ lý AI chạy trên máy bạn.<br><span class="text-rainbow-2026">Việc quan trọng luôn chờ bạn duyệt.</span></h1>
+      <p class="lead-text" style="margin:0 auto 30px;">Một file tải về, hai app: <strong>Yana</strong> (chat, terminal, chợ plugin) và <strong>Yana Studio</strong> (trình soạn code nền Code-OSS) mở từ Yana trong cửa sổ riêng. Dùng model nào cũng được, kể cả model chạy ngay trên máy bạn.</p>
     </section>
 
-    <!-- Bảng Download Cards Hiện Đại 3D (macOS Apple Silicon Native) -->
     <section class="dl-cards-grid perspective-container-2026" id="download" style="max-width: 680px;">
-      
-      <!-- macOS (Apple Silicon M1-M5) -->
       <div class="dl-card featured has-glow-2026 card-3d-interactive" style="padding: 40px 36px;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 8px;">
           <span class="organic-badge-pulse">Bản chính thức · Apple Silicon</span>
-          <span style="font-family: var(--font-mono); font-size: 13px; color: #059669; font-weight: 700;">macOS 12.0+</span>
+          <span style="font-family: var(--font-mono); font-size: 13px; color: #059669; font-weight: 700;">macOS 14+</span>
         </div>
         <h2 class="dl-os-title" style="font-size: 32px; margin: 12px 0 8px;">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 3.5c.62-.75 1.04-1.8 0.92-2.85-.9.04-2 .6-2.65 1.35-.58.67-.99 1.74-.86 2.78.99.08 2.01-.51 2.59-1.28z"/></svg>
           macOS
-          <span class="hand-note-tag" style="font-size: 18px;">M1 → M5 Native!</span>
+          <span class="hand-note-tag" style="font-size: 18px;">Yana 1.0.0</span>
         </h2>
-        <p class="dl-os-desc" style="font-size: 15px; margin-bottom: 24px; color: #475569;">
-          Được xây dựng và tối ưu hoàn toàn native cho kiến trúc chip <strong>Apple Silicon (M1, M2, M3, M4, M5)</strong>. Tận dụng bộ tăng tốc Neural Engine và tiết kiệm pin tối đa.
-        </p>
+        <p class="dl-os-desc" style="font-size: 15px; margin-bottom: 24px; color: #475569;">Dành cho Mac chip Apple (M1 trở lên) chạy macOS 14 Sonoma trở lên. Mở file <strong>.dmg</strong>, kéo <strong>Yana</strong> vào Applications. Yana Studio đã nằm sẵn bên trong, không cần cài riêng.</p>
         <div class="dl-btn-group" style="display: flex; flex-direction: column; gap: 12px;">
-          <a href="https://github.com/yanacuti1121/Yana-AI/releases/latest" class="btn-spring-2026 btn-spring-primary dl-main-btn" style="padding: 16px 28px; font-size: 16px; justify-content: center;">
-            Tải bộ cài Yana Studio .DMG (Apple Silicon) ↓
+          <a href="https://github.com/yanacuti1121/Yana-AI/releases/download/app-v1.0.0/Yana-1.0.0.dmg" data-dl-dmg class="btn-spring-2026 btn-spring-primary dl-main-btn" style="padding: 16px 28px; font-size: 16px; justify-content: center;">
+            Tải Yana <span data-dl-version>1.0.0</span> (.dmg) · <span data-dl-size>475 MB</span> ↓
           </a>
-          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #64748b; padding: 4px 8px; font-family: var(--font-mono);">
-            <span>Định dạng: DMG 64-bit ARM64</span>
-            <a href="https://github.com/yanacuti1121/Yana-AI/releases/tag/studio-v1.7.0" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: none; font-weight: 600;">Xem SHA-256 Checksum ↗</a>
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 12px; color: #64748b; padding: 4px 8px; font-family: var(--font-mono);">
+            <span>DMG ARM64 · hoặc <a href="https://github.com/yanacuti1121/Yana-AI/releases/download/app-v1.0.0/Yana-1.0.0.zip" style="color: #2563eb; text-decoration: none; font-weight: 600;">bản .zip</a></span>
+            <a href="https://github.com/yanacuti1121/Yana-AI/releases/tag/app-v1.0.0" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: none; font-weight: 600;">SHA-256 và ghi chú phát hành ↗</a>
           </div>
+          <div class="dl-sha">SHA-256 (.dmg): b7b77b697d8f03d7c78561e527b40668a401e09d2aa8ccf712b8f08d0269617c</div>
         </div>
       </div>
-
     </section>
 
-    <!-- Terminal Tools Section (PyPI & Crates.io) -->
+    <section style="max-width: 1080px; margin: 0 auto 28px; padding: 0 24px;">
+      <div style="text-align: center; margin-bottom: 28px;">
+        <p class="floating-hero-pill" style="margin-bottom: 12px;">ẢNH CHỤP</p>
+        <h2 style="font-family: var(--font-display); font-size: clamp(24px, 3vw, 32px); font-weight: 800; color: #0f172a; margin: 8px 0;">Giao diện thật của Yana 1.0</h2>
+      </div>
+    </section>
+    <div class="shot-grid">
+      <figure><img src="assets/yana-app-chat.jpg" alt="Màn hình chat của Yana" width="1600" loading="lazy"><figcaption>Màn hình chat: chọn model, chế độ làm việc và Tự động; lịch sử chat ở bên trái.</figcaption></figure>
+      <figure><img src="assets/yana-app-plugins.jpg" alt="Chợ plugin của Yana" width="1600" loading="lazy"><figcaption>Chợ plugin: gom Claude, MCP Registry và ChatGPT, tự cập nhật.</figcaption></figure>
+      <figure class="wide"><img src="assets/yana-app-studio.jpg" alt="Yana Studio, trình soạn code" width="1600" loading="lazy"><figcaption>Yana Studio (trình soạn code) mở từ Yana trong cửa sổ riêng, đi kèm trong cùng một app.</figcaption></figure>
+      <figure><img src="assets/yana-app-about.jpg" alt="Trang Giới thiệu của Yana" width="1600" loading="lazy"><figcaption>Giới thiệu: xem phiên bản từng phần đang cài trên máy.</figcaption></figure>
+      <figure><img src="assets/yana-app-dmg.jpg" alt="Cửa sổ cài đặt Yana từ file DMG" width="1600" loading="lazy"><figcaption>Cửa sổ cài đặt .dmg: kéo Yana vào Applications.</figcaption></figure>
+    </div>
+
+    <section style="max-width: 1080px; margin: 0 auto 28px; padding: 0 24px;">
+      <div style="text-align: center; margin-bottom: 28px;">
+        <p class="floating-hero-pill" style="margin-bottom: 12px;">PHIÊN BẢN ĐANG PHÁT HÀNH</p>
+        <h2 style="font-family: var(--font-display); font-size: clamp(24px, 3vw, 32px); font-weight: 800; color: #0f172a; margin: 8px 0;">Ba thành phần, ba số phiên bản riêng</h2>
+        <p style="color: #64748b; font-size: 15px; max-width: 720px; margin: 0 auto;">Yana (app), yana-rt (runtime Rust) và yana-ai (gói PyPI) phát hành độc lập nên số phiên bản không cần giống nhau. Số dưới đây được đọc trực tiếp từ GitHub, crates.io và PyPI mỗi lần bạn mở trang.</p>
+      </div>
+    </section>
+    <div class="ver-grid" id="versions">
+      <div class="ver-card">
+        <span class="ver-kind">APP · GITHUB RELEASES</span>
+        <h3 class="ver-name">Yana</h3>
+        <div class="ver-num" data-ver-num="app">1.0.0</div>
+        <div class="ver-date" data-ver-date="app" data-loading="1">Đang kiểm tra…</div>
+        <p class="ver-desc">App macOS gồm Yana và Yana Studio. Tag phát hành dạng <code>app-v…</code>.</p>
+        <div class="ver-how">Cập nhật: trong app, Cài đặt → Cập nhật</div>
+        <a class="ver-link" href="https://github.com/yanacuti1121/Yana-AI/releases" target="_blank" rel="noopener noreferrer">Xem các bản phát hành ↗</a>
+      </div>
+      <div class="ver-card">
+        <span class="ver-kind">RUNTIME · CRATES.IO</span>
+        <h3 class="ver-name">yana-rt</h3>
+        <div class="ver-num" data-ver-num="rt">1.5.2</div>
+        <div class="ver-date" data-ver-date="rt" data-loading="1">Đang kiểm tra…</div>
+        <p class="ver-desc">Runtime Rust chạy các lượt chat và kiểm soát quyền của AI. Cài và cập nhật độc lập với app.</p>
+        <div class="ver-how">cargo install yana-rt</div>
+        <a class="ver-link" href="https://crates.io/crates/yana-rt" target="_blank" rel="noopener noreferrer">Xem trang Crate ↗</a>
+      </div>
+      <div class="ver-card">
+        <span class="ver-kind">GÓI PYTHON · PYPI</span>
+        <h3 class="ver-name">yana-ai</h3>
+        <div class="ver-num" data-ver-num="pypi">1.5.2</div>
+        <div class="ver-date" data-ver-date="pypi" data-loading="1">Đang kiểm tra…</div>
+        <p class="ver-desc">Lớp bảo vệ cho repository: quy tắc an toàn, hook và lệnh cho các AI agent.</p>
+        <div class="ver-how">pip install yana-ai &amp;&amp; yana-ai install</div>
+        <a class="ver-link" href="https://pypi.org/project/yana-ai/" target="_blank" rel="noopener noreferrer">Xem trang PyPI ↗</a>
+      </div>
+    </div>
+    <p class="ver-note">Yana kiểm tra cả ba trong <strong>Cài đặt → Cập nhật</strong> và cài giúp bạn yana-rt và yana-ai ngay trong app. Nếu API không trả lời, trang giữ số liệu đã biết lần gần nhất.</p>
+
     <section style="max-width: 1080px; margin: 0 auto 80px; padding: 0 24px;">
       <div style="text-align: center; margin-bottom: 32px;">
         <p class="floating-hero-pill" style="margin-bottom: 12px;">CLI &amp; REPOSITORY TOOLS</p>
-        <h2 style="font-family: var(--font-display); font-size: clamp(24px, 3vw, 32px); font-weight: 800; color: #0f172a; margin: 8px 0;">
-          Cài đặt công cụ dòng lệnh (PyPI &amp; Cargo)
-        </h2>
-        <p style="color: #64748b; font-size: 15px; max-width: 680px; margin: 0 auto;">
-          Bộ công cụ dòng lệnh hoạt động độc lập, không bắt buộc cài ứng dụng Desktop Studio. Dùng để gắn quy tắc an toàn và giám sát cho repository của bạn.
-        </p>
+        <h2 style="font-family: var(--font-display); font-size: clamp(24px, 3vw, 32px); font-weight: 800; color: #0f172a; margin: 8px 0;">Cài công cụ dòng lệnh (PyPI &amp; Cargo)</h2>
+        <p style="color: #64748b; font-size: 15px; max-width: 680px; margin: 0 auto;">Hai công cụ này chạy độc lập, không bắt buộc cài app Yana. Dùng để gắn quy tắc an toàn và giám sát cho repository của bạn.</p>
       </div>
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;" class="perspective-container-2026">
-        
-        <!-- PyPI yana-ai -->
         <div class="has-glow-2026 card-3d-interactive" style="background: rgba(255, 255, 255, 0.92); border: 1px solid #e2e8f0; border-radius: 24px; padding: 30px; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.04);">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-            <span class="organic-badge-pulse">PYTHON PACKAGE INDEX</span>
-            <span style="font-family: var(--font-mono); font-size: 12.5px; color: #059669; font-weight: 600;">v1.5.2 · Live</span>
-          </div>
-          <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 8px;">
-            yana-ai — Lớp bảo vệ AI cho Repository
-          </h3>
-          <p style="font-size: 14px; color: #64748b; line-height: 1.6; margin-bottom: 20px;">
-            Cài đặt CLI Python để tích hợp các quy tắc an toàn (Truth Gate, Action Gate), 170 slash commands và hệ thống kiểm tra drift trước khi cho AI sửa code.
-          </p>
-          
+          <div style="margin-bottom: 16px;"><span class="organic-badge-pulse">PYTHON PACKAGE INDEX</span></div>
+          <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 8px;">yana-ai: lớp bảo vệ AI cho Repository</h3>
+          <p style="font-size: 14px; color: #64748b; line-height: 1.6; margin-bottom: 20px;">Cài CLI Python để dùng các quy tắc an toàn (Truth Gate, Action Gate), slash commands và kiểm tra drift trước khi cho AI sửa code.</p>
           <div style="background: #0f172a; border-radius: 16px; padding: 18px 20px; color: #f8fafc; font-family: var(--font-mono); font-size: 13.5px; position: relative;">
             <button type="button" class="code-copy-floating" data-copy-text="pip install yana-ai && yana-ai install">Sao chép</button>
-            <div style="color: #94a3b8; margin-bottom: 8px;"># 1. Cài đặt từ PyPI chính thức:</div>
+            <div style="color: #94a3b8; margin-bottom: 8px;"># 1. Cài từ PyPI:</div>
             <div style="color: #38bdf8; font-weight: 700; font-size: 15px; margin-bottom: 12px;">pip install yana-ai</div>
             <div style="color: #94a3b8; margin-bottom: 8px;"># 2. Khởi tạo trong thư mục dự án:</div>
             <div style="color: #a78bfa;">cd your-project</div>
             <div style="color: #34d399;">yana-ai install</div>
           </div>
           <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
-            <a href="https://pypi.org/project/yana-ai/" target="_blank" rel="noopener" style="font-size: 13.5px; font-weight: 700; color: #2563eb; text-decoration: none;">
-              Xem trang gói PyPI ↗
-            </a>
+            <a href="https://pypi.org/project/yana-ai/" target="_blank" rel="noopener" style="font-size: 13.5px; font-weight: 700; color: #2563eb; text-decoration: none;">Xem trang gói PyPI ↗</a>
           </div>
         </div>
 
-        <!-- Crates.io yana-rt -->
         <div class="has-glow-2026 card-3d-interactive" style="background: rgba(255, 255, 255, 0.92); border: 1px solid #e2e8f0; border-radius: 24px; padding: 30px; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.04);">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-            <span class="organic-badge-pulse" style="background:#fef3c7;border-color:#fde68a;color:#d97706;">RUST CRATE</span>
-            <span style="font-family: var(--font-mono); font-size: 12.5px; color: #059669; font-weight: 600;">v1.5.2 · Native</span>
-          </div>
-          <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 8px;">
-            yana-rt — Rust TurnEngine &amp; Terminal
-          </h3>
-          <p style="font-size: 14px; color: #64748b; line-height: 1.6; margin-bottom: 20px;">
-            Bộ khung runtime thực thi cốt lõi của Yana Studio: Chạy streaming trực tiếp với mô hình AI On-device (Ollama) và điều phối các tác vụ phân tán.
-          </p>
-          
+          <div style="margin-bottom: 16px;"><span class="organic-badge-pulse" style="background:#fef3c7;border-color:#fde68a;color:#d97706;">RUST CRATE</span></div>
+          <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 8px;">yana-rt: runtime và terminal</h3>
+          <p style="font-size: 14px; color: #64748b; line-height: 1.6; margin-bottom: 20px;">Runtime thực thi cốt lõi của Yana: chat streaming với model chạy trên máy (Ollama) hoặc đám mây, mọi lệnh đều chờ bạn duyệt.</p>
           <div style="background: #0f172a; border-radius: 16px; padding: 18px 20px; color: #f8fafc; font-family: var(--font-mono); font-size: 13.5px; position: relative;">
-            <button type="button" class="code-copy-floating" data-copy-text="cargo install yana-rt && yana-ai-rt --provider ollama">Sao chép</button>
-            <div style="color: #94a3b8; margin-bottom: 8px;"># 1. Cài đặt runtime qua Cargo:</div>
+            <button type="button" class="code-copy-floating" data-copy-text="cargo install yana-rt && yana-rt chat --provider ollama">Sao chép</button>
+            <div style="color: #94a3b8; margin-bottom: 8px;"># 1. Cài runtime qua Cargo:</div>
             <div style="color: #38bdf8; font-weight: 700; font-size: 15px; margin-bottom: 12px;">cargo install yana-rt</div>
-            <div style="color: #94a3b8; margin-bottom: 8px;"># 2. Mở terminal với mô hình local:</div>
-            <div style="color: #34d399;">yana-ai-rt --provider ollama</div>
+            <div style="color: #94a3b8; margin-bottom: 8px;"># 2. Mở terminal chat với model local:</div>
+            <div style="color: #34d399;">yana-rt chat --provider ollama</div>
           </div>
           <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
-            <a href="https://crates.io/crates/yana-rt" target="_blank" rel="noopener" style="font-size: 13.5px; font-weight: 700; color: #d97706; text-decoration: none;">
-              Xem trang Crate ↗
-            </a>
+            <a href="https://crates.io/crates/yana-rt" target="_blank" rel="noopener" style="font-size: 13.5px; font-weight: 700; color: #d97706; text-decoration: none;">Xem trang Crate ↗</a>
           </div>
         </div>
-
       </div>
     </section>
 
-    <div class="device-preview-card perspective-container-2026">
-      <div class="studio-macbook-device card-3d-interactive" data-tilt-on-scroll>
-        <div class="studio-macbook-screen">
-          <img src="assets/yana-studio-app-tam-welcome.webp" alt="Yana Studio Welcome Screen" loading="lazy">
-        </div>
-        <img class="studio-macbook-bezel" src="assets/apple-macbook-pro-14-silver.webp" alt="Apple MacBook Pro Bezel" width="1930" height="1270">
-      </div>
-    </div>
-
-    <!-- Thông tin bổ sung hữu ích -->
     <div class="info-grid perspective-container-2026">
       <div class="info-card has-glow-2026 card-3d-interactive">
-        <h3>⚡ Cập nhật Runtime độc lập</h3>
-        <p>Binary lõi <code>yana-rt</code> được biên dịch bằng Rust và có thể cập nhật qua <code>cargo install yana-rt</code> mà không bắt buộc cài lại ứng dụng Studio.</p>
-      </div>
-      <div class="info-card has-glow-2026 card-3d-interactive">
         <h3>🔒 Mở lần đầu trên macOS</h3>
-        <p>Lần đầu mở ứng dụng trên Mac, vui lòng chuột phải (Control-click) vào <strong>Yana Studio</strong> → chọn <strong>Open</strong> để Gatekeeper cho phép mở. Bản macOS được ký ad-hoc và chưa được Apple notarize, nên lần đầu macOS sẽ cảnh báo.</p>
+        <p>Lần đầu mở Yana, chuột phải (Control-click) vào <strong>Yana</strong> trong Applications rồi chọn <strong>Mở</strong>. App được ký ad-hoc và chưa được Apple notarize nên macOS cảnh báo một lần. Nếu đã bị chặn: Cài đặt hệ thống → Quyền riêng tư &amp; Bảo mật → <strong>Vẫn mở</strong>.</p>
       </div>
       <div class="info-card has-glow-2026 card-3d-interactive">
-        <h3>🦙 Hỗ trợ AI On-Device</h3>
-        <p>Tương thích nguyên bản với Ollama (Llama 3.2, Qwen 2.5, DeepSeek R1) để lập trình offline với model chạy trên máy.</p>
+        <h3>🧩 Studio đi kèm trong Yana</h3>
+        <p>Yana Studio nằm ngay trong Yana.app và cập nhật cùng Yana, không còn tải riêng. Bấm <strong>Trình soạn code</strong> trong Yana để mở.</p>
+      </div>
+      <div class="info-card has-glow-2026 card-3d-interactive">
+        <h3>🦙 AI chạy trên máy bạn</h3>
+        <p>Dùng model chạy offline qua Ollama, hoặc model đám mây bằng API key của bạn. Khóa API được giữ trong Keychain của macOS.</p>
       </div>
     </div>
+  <script>
+    // Live release numbers: GitHub (app), crates.io (yana-rt), PyPI (yana-ai). All three allow browser reads (CORS *).
+    // The static numbers in the HTML stay if an API fails. Values are checked and written with textContent only.
+    (function () {
+      var LOCALE = 'vi-VN';
+      var VERSION = /^\d+\.\d+\.\d+$/;
+      var DOWNLOAD_PREFIX = 'https://github.com/yanacuti1121/Yana-AI/releases/download/app-v';
+      var TIMEOUT_MS = 8000;
+
+      function getJson(url) {
+        var controller = new AbortController();
+        var timer = setTimeout(function () { controller.abort(); }, TIMEOUT_MS);
+        return fetch(url, { signal: controller.signal, headers: { Accept: 'application/json' } })
+          .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+          .finally(function () { clearTimeout(timer); });
+      }
+      function show(key, version, iso) {
+        if (!VERSION.test(version)) return;
+        document.querySelectorAll('[data-ver-num="' + key + '"]').forEach(function (el) { el.textContent = version; });
+        var when = new Date(iso);
+        if (!isNaN(when)) {
+          var text = when.toLocaleDateString(LOCALE, { year: 'numeric', month: 'short', day: 'numeric' });
+          document.querySelectorAll('[data-ver-date="' + key + '"]').forEach(function (el) { el.textContent = 'Phát hành ' + text; });
+        }
+      }
+      function markUnknown(key) {
+        document.querySelectorAll('[data-ver-date="' + key + '"]').forEach(function (el) { if (el.dataset.loading) el.textContent = ''; });
+      }
+
+      getJson('https://api.github.com/repos/yanacuti1121/Yana-AI/releases?per_page=30').then(function (list) {
+        var release = list.filter(function (r) { return !r.draft && !r.prerelease && /^app-v\d+\.\d+\.\d+$/.test(r.tag_name); })[0];
+        if (!release) return markUnknown('app');
+        show('app', release.tag_name.slice(5), release.published_at);
+        var dmg = (release.assets || []).filter(function (a) { return /\.dmg$/.test(a.name) && a.browser_download_url.indexOf(DOWNLOAD_PREFIX) === 0; })[0];
+        if (!dmg) return;
+        var button = document.querySelector('[data-dl-dmg]');
+        if (button) button.href = dmg.browser_download_url;
+        document.querySelectorAll('[data-dl-version]').forEach(function (el) { el.textContent = release.tag_name.slice(5); });
+        document.querySelectorAll('[data-dl-size]').forEach(function (el) { el.textContent = Math.round(dmg.size / 1e6) + ' MB'; });
+      }).catch(function () { markUnknown('app'); });
+
+      getJson('https://crates.io/api/v1/crates/yana-rt').then(function (data) {
+        show('rt', data.crate.max_stable_version, data.crate.updated_at);
+      }).catch(function () { markUnknown('rt'); });
+
+      getJson('https://pypi.org/pypi/yana-ai/json').then(function (data) {
+        var files = data.urls || [];
+        show('pypi', data.info.version, files.length ? files[0].upload_time_iso_8601 || files[0].upload_time : '');
+      }).catch(function () { markUnknown('pypi'); });
+    })();
+  </script>
   </main>
 
   <footer class="site-footer"></footer>
