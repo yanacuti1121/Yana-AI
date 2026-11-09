@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # Validates parameters before executing xctf-data commands
 
 if ! command -v sports-skills &>/dev/null; then

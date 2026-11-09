@@ -20,7 +20,7 @@ IFS=$'\n\t'
 
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 LOCKFILE="$PROJECT_ROOT/core/config/core-lock.json"
-LOCKED_DIRS=(core/rules core/gates core/hooks core/scripts)
+LOCKED_DIRS=(core/rules core/gates core/hooks core/scripts src/guard)
 
 command -v python3 >/dev/null || { echo "[core-lock] python3 required"; exit 2; }
 
@@ -41,7 +41,7 @@ CURRENT_TMP="$(mktemp)"
 trap 'rm -f "$CURRENT_TMP"' EXIT
 
 find "${LOCKED_DIRS[@]}" -type f \
-  \( -name '*.md' -o -name '*.sh' -o -name '*.js' -o -name '*.py' -o -name '*.json' \) \
+  \( -name '*.md' -o -name '*.sh' -o -name '*.js' -o -name '*.py' -o -name '*.json' -o -name '*.rs' \) \
   -print0 | sort -z | xargs -0 "${SHA256[@]}" > "$CURRENT_TMP"
 
 LOCK_IN="$LOCKFILE" CURRENT_IN="$CURRENT_TMP" python3 - <<'PYEOF'

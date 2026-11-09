@@ -110,6 +110,27 @@ fi
 read -rp "Evidence path or quoted excerpt [leave blank]: " evidence
 abort_if_quit "${evidence:-}"
 
+# If `evidence` resolves to a real repo-relative file, fingerprint it now
+# (evidence_file + evidence_hash — see SCHEMA.md's "Evidence Freshness"
+# section) so verify-fact-freshness.sh can later detect when the cited file
+# has changed. A quoted excerpt or a path outside the repo just isn't
+# fingerprintable — that's expected, not an error, so this stays silent
+# rather than warning on every non-file evidence string.
+evidence_file=""
+evidence_hash=""
+if [[ -n "${evidence:-}" ]]; then
+  candidate="${evidence%% *}"  # first whitespace-separated token — strips a trailing "§ Section" note
+  candidate="${candidate%:*}"  # strip a trailing ":line" or ":line-range" locator, e.g. "file.sh:42"
+  if [[ -f "$PROJECT_ROOT/$candidate" ]]; then
+    evidence_file="$candidate"
+    evidence_hash=$(sha256sum "$PROJECT_ROOT/$candidate" 2>/dev/null | awk '{print $1}')
+    if [[ -z "$evidence_hash" ]]; then
+      evidence_hash=$(shasum -a 256 "$PROJECT_ROOT/$candidate" 2>/dev/null | awk '{print $1}')
+    fi
+    [[ -z "$evidence_hash" ]] && evidence_file=""  # neither sha256sum nor shasum available — skip silently
+  fi
+fi
+
 # ── Prompt: forbidden_assumptions (optional) ─────────────────────────────────
 read -rp "Forbidden assumptions (comma-separated) [leave blank]: " raw_forbidden
 abort_if_quit "${raw_forbidden:-}"
@@ -163,6 +184,12 @@ if [[ -n "${evidence:-}" ]]; then
 evidence: $(printf '%s' "$evidence" | head -c 300)"
 fi
 
+if [[ -n "$evidence_file" ]]; then
+  frontmatter="$frontmatter
+evidence_file: $evidence_file
+evidence_hash: $evidence_hash"
+fi
+
 if [[ -n "${raw_forbidden:-}" ]]; then
   frontmatter="$frontmatter
 forbidden_assumptions:"
@@ -189,6 +216,9 @@ frontmatter="$frontmatter
 
 echo ""
 echo "Written: $FACT_FILE"
+if [[ -n "$evidence_file" ]]; then
+  echo "Fingerprinted evidence: $evidence_file (${evidence_hash:0:12}...)"
+fi
 
 # ── Update INDEX.md ───────────────────────────────────────────────────────────
 statement_short="${statement:0:60}"

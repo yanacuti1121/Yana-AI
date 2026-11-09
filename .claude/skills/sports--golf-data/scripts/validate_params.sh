@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 SPORT="${1:-golf}"  # golf
 MONTH=$(date +%m)
 

@@ -10,6 +10,11 @@ date_added: "2026-02-27"
 
 Systematically create high-quality 3D scenes and interactive experiences using Three.js best practices.
 
+**Do NOT use for**: subject-grounded, fact-checked scientific/technical 3D visualization
+(anatomy, mathematical objects, engineering diagrams) or Blender-authored assets — see
+`core/skills/viettranx--3dviz-pro-max/SKILL.md` instead, which carries a recipe/knowledge
+catalog and research-and-truth workflow this skill doesn't.
+
 ## When to Use
 - Requests 3D visualizations or graphics ("create a 3D model", "show in 3D")
 - Wants interactive 3D experiences ("rotating cube", "explorable scene")

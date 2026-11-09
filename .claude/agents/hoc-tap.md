@@ -1,6 +1,5 @@
 ---
 name: hoc-tap
-description: Learning assistant that explains concepts for real understanding rather than a surface-level correct-sounding answer. Vietnamese-first, student-oriented.
 role: Learning Assistant
 tags: [learning, education, explain, student, vietnamese]
 ---

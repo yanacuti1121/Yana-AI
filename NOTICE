@@ -1,0 +1,48 @@
+Yana AI
+Copyright 2026 Vũ Văn Tâm
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+It includes software developed by third parties, listed below.
+
+--------------------------------------------------------------------------------
+Cline (cline/cline), @cline/ui
+--------------------------------------------------------------------------------
+Source:    https://github.com/cline/cline  (directory sdk/packages/ui)
+Commit:    d3ecc4890e8f9bcb77182b96c77fa90575e8e145
+License:   Apache License 2.0
+Location:  tools/yana-ide/studio-web/vendor/cline-ui/
+Changes:   Files in that directory were modified by Yana AI: the color palette and theme tokens were
+           replaced, and the Cline robot illustration was replaced by the Yana rabbit logo. Each
+           modified file carries a notice, and vendor/cline-ui/UPSTREAM.md lists them.
+
+Also in tools/yana-ide/studio-web/vendor/cline-app/: the desktop app interface from cline/cline,
+apps/examples/desktop-app/webview (same commit, Apache-2.0), copied unmodified so far. Cline's core,
+shared runtime packages, sidecar and native shell are not part of Yana. See that directory's UPSTREAM.md.
+
+The Cline name, logo and robot artwork are not part of Yana's product.
+
+--------------------------------------------------------------------------------
+Fluent Blue (danieldev23/fluent-blue)
+--------------------------------------------------------------------------------
+Source:    https://github.com/danieldev23/fluent-blue
+License:   MIT
+Used:      Color values of its light theme (blues, grays, status text colors), the layout and sizes of
+           its Design Studio, and its 133-icon SVG set (icons.json, generated from fluent_blue/icons/library.py),
+           in tools/yana-app/ (native SwiftUI app) and in tools/yana-ide/scripts/build-themes.mjs.
+           The Fluent Blue Python source code, name and logo are not used.
+
+--------------------------------------------------------------------------------
+Radix Colors
+--------------------------------------------------------------------------------
+Copyright (c) 2021 Radix
+License:   MIT (full text in tools/yana-ide/studio-web/vendor/cline-ui/RADIX-COLORS-LICENSE)
+Used in:   The 12-step scale structure of tools/yana-ide/studio-web/vendor/cline-ui/theme/palette.css,
+           inherited through Cline. The color values themselves were replaced.
+
+--------------------------------------------------------------------------------
+Build-time tools (not shipped in the application)
+--------------------------------------------------------------------------------
+lightningcss and its platform binaries, MPL-2.0, https://github.com/parcel-bundler/lightningcss
+  Pulled in by @tailwindcss/vite. Used only while building. Not modified.
+  Source for the pinned version is available from the upstream repository.

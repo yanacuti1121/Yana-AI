@@ -16,7 +16,7 @@ PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." 
 LOCKFILE="$PROJECT_ROOT/core/config/core-lock.json"
 
 # The protected write surface — keep in sync with 49-immutable-infrastructure-law
-LOCKED_DIRS=(core/rules core/gates core/hooks core/scripts)
+LOCKED_DIRS=(core/rules core/gates core/hooks core/scripts src/guard)
 
 command -v python3 >/dev/null || { echo "[core-lock] python3 required"; exit 2; }
 
@@ -36,7 +36,7 @@ HASHES_TMP="$(mktemp)"
 trap 'rm -f "$HASHES_TMP"' EXIT
 
 find "${LOCKED_DIRS[@]}" -type f \
-  \( -name '*.md' -o -name '*.sh' -o -name '*.js' -o -name '*.py' -o -name '*.json' \) \
+  \( -name '*.md' -o -name '*.sh' -o -name '*.js' -o -name '*.py' -o -name '*.json' -o -name '*.rs' \) \
   -print0 | sort -z | xargs -0 "${SHA256[@]}" > "$HASHES_TMP"
 
 LOCK_OUT="$LOCKFILE" HASHES_IN="$HASHES_TMP" python3 - <<'PYEOF'
