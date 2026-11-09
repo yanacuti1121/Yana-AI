@@ -67,7 +67,8 @@ final class AppSettings: ObservableObject {
 		temperature = store.string(forKey: "yana.chat.temperature") ?? ""
 		runtimePath = store.string(forKey: "yana.runtimePath") ?? ""
 		ideCheckout = store.string(forKey: "yana.ideCheckout") ?? "\(NSHomeDirectory())/yana-ide-upstream/vscode"
-		startPage = store.string(forKey: "yana.startPage") ?? "ask"
+		// A new install opens straight on the chat screen; the start chooser is opt-in from Settings.
+		startPage = store.string(forKey: "yana.startPage") ?? "Chat"
 		workspace = store.string(forKey: "yana.workspace") ?? ""
 		terminalOptionAsMeta = store.bool(forKey: "yana.terminal.optionAsMeta")
 		checkUpdatesOnLaunch = store.object(forKey: "yana.updates.onLaunch") as? Bool ?? true

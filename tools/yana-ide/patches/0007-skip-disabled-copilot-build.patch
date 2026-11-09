@@ -1,0 +1,14 @@
+diff --git a/build/gulpfile.vscode.ts b/build/gulpfile.vscode.ts
+index 34cc2f2f..39303ddf 100644
+--- a/build/gulpfile.vscode.ts
++++ b/build/gulpfile.vscode.ts
+@@ -613,7 +613,8 @@ BUILD_TARGETS.forEach(buildTarget => {
+ 			copyCodiconsTask,
+ 			cleanExtensionsBuildTask,
+ 			compileNonNativeExtensionsBuildTask,
+-			compileCopilotExtensionBuildTask,
++			// Yana Studio turns Copilot off by renaming its package.json; skip building it then.
++			...(fs.existsSync(path.join(root, 'extensions', 'copilot', 'package.json')) ? [compileCopilotExtensionBuildTask] : []),
+ 			compileExtensionMediaBuildTask,
+ 			writeISODate('out-build'),
+ 			esbuildBundleTask,
