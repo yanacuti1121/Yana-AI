@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # Validates sports-news parameters
 if [[ "$*" == *"--google_news"* && "$*" != *"--query="* ]]; then
   echo "ERROR: google_news=True requires a --query parameter."

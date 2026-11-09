@@ -96,16 +96,20 @@ if [[ -f "$README" ]]; then
         the|and|for|with|that|this|from|your|when|into|each|over|more|less|using|based|built|also|only|both) continue ;;
       esac
 
-      # Use -q + early exit via head -1 to avoid scanning whole tree per term.
-      # timeout 5 prevents any single grep from hanging on large repos.
-      if timeout 5 grep -rlqF --binary-files=without-match \
-          --exclude-dir=releases \
-          --exclude="*.zip" \
-          "$search_term" \
-          "$PROJECT_ROOT/core" \
-          "$PROJECT_ROOT/gates" \
-          "$PROJECT_ROOT/docs" \
-          2>/dev/null; then
+      # Use -q for early exit. GNU timeout bounds large-tree scans when present;
+      # macOS has no timeout by default, so run the same grep directly there.
+      grep_args=(
+        -rilqF
+        --binary-files=without-match
+        --exclude-dir=releases
+        --exclude="*.zip"
+        "$search_term"
+        "$PROJECT_ROOT/core"
+        "$PROJECT_ROOT/gates"
+        "$PROJECT_ROOT/docs"
+      )
+      if { command -v timeout >/dev/null 2>&1 && timeout 5 grep "${grep_args[@]}" 2>/dev/null; } ||
+          { ! command -v timeout >/dev/null 2>&1 && grep "${grep_args[@]}" 2>/dev/null; }; then
         hits=1
       elif find "$PROJECT_ROOT" -maxdepth 2 -name "*${search_term}*" 2>/dev/null | grep -q .; then
         hits=1
@@ -299,6 +303,85 @@ PYEOF
     meta_check "market commands" "$MARKET_FILE" "stats.commands" "find '$PROJECT_ROOT/core/commands' -type f -name '*.md' | wc -l"
     meta_check "market agents"   "$MARKET_FILE" "stats.agents"   "find '$PROJECT_ROOT/core/agents' -type f -name '*.md' ! -name 'README.md' ! -name '[A-Z]*' | wc -l"
     meta_check "market scripts"  "$MARKET_FILE" "stats.scripts"  "find '$PROJECT_ROOT/core/scripts' -maxdepth 1 -type f ! -name '.*' | wc -l"
+  fi
+
+  # ── Marketing-copy prose drift (Check 5) ──────────────────────────────────
+  # Ported from validate-counts.sh 2026-07-23 — this is the one check that
+  # existed but was never actually enforced: drift-check.sh is the only one
+  # of the three count-validator scripts wired into CI
+  # (.github/workflows/ci.yml), but it only checked marketplace.json's
+  # STRUCTURED stats.* fields above, not free-text prose mentions like
+  # "60 hooks" embedded in docs/index.html and skills/yana-ai/SKILL.md.
+  # validate-counts.sh had this exact check all
+  # along and would have caught real drift (hooks 60 vs actual 61, found
+  # live the same day this port was written) — it just never ran in CI.
+  # Known limit: numbers split across separate HTML elements (e.g. a
+  # <div class="stat-num">) aren't adjacent text and won't match — this is
+  # a best-effort heuristic, not exhaustive coverage.
+  check_doc_stat() {
+    local file="$1" keyword="$2" canonical="$3"
+    [[ -f "$PROJECT_ROOT/$file" ]] || return 0
+    local found
+    found=$(grep -oE "[0-9][0-9,]*[[:space:]]+$keyword" "$PROJECT_ROOT/$file" 2>/dev/null \
+            | grep -oE "^[0-9,]+" | tr -d ',' | sort -u)
+    local bad=""
+    local n
+    for n in $found; do
+      [[ "$n" == "$canonical" ]] || bad="$bad $n"
+    done
+    if [[ -n "$bad" ]]; then
+      emit_issue "STALE-COPY: $file mentions stale '$keyword' number(s):$bad (canonical is $canonical)"
+    fi
+  }
+
+  hooks_canonical=$(manifest_count hooks)
+  skills_canonical=$(manifest_count skills)
+  rules_canonical=$(manifest_count rules)
+  agents_canonical=$(manifest_count agents)
+  commands_canonical=$(manifest_count commands)
+
+  for f in .claude-plugin/marketplace.json skills/yana-ai/SKILL.md \
+           docs/index.html .claude/docs/index.html; do
+    [[ "$hooks_canonical" != "-1" ]]    && check_doc_stat "$f" "hooks"    "$hooks_canonical"
+    [[ "$skills_canonical" != "-1" ]]   && check_doc_stat "$f" "skills"   "$skills_canonical"
+    [[ "$rules_canonical" != "-1" ]]    && check_doc_stat "$f" "rules"    "$rules_canonical"
+    [[ "$agents_canonical" != "-1" ]]   && check_doc_stat "$f" "agents"   "$agents_canonical"
+    [[ "$commands_canonical" != "-1" ]] && check_doc_stat "$f" "commands" "$commands_canonical"
+  done
+fi
+
+# ── Check 6: Canonical filesystem-derived metadata ───────────────────────────
+# check_counts.py is the single writer/checker for MANIFEST count fields,
+# plugin metadata, README banners, and current marketing copy. Keep this gate
+# in drift-check.sh so local verification and GitHub CI enforce the same source
+# of truth instead of relying on a human to update repeated numbers by hand.
+METADATA_CHECKER="$PROJECT_ROOT/core/scripts/check_counts.py"
+if [[ -f "$METADATA_CHECKER" ]] && command -v python3 >/dev/null 2>&1; then
+  metadata_output=$(python3 "$METADATA_CHECKER" 2>&1)
+  metadata_status=$?
+  if [[ $metadata_status -ne 0 ]]; then
+    while IFS= read -r metadata_issue; do
+      case "$metadata_issue" in
+        "METADATA DRIFT:"*|"METADATA ERROR:"*) emit_issue "$metadata_issue" ;;
+      esac
+    done <<< "$metadata_output"
+  fi
+fi
+
+# ── Check 7: Hook execution-path truth ───────────────────────────────────────
+# A `Status: active` header is not runtime evidence. Keep every canonical hook
+# accounted for by a known registration manifest, an executable indirect
+# caller, or an explicit DEAD disposition reviewed in config.
+HOOK_PATH_AUDITOR="$PROJECT_ROOT/core/scripts/audit_hook_execution_paths.py"
+if [[ -f "$HOOK_PATH_AUDITOR" ]] && command -v python3 >/dev/null 2>&1; then
+  hook_path_output=$(python3 "$HOOK_PATH_AUDITOR" --root "$PROJECT_ROOT" --check 2>&1)
+  hook_path_status=$?
+  if [[ $hook_path_status -ne 0 ]]; then
+    while IFS= read -r hook_path_issue; do
+      case "$hook_path_issue" in
+        "ERROR:"*) emit_issue "HOOK PATH DRIFT: ${hook_path_issue#ERROR: }" ;;
+      esac
+    done <<< "$hook_path_output"
   fi
 fi
 

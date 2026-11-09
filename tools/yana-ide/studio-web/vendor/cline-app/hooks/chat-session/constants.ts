@@ -1,0 +1,106 @@
+import { CLINE_DEFAULT_MODEL_ID, isClineProvider } from "@cline/shared/browser";
+import type { ChatSessionConfig } from "@/lib/chat-schema";
+import {
+	type ExecutionTarget,
+	readExecutionTargetFromWindow,
+	readModelSelectionStorageFromWindow,
+} from "@/lib/model-selection";
+import { normalizeProviderId } from "@/lib/provider-id";
+import {
+	LOCAL_WORKSPACE_ENVIRONMENT_ID,
+	readWorkspaceSelectionFromWindow,
+} from "@/lib/workspace-paths";
+
+export const CHAT_TRANSPORT_UNAVAILABLE_MESSAGE =
+	"Chat connection is unavailable. Reopen the app window to restore realtime chat.";
+export const CHAT_WS_ENDPOINT_RETRY_ATTEMPTS = 60;
+export const CHAT_WS_ENDPOINT_RETRY_DELAY_MS = 100;
+export const CHAT_WS_RECONNECT_BASE_DELAY_MS = 300;
+export const CHAT_WS_RECONNECT_MAX_DELAY_MS = 3000;
+export const CHAT_WS_REQUEST_TIMEOUT_MS = 120000;
+export { OAUTH_PROVIDER_IDS as OAUTH_MANAGED_PROVIDERS } from "@/lib/provider-connection";
+
+export const DEFAULT_CHAT_CONFIG: ChatSessionConfig = {
+	sessionId: undefined,
+	executionTarget: "local",
+	repoUrl: undefined,
+	workspaceRoot: "",
+	cwd: "",
+	environmentId: LOCAL_WORKSPACE_ENVIRONMENT_ID,
+	provider: "cline",
+	model: CLINE_DEFAULT_MODEL_ID,
+	apiKey: process.env.CLINE_API_KEY || "",
+	mode: "act",
+	systemPrompt: undefined,
+	maxIterations: undefined,
+	thinking: undefined,
+	reasoningEffort: undefined,
+	enableTools: true,
+	autoApproveTools: true,
+	missionStepInterval: undefined,
+	missionTimeIntervalMs: undefined,
+};
+
+export function getInitialChatConfig(
+	environmentId: string,
+	options?: { executionTarget?: ExecutionTarget },
+): ChatSessionConfig {
+	const selection = readModelSelectionStorageFromWindow();
+	const workspaceSelection = readWorkspaceSelectionFromWindow(environmentId);
+	const rememberedProvider = normalizeProviderId(selection.lastProvider);
+	const rememberedModelForProvider = rememberedProvider
+		? (selection.lastModelByProvider[rememberedProvider] ??
+			selection.lastModelByProvider[selection.lastProvider.trim()])
+		: undefined;
+	const rememberedModelForDefaultProvider =
+		selection.lastModelByProvider[DEFAULT_CHAT_CONFIG.provider];
+	const provider = rememberedProvider || DEFAULT_CHAT_CONFIG.provider;
+	const model =
+		rememberedModelForProvider ||
+		(provider === DEFAULT_CHAT_CONFIG.provider
+			? rememberedModelForDefaultProvider
+			: undefined) ||
+		DEFAULT_CHAT_CONFIG.model;
+
+	const local: ChatSessionConfig = {
+		...DEFAULT_CHAT_CONFIG,
+		environmentId,
+		provider,
+		model,
+		workspaceRoot: workspaceSelection.lastWorkspace,
+		cwd: workspaceSelection.lastWorkspace,
+	};
+	// Cloud preferences apply only to the local environment.
+	const executionTarget =
+		options?.executionTarget ??
+		(environmentId === LOCAL_WORKSPACE_ENVIRONMENT_ID
+			? readExecutionTargetFromWindow()
+			: "local");
+	if (executionTarget !== "cloud") {
+		return local;
+	}
+	return {
+		...local,
+		executionTarget: "cloud",
+		provider: DEFAULT_CHAT_CONFIG.provider,
+		model: getInitialCloudModel(provider, model),
+		workspaceRoot: "",
+		cwd: "",
+	};
+}
+
+/**
+ * The Cloud model picked in the model picker, else the local Cline/ClinePass
+ * model. Once the cloud catalog loads, the picker replaces a model it does not
+ * offer with the first ClinePass model for local ClinePass users, else the
+ * Cline default.
+ */
+export function getInitialCloudModel(
+	localProvider: string,
+	localModel: string,
+): string {
+	return (
+		readModelSelectionStorageFromWindow("cloud").lastModelByProvider.cline ||
+		(isClineProvider(localProvider) ? localModel : CLINE_DEFAULT_MODEL_ID)
+	);
+}

@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # Validates parameters before executing sports-skills commands
 SPORT="wnba"
 MONTH=$(date +%m)

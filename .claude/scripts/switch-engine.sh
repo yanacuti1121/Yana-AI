@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Switch active AI engine adapter
-# Usage: bash core/scripts/switch-engine.sh <claude|cursor|codex|antigravity>
+# Usage: bash core/scripts/switch-engine.sh <claude|cursor|codex|antigravity|status>
 set -euo pipefail
 
 # Parse arguments: ENGINE is the first non-flag arg; --dry-run sets DRY_RUN=1
@@ -20,8 +20,8 @@ usage() {
   echo "Engines:"
   echo "  claude   — default (no adapter needed, uses .claude/ hooks natively)"
   echo "  cursor   — activates .cursorrules + .cursor/rules/*.mdc"
-  echo "  codex    — generates AGENTS.md from adapters/codex.md"
-  echo "  antigravity — generates .agent/rules/yana-ai.md (workspace rule, ≤12K chars)"
+  echo "  codex    — synchronizes Codex agents, skills, commands, and hooks"
+  echo "  antigravity — .agents/rules/yana-ai.md + PreToolUse hook in .agents/hooks.json (shell commands enforced)"
   echo "  status     — show which adapters are currently active"
   echo ""
   echo "Options:"
@@ -177,20 +177,25 @@ CURSOREOF
     # doesn't check — see the corrected "Why" section in the .mdc itself).
     HOOK_SRC="core/adapters/cursor/before-shell-execution.js"
     HOOK_DEST=".cursor/hooks/before-shell-execution.js"
+    HALT_HOOK_SRC="core/adapters/cursor/giamthi-halt-check.js"
+    HALT_HOOK_DEST=".cursor/hooks/giamthi-halt-check.js"
     HOOKS_JSON=".cursor/hooks.json"
 
     _JQ_AVAILABLE=0
     command -v jq >/dev/null 2>&1 && _JQ_AVAILABLE=1
 
-    if [[ ! -f "$HOOK_SRC" ]]; then
-      echo -e "${RED}✗ $HOOK_SRC missing — cannot wire real Cursor enforcement.${NC}"
+    if [[ ! -f "$HOOK_SRC" || ! -f "$HALT_HOOK_SRC" ]]; then
+      [[ -f "$HOOK_SRC" ]] || echo -e "${RED}✗ $HOOK_SRC missing — cannot wire destructive-command enforcement.${NC}"
+      [[ -f "$HALT_HOOK_SRC" ]] || echo -e "${RED}✗ $HALT_HOOK_SRC missing — cannot wire Giám thị halt enforcement.${NC}"
     elif [[ "$DRY_RUN" -eq 1 ]]; then
       [[ -d ".cursor/hooks" ]] || echo -e "${CYAN}[dry-run] Would create .cursor/hooks/${NC}"
       [[ -f "$HOOK_DEST" ]] && echo -e "${CYAN}[dry-run] Would backup $HOOK_DEST before overwrite${NC}"
+      [[ -f "$HALT_HOOK_DEST" ]] && echo -e "${CYAN}[dry-run] Would backup $HALT_HOOK_DEST before overwrite${NC}"
       echo -e "${CYAN}[dry-run] Would copy $HOOK_SRC → $HOOK_DEST (chmod +x)${NC}"
+      echo -e "${CYAN}[dry-run] Would copy $HALT_HOOK_SRC → $HALT_HOOK_DEST (chmod +x)${NC}"
       if [[ "$_JQ_AVAILABLE" -eq 1 ]]; then
         [[ -f "$HOOKS_JSON" ]] \
-          && echo -e "${CYAN}[dry-run] Would merge beforeShellExecution entry into existing $HOOKS_JSON${NC}" \
+          && echo -e "${CYAN}[dry-run] Would merge shell guard plus cross-event halt entries into existing $HOOKS_JSON${NC}" \
           || echo -e "${CYAN}[dry-run] Would create $HOOKS_JSON${NC}"
       else
         echo -e "${RED}[dry-run] jq not found — $HOOKS_JSON would NOT be written; hook would not actually be wired.${NC}"
@@ -204,7 +209,14 @@ CURSOREOF
       fi
       cp "$HOOK_SRC" "$HOOK_DEST"
       chmod +x "$HOOK_DEST"
-      echo -e "${GREEN}✓ Real enforcement hook written${NC}: $HOOK_DEST"
+      if [[ -f "$HALT_HOOK_DEST" ]]; then
+        BACKUP="${HALT_HOOK_DEST}.bak.$(date +%Y%m%d_%H%M%S)"
+        cp "$HALT_HOOK_DEST" "$BACKUP"
+        echo -e "${YELLOW}↩ Backup created:${NC} $BACKUP"
+      fi
+      cp "$HALT_HOOK_SRC" "$HALT_HOOK_DEST"
+      chmod +x "$HALT_HOOK_DEST"
+      echo -e "${GREEN}✓ Real enforcement hooks written${NC}: $HOOK_DEST, $HALT_HOOK_DEST"
       _HOOK_FILE_WIRED=1
 
       # Merge (not overwrite) — hooks.json is general-purpose Cursor config a
@@ -213,28 +225,40 @@ CURSOREOF
       # owns.
       if [[ "$_JQ_AVAILABLE" -ne 1 ]]; then
         echo -e "${RED}✗ jq not found — cannot safely merge $HOOKS_JSON.${NC}"
-        echo "  Manually add this entry under .hooks.beforeShellExecution:"
+        echo "  Manually add both entries under .hooks.beforeShellExecution:"
+        echo '  {"command":".cursor/hooks/giamthi-halt-check.js","timeout":30,"failClosed":true}'
         echo '  {"command":".cursor/hooks/before-shell-execution.js","timeout":30,"failClosed":true}'
+        echo "  Also add the giamthi-halt-check.js entry under beforeMCPExecution,"
+        echo "  beforeReadFile, and beforeSubmitPrompt."
         echo -e "${YELLOW}  Until then, the hook file is on disk but Cursor has nothing telling it to run it.${NC}"
       else
         NEW_ENTRY='{"command":".cursor/hooks/before-shell-execution.js","timeout":30,"failClosed":true}'
+        HALT_ENTRY='{"command":".cursor/hooks/giamthi-halt-check.js","timeout":30,"failClosed":true}'
         if [[ -f "$HOOKS_JSON" ]]; then
           BACKUP="${HOOKS_JSON}.bak.$(date +%Y%m%d_%H%M%S)"
           cp "$HOOKS_JSON" "$BACKUP"
           echo -e "${YELLOW}↩ Backup created:${NC} $BACKUP"
-          MERGED=$(jq --argjson entry "$NEW_ENTRY" '
+          MERGED=$(jq --argjson entry "$NEW_ENTRY" --argjson halt "$HALT_ENTRY" '
             .version //= 1
             | .hooks //= {}
-            | .hooks.beforeShellExecution //= []
+            | reduce ["beforeShellExecution", "beforeMCPExecution", "beforeReadFile", "beforeSubmitPrompt"][] as $event (.;
+                .hooks[$event] //= []
+                | .hooks[$event] |= (map(select(.command != $halt.command)) + [$halt])
+              )
             | .hooks.beforeShellExecution
                 |= (map(select(.command != $entry.command)) + [$entry])
           ' "$HOOKS_JSON")
           printf '%s\n' "$MERGED" > "$HOOKS_JSON"
         else
-          jq -n --argjson entry "$NEW_ENTRY" \
-            '{version: 1, hooks: {beforeShellExecution: [$entry]}}' > "$HOOKS_JSON"
+          jq -n --argjson entry "$NEW_ENTRY" --argjson halt "$HALT_ENTRY" '
+            {version: 1, hooks: {}}
+            | reduce ["beforeShellExecution", "beforeMCPExecution", "beforeReadFile", "beforeSubmitPrompt"][] as $event (.;
+                .hooks[$event] = [$halt]
+              )
+            | .hooks.beforeShellExecution += [$entry]
+          ' > "$HOOKS_JSON"
         fi
-        echo -e "${GREEN}✓ Wired${NC}: $HOOKS_JSON → beforeShellExecution"
+        echo -e "${GREEN}✓ Wired${NC}: $HOOKS_JSON → shell guard + cross-event Giám thị halt"
         _HOOKS_JSON_WIRED=1
       fi
     fi  # end real-hook dry-run guard
@@ -256,6 +280,8 @@ CURSOREOF
       echo "  core/hooks/guard-destructive.sh — rm -rf, git push --force,"
       echo "  git reset --hard, git clean -f, direct push to main/master,"
       echo "  destructive SQL (DROP/TRUNCATE), npm/yarn/pnpm publish."
+      echo "  GIAMTHI_HALT.lock blocks new shell, MCP, read-file, and prompt-submit"
+      echo "  events through the shared .claude/state authority."
       echo -e "${YELLOW}  Not covered by this hook${NC}:"
       echo "  (1) safe-run.sh's broader, prompt-only set — LD_PRELOAD/DYLD hijacks,"
       echo "      pipe-to-shell (curl|bash), chmod 777, dd/mkfs/fdisk."
@@ -279,101 +305,87 @@ CURSOREOF
       exit 1
     fi
 
-    # Unlike GEMINI.md/.windsurf/.kiro/.agent (files no other tool has a
-    # reason to already own), AGENTS.md is a shared cross-tool convention —
-    # this very repo already ships one at its root as its general "read
-    # this first" operating manual, unrelated to Codex specifically.
-    # Overwriting-with-backup (the gemini/windsurf/kiro/antigravity pattern)
-    # would silently replace that richer file with the narrower Codex
-    # adapter content. Follow the `continue)` case's precedent instead:
-    # never overwrite an existing AGENTS.md, only generate one where none
-    # exists yet.
     if [[ -f "$DEST" ]]; then
       echo -e "${YELLOW}↩ $DEST already exists${NC} ($(wc -l < "$DEST") lines) — not overwriting."
-      echo "  AGENTS.md is a shared cross-tool convention file; this one may already"
-      echo "  serve a broader purpose than Codex governance (e.g. Yana AI's own"
-      echo "  repo-level operating manual). Codex CLI already reads it automatically."
-      echo "  To add the Codex-specific sections, merge relevant parts of"
-      echo "  $ADAPTER into $DEST by hand."
     elif [[ "$DRY_RUN" -eq 1 ]]; then
       echo -e "${CYAN}[dry-run] Would copy $ADAPTER → $DEST${NC}"
     else
-      # Generate AGENTS.md from adapter source — only reached when no
-      # AGENTS.md exists yet, so there's nothing to clobber.
       cp "$ADAPTER" "$DEST"
       echo -e "${GREEN}✓ Generated:${NC} $DEST ($(wc -l < "$DEST") lines)"
+    fi
 
-      # Log via secure-logger.sh if available
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      echo -e "${CYAN}[dry-run] Would synchronize core/agents → .codex/agents${NC}"
+      echo -e "${CYAN}[dry-run] Would synchronize core/skills → .agents/skills${NC}"
+      echo -e "${CYAN}[dry-run] Would adapt core/commands → .agents/skills/yana-command-*${NC}"
+      echo -e "${CYAN}[dry-run] Would synchronize core/hooks → .codex/hooks${NC}"
+    else
+      python3 core/scripts/sync_codex.py --target .
+      python3 core/scripts/sync_codex.py --check --target .
+
       LOGGER="core/scripts/secure-logger.sh"
       if [[ -x "$LOGGER" ]]; then
-        bash "$LOGGER" engine_switch "to_engine=codex from_engine=$_FROM_ENGINE mode=advisory source_adapter=adapters/codex.md generated_file=AGENTS.md operator=$_OPERATOR" 2>/dev/null || true
-        bash "$LOGGER" advisory_gap_start "engine=codex from_engine=$_FROM_ENGINE" 2>/dev/null || true
+        bash "$LOGGER" engine_switch "to_engine=codex from_engine=$_FROM_ENGINE mode=project-hooks generated_file=.codex/config.toml operator=$_OPERATOR" 2>/dev/null || true
+        bash "$LOGGER" advisory_gap_end "engine=codex from_engine=$_FROM_ENGINE" 2>/dev/null || true
       fi
     fi
 
     echo ""
-    echo -e "${YELLOW}⚠ ADVISORY_GAP_START${NC}"
-    echo "  Codex CLI has its own native sandbox/approval modes but no Yana AI"
-    echo "  hook layer — individual tool calls are NOT recorded in the Yana AI"
-    echo "  Merkle audit chain. Enforcement here is prompt-advisory only."
-    echo -e "${YELLOW}ADVISORY_GAP_END${NC}"
-    echo ""
-    echo -e "${CYAN}Enforcement tier summary:${NC}"
-    echo "  L0  Audit    — advisory only (no native hook; log manually)"
-    echo "  L1  Scope    — prompt-instructed (no runtime intercept)"
-    echo "  L2  Commit   — prompt-instructed"
-    echo "  L3  Truth    — prompt-instructed"
-    echo "  L4  Deploy   — prompt-instructed (YANA_DEPLOY_APPROVED=1 in prompt)"
-    echo "  L5  Destruct — prompt-instructed (model refuses; not shell-blocked)"
-    echo ""
-    echo "AGENTS.md is read automatically by Codex CLI on startup."
-    echo "For shell-level blocking, additionally run:"
-    echo "  bash core/scripts/safe-run.sh --engine codex -- <command>"
+    echo -e "${GREEN}Codex project support active.${NC}"
+    echo "  Guidance: AGENTS.md"
+    echo "  Agents:   .codex/agents/*.toml"
+    echo "  Skills:   .agents/skills/*/SKILL.md"
+    echo "  Commands: \$yana-command-<name>"
+    echo "  Hooks:    .codex/hooks.json"
     ;;
 
   antigravity)
-    ADAPTER="adapters/antigravity.md"
-    DEST=".agent/rules/yana-ai.md"
-    READER="Google Antigravity"
-    if [[ ! -f "$ADAPTER" ]]; then
-      echo -e "${RED}✗ $ADAPTER missing${NC}"
+    # Rule file, PreToolUse hook and hooks.json merge all live in
+    # core/scripts/install_antigravity.py, shared with `yana-ai install
+    # --engine antigravity`, so the two entry points cannot drift.
+    INSTALLER="core/scripts/install_antigravity.py"
+    if [[ ! -f "$INSTALLER" ]]; then
+      echo -e "${RED}✗ $INSTALLER missing${NC}"
+      exit 1
+    fi
+    if ! command -v node >/dev/null 2>&1; then
+      echo -e "${RED}✗ node not found — the Antigravity PreToolUse hook needs Node to run.${NC}"
       exit 1
     fi
 
     if [[ "$DRY_RUN" -eq 1 ]]; then
-      [[ -f "$DEST" ]] && echo -e "${CYAN}[dry-run] Would backup $DEST before overwrite${NC}"
-      echo -e "${CYAN}[dry-run] Would copy $ADAPTER → $DEST${NC}"
+      python3 "$INSTALLER" . --dry-run
     else
-      mkdir -p "$(dirname "$DEST")"
-      if [[ -f "$DEST" ]]; then
-        BACKUP="${DEST}.bak.$(date +%Y%m%d_%H%M%S)"
-        cp "$DEST" "$BACKUP"
-        echo -e "${YELLOW}↩ Backup created:${NC} $BACKUP"
-      fi
-      cp "$ADAPTER" "$DEST"
-      echo -e "${GREEN}✓ Generated:${NC} $DEST ($(wc -l < "$DEST") lines)"
+      python3 "$INSTALLER" . || exit 1
+      echo -e "${GREEN}✓ Antigravity rule and PreToolUse hook installed${NC}"
 
       LOGGER="core/scripts/secure-logger.sh"
       if [[ -x "$LOGGER" ]]; then
-        bash "$LOGGER" engine_switch "to_engine=$ENGINE from_engine=$_FROM_ENGINE mode=advisory source_adapter=$ADAPTER generated_file=$DEST operator=$_OPERATOR" 2>/dev/null || true
-        bash "$LOGGER" advisory_gap_start "engine=$ENGINE from_engine=$_FROM_ENGINE" 2>/dev/null || true
+        bash "$LOGGER" engine_switch "to_engine=$ENGINE from_engine=$_FROM_ENGINE mode=hooks source=$INSTALLER generated_file=.agents/hooks.json operator=$_OPERATOR" 2>/dev/null || true
       fi
     fi
 
     echo ""
-    echo -e "${YELLOW}Advisory gap active.${NC} $DEST loaded by $READER natively."
-    echo "  Yana AI safety hooks are NOT enforced at the OS level in $READER."
-    echo "  Rules are advisory via the generated rules file only."
-    echo ""
-    echo "  Key constraints active:"
-    echo "    • No rm -rf, no force push, no pipe-to-shell, no eval dynamic code"
-    echo "    • Evidence required before completion claims"
-    echo "    • Surgical changes only"
+    echo "  Enforced in Google Antigravity (App, IDE and agy CLI):"
+    echo "    • Every shell command (run_command) is screened by guard-destructive.sh"
+    echo "    • A Giám thị halt lock or quarantine blocks every tool call"
+    echo "  Not covered:"
+    echo "    • agy --dangerously-skip-permissions skips hooks entirely"
+    echo "    • Other rules in .agents/rules/yana-ai.md stay advisory"
     ;;
 
   status)
     echo "=== Yana AI Engine Adapter Status ==="
     echo ""
+    [[ -f ".codex/config.toml" && -f ".codex/hooks.json" ]] \
+      && echo -e "  ${GREEN}✓${NC} Codex     project config + hooks" \
+      || echo -e "  ${YELLOW}✗${NC} Codex     project config or hooks missing"
+    [[ -d ".codex/agents" ]] \
+      && echo -e "  ${GREEN}✓${NC} Codex     .codex/agents/ ($(find .codex/agents -maxdepth 1 -name '*.toml' | wc -l | tr -d ' ') agents)" \
+      || echo -e "  ${YELLOW}✗${NC} Codex     .codex/agents/ missing"
+    [[ -d ".agents/skills" ]] \
+      && echo -e "  ${GREEN}✓${NC} Codex     .agents/skills/ ($(find .agents/skills -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ') skills)" \
+      || echo -e "  ${YELLOW}✗${NC} Codex     .agents/skills/ missing"
     [[ -f ".cursorrules" ]] \
       && echo -e "  ${GREEN}✓${NC} Cursor    .cursorrules ($(wc -l < .cursorrules) lines)" \
       || echo -e "  ${YELLOW}✗${NC} Cursor    .cursorrules missing"
@@ -383,12 +395,12 @@ CURSOREOF
     [[ -f ".cursor/hooks.json" ]] \
       && echo -e "  ${GREEN}✓${NC} Cursor    .cursor/hooks.json (real beforeShellExecution enforcement)" \
       || echo -e "  ${YELLOW}✗${NC} Cursor    .cursor/hooks.json missing"
-    [[ -f "AGENTS.md" ]] \
-      && echo -e "  ${GREEN}✓${NC} Codex     AGENTS.md ($(wc -l < "AGENTS.md") lines)" \
-      || echo -e "  ${YELLOW}✗${NC} Codex     AGENTS.md missing"
-    [[ -f ".agent/rules/yana-ai.md" ]] \
-      && echo -e "  ${GREEN}✓${NC} Antigrav  .agent/rules/yana-ai.md" \
-      || echo -e "  ${YELLOW}✗${NC} Antigrav  .agent/rules/yana-ai.md missing"
+    [[ -f ".agents/rules/yana-ai.md" ]] \
+      && echo -e "  ${GREEN}✓${NC} Antigrav  .agents/rules/yana-ai.md" \
+      || echo -e "  ${YELLOW}✗${NC} Antigrav  .agents/rules/yana-ai.md missing"
+    grep -q '"yana-ai-guard"' .agents/hooks.json 2>/dev/null \
+      && echo -e "  ${GREEN}✓${NC} Antigrav  .agents/hooks.json (real PreToolUse enforcement)" \
+      || echo -e "  ${YELLOW}✗${NC} Antigrav  .agents/hooks.json yana-ai-guard missing"
     echo ""
     echo -e "  ${GREEN}✓${NC} Claude    native (hooks in core/hooks/)"
     ;;

@@ -72,15 +72,60 @@ check('compareSemver lower', updates.compareSemver('1.5.0', '1.5.1') < 0);
 check('compareSemver with tags', updates.compareSemver('studio-v1.6.2', '1.6.2') === 0);
 check('compareSemver rt tag > 1.5.0', updates.compareSemver('rt-v1.5.1', '1.5.0') > 0);
 
-// 3. Tách biệt Yana Studio và yana-rt
-check('Studio current version is 1.6.2', updates.STUDIO_CURRENT_VERSION === '1.6.2');
-check('Studio v1.6.2 vs remote studio-v1.6.2 has NO update', updates.compareSemver('studio-v1.6.2', updates.STUDIO_CURRENT_VERSION) === 0);
+// 3. Phiên bản Studio đọc từ product.json (yanaStudioVersion), không ghi cứng
+const fs = require('node:fs');
+const os = require('node:os');
+const appRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'yana-updates-test-'));
+const writeProduct = product => fs.writeFileSync(path.join(appRoot, 'product.json'), JSON.stringify(product));
+fakeVscode.env.appRoot = appRoot;
+
+writeProduct({ nameShort: 'Yana Studio', yanaStudioVersion: '1.7.0' });
+check('Studio version comes from product.json', updates.studioCurrentVersion() === '1.7.0');
+writeProduct({ nameShort: 'Yana Studio' });
+check('missing yanaStudioVersion gives null', updates.studioCurrentVersion() === null);
+writeProduct({ yanaStudioVersion: '' });
+check('empty yanaStudioVersion gives null', updates.studioCurrentVersion() === null);
+writeProduct({ yanaStudioVersion: '../../etc\u0000' });
+check('garbage yanaStudioVersion gives null', updates.studioCurrentVersion() === null);
+fs.writeFileSync(path.join(appRoot, 'product.json'), '{not json');
+check('broken product.json gives null', updates.studioCurrentVersion() === null);
 check('Runtime v1.5.0 vs remote rt-v1.5.1 HAS core update', updates.compareSemver('1.5.1', '1.5.0') > 0);
 
-// 4. Đăng ký lệnh yana.updates.check
-const subscriptions = [];
-updates.activate({ subscriptions });
-check('activate registers command yana.updates.check', mockCommands.has('yana.updates.check'));
+// 4. Không báo cập nhật khi đã cài bản mới nhất (lỗi cũ: số 1.6.2 ghi cứng nên luôn báo)
+const t = { studioFound: () => 'found', btnDownloadStudio: 'd', btnChangelog: 'c', btnLater: 'l' };
+let prompts = 0;
+fakeVscode.window.showInformationMessage = () => { prompts++; return Promise.resolve(); };
+globalThis.fetch = async () => ({ ok: true, json: async () => [{ tag_name: 'studio-v1.7.0' }, { tag_name: 'studio-v1.6.2' }] });
 
-console.log(`\n${pass} passed, ${fail} failed`);
-process.exit(fail ? 1 : 0);
+async function promptTests() {
+	writeProduct({ yanaStudioVersion: '1.7.0' });
+	prompts = 0;
+	check('installed 1.7.0, latest 1.7.0: no prompt', (await updates.checkStudioUpdate(true, t)) === false && prompts === 0);
+	writeProduct({ yanaStudioVersion: '1.6.2' });
+	prompts = 0;
+	check('installed 1.6.2, latest 1.7.0: prompt', (await updates.checkStudioUpdate(true, t)) === true && prompts === 1);
+	writeProduct({ yanaStudioVersion: '1.8.0' });
+	prompts = 0;
+	check('installed newer than latest: no prompt', (await updates.checkStudioUpdate(true, t)) === false && prompts === 0);
+	writeProduct({ nameShort: 'Yana Studio' });
+	prompts = 0;
+	check('unknown installed version: no prompt', (await updates.checkStudioUpdate(true, t)) === false && prompts === 0);
+	// Inside Yana.app the Yana app's app-v* check updates both, so an older studio-v* number never prompts.
+	writeProduct({ yanaStudioVersion: '1.0.0' });
+	fakeVscode.env.appRoot = '/Applications/Yana.app/Contents/Applications/Yana Studio.app/Contents/Resources/app';
+	prompts = 0;
+	check('bundled in Yana.app, 1.0.0 vs studio-v1.7.0: no prompt', (await updates.checkStudioUpdate(true, t)) === false && prompts === 0);
+	fakeVscode.env.appRoot = appRoot;
+	prompts = 0;
+	check('standalone 1.0.0 vs studio-v1.7.0: prompt', (await updates.checkStudioUpdate(true, t)) === true && prompts === 1);
+}
+
+promptTests().then(() => {
+	// 5. Đăng ký lệnh yana.updates.check
+	const subscriptions = [];
+	updates.activate({ subscriptions });
+	check('activate registers command yana.updates.check', mockCommands.has('yana.updates.check'));
+	fs.rmSync(appRoot, { recursive: true, force: true });
+	console.log(`\n${pass} passed, ${fail} failed`);
+	process.exit(fail ? 1 : 0);
+});

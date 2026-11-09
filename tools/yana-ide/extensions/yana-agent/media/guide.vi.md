@@ -3,8 +3,8 @@
 Dành cho người mới, đọc từ trên xuống là dùng được. Trang này nằm ngay trong app: mở lại bất cứ lúc nào bằng **Cmd+Shift+P**, gõ **Yana: Open Guide**, hoặc bấm thẻ **User guide** ở trang chủ Yana.
 
 > **Ba điều cần nhớ trước khi làm gì khác:**
-> 1. Yana **không tự ghi file hay chạy lệnh**. Mỗi lần nó muốn làm, nó dừng lại và hỏi anh. Anh bấm **Approve** thì nó làm, bấm **Deny** thì không.
-> 2. Anh cần **một model để Yana suy nghĩ**: hoặc model chạy trên máy (Ollama, miễn phí), hoặc model đám mây có **API key** (tính tiền theo lượt dùng).
+> 1. Yana **không tự ghi file hay chạy lệnh**. Mỗi lần nó muốn làm, nó dừng lại và hỏi bạn. Bạn bấm **Approve** thì nó làm, bấm **Deny** thì không.
+> 2. Bạn cần **một model để Yana suy nghĩ**: hoặc model chạy trên máy (Ollama, miễn phí), hoặc model đám mây có **API key** (tính tiền theo lượt dùng).
 > 3. Gặp màn hình lạ hay không biết làm gì: quay về mục **Xử lý sự cố** ở cuối trang này.
 
 ## 1. Bản đồ màn hình
@@ -20,7 +20,7 @@ Dưới cùng, chạy suốt chiều ngang:  [5] Thanh trạng thái
 1. **Thanh icon**: dải biểu tượng nhỏ sát mép trái. Biểu tượng con thỏ mở cột Yana.
 2. **Cột Yana**: mọi thứ của Yana, xếp thành từng nhóm.
 3. **Vùng giữa**: nơi các tab mở ra (Trang chủ, Canvas, Tasks, Settings, file code).
-4. **Khung chat "Yana AI"**: bên phải, nơi anh nói chuyện và giao việc.
+4. **Khung chat "Yana AI"**: bên phải, nơi bạn nói chuyện và giao việc.
 5. **Thanh trạng thái**: dải dưới cùng, cho biết Yana có sẵn sàng không.
 
 | Chỗ nào | Có gì | Dùng để |
@@ -35,7 +35,7 @@ Dưới cùng, chạy suốt chiều ngang:  [5] Thanh trạng thái
 
 ## 2. Lần đầu sử dụng: 5 bước
 
-1. **Mở một thư mục dự án.** Trang chủ có nút **Open Folder**. Yana làm việc trong thư mục anh mở và không đụng tới chỗ khác.
+1. **Mở một thư mục dự án.** Trang chủ có nút **Open Folder**. Yana làm việc trong thư mục bạn mở và không đụng tới chỗ khác.
 2. **Tin cậy thư mục (nếu app hỏi).** Khi thấy thanh vàng "Restricted Mode", bấm **Manage** rồi **Trust**. Chưa tin cậy thì Yana từ chối làm việc, vì yana-rt có thể chạy lệnh trong thư mục này.
 3. **Chọn model.** Ở khung chat bấm vào ô tên model (hiện dạng `ollama · default`), hoặc Cmd+Shift+P rồi gõ **Yana: Choose Provider and Model**. Danh sách có 19 nhà cung cấp, chia hai loại: chạy trên máy (ghi "On-device") và đám mây (ghi "No key" hoặc "key saved").
 4. **Cho Yana một "bộ não":**
@@ -62,14 +62,14 @@ Dưới cùng, chạy suốt chiều ngang:  [5] Thanh trạng thái
 **Lịch sử được lưu theo từng thư mục dự án.** Mở dự án khác thì thấy danh sách khác. Tắt rồi mở lại app, các cuộc trò chuyện vẫn còn.
 
 **Chế độ Plan và Act** (nút ở dưới ô nhập):
-- **Act** là bình thường: Yana có thể xin sửa file hoặc chạy lệnh (vẫn phải chờ anh duyệt).
-- **Plan** chỉ thêm một câu dặn model: "chỉ lập kế hoạch, đừng sửa file". Đây là lời dặn, **không phải khoá cứng**. Dù ở chế độ nào, Yana vẫn không thể ghi hay chạy lệnh nếu anh không duyệt.
+- **Act** là bình thường: Yana có thể xin sửa file hoặc chạy lệnh (vẫn phải chờ bạn duyệt).
+- **Plan** chỉ thêm một câu dặn model: "chỉ lập kế hoạch, đừng sửa file". Đây là lời dặn, **không phải khoá cứng**. Dù ở chế độ nào, Yana vẫn không thể ghi hay chạy lệnh nếu bạn không duyệt.
 
-**Trợ lý** (ô chọn trợ lý ở dưới ô nhập): có sẵn hai trợ lý mẫu là *Careful Reviewer* và *Fast Coder*. Chọn một trợ lý thì app **đổi nhà cung cấp và model** theo trợ lý đó. Các thiết lập khác trong trợ lý (hướng dẫn riêng, chế độ, công cụ cho phép) hiện **chưa có tác dụng**. Hai model mẫu có thể không còn khớp với tài khoản của anh, nếu báo lỗi thì chọn lại model ở ô model.
+**Trợ lý** (ô chọn trợ lý ở dưới ô nhập): có sẵn hai trợ lý mẫu là *Careful Reviewer* và *Fast Coder*. Chọn một trợ lý thì app **đổi nhà cung cấp và model** theo trợ lý đó. Các thiết lập khác trong trợ lý (hướng dẫn riêng, chế độ, công cụ cho phép) hiện **chưa có tác dụng**. Hai model mẫu có thể không còn khớp với tài khoản của bạn, nếu báo lỗi thì chọn lại model ở ô model.
 
 ## 4. Duyệt hành động: phần quan trọng nhất
 
-Khi Yana muốn **ghi file hoặc chạy lệnh**, nó dừng và hiện một thẻ **⚠ Approval needed** trong khung chat. Có đồng hồ đếm ngược: thẻ **hết hạn sau 30 phút** nếu anh không trả lời.
+Khi Yana muốn **ghi file hoặc chạy lệnh**, nó dừng và hiện một thẻ **⚠ Approval needed** trong khung chat. Có đồng hồ đếm ngược: thẻ **hết hạn sau 30 phút** nếu bạn không trả lời.
 
 **Cách đọc thẻ:**
 
@@ -86,11 +86,11 @@ Khi Yana muốn **ghi file hoặc chạy lệnh**, nó dừng và hiện một t
 - **Approve:** cho phép đúng một việc này. Việc sau phải duyệt lại, sự cho phép không "nhớ".
 - **Deny:** từ chối, Yana được báo là bị từ chối và đổi cách làm.
 
-**Trước khi bấm Approve, anh tự hỏi ba điều:** Đúng file chưa? Các dòng đỏ xanh có đúng ý mình không? Có chỗ nào lạ không (ví dụ nó đụng vào file cấu hình mình không nhờ)?
+**Trước khi bấm Approve, bạn tự hỏi ba điều:** Đúng file chưa? Các dòng đỏ xanh có đúng ý mình không? Có chỗ nào lạ không (ví dụ nó đụng vào file cấu hình mình không nhờ)?
 
-> **Quan trọng:** Phần hiện **đường dẫn và các dòng thay đổi** chỉ có khi dùng **yana-rt từ phiên bản 1.5.1 trở lên**. Với bản 1.5.0, thẻ chỉ ghi tên công cụ, không cho thấy file nào sẽ đổi, nên anh không nên duyệt "mù". Xem phiên bản yana-rt ở thanh trạng thái dưới cùng (dạng *Yana Runtime v1.5.1*).
+> **Quan trọng:** Phần hiện **đường dẫn và các dòng thay đổi** chỉ có khi dùng **yana-rt từ phiên bản 1.5.1 trở lên**. Với bản 1.5.0, thẻ chỉ ghi tên công cụ, không cho thấy file nào sẽ đổi, nên bạn không nên duyệt "mù". Xem phiên bản yana-rt ở thanh trạng thái dưới cùng (dạng *Yana Runtime v1.5.1*).
 
-**Sau khi anh duyệt ghi file, Yana tự giữ sẵn:**
+**Sau khi bạn duyệt ghi file, Yana tự giữ sẵn:**
 - **Bản sao lưu** của file cũ, trong thư mục `.yana-ai/file-mutation-backups/` của dự án.
 - **Biên nhận** ai đã cho phép việc gì: các tệp `authority-receipts.jsonl` và `execution-receipts.jsonl` trong thư mục `.yana-ai/`.
 - **Kiểm tra lại** nội dung sau khi ghi, và báo trong dòng kết quả (ví dụ *wrote notes.txt (20 bytes, sha256 …), backup at …*).
@@ -99,16 +99,16 @@ Khi Yana muốn **ghi file hoặc chạy lệnh**, nó dừng và hiện một t
 
 **Những file Yana không bao giờ được sửa:** file bí mật (`.env`, khoá `.pem`, `.key`), `.git`, và các tệp cấu hình quản trị của Yana. Nếu nó thử, yêu cầu bị từ chối ngay.
 
-## 5. Design Canvas: để AI vẽ màn hình cho anh xem
+## 5. Design Canvas: để AI vẽ màn hình cho bạn xem
 
-Canvas là nơi anh **mô tả một màn hình bằng lời** và xem AI vẽ ra ngay trước mắt.
+Canvas là nơi bạn **mô tả một màn hình bằng lời** và xem AI vẽ ra ngay trước mắt.
 
 1. **Tạo mới:** Cmd+Shift+P rồi **Yana: New Design Canvas** (hoặc thẻ **Design Canvas** ở trang chủ). Một tab mới mở ra, lưu thành file `*.yana-canvas.json` trong dự án.
 2. **Chọn model:** ô **Design model** ở bên trái. Cần một model có key, hoặc Ollama. Nếu thấy nhãn **Needs key**, bấm **Key** để dán key.
 3. **Chọn khung hình:** **Desktop** hoặc **Phone**.
 4. **Mô tả màn hình** ở ô dưới cùng, ví dụ *"Trang đăng nhập có ô email, ô mật khẩu và nút Đăng nhập"*, rồi bấm **Generate**.
 5. **Xem AI vẽ:** màn hình hiện dần ở bên phải khi AI viết. Nhờ chỉnh bằng cách gõ yêu cầu mới (ví dụ *"đổi nút sang màu xanh"*), hoặc tạo **biến thể** để so sánh nhiều bản.
-6. **Xuất ra file:** chỉ khi anh chọn nơi lưu trong hộp thoại thì mới có file mới. Canvas **không tự ghi** vào dự án.
+6. **Xuất ra file:** chỉ khi bạn chọn nơi lưu trong hộp thoại thì mới có file mới. Canvas **không tự ghi** vào dự án.
 
 > **An toàn:** AI vẽ trong một thư mục trống riêng ("Isolated design sandbox"), nên nó **không đọc và không sửa được file dự án** khi đang vẽ.
 
@@ -124,13 +124,13 @@ Canvas là nơi anh **mô tả một màn hình bằng lời** và xem AI vẽ r
 - Một việc có thể **phụ thuộc** vào việc khác: việc bị chặn sẽ tự hiện trạng thái *blocked*.
 
 **Permissions (quyền hạn):** **Yana: Open Permissions**.
-- **Pending approvals:** các lệnh đang chờ anh duyệt mà chưa trả lời.
-- **Leases (giấy phép có thời hạn):** cho Yana làm một loại việc cụ thể trong một khoảng thời gian ngắn mà không cần hỏi từng lần. Có ghi rõ hết hạn lúc nào. Anh có thể **thu hồi** bất cứ lúc nào.
+- **Pending approvals:** các lệnh đang chờ bạn duyệt mà chưa trả lời.
+- **Leases (giấy phép có thời hạn):** cho Yana làm một loại việc cụ thể trong một khoảng thời gian ngắn mà không cần hỏi từng lần. Có ghi rõ hết hạn lúc nào. Bạn có thể **thu hồi** bất cứ lúc nào.
 - **Cẩn thận với lease:** nó bỏ qua bước hỏi từng lần cho loại việc đó. Chỉ cấp khi hiểu rõ, và để thời gian ngắn.
 
 **Governance** (cột Yana): tổng hợp lệnh chờ duyệt, các lease đang có, và nhật ký kiểm toán gần đây. Mọi hành động của Yana đều được ghi vào **nhật ký kiểm toán có chuỗi băm**: ai sửa hay xoá một dòng thì chuỗi vỡ và bị phát hiện.
 
-**Project Memory (trí nhớ dự án):** **Yana: Open Project Memory** mở một file ghi chú của dự án (`.yana-ai/project-memory.md`). Anh viết vào đó những điều Yana cần luôn nhớ về dự án này (quy ước, điều cấm kỵ, cách chạy thử). Nội dung được gửi kèm **mỗi cuộc trò chuyện mới**. Sửa file thì áp dụng cho cuộc trò chuyện **mới**, không đổi cuộc đang chạy.
+**Project Memory (trí nhớ dự án):** **Yana: Open Project Memory** mở một file ghi chú của dự án (`.yana-ai/project-memory.md`). Bạn viết vào đó những điều Yana cần luôn nhớ về dự án này (quy ước, điều cấm kỵ, cách chạy thử). Nội dung được gửi kèm **mỗi cuộc trò chuyện mới**. Sửa file thì áp dụng cho cuộc trò chuyện **mới**, không đổi cuộc đang chạy.
 
 **Lệnh ghim (Pinned commands):** nhóm **Project** ở cột Yana. **Pin Command** để lưu một lệnh hay dùng (ví dụ `cargo test`), sau đó **Run Pinned Command…** chạy bằng một lần bấm trong terminal.
 
@@ -163,7 +163,7 @@ Mở bằng bánh răng ở khung chat, hoặc **Yana: Yana Settings**. Có các
 | **Yana Commands** | Danh sách lệnh của yana-rt, bấm để điền sẵn vào terminal (**không tự chạy**) |
 | **Privacy & Data** | Dung lượng dữ liệu Yana lưu |
 
-Các công tắc riêng của IDE nằm ở một màn khác: **Yana: Yana IDE Settings** (hoặc thẻ **Yana IDE settings** ở trang chủ). Ở đó anh chỉnh được:
+Các công tắc riêng của IDE nằm ở một màn khác: **Yana: Yana IDE Settings** (hoặc thẻ **Yana IDE settings** ở trang chủ). Ở đó bạn chỉnh được:
 
 - Có tự mở sách này ở lần đầu hay không, và nút **Show again at next start** để nó mở lại.
 - Có tự mở Trang chủ khi khởi động hay không.
@@ -173,38 +173,38 @@ Các công tắc riêng của IDE nằm ở một màn khác: **Yana: Yana IDE S
 
 **Chế độ Plan** (chuyển ở khung chat): với yana-rt mới, model chỉ được xem và mô tả kế hoạch, không chạy lệnh và không sửa file. Với yana-rt cũ, Plan chỉ là lời nhờ model, không có gì chặn thật.
 
-Để xem **tình trạng thật** của các phần Yana trong thư mục đang mở, mở **Yana: Yana Control Center** (hoặc thẻ cùng tên ở trang chủ). Màn này chỉ đọc, gồm: Giám Thị (có khóa HALT không, đã cài chưa), runtime và các capability, bài tự kiểm cổng chặn lệnh nguy hiểm, sandbox (Docker có chạy không, đang ở chế độ cách ly nào), gói hook, skill, agent, luật của dự án, khóa lõi và chuỗi audit. Hai nút **Verify core lock** và **Verify audit chain** chạy kiểm tra đầy đủ khi anh bấm.
+Để xem **tình trạng thật** của các phần Yana trong thư mục đang mở, mở **Yana: Yana Control Center** (hoặc thẻ cùng tên ở trang chủ). Màn này chỉ đọc, gồm: Giám Thị (có khóa HALT không, đã cài chưa), runtime và các capability, bài tự kiểm cổng chặn lệnh nguy hiểm, sandbox (Docker có chạy không, đang ở chế độ cách ly nào), gói hook, skill, agent, luật của dự án, khóa lõi và chuỗi audit. Hai nút **Verify core lock** và **Verify audit chain** chạy kiểm tra đầy đủ khi bạn bấm.
 
 Những thứ chưa chạy được (giọng nói, chế độ Plan thật, độ dài trả lời, Discord) được liệt kê ở cuối màn đó với chữ **Not available yet**, và không có công tắc giả.
 
-Màn cài đặt tự cập nhật khi anh đổi model hoặc key ở nơi khác.
+Màn cài đặt tự cập nhật khi bạn đổi model hoặc key ở nơi khác.
 
 ## 9. Model và API key
 
-- **19 nhà cung cấp**, chia hai loại: **Local** (Ollama, LM Studio, llama.cpp... chạy trên máy anh, riêng tư, miễn phí, nhưng nặng máy) và **Cloud** (Claude, OpenAI, Gemini, Groq... cần key, tính tiền, nhanh và thông minh hơn).
+- **19 nhà cung cấp**, chia hai loại: **Local** (Ollama, LM Studio, llama.cpp... chạy trên máy bạn, riêng tư, miễn phí, nhưng nặng máy) và **Cloud** (Claude, OpenAI, Gemini, Groq... cần key, tính tiền, nhanh và thông minh hơn).
 - **Key được lưu trong Keychain** của máy, không nằm trong file nào, không hiện lại, và **chỉ gửi tới đúng nhà cung cấp** của nó.
 - **Xoá key:** trong nhóm **Models & Runtime** ở cột Yana, rê chuột vào nhà cung cấp rồi bấm biểu tượng thùng rác.
 - **Tự đăng nhập bằng tài khoản ChatGPT hay Claude thuê bao:** **không làm được**. Nhà cung cấp chặn hoặc có rủi ro khoá tài khoản. Chỉ dùng API key.
-- Dữ liệu anh gõ trong chat **đi tới nhà cung cấp anh chọn** (nếu là đám mây). Nội dung nhạy cảm thì chọn model chạy trên máy.
+- Dữ liệu bạn gõ trong chat **đi tới nhà cung cấp bạn chọn** (nếu là đám mây). Nội dung nhạy cảm thì chọn model chạy trên máy.
 - **Auto model** và **Mixture of Agents** có trong cài đặt nhưng **chưa dùng được cho khung chat**.
 
 ## 10. An toàn và riêng tư
 
 | Việc | Cách Yana xử lý |
 |---|---|
-| Ghi file, chạy lệnh | **Luôn hỏi anh trước**, từng lần một |
+| Ghi file, chạy lệnh | **Luôn hỏi bạn trước**, từng lần một |
 | Đọc file trong dự án | Được đọc, không cần hỏi (chỉ trong thư mục dự án, không ra ngoài) |
-| Thư mục chưa tin cậy | Yana từ chối làm việc cho đến khi anh bấm Trust |
+| Thư mục chưa tin cậy | Yana từ chối làm việc cho đến khi bạn bấm Trust |
 | File bí mật (`.env`, khoá, `.git`) | Không bao giờ được sửa |
 | Lệnh nguy hiểm (`rm -rf`, force-push...) | Bị chặn, không cho duyệt |
 | Ghi lại | Nhật ký kiểm toán có chuỗi băm, biên nhận từng quyết định |
-| Dữ liệu | Hội thoại, trợ lý, cài đặt lưu **trên máy anh**. Chỉ nội dung chat (và ảnh anh đính kèm) đi tới model anh chọn |
+| Dữ liệu | Hội thoại, trợ lý, cài đặt lưu **trên máy bạn**. Chỉ nội dung chat (và ảnh bạn đính kèm) đi tới model bạn chọn |
 
-**Mẹo an toàn:** khi một thẻ duyệt hiện ra mà anh **không nhờ việc đó**, bấm **Deny**. Sau đó nhìn lại tin nhắn cuối của mình xem có gì khiến Yana hiểu nhầm.
+**Mẹo an toàn:** khi một thẻ duyệt hiện ra mà bạn **không nhờ việc đó**, bấm **Deny**. Sau đó nhìn lại tin nhắn cuối của mình xem có gì khiến Yana hiểu nhầm.
 
 ## 11. Xử lý sự cố
 
-| Anh thấy | Nghĩa là | Cách xử lý |
+| Bạn thấy | Nghĩa là | Cách xử lý |
 |---|---|---|
 | **yana-rt not found** hoặc **No runtime** | Chưa tìm thấy phần chạy Yana | Mở Settings, tab **Models & Orchestration**, chọn đường dẫn yana-rt; hoặc đặt cài đặt `yana.runtimePath` |
 | **Open a folder before giving Yana a task** | Chưa mở thư mục | Bấm **Open Folder** ở trang chủ |
@@ -224,7 +224,7 @@ Màn cài đặt tự cập nhật khi anh đổi model hoặc key ở nơi khá
 
 ## 12. Chưa có hoặc đang làm
 
-Để anh khỏi mất công thử những thứ chưa chạy:
+Để bạn khỏi mất công thử những thứ chưa chạy:
 
 | Tính năng | Tình trạng |
 |---|---|
@@ -232,7 +232,7 @@ Màn cài đặt tự cập nhật khi anh đổi model hoặc key ở nơi khá
 | **Khoá cứng chế độ Plan** | Chế độ Plan mới là lời dặn model, chưa khoá |
 | **Cài đặt riêng của trợ lý** (hướng dẫn, công cụ cho phép, mức suy luận, nhiệt độ) | Chưa có tác dụng. Chỉ đổi được nhà cung cấp và model |
 | **Nút hoàn tác sau khi ghi file** | Chưa có; dùng bản sao lưu hoặc git (mục 4) |
-| **Yana tự xem cấu trúc dự án và tìm trong mã mà không xin duyệt** | Chưa có: hiện nó phải chạy lệnh và chờ anh duyệt |
+| **Yana tự xem cấu trúc dự án và tìm trong mã mà không xin duyệt** | Chưa có: hiện nó phải chạy lệnh và chờ bạn duyệt |
 | **Số token trả lời của Claude** | Đang cố định ở mức 4.096, có thể ngắn với file lớn |
 | **Auto model, Mixture of Agents trong chat** | Chưa dùng được |
 | **Đăng nhập tài khoản, kết nối bên ngoài (OAuth), sao lưu và khôi phục dữ liệu** | Chưa có |
@@ -270,10 +270,10 @@ Màn cài đặt tự cập nhật khi anh đổi model hoặc key ở nơi khá
 
 | Từ | Nghĩa dễ hiểu |
 |---|---|
-| **Model** | "Bộ não" AI (ví dụ Claude, GPT, Llama). Chọn model là chọn ai suy nghĩ cho anh |
-| **Nhà cung cấp (provider)** | Nơi cung cấp model: Anthropic, OpenAI, hay máy của anh (Ollama) |
+| **Model** | "Bộ não" AI (ví dụ Claude, GPT, Llama). Chọn model là chọn ai suy nghĩ cho bạn |
+| **Nhà cung cấp (provider)** | Nơi cung cấp model: Anthropic, OpenAI, hay máy của bạn (Ollama) |
 | **API key** | "Chìa khoá" để dùng model đám mây, giống mật khẩu. Tuyệt đối không gửi cho ai |
-| **Local / Cloud** | Chạy trên máy anh / chạy trên máy chủ của nhà cung cấp |
+| **Local / Cloud** | Chạy trên máy bạn / chạy trên máy chủ của nhà cung cấp |
 | **yana-rt** | Phần chạy của Yana ở bên dưới, lo việc nói chuyện với model và giữ luật an toàn |
 | **Approve / Deny** | Cho phép / từ chối một việc Yana muốn làm |
 | **Lease** | Giấy phép làm một loại việc trong thời gian ngắn mà không cần hỏi từng lần |

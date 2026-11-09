@@ -55,7 +55,7 @@
 				}
 			],
 			"yana-explorer": [
-				{ "id": "yana.home", "name": "Start", "icon": "media/yana.svg" },
+				{ "type": "webview", "id": "yana.home", "name": "Start", "icon": "media/yana.svg" },
 				{ "id": "yana.conversations", "name": "Conversations", "icon": "media/yana.svg" },
 				{ "id": "yana.models", "name": "Models & Runtime", "icon": "media/yana.svg" },
 				{ "id": "yana.project", "name": "Project", "icon": "media/yana.svg", "visibility": "collapsed" },

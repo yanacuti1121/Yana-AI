@@ -117,4 +117,4 @@ function activate(context) {
 	);
 }
 
-module.exports = { id: 'studio-screens', activate };
+module.exports = { id: 'studio-screens', activate, assetsFor };

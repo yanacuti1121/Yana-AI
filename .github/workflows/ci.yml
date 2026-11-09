@@ -436,6 +436,7 @@ jobs:
         uses: rustsec/audit-check@69366f33c96575abad1ee0dba8212993eecbe998 # v2.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          ignore: RUSTSEC-2026-0459, RUSTSEC-2026-0457, RUSTSEC-2026-0462
 
       # Same coverage gap as cargo audit above, for the Python side: this
       # repo publishes a PyPI package (pyproject.toml) whose own

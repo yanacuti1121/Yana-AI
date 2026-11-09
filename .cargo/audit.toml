@@ -1,0 +1,6 @@
+[advisories]
+ignore = [
+    "RUSTSEC-2026-0459", # libsqlite3-sys: local -wal crafted file memory leak, upstream requires rusqlite 0.41 (Rust 1.89+)
+    "RUSTSEC-2026-0457", # rmcp: OAuth client SSRF filter (yana-rt only uses transport-io stdio server)
+    "RUSTSEC-2026-0462", # rmcp: Streamable HTTP client memory buffering (yana-rt does not use HTTP transport)
+]
