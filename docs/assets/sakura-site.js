@@ -112,6 +112,7 @@
     const scrim=document.createElement("div");scrim.className="nav-scrim";document.body.append(scrim);
     const menu=nav.querySelector(".menu-button"),links=nav.querySelector(".nav-links");
     const groups=[...nav.querySelectorAll(".global-nav-group")],language=nav.querySelector(".nav-language-menu");
+    const mobileLanguage=links.querySelector(".mobile-language-group");
     const mobileMedia=matchMedia("(max-width: 1380px)"),desktopHover=matchMedia("(min-width: 1381px) and (hover: hover) and (pointer: fine)");
     let closeTimer=0,lockState=null;
     const lockBody=()=>{
@@ -133,18 +134,25 @@
       groups.forEach(g=>g.querySelector("summary").setAttribute("aria-expanded",String(g.open)));
       language.querySelector("summary").setAttribute("aria-expanded",String(language.open));
     };
-    const close=()=>{clearTimeout(closeTimer);groups.forEach(g=>g.open=false);language.open=false;links.classList.remove("open");syncState()};
+    const close=()=>{clearTimeout(closeTimer);groups.forEach(g=>g.open=false);language.open=false;mobileLanguage.open=false;links.classList.remove("open");syncState()};
     const openGroup=g=>{
       clearTimeout(closeTimer);
       groups.forEach(other=>{if(other!==g)other.open=false});
+      mobileLanguage.open=false;
       language.open=false;g.open=true;syncState();emit("dropdown_open",{group:g.dataset.navGroup});
     };
-    menu.addEventListener("click",()=>{links.classList.contains("open")?close():(links.classList.add("open"),syncState())});
+    menu.addEventListener("click",()=>{
+      const wasOpen=links.classList.contains("open");
+      close();
+      if(!wasOpen){links.classList.add("open");syncState()}
+    });
     groups.forEach(g=>{
       const summary=g.querySelector("summary");
+      let pointerType;
+      summary.addEventListener("pointerdown",event=>{pointerType=event.pointerType});
       summary.addEventListener("click",event=>{
         event.preventDefault();
-        if(g.open){if(mobileMedia.matches){g.open=false;syncState()}}
+        if(g.open){if(!desktopHover.matches||pointerType==="touch"||event.detail===0){g.open=false;syncState()}}
         else openGroup(g);
       });
       summary.addEventListener("keydown",event=>{
@@ -153,7 +161,13 @@
       g.addEventListener("pointerenter",event=>{if(desktopHover.matches&&event.pointerType!=="touch")openGroup(g)});
       g.addEventListener("pointerleave",event=>{if(desktopHover.matches&&event.pointerType!=="touch")closeTimer=setTimeout(()=>{if(!g.matches(":hover")&&!(g.contains(document.activeElement)&&document.activeElement.matches(":focus-visible")))close()},150)});
     });
-    language.querySelector("summary").addEventListener("click",event=>{event.preventDefault();groups.forEach(g=>g.open=false);language.open=!language.open;syncState()});
+    const languageTrigger=language.querySelector("summary");
+    languageTrigger.addEventListener("click",event=>{
+      event.preventDefault();
+      const wasOpen=language.open;
+      close();
+      if(!wasOpen){language.open=true;syncState()}
+    });
     language.addEventListener("pointerenter",()=>clearTimeout(closeTimer));
     language.addEventListener("pointerleave",()=>{if(desktopHover.matches)closeTimer=setTimeout(()=>{if(!language.matches(":hover"))close()},150)});
     const localeLinks=[...nav.querySelectorAll("[data-locale]")];
@@ -167,11 +181,20 @@
     syncLocaleAnchors();
     window.addEventListener("hashchange",syncLocaleAnchors);
     localeLinks.forEach(a=>a.addEventListener("click",()=>store.set("yana-locale",a.dataset.locale)));
-    scrim.addEventListener("pointerdown",close);
-    document.addEventListener("pointerdown",event=>{if(!nav.contains(event.target)&&!scrim.contains(event.target))close()});
-    document.addEventListener("keydown",event=>{if(event.key==="Escape"&&document.body.classList.contains("yana-navigation-open")){close();menu.focus()}});
-    mobileMedia.addEventListener("change",()=>{close();syncState()});
-    nav.querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>emit(a.classList.contains("nav-start")?"cta_click":"nav_click",{href:a.getAttribute("href")})));
+    document.addEventListener("pointerdown",event=>{if(scrim.classList.contains("is-visible")&&!nav.contains(event.target))close()});
+    document.addEventListener("keydown",event=>{
+      if(event.key!=="Escape"||!scrim.classList.contains("is-visible"))return;
+      const openGroupSummary=groups.find(g=>g.open)?.querySelector("summary");
+      const restoreFocus=nav.contains(document.activeElement)||links.classList.contains("open");
+      const returnTarget=language.open?languageTrigger:links.classList.contains("open")?menu:openGroupSummary;
+      close();
+      if(restoreFocus)returnTarget?.focus();
+    });
+    mobileMedia.addEventListener("change",()=>{if(scrim.classList.contains("is-visible"))close()});
+    nav.querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>{
+      if(scrim.classList.contains("is-visible"))close();
+      emit(a.classList.contains("nav-start")?"cta_click":"nav_click",{href:a.getAttribute("href")});
+    }));
 
     const activeGroupByStem={"yana-ai":"products",studio:"products",wheelbot:"products",runtime:"platform",governance:"platform","agents-skills":"platform",models:"platform",connectors:"platform",safety:"products",evidence:"platform",architecture:"platform",download:"resources",updates:"resources",commands:"resources",missions:"resources",support:"resources",privacy:"resources","legal-notices":"resources",acknowledgements:"resources"};
     const hashGroup={"#prologue":"products","#capabilities":"platform","#architecture":"platform","#evidence":"platform","#use-cases":"solutions","#terminal-origin":"platform"};
@@ -249,12 +272,34 @@
     document.addEventListener("keydown",event=>{
       if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==="k"){event.preventDefault();palette.hidden?openPalette():closePalette()}
       else if(event.key==="Escape"&&!palette.hidden){event.preventDefault();closePalette()}
-      else if(event.key==="Tab"&&!palette.hidden){event.preventDefault();(document.activeElement===input?closeButton:input).focus()}
+      else if(event.key==="Tab"&&!palette.hidden){
+        event.preventDefault();
+        const stops=[input,...results.querySelectorAll(".yana-command-suggestion"),closeButton];
+        const index=stops.indexOf(document.activeElement);
+        const next=index<0?(event.shiftKey?stops.length-1:0):(index+(event.shiftKey?-1:1)+stops.length)%stops.length;
+        stops[next].focus();
+      }
     });
   }
 
   if (nav && store.get("yana-announcement-hidden") !== "1") {
-    const bar=document.createElement("div");bar.className="announcement-bar";bar.innerHTML=`<span>${copy.announcement}</span><button type="button" aria-label="${vi?"Đóng":ko?"닫기":"Close"}">×</button>`;document.body.prepend(bar);const hideAnnouncement=()=>{bar.classList.add("is-hiding");setTimeout(()=>{bar.hidden=true;store.set("yana-announcement-hidden","1")},420)};bar.querySelector("button").addEventListener("click",hideAnnouncement);setTimeout(hideAnnouncement,5200);
+    const bar=document.createElement("div");bar.className="announcement-bar";bar.innerHTML=`<span>${copy.announcement}</span><button type="button" aria-label="${vi?"Đóng":ko?"닫기":"Close"}">×</button>`;document.body.prepend(bar);
+    const canHover=matchMedia("(hover: hover)");
+    const finishDismissal=()=>{bar.hidden=true;store.set("yana-announcement-hidden","1")};
+    const dismissWhenIdle=()=>{
+      // Collapsing the banner moves the nav and its hit targets.
+      if((canHover.matches&&(nav.matches(":hover")||bar.matches(":hover")))||
+        nav.querySelector(":focus-visible")||bar.querySelector(":focus-visible")||
+        document.body.matches(".yana-navigation-open, .yana-search-open")){
+        dismissTimer=setTimeout(dismissWhenIdle,500);
+      }else finishDismissal();
+    };
+    let dismissTimer=setTimeout(dismissWhenIdle,5200);
+    bar.querySelector("button").addEventListener("click",()=>{
+      clearTimeout(dismissTimer);
+      bar.classList.add("is-hiding");
+      setTimeout(finishDismissal,420);
+    });
   }
 
   const footer=document.querySelector(".site-footer");

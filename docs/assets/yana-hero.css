@@ -174,6 +174,7 @@ body.home-page :is(h1, h2, h3) { font-family: "Nunito", ui-sans-serif, system-ui
   transition: transform .7s cubic-bezier(.2, 1, .3, 1) .15s, opacity .4s ease .15s, border-color .3s ease;
 }
 .hero26-pin.is-photo .mac-gate { transform: none; opacity: 1 }
+.hero26-pin:not(.is-photo) .mac-gate { visibility: hidden }
 .mac-gate p { margin: 0 }
 .mac-gate-head b { color: #f5a524 }
 .mac-gate code { font: 600 .95em var(--mono); color: #fbd38d }
@@ -195,6 +196,15 @@ body.home-page :is(h1, h2, h3) { font-family: "Nunito", ui-sans-serif, system-ui
 .mac-gate[data-state="allow"] { border-color: #3ddc97 }
 .mac-gate[data-state="allow"] .mac-gate-result { color: #3ddc97 }
 .mac-gate[data-state="deny"] { border-color: #ff6b6b }
+@media (max-width: 900px) {
+  .hero26-pin + .mac-gate {
+    position: static; width: min(100% - 32px, 440px);
+    margin: 0 auto 24px; padding: 16px;
+    font-size: .875rem; transform: none; opacity: 1;
+  }
+  .hero26-pin + .mac-gate .mac-gate-actions { gap: 8px; margin-top: 12px }
+  .hero26-pin + .mac-gate button { min-height: 44px; padding: 8px }
+}
 .mac-gate[data-state="deny"] .mac-gate-result { color: #ff6b6b }
 
 @supports (animation-timeline: scroll()) {

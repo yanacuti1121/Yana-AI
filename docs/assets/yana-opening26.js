@@ -15,10 +15,13 @@
   const screen = document.querySelector('.opening26');
   if (!screen) return;
 
+  let restoreKeyboardFocus = false;
   const reveal = () => {
     root.classList.remove('opening26-lock');
     screen.classList.add('is-gone');
     root.classList.add('opening26-done');
+    if (screen.open) screen.close();
+    if (restoreKeyboardFocus) document.querySelector('.skip-link')?.focus({ preventScroll: true });
     document.dispatchEvent(new Event('yana:opening-complete'));
   };
 
@@ -31,13 +34,29 @@
   }
 
   root.classList.add('opening26-lock');
+  screen.showModal();
   const timers = [];
   const leave = () => {
+    if (screen.classList.contains('is-leaving')) return;
     timers.forEach(clearTimeout);
     screen.classList.add('is-approved', 'is-leaving');
     timers.push(setTimeout(reveal, LIFT_MS));
   };
   timers.push(setTimeout(() => screen.classList.add('is-approved'), ASK_MS));
   timers.push(setTimeout(leave, ASK_MS + APPROVED_MS));
-  screen.querySelector('.opening26-skip')?.addEventListener('click', leave);
+  screen.querySelector('.opening26-skip')?.addEventListener('click', event => {
+    if (event.detail === 0) restoreKeyboardFocus = true;
+    leave();
+  });
+  screen.addEventListener('cancel', event => {
+    event.preventDefault();
+    restoreKeyboardFocus = true;
+    leave();
+  });
+  screen.addEventListener('close', () => {
+    if (root.classList.contains('opening26-done')) return;
+    timers.forEach(clearTimeout);
+    restoreKeyboardFocus = true;
+    reveal();
+  });
 })();

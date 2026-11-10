@@ -124,8 +124,8 @@
 @media(max-width:900px){.yana-journey-next{display:none!important}}
 @media(min-width:1750px){
   .yana-journey-next{display:none}
-  .yana-journey-rail{position:fixed;z-index:80;top:50%;right:22px;display:grid;gap:3px;transform:translateY(-50%);opacity:0;pointer-events:none;transition:opacity .25s ease}
-  .yana-journey-rail.is-visible{opacity:1;pointer-events:auto}
+  .yana-journey-rail{position:fixed;z-index:80;top:50%;right:22px;display:grid;gap:3px;transform:translateY(-50%);opacity:0;visibility:hidden;transition:opacity .25s ease}
+  .yana-journey-rail.is-visible{opacity:1;visibility:visible}
   .yana-journey-rail a{display:flex;align-items:center;justify-content:flex-end;gap:12px;min-height:30px;color:#728194;text-decoration:none}
   .yana-journey-dot{flex:none;width:5px;height:5px;border-radius:50%;background:#aebbc8;transition:width .2s ease,height .2s ease,background .2s ease}
   .yana-journey-label{font-size:.72rem;font-weight:600;letter-spacing:.01em;opacity:0;transform:translateX(5px);transition:opacity .2s ease,transform .2s ease}
