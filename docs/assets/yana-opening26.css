@@ -7,12 +7,16 @@
 .opening26 {
   position: fixed; inset: 0; z-index: 1000;
   display: grid; place-items: center;
+  width: 100%; height: 100%; max-width: none; max-height: none;
+  margin: 0; padding: 0; border: 0;
   background:
     radial-gradient(circle, rgba(70, 100, 150, .14) 1.1px, transparent 1.5px) 0 0 / 26px 26px,
     linear-gradient(180deg, #f7f9fe, #eef3fb);
   border-radius: 0 0 50% 50% / 0 0 0 0;
   transition: transform .75s cubic-bezier(.7, 0, .2, 1), border-radius .75s cubic-bezier(.7, 0, .2, 1);
 }
+.opening26::backdrop { background: transparent }
+.opening26:not([open]) { display: none }
 .opening26.is-leaving { transform: translateY(-104%); border-radius: 0 0 50% 50% / 0 0 14vh 14vh }
 .opening26.is-gone { display: none }
 html.opening26-skipped .opening26 { display: none }

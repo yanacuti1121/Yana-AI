@@ -56,7 +56,7 @@ body.home-page .site-nav .nav-about {
 body.home-page .site-nav .global-nav-group > summary:hover,
 body.home-page .site-nav .global-nav-group[open] > summary,
 body.home-page .site-nav .nav-about:hover { background: rgba(23, 24, 28, .06); color: #17181c }
-body.home-page .site-nav .global-nav-group > summary::before { display: none }
+body.home-page .site-nav .nav-links:not(.is-nested) .global-nav-group > summary::before { display: none }
 
 body.home-page .site-nav .nav-actions { gap: 6px }
 body.home-page .site-nav :is(.nav-action--updates, .nav-action--source) { display: none !important }
@@ -91,10 +91,17 @@ body.home-page .site-nav .global-mega-panel {
 /* Enough frost that page text under the bar does not show through and read as clutter. */
 body.home-page .site-nav.lg { background: rgba(255, 255, 255, .92) !important }
 
-/* ==========================================================================
-   FORCE 2-COLUMN MEGA PANEL FOR ALL VIEWPORTS > 900PX (NO SQUISHING)
-   ========================================================================== */
-@media (min-width: 901px) {
+@media (max-width: 1380px) {
+  body.home-page .site-nav.site-nav {
+    grid-template-columns: minmax(0, 1fr) auto auto !important;
+    column-gap: 8px;
+  }
+
+  body.home-page .site-nav .nav-links { justify-content: flex-start }
+}
+
+/* Match the desktop breakpoint used by the navigation script and shared styles. */
+@media (min-width: 1381px) {
   body.sakura-site .site-nav .global-mega-panel,
   .site-nav .global-mega-panel {
     position: absolute !important;

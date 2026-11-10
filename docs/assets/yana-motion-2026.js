@@ -182,6 +182,14 @@
   // The photographed Mac's approval card: answer it like in Yana Studio, then it resets.
   const gate = page.querySelector('.mac-gate');
   if (gate) {
+    const photoScreen = gate.parentElement;
+    const mobileGate = matchMedia('(max-width: 900px)');
+    const placeGate = () => {
+      if (mobileGate.matches) pin.after(gate);
+      else photoScreen.append(gate);
+    };
+    placeGate();
+    mobileGate.addEventListener('change', placeGate);
     const result = gate.querySelector('.mac-gate-result');
     let resetTimer = 0;
     gate.addEventListener('click', event => {
