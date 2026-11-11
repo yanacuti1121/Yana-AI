@@ -124,7 +124,7 @@ rusqlite   = { version = "=0.40.2", default-features = false, features = ["bundl
 ratatui    = { version = "0.30",                     optional = true }
 # Display width of a character, for the fixed-grid approval prompts. Pinned to
 # the exact version ratatui already resolves to, so the build gains no package.
-unicode-width = { version = "=0.2.2", default-features = false, optional = true }
+unicode-width = { version = "=0.2.3", default-features = false, optional = true }
 crossterm  = { version = "0.29",                     optional = true }
 # src/graph/build.rs import extraction — replaces per-language regex
 # (2026-07-23, Wave 0 finding #2 follow-up: the regex approach was the
