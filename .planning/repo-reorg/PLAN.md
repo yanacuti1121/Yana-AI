@@ -17,6 +17,7 @@ Số liệu đo bằng `scripts/reorg_refmap.py` (xem phần "Cách dùng công 
 ## Nguyên tắc
 
 1. Mỗi bước là một PR riêng, hoàn tác được bằng `git revert`.
+1b. Sao chép trước, xóa sau. Repo này vẫn dùng dữ liệu hiện tại cho tới khi bản sao ở repo đích chạy được; chỉ khi đó mới có PR xóa riêng. Đã làm: yana-web PR 2 (web, desktop, site, website) và yana-studio PR 25 (app, Studio, IDE), cả hai nháp.
 2. Không đổi tên các đường dẫn là quy ước cố định: `core/*`, `.yana-ai/` (91 file code nhắc đến), `.planning/` (agent `spec-*` ghi vào `.planning/<slug>/PLAN.md`), `gates/` (26 file nhắc đến).
 3. Sau mỗi lần di chuyển, chạy `python3 scripts/reorg_refmap.py --target <đường dẫn cũ> --expect-zero`. Kết quả phải là exit 0, đồng thời `core/scripts/drift-check.sh` sạch và CI xanh.
 4. Vùng bị ghim bởi `core/config/core-lock.json`: `core/rules`, `core/gates`, `core/hooks`, `core/scripts`, `src/guard`. Sửa trong đó phải sinh lại khóa và review từng dòng; `core/rules`, `core/hooks`, `core/gates` còn phải qua hai reviewer theo rule 54.
@@ -31,7 +32,7 @@ Cả hai repo đã tồn tại và đều là bản chụp cũ, nên nội dung 
 | `yanacuti1121/yana-web` | 338 file, cập nhật cuối 2026-08-08, nhánh `main` và `chore/real-snapshot`, không tag, không workflow. Bản chụp cũ của `tools/yana-web`: khoảng 287 file giống hệt, 28 khác, 23 chỉ còn ở repo cũ, 58 chỉ có ở bản mới (con số 287 là suy ra) | phần web: website, `site/`, `worker.js`, `wrangler.jsonc`, `vercel.json`, `yana-web` | đánh tag `legacy-snapshot-2026-08` trên `main`; đưa nội dung mới vào bằng merge, không ghi đè |
 | `yanacuti1121/yana-studio` | 77 file, cập nhật cuối 2026-08-09 (PR 24), Rust, nhiều nhánh `feat/m2-*` và `backup/*`. Là terminal CLI, README "Yana Terminal AI Workspace" | phần app: `yana-app`, Studio | nội dung đã nhập vào `tools/yana-terminal/` (PR 524, commit `592de4d` của `yana-studio`); tag `legacy-terminal-2026-08` đã tạo ở local nhưng chưa đẩy được (xem dưới) |
 
-Tag `legacy-terminal-2026-08`: lần đẩy lên `yana-studio` bị GitHub trả HTTP 403, nhiều khả năng do Claude GitHub App chưa được cài cho repo này. Cần chủ repo cài app hoặc tự đẩy tag. Chưa có tag nào trên remote.
+Lưu trữ bản cũ: đẩy tag lên hai repo đích thất bại ("the remote end hung up unexpectedly"; đẩy nhánh thì được), nên bản cũ được lưu bằng NHÁNH: `legacy-snapshot-2026-08` (yana-web, 4bb40af) và `legacy-terminal-2026-08` (yana-studio, 592de4d), cả hai bằng `main` của repo đó lúc đó. Không có tag trên remote; chủ repo có thể tự đẩy tag từ máy riêng nếu muốn. Nên bật bảo vệ nhánh cho hai nhánh này.
 
 Chưa xác định: bố cục thư mục trong từng repo. `yana-web` hiện để file ở gốc; nếu repo chứa cả website và `site/` thì chọn giữ web ở gốc hoặc chuyển vào `apps/` và `site/`. Chưa biết hai repo có Vercel, Cloudflare hay release nào nối sẵn không, vì API GitHub không đọc được khi chưa gắn quyền.
 
