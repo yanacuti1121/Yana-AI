@@ -22,7 +22,9 @@ jobs:
   yana-ai-audit:
     name: Yana AI Agent Setup Audit
     # This is a demo/example workflow. Skip it on the yana-ai repo itself.
-    if: github.repository != 'yanacuti1121/yana-ai'
+    # The name must track the repository owner: after the move to the Horonomos-laps organization the
+    # old name no longer matched, so the demo started running here and failed on every run.
+    if: github.repository != 'Horonomos-laps/Yana-AI'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -32,6 +34,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (node24)
+        with:
+          fetch-depth: 0   # pull_request mode audits `--diff origin/<base>`, which needs that ref
 
       - name: Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.0.0 (node24)
@@ -49,7 +53,7 @@ jobs:
           YANA_REF="main"   # pin to a release tag in production, e.g. "v1.8.0"
           git clone --depth 1 --branch "$YANA_REF" \
             https://github.com/yanacuti1121/yana-ai.git /tmp/yana-ai
-          chmod +x /tmp/yana-ai/bin/yana-ai
+          chmod +x /tmp/yana-ai/bin/yana
 
       - name: Run Yana AI audit
         env:
@@ -61,7 +65,7 @@ jobs:
             DIFF_FLAG="--diff origin/${{ github.base_ref }}"
           fi
 
-          /tmp/yana-ai/bin/yana-ai audit . \
+          /tmp/yana-ai/bin/yana audit . \
             $DIFF_FLAG \
             --fail-on "$FAIL_ON_LEVEL" \
             --ignore AU010 \
