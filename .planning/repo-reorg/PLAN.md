@@ -57,7 +57,7 @@ Chưa chắc: `release.yml` (tag `v*`, build và đính kèm `yana-rt`) được
 
 ## Các rủi ro đã thấy
 
-1. **Bản đã cài tự hỏi repo cũ để tìm bản cập nhật.** `tools/yana-app/Sources/YanaApp/AppUpdater.swift` gọi `api.github.com/repos/yanacuti1121/Yana-AI/releases` và lọc tag `app-v`. `tools/yana-desktop/package.json` cấu hình electron-updater với `owner: yanacuti1121`, `repo: Yana-AI`. Nếu bản phát hành chuyển sang repo mới, Yana.app 1.0.0 và Desktop đã cài sẽ không bao giờ thấy bản mới. Cần chọn cách xử lý trước khi chuyển (xem câu hỏi mở 1).
+1. **Bản đã cài tự hỏi repo cũ để tìm bản cập nhật.** `tools/yana-app/Sources/YanaApp/AppUpdater.swift` gọi `api.github.com/repos/yanacuti1121/Yana-AI/releases` và lọc tag `app-v`. `tools/yana-desktop/package.json` cấu hình electron-updater với `owner: yanacuti1121`, `repo: Yana-AI`. Nếu bản phát hành chuyển sang repo mới, Yana.app 1.0.0 và Desktop đã cài sẽ không bao giờ thấy bản mới. Quyết định của chủ repo (2026-11-11): phát bản mới có địa chỉ cập nhật trỏ sang repo đích, chấp nhận một số người dùng cũ phải cài lại vì hiện chưa có nhiều người dùng; không làm bản cầu nối. Việc đổi địa chỉ là sửa code trong repo đích (`AppUpdater.swift`, `SettingsSections.swift`, cấu hình electron-updater), làm sau khi chuyển. Số người đã cài chưa được đếm.
 2. **`docs/` là gốc của website.** `vercel.json` có `ignoreCommand` so sánh `:/docs`; `wrangler.jsonc` đặt `assets.directory` là `docs`. Mọi file đặt vào `docs/` đều được phục vụ công khai. Vì vậy việc chuyển 18 file `.md` ở gốc vào `docs/` phải làm **sau** khi website rời đi.
 3. **Hạ tầng triển khai phải nối lại.** Dự án Vercel `yana-ai-docs` và dự án Cloudflare Workers `yana` đang gắn với repo này. Phải nối lại sang repo mới và giữ nguyên tên miền, biến môi trường, secret (khóa Groq) và KV của worker. Đây là thao tác ngoài git.
 4. **Dữ liệu sinh ra từ lõi.** `core/scripts/generate-agents-data.py` ghi `docs/skills-data.json` và `site/public/skills-data.json`. Sau khi tách cần một cách chuyển dữ liệu này sang repo mới.
@@ -81,7 +81,7 @@ Chuyển `plans/261024-0000-yana-demo-video/` (8 file) vào `.planning/`. Không
 
 ### Bước 3: tách `yana-app` sang `yana-studio`
 
-Không có file code nào nhắc đến `tools/yana-app` (chỉ có `NOTICE`). Điều kiện: tag `legacy-terminal-2026-08` đã lên remote của `yana-studio` (đang bị chặn bởi quyền, xem phần "Repo đích"), và đã chọn cách xử lý rủi ro 1. Lấy lịch sử bằng `git filter-repo --path tools/yana-app` trên một bản clone riêng của repo này, rồi đưa vào `yana-studio` bằng merge, không ghi đè `main` và giữ nguyên các nhánh `feat/m2-*`. Repo hiện tại không bị đụng tới cho tới khi PR xóa được duyệt.
+Không có file code nào nhắc đến `tools/yana-app` (chỉ có `NOTICE`). Điều kiện: tag `legacy-terminal-2026-08` đã lên remote của `yana-studio` (đang bị chặn bởi quyền, xem phần "Repo đích"), và bản app mới sẽ phát hành từ repo đích với địa chỉ cập nhật đã đổi (rủi ro 1). Lấy lịch sử bằng `git filter-repo --path tools/yana-app` trên một bản clone riêng của repo này, rồi đưa vào `yana-studio` bằng merge, không ghi đè `main` và giữ nguyên các nhánh `feat/m2-*`. Repo hiện tại không bị đụng tới cho tới khi PR xóa được duyệt.
 
 ### Bước 4: tách cụm web sang `yana-web`
 
@@ -114,11 +114,11 @@ Có 67 file code/CI/cấu hình dựa vào đường dẫn `.claude/...` (`skill
 
 Đã trả lời: tên repo đích là `yana-web` (web) và `yana-studio` (app).
 
-1. Bản Yana.app và Desktop đã cài đang hỏi repo cũ để tìm bản cập nhật. Chọn một: (a) repo đích vẫn đăng bản phát hành lên Releases của repo này (cần token có quyền ghi vào repo này), (b) phát một bản cầu nối từ repo này có cấu hình cập nhật trỏ sang repo đích, rồi mới chuyển hẳn.
+1. (Đã trả lời) Bản Yana.app và Desktop đã cài: phát bản mới với địa chỉ cập nhật đã đổi, chấp nhận một số người dùng phải cài lại (xem rủi ro 1).
 2. Danh sách trong bảng "Phạm vi chuyển đi" có đúng không? `yana-desktop` thuộc `yana-web` hay `yana-studio`? `github-app/`, `yana-notch`, `yana-promo`, `yana-pixel-bridge` đi đâu? Studio dựa trên VS Code (`tools/yana-studio`, `tools/yana-ide`) có vào `yana-studio` không?
 3. Bố cục thư mục trong `yana-web` và `yana-studio` (web ở gốc hay trong `apps/`).
 4. `release.yml` (build `yana-rt` theo tag `v*`) ở lại repo này đúng không?
-5. Hạ tầng Vercel và Cloudflare do chủ repo nối lại thủ công, hay cần liệt kê từng bước?
+5. (Đã trả lời) Chủ repo tự nối lại Vercel và Cloudflare sang repo đích khi chuyển; đây là thao tác nhỏ, làm lại được.
 6. Cài Claude GitHub App cho `yana-studio` (và `yana-web` nếu cần push), hoặc tự đẩy tag lưu trữ.
 
 ## Cách dùng công cụ
