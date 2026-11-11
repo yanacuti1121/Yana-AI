@@ -1,0 +1,12 @@
+/target
+.DS_Store
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Reference snapshots accidentally committed during the UI rewrite —
+# nested copies of this repo, never meant to be tracked.
+*.zip
+/Yana-AI-Chat_Teminal-Visible-UI/
+/Yana-AI-Chat_Teminal-main/
