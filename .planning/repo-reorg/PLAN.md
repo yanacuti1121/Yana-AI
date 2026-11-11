@@ -111,6 +111,37 @@ Có 67 file code/CI/cấu hình dựa vào đường dẫn `.claude/...` (`skill
 - Tài liệu của phần web và app chuyển sang repo mới cùng với chúng.
 - Mở rộng `check_counts.py` hoặc `drift-check.sh` để giữ các số liệu; sửa vào vùng khóa nên cần duyệt riêng.
 
+## Tình trạng sau khi sao chép (2026-11-11)
+
+Nguyên tắc đang theo: sao chép trước, ổn định, rồi mới chuyển kết nối (Vercel, Cloudflare, địa chỉ cập nhật app) và xóa bản gốc. Bản gốc ở repo này chưa bị xóa hay sửa.
+
+**Đã sao chép và đã merge:**
+- `yana-web`: `tools/yana-web` ở gốc, `yana-desktop/`, `site/`, các file không phải `.md` trong `docs/`, `worker.js`, `wrangler.jsonc`, `vercel.json` (PR 2); sửa đường dẫn test (PR 3), `.gitignore` (PR 4), CI (PR 5), README (PR 6).
+- `Yana-studio`: `yana-app/`, `yana-studio/`, `yana-ide/` (PR 25), workflow `native-macos.yml` (PR 27) và `yana-studio-desktop.yml` (PR 28), README (PR 29). PR 26 đã đổi địa chỉ cập nhật app sang `Yana-studio` trước khi có bản phát hành `app-v*` ở đó; chưa gây hại vì chưa có bản app nào build từ code đó, nhưng không được phân phối app từ `main` của `Yana-studio` trước khi có bản `app-v*`.
+
+**Bằng chứng đã có (đọc từ GitHub hoặc chạy tay):**
+- `yana-web`: 30 file test ở gốc đạt, build Astro ra 8 trang, `npm audit` 0 lỗ hổng; CI mới chạy xanh trên GitHub.
+- `Yana-studio`: `native-macos.yml` đã chạy trên macOS 15 Apple Silicon, các bước build, unit test, build bản xem trước đã ký và kiểm bundle đều đạt.
+- Quét bí mật bằng biểu thức chính quy trên 823 file của `yana-web` và 1.121 file của `Yana-studio`: chỉ có dữ liệu giả trong test. Không quét lịch sử git, không quét entropy.
+
+**Chưa có bằng chứng:**
+- Build `yana-app` (đang thêm CI ở `Yana-studio`, PR 31) và `yana-studio-desktop.yml` (cần secret `YANA_GOOGLE_CLIENT_SECRET` và chạy thử bằng `workflow_dispatch`).
+- Bản xem trước Vercel, Cloudflare từ `yana-web`.
+- 31 test của `yana-desktop` trong bản sao ở `yana-web`: 29 đạt, 2 lỗi vì thiếu `.github/workflows/desktop.yml`. Cấu hình đóng gói của nó đọc `../../core`, `../../MANIFEST.json`, `../../target/...`, `../../yana-web/node_modules`, nên chỉ build được ở repo này. Hiện `yana-desktop` ở lại đây.
+
+**Sẽ hỏng ở repo này khi xóa bản gốc (chưa xử lý):**
+- `ci.yml`: job `dependency-audit` (npm audit của `tools/yana-web` và `tools/yana-desktop`) và `quality-gates` (`tools/yana-web/_test_static_path.js`).
+- `desktop.yml` cần `tools/yana-web` để đóng gói; phải checkout thêm `yana-web` vào `tools/yana-web` nếu web rời đi.
+- 9 file test ngoài workflow nhắc đến phần đã chuyển (4 về web, 4 về desktop, 1 kiểm `docs/index.html` là `tests/test_project_metadata.py`).
+- `scanner/*.yml` nhắc `tools/yana-web`; `package.json:74-78` (các script `electron:*`, vẫn đúng nếu desktop ở lại); một số file Rust nhắc đường dẫn (phần lớn có vẻ là comment, chưa đọc từng cái).
+- `herald.yml` gọi `core/scripts/check_counts.py`, kiểm các con số trong trang chủ; sau khi website rời đi không còn ai cập nhật các con số đó ở `yana-web`. `demo-gif.yml` ghi `docs/demo.gif` vào chỗ không còn phục vụ.
+- `core/scripts/generate-agents-data.py` ghi `docs/skills-data.json` và `site/public/skills-data.json`; chưa có cách đưa dữ liệu này sang `yana-web`.
+- `dependabot.yml` còn khai báo `/site`, `/tools/yana-web`, `/tools/yana-studio`, `/tools/yana-desktop`. Hai repo mới đã có dependabot và CodeQL riêng (PR 7 ở `yana-web`, PR 30 ở `Yana-studio`).
+
+**Chưa đọc kỹ:** `codeql.yml`, `sandbox.yml`, `publish.yml`, `release.yml`, `yana-audit.yml`, `mojo-vector-recall-pilot.yml` ở repo này (công cụ không thấy chúng nhắc đường dẫn đã chuyển); `hardening.yml` ở `Yana-studio`; cấu hình GitHub Pages của repo này (`pages-build-deployment` đang chạy, chưa biết phục vụ thư mục nào; API bị chặn, cần chủ repo xem ở Settings).
+
+**Việc của chủ repo (không làm được từ phiên này):** tạo tổ chức GitHub nếu muốn gom ba repo (nên làm trước khi nối hạ tầng để chỉ nối một lần; tên chủ bị ghi cứng ở 212 file của repo này, 112 của `yana-web`, 10 của `Yana-studio`), nối lại Vercel `yana-ai-docs` và Cloudflare `yana` sang `yana-web`, kiểm Pages, thêm secret `YANA_GOOGLE_CLIENT_SECRET` cho `Yana-studio`, phát hành bản `app-v*` đầu tiên.
+
 ## Câu hỏi mở
 
 Đã trả lời: tên repo đích là `yana-web` (web) và `yana-studio` (app).
