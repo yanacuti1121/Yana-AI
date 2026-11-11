@@ -66,8 +66,10 @@ cargo test --lib --features cli
 ```bash
 git clone https://github.com/yanacuti1121/Yana-studio.git && cd Yana-studio
 swift build --package-path yana-app
-cd yana-studio && npm ci && npx tsc --noEmit && npx vite build
+cd yana-studio && npm ci --ignore-scripts && npx tsc --noEmit && npx vite build
 ```
+
+`--ignore-scripts` để không chạy lifecycle script của phụ thuộc (ví dụ `postinstall` của `node-pty`, xem `58-dependency-sandbox-law`). Ba lệnh này đã chạy thoát 0 trên `main` của `Yana-studio` (`31f4013`) theo cách đó. Muốn chạy ứng dụng hoặc đóng gói thì cần cài đầy đủ (`npm ci`, có script), việc đó chủ repo tự làm ở máy mình.
 
 Ghi chú: ở môi trường đám mây, `cargo` đầy đủ hỏng vì một build-script (`liteparse-pdfium-sys`) cố tải pdfium và gặp lỗi chứng chỉ TLS của proxy; đó là hạn chế môi trường, không phải lỗi mã. Trên Mac thường không gặp.
 
