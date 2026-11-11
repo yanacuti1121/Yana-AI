@@ -141,6 +141,16 @@ jobs:
           magick -background none tools/yana-desktop/build/icon.svg \
             -resize 512x512 tools/yana-desktop/build/icon.png
 
+      # tools/yana-web moved to its own repository. The desktop app bundles its
+      # server, so check that repository out at the same path. Tracks main; pin
+      # a commit to make a release reproducible.
+      - name: Checkout yana-web (server bundled into the desktop app)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: yanacuti1121/yana-web
+          ref: main
+          path: tools/yana-web
+
       - name: Install web dependencies
         working-directory: tools/yana-web
         run: npm ci

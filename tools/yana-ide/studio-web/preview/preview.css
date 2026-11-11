@@ -1,7 +1,0 @@
-/* Trang xem thử màn Start trong khung hẹp. Dùng đúng CSS của màn thật. Không dùng trong IDE. */
-@import "../start.css";
-
-@source "./preview-entry.tsx";
-
-body { background: var(--surface-page); }
-.frame { width: 320px; border: 1px solid var(--border-1); border-radius: 8px; background: var(--surface-page); overflow: hidden; }

@@ -493,10 +493,6 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Run npm audit (yana-web production dependencies)
-        working-directory: tools/yana-web
-        run: npm audit --omit=dev --package-lock-only
-
       - name: Run npm audit (yana-desktop production dependencies)
         working-directory: tools/yana-desktop
         run: npm audit --omit=dev --package-lock-only
@@ -572,9 +568,6 @@ jobs:
           python3 -m pip install -r requirements-dev.txt
           cargo build --features cli --bin yana-rt
           python3 -m pytest tests -q
-
-      - name: yana-web static path tests
-        run: node tools/yana-web/_test_static_path.js
 
   required-checks-drift:
     name: Required Checks Manifest Drift

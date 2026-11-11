@@ -1,6 +1,0 @@
-node_modules/
-dist/
-artifacts/
-runtime/
-release/
-host/integrations/secrets.local.cjs

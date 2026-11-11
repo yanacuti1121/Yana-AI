@@ -59,21 +59,6 @@ updates:
         patterns: ["*"]
 
   - package-ecosystem: npm
-    directory: /site
-    schedule:
-      interval: weekly
-    cooldown:
-      default-days: 7
-    open-pull-requests-limit: 2
-    groups:
-      site:
-        patterns: ["*"]
-        update-types: [minor, patch]
-      site-security:
-        applies-to: security-updates
-        patterns: ["*"]
-
-  - package-ecosystem: npm
     directory: /github-app
     schedule:
       interval: weekly
@@ -85,36 +70,6 @@ updates:
         patterns: ["*"]
         update-types: [minor, patch]
       github-app-security:
-        applies-to: security-updates
-        patterns: ["*"]
-
-  - package-ecosystem: npm
-    directory: /tools/yana-web
-    schedule:
-      interval: weekly
-    cooldown:
-      default-days: 7
-    open-pull-requests-limit: 2
-    groups:
-      yana-web:
-        patterns: ["*"]
-        update-types: [minor, patch]
-      yana-web-security:
-        applies-to: security-updates
-        patterns: ["*"]
-
-  - package-ecosystem: npm
-    directory: /tools/yana-studio
-    schedule:
-      interval: weekly
-    cooldown:
-      default-days: 7
-    open-pull-requests-limit: 2
-    groups:
-      yana-studio:
-        patterns: ["*"]
-        update-types: [minor, patch]
-      yana-studio-security:
         applies-to: security-updates
         patterns: ["*"]
 

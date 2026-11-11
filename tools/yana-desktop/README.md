@@ -18,6 +18,18 @@ Minimal wrapper: spawns the `yana-web` Node server on an available loopback port
 waits for `/health`, then opens it in a `BrowserWindow`. No duplicated UI code —
 the web app **is** the desktop app.
 
+## Where the web server lives
+
+The `yana-web` server is no longer in this repository. It lives in
+[yana-web](https://github.com/yanacuti1121/yana-web). This app still expects it
+at `tools/yana-web`, so clone it there before you run or build locally:
+
+```bash
+git clone https://github.com/yanacuti1121/yana-web tools/yana-web
+```
+
+`.github/workflows/desktop.yml` does the same with a second checkout.
+
 ## Run
 
 ```bash
