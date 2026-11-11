@@ -61,7 +61,7 @@ Chưa chắc: `release.yml` (tag `v*`, build và đính kèm `yana-rt`) được
 1. **Bản đã cài tự hỏi repo cũ để tìm bản cập nhật.** `tools/yana-app/Sources/YanaApp/AppUpdater.swift` gọi `api.github.com/repos/yanacuti1121/Yana-AI/releases` và lọc tag `app-v`. `tools/yana-desktop/package.json` cấu hình electron-updater với `owner: yanacuti1121`, `repo: Yana-AI`. Nếu bản phát hành chuyển sang repo mới, Yana.app 1.0.0 và Desktop đã cài sẽ không bao giờ thấy bản mới. Quyết định của chủ repo (2026-11-11): phát bản mới có địa chỉ cập nhật trỏ sang repo đích, chấp nhận một số người dùng cũ phải cài lại vì hiện chưa có nhiều người dùng; không làm bản cầu nối. Việc đổi địa chỉ là sửa code trong repo đích (`AppUpdater.swift`, `SettingsSections.swift`, cấu hình electron-updater), làm sau khi chuyển. Số người đã cài chưa được đếm.
 2. **`docs/` là gốc của website.** `vercel.json` có `ignoreCommand` so sánh `:/docs`; `wrangler.jsonc` đặt `assets.directory` là `docs`. Mọi file đặt vào `docs/` đều được phục vụ công khai. Vì vậy việc chuyển 18 file `.md` ở gốc vào `docs/` phải làm **sau** khi website rời đi.
 3. **Hạ tầng triển khai phải nối lại.** Dự án Vercel `yana-ai-docs` và dự án Cloudflare Workers `yana` đang gắn với repo này. Phải nối lại sang repo mới và giữ nguyên tên miền, biến môi trường, secret (khóa Groq) và KV của worker. Đây là thao tác ngoài git.
-4. **Dữ liệu sinh ra từ lõi.** `core/scripts/generate-agents-data.py` ghi `docs/skills-data.json` và `site/public/skills-data.json`. Sau khi tách cần một cách chuyển dữ liệu này sang repo mới.
+4. **Dữ liệu sinh ra từ lõi.** `core/scripts/generate-agents-data.py` ghi `docs/agents-data.json` và `site/public/agents-data.json`; `core/scripts/gen_skills_page.py` ghi `docs/skills-data.json`. Sau khi tách cần một cách chuyển dữ liệu này sang repo mới (xem mục Tình trạng sau khi sao chép về `skills-data.json`).
 5. **Số liệu trong trang chủ được kiểm bằng code ở repo gốc.** `core/scripts/check_counts.py`, `core/scripts/drift-check.sh` và `tests/test_project_metadata.py` kiểm các số trong `docs/index.html`. Cả hai script đều nằm trong vùng khóa. Bản sao `.claude/docs/index.html` (nguồn của lỗi mirror ở PR 522) cũng biến mất khi tách.
 6. **Cặp logic phải khớp giữa JS và Rust:** `provider-failover.js` với `circuit_breaker.rs`, bảng `PROVIDERS` của `server.js` với `openai_compat.rs`, `terminal-context.mjs` với `headless.rs`. Cần bộ test đối chiếu dùng chung dữ liệu mẫu.
 7. **Chỗ khác trong repo gốc nhắc tới các thành phần sẽ rời đi:** `core/scripts/check_dangling_paths.py` (nhắc `tools/yana-desktop`), `core/lib/hermes_adapted/memory_manager_io.py` (nhắc `tools/yana-web`), `scanner/*.yml` (có bản biên dịch kiểm trong CI), `core/hooks/scope-guard.sh` (nhắc `vercel.json`), `ci.yml`, `package.json` gốc, `Cargo.toml`, `src/*.rs` (chỉ trong comment). Hai chỗ nằm trong vùng khóa.
@@ -86,7 +86,9 @@ Không có file code nào nhắc đến `tools/yana-app` (chỉ có `NOTICE`). �
 
 ### Bước 4: tách cụm web sang `yana-web`
 
-Điều kiện: tag `legacy-snapshot-2026-08` trên `main` của `yana-web`. Chuyển website, `site/`, `worker.js`, `wrangler.jsonc`, `vercel.json`, `yana-web`, `yana-desktop`, `yana-studio`, `yana-ide` và các workflow phát hành tương ứng. Gồm xử lý rủi ro 2 đến 7. Đây là bước lớn nhất, nên chia thành các PR nhỏ theo thứ tự: website tĩnh và dữ liệu sinh ra, rồi `yana-web` cùng `yana-desktop`, rồi Studio và IDE.
+Bản cũ của `yana-web` được lưu ở nhánh `legacy-snapshot-2026-08` (không phải tag, xem mục Repo đích). Đã sao chép sang `yana-web` (PR 2): website, `site/`, `worker.js`, `wrangler.jsonc`, `vercel.json`, `tools/yana-web` và một bản sao của `yana-desktop`. `yana-studio` và `yana-ide` thuộc bước 3 và đã sang `Yana-studio`, không sang `yana-web`. `yana-desktop` vẫn ở lại repo này vì cấu hình đóng gói của nó cần `core/`, `MANIFEST.json` và `target/`; bản ở `yana-web` chỉ là bản sao.
+
+Còn phải làm: cắt chuyển, tức nối lại Vercel, Cloudflare và Pages sang `yana-web`, rồi mới xóa bản gốc ở repo này, cùng xử lý rủi ro 2 đến 7 và danh sách "sẽ hỏng" ở mục Tình trạng sau khi sao chép. Chia thành các PR nhỏ.
 
 ### Bước 5: dọn gốc repo gốc
 
@@ -110,6 +112,37 @@ Có 67 file code/CI/cấu hình dựa vào đường dẫn `.claude/...` (`skill
 - Chính sách cho bản dịch (vi, en, ko, zh): chọn bản gốc và ghi tình trạng đồng bộ.
 - Tài liệu của phần web và app chuyển sang repo mới cùng với chúng.
 - Mở rộng `check_counts.py` hoặc `drift-check.sh` để giữ các số liệu; sửa vào vùng khóa nên cần duyệt riêng.
+
+## Tình trạng sau khi sao chép (2026-11-11)
+
+Nguyên tắc đang theo: sao chép trước, ổn định, rồi mới chuyển kết nối (Vercel, Cloudflare, địa chỉ cập nhật app) và xóa bản gốc. Bản gốc ở repo này chưa bị xóa hay sửa.
+
+**Đã sao chép và đã merge:**
+- `yana-web`: `tools/yana-web` ở gốc, `yana-desktop/`, `site/`, các file không phải `.md` trong `docs/`, `worker.js`, `wrangler.jsonc`, `vercel.json` (PR 2); sửa đường dẫn test (PR 3), `.gitignore` (PR 4), CI (PR 5), README (PR 6).
+- `Yana-studio`: `yana-app/`, `yana-studio/`, `yana-ide/` (PR 25), workflow `native-macos.yml` (PR 27) và `yana-studio-desktop.yml` (PR 28), README (PR 29). PR 26 đã đổi địa chỉ cập nhật app sang `Yana-studio` trước khi có bản phát hành `app-v*` ở đó; chưa gây hại vì chưa có bản app nào build từ code đó, nhưng không được phân phối app từ `main` của `Yana-studio` trước khi có bản `app-v*`.
+
+**Bằng chứng đã có (đọc từ GitHub hoặc chạy tay):**
+- `yana-web`: 30 file test ở gốc đạt, build Astro ra 8 trang, `npm audit` 0 lỗ hổng; CI mới chạy xanh trên GitHub.
+- `Yana-studio`: `native-macos.yml` đã chạy trên macOS 15 Apple Silicon, các bước build, unit test, build bản xem trước đã ký và kiểm bundle đều đạt.
+- Quét bí mật bằng biểu thức chính quy trên 823 file của `yana-web` và 1.121 file của `Yana-studio`: chỉ có dữ liệu giả trong test. Không quét lịch sử git, không quét entropy.
+
+**Chưa có bằng chứng:**
+- Build `yana-app` (đang thêm CI ở `Yana-studio`, PR 31) và `yana-studio-desktop.yml` (cần secret `YANA_GOOGLE_CLIENT_SECRET` và chạy thử bằng `workflow_dispatch`).
+- Bản xem trước Vercel, Cloudflare từ `yana-web`.
+- 31 test của `yana-desktop` trong bản sao ở `yana-web`: 29 đạt, 2 lỗi vì thiếu `.github/workflows/desktop.yml`. Cấu hình đóng gói của nó đọc `../../core`, `../../MANIFEST.json`, `../../target/...`, `../../yana-web/node_modules`, nên chỉ build được ở repo này. Hiện `yana-desktop` ở lại đây.
+
+**Sẽ hỏng ở repo này khi xóa bản gốc (chưa xử lý):**
+- `ci.yml`: job `dependency-audit` (npm audit của `tools/yana-web` và `tools/yana-desktop`) và `quality-gates` (`tools/yana-web/_test_static_path.js`).
+- `desktop.yml` cần `tools/yana-web` để đóng gói; phải checkout thêm `yana-web` vào `tools/yana-web` nếu web rời đi.
+- 9 file test ngoài workflow nhắc đến phần đã chuyển (4 về web, 4 về desktop, 1 kiểm `docs/index.html` là `tests/test_project_metadata.py`).
+- `scanner/*.yml` nhắc `tools/yana-web`; `package.json:74-78` (các script `electron:*`, vẫn đúng nếu desktop ở lại); một số file Rust nhắc đường dẫn (phần lớn có vẻ là comment, chưa đọc từng cái).
+- `herald.yml` gọi `core/scripts/check_counts.py`, kiểm các con số trong trang chủ; sau khi website rời đi không còn ai cập nhật các con số đó ở `yana-web`. `demo-gif.yml` ghi `docs/demo.gif` vào chỗ không còn phục vụ.
+- `core/scripts/generate-agents-data.py` ghi `docs/agents-data.json` và `site/public/agents-data.json`; `core/scripts/gen_skills_page.py` ghi `docs/skills-data.json` (và một trang `docs/skills.html` không có ở bản đang chạy). Chưa có cách đưa dữ liệu agent hay skill sang `yana-web`. Riêng `docs/skills-data.json` đang chạy có 4.200 mục, còn `gen_skills_page.py` chỉ sinh 2.035, nên file đang chạy không do script này tạo ra; không được đồng bộ tự động khi chưa biết nguồn thật.
+- `dependabot.yml` còn khai báo `/site`, `/tools/yana-web`, `/tools/yana-studio`, `/tools/yana-desktop`. Hai repo mới đã có dependabot và CodeQL riêng (PR 7 ở `yana-web`, PR 30 ở `Yana-studio`).
+
+**Chưa đọc kỹ:** `codeql.yml`, `sandbox.yml`, `publish.yml`, `release.yml`, `yana-audit.yml`, `mojo-vector-recall-pilot.yml` ở repo này (công cụ không thấy chúng nhắc đường dẫn đã chuyển); `hardening.yml` ở `Yana-studio`; cấu hình GitHub Pages của repo này (`pages-build-deployment` đang chạy, chưa biết phục vụ thư mục nào; API bị chặn, cần chủ repo xem ở Settings).
+
+**Việc của chủ repo (không làm được từ phiên này):** tạo tổ chức GitHub nếu muốn gom ba repo (nên làm trước khi nối hạ tầng để chỉ nối một lần; tên chủ bị ghi cứng ở 212 file của repo này, 112 của `yana-web`, 10 của `Yana-studio`), nối lại Vercel `yana-ai-docs` và Cloudflare `yana` sang `yana-web`, kiểm Pages, thêm secret `YANA_GOOGLE_CLIENT_SECRET` cho `Yana-studio`, phát hành bản `app-v*` đầu tiên.
 
 ## Câu hỏi mở
 
