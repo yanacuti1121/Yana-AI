@@ -58,6 +58,9 @@ if [[ ! -x "$YANA_RT_BIN_CANDIDATE" ]]; then
   echo "  run 'cargo build --features cli' first. Skipping fallback tests"
   echo "  (they need a real binary for core/lib/locking.sh's lock primitive,"
   echo "  independent of the bash/node guard logic under test)."
+  # CI sets YANA_TEST_REQUIRE_RT=1 so a missing binary fails instead of
+  # silently skipping the whole suite.
+  [[ "${YANA_TEST_REQUIRE_RT:-}" == "1" ]] && exit 1
   exit 0
 fi
 
@@ -79,7 +82,9 @@ run_in_sandbox() {
   tmp_project=$(mktemp -d)
   mkdir -p "$tmp_project/core/lib" "$tmp_project/core/memory/L2_session" "$tmp_project/.claude/state"
   cp "$PROJECT_DIR/core/lib/locking.sh" "$tmp_project/core/lib/locking.sh"
-  cp "$PROJECT_DIR/.claude/state/locking-protocol-version" "$tmp_project/.claude/state/locking-protocol-version"
+  # Written, not copied: .claude/state/ is gitignored, so a fresh clone has
+  # no marker to copy.
+  printf 'flock-v1\n' > "$tmp_project/.claude/state/locking-protocol-version"
   echo "$tmp_project"
 }
 
