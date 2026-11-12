@@ -1,9 +1,11 @@
 # Keeps the GitLab copy (gitlab.com/yana-ai-group/Yana-AI-project) in step with this repository.
 # GitLab cannot pull from GitHub on the free plan, so GitHub pushes instead.
 #
-# Needs one repository secret, GITLAB_MIRROR_TOKEN: a GitLab project access token for
-# Yana-AI-project with the Developer role and the write_repository scope. Without the secret the
-# job reports that and stops without failing, so a missing token never turns CI red.
+# Needs one repository secret, GITLAB_MIRROR_TOKEN: a GitLab personal access token with only the
+# write_repository scope, from an account that can push to Yana-AI-project. (GitLab Free does not
+# allow project access tokens, and the token reaches every project that account can write to, so
+# keep the expiry short and renew it.) Without the secret the job reports that and stops without
+# failing, so a missing token never turns CI red.
 #
 # Only main and tags are sent. The push is never forced: if GitLab's main has diverged the job
 # fails and a person decides what to do.
