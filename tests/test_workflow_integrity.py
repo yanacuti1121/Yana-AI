@@ -41,9 +41,42 @@ def run_lines(text: str) -> list[tuple[int, str, str]]:
     return lines
 
 
+CHECKOUT_USES = re.compile(r"^\s*-?\s*uses:\s*actions/checkout@")
+CHECKOUT_PATH = re.compile(r"^\s*path:\s*(\S+)")
+
+
+def checkout_paths(text: str) -> list[str]:
+    """Directories a workflow creates at run time by checking another repository out into them."""
+    paths = []
+    in_checkout = False
+    for line in text.splitlines():
+        if STEP_START.match(line):
+            in_checkout = False
+        if CHECKOUT_USES.match(line):
+            in_checkout = True
+        found = CHECKOUT_PATH.match(line)
+        if in_checkout and found:
+            paths.append(found.group(1).strip("\"'").rstrip("/"))
+    return paths
+
+
+def made_by_checkout(directory: str, created: list[str]) -> bool:
+    directory = directory.rstrip("/")
+    return any(directory == path or directory.startswith(path + "/") for path in created)
+
+
 class WorkflowIntegrity(unittest.TestCase):
     def test_workflows_were_found(self) -> None:
         self.assertGreater(len(WORKFLOWS), 5)
+
+    def test_checkout_paths_are_recognised(self) -> None:
+        text = (
+            "      - uses: actions/checkout@abc\n        with:\n          repository: o/r\n          path: tools/yana-web\n"
+            "      - uses: actions/upload-artifact@abc\n        with:\n          path: dist\n"
+        )
+        self.assertEqual(checkout_paths(text), ["tools/yana-web"])
+        self.assertTrue(made_by_checkout("tools/yana-web/sub", ["tools/yana-web"]))
+        self.assertFalse(made_by_checkout("tools/yana-web2", ["tools/yana-web"]))
 
     def test_scripts_called_by_workflows_exist(self) -> None:
         missing = []
@@ -62,14 +95,16 @@ class WorkflowIntegrity(unittest.TestCase):
     def test_working_directories_used_by_workflows_exist(self) -> None:
         missing = []
         for workflow in WORKFLOWS:
-            for number, line, _ in run_lines(workflow.read_text(encoding="utf-8")):
+            text = workflow.read_text(encoding="utf-8")
+            created = checkout_paths(text)  # a directory a checkout step creates exists when the job runs
+            for number, line, _ in run_lines(text):
                 found = WORKING_DIRECTORY.match(line)
                 if not found:
                     continue
                 directory = found.group(1).strip("\"'")
                 if "$" in directory or "{{" in directory:
                     continue
-                if not (ROOT / directory).is_dir():
+                if not (ROOT / directory).is_dir() and not made_by_checkout(directory, created):
                     missing.append(f"{workflow.name}:{number} -> {directory}")
         self.assertEqual(missing, [], "workflows use working directories that do not exist:\n" + "\n".join(missing))
 
