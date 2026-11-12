@@ -27,9 +27,27 @@ fn a_stuck_git_is_stopped_at_the_limit_and_reported() {
         .unwrap()
         .with_time_limit(Duration::from_millis(300));
     let started = Instant::now();
-    assert_eq!(store.snapshot("x").unwrap_err(), CheckpointError::TimedOut);
+    // Another test thread can fork while this thread still holds the script open for writing, and
+    // exec then fails with ETXTBSY ("Text file busy") even though the script is complete. That says
+    // nothing about the time limit, so try again; any other outcome is judged as before.
+    let mut outcome = store.snapshot("x");
+    for _ in 0..TEXT_FILE_BUSY_RETRIES {
+        if !matches!(&outcome, Err(CheckpointError::Io(message)) if message.contains(TEXT_FILE_BUSY)) {
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(50));
+        outcome = store.snapshot("x");
+    }
+    assert_eq!(outcome.unwrap_err(), CheckpointError::TimedOut);
     assert!(started.elapsed() < Duration::from_secs(5), "returned after {:?}", started.elapsed());
 }
+
+/// The text of `ETXTBSY` as the standard library reports it.
+#[cfg(unix)]
+const TEXT_FILE_BUSY: &str = "Text file busy";
+/// How often the stuck-git test retries after `ETXTBSY`; each try waits 50 ms.
+#[cfg(unix)]
+const TEXT_FILE_BUSY_RETRIES: usize = 20;
 
 #[test]
 fn a_timed_out_snapshot_does_not_block_the_next_one() {
