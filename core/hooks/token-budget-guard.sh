@@ -20,6 +20,20 @@ export CLAUDE_PROJECT_DIR="$PROJECT_DIR"
 # If yana-rt is installed and on PATH, delegate to the in-process Rust port.
 # Stdin has not been touched yet at this point, so exec inherits it intact.
 if command -v yana-rt >/dev/null 2>&1; then
+  # A new checkout has no flock-v1 marker (.claude/state/ is gitignored) and the
+  # Rust guard cannot take its lock without one. The marker is only written when
+  # YANA_LOCK_AUTO_ACTIVATE=1; see _yana_lock_bootstrap_marker in core/lib/locking.sh.
+  for _locking_lib in "$PROJECT_DIR/core/lib/locking.sh" "$PROJECT_DIR/.claude/lib/locking.sh"; do
+    if [[ -f "$_locking_lib" ]]; then
+      # shellcheck source=/dev/null
+      source "$_locking_lib"
+      # An older or customised lib may not define it; then behave as before.
+      if declare -F _yana_lock_bootstrap_marker >/dev/null; then
+        _yana_lock_bootstrap_marker "$PROJECT_DIR" || true
+      fi
+      break
+    fi
+  done
   exec yana-rt guard token-budget
 fi
 
