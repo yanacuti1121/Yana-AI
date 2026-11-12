@@ -141,6 +141,9 @@ jobs:
       - name: Run cutover regression
         run: bash core/tests/locking/test-flock-v1-cutover.sh
 
+      - name: Run fresh-clone bootstrap regression
+        run: bash core/tests/locking/test-flock-v1-fresh-clone.sh
+
       - name: Run cross-language matrix five times
         run: |
           for run in 1 2 3 4 5; do
