@@ -880,6 +880,16 @@ enum AuthorityAction {
         #[arg(long)]
         json: bool,
     },
+    /// Check that the decision receipts and execution receipts agree: every
+    /// execution traces to an Allow decision with the same turn, subject and
+    /// workspace, made before it started. Also reports log lines that cannot
+    /// be read (the plain `receipts` view skips them silently). Read-only.
+    /// Exit 0 = intact, 2 = problems found, 1 = error; only 0 means intact.
+    /// This is a consistency check, not tamper-proofing.
+    Verify {
+        #[arg(long)]
+        json: bool,
+    },
     /// List durable pending approvals (Authority Hardening item #5) — a
     /// remote-client turn paused awaiting a human decision, and every
     /// decision already recorded against it.
@@ -1350,6 +1360,13 @@ fn dispatch() {
                     }
                 }
             }
+            AuthorityAction::Verify { json } => match runtime::cmd_authority_verify(json) {
+                Ok(code) => std::process::exit(code),
+                Err(error) => {
+                    eprintln!("[authority] {error:#}");
+                    std::process::exit(1);
+                }
+            },
             AuthorityAction::PendingApprovals { id, json } => {
                 if let Err(error) = runtime::cmd_pending_approvals(id, json) {
                     eprintln!("[authority] {error:#}");
