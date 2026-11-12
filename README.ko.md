@@ -42,7 +42,7 @@
 <table>
   <tr>
     <td align="center" width="25%"><h3>19</h3><sub>모델 provider<br>클라우드 13, 로컬 6</sub></td>
-    <td align="center" width="25%"><h3>41</h3><sub>런타임 하위 명령<br>Rust 바이너리 하나</sub></td>
+    <td align="center" width="25%"><h3>42</h3><sub>런타임 하위 명령<br>Rust 바이너리 하나</sub></td>
     <td align="center" width="25%"><h3>66</h3><sub>도구 호출 hook<br>Pre, Post, Stop</sub></td>
     <td align="center" width="25%"><h3>290</h3><sub>핵심 파일<br>SHA-256으로 고정</sub></td>
   </tr>
@@ -123,7 +123,7 @@ flowchart LR
 `사용 중`은 배포되어 실제로 쓰이고 있다는 뜻입니다. `개발 중`은 실제 코드는 있지만 기능이
 완성되지 않았다는 뜻입니다. `실험적`은 선택적으로 켜야 하고 독립적으로 검증되지 않았다는 뜻입니다.
 
-`yana-rt`의 하위 명령은 41개이며 Python 의존성이 없습니다. feature flag 뒤에 있는 명령까지
+`yana-rt`의 하위 명령은 42개이며 Python 의존성이 없습니다. feature flag 뒤에 있는 명령까지
 포함해, 모든 빌드 구성에 걸친 소스 기준 개수입니다.
 
 ```text

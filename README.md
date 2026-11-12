@@ -43,7 +43,7 @@
 <table>
   <tr>
     <td align="center" width="25%"><h3>19</h3><sub>model providers<br>13 cloud, 6 local</sub></td>
-    <td align="center" width="25%"><h3>41</h3><sub>runtime subcommands<br>in one Rust binary</sub></td>
+    <td align="center" width="25%"><h3>42</h3><sub>runtime subcommands<br>in one Rust binary</sub></td>
     <td align="center" width="25%"><h3>66</h3><sub>tool-call hooks<br>Pre, Post and Stop</sub></td>
     <td align="center" width="25%"><h3>290</h3><sub>core files<br>pinned by SHA-256</sub></td>
   </tr>
