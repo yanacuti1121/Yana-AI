@@ -91,7 +91,7 @@ pub(crate) struct AuthorityDecisionReceipt {
     pub timestamp: DateTime<Utc>,
 }
 
-fn receipts_path(root: &Path) -> PathBuf {
+pub(super) fn receipts_path(root: &Path) -> PathBuf {
     root.join(".yana-ai").join("authority-receipts.jsonl")
 }
 
@@ -339,7 +339,7 @@ pub(crate) struct ExecutionReceipt {
     pub outcome: ExecutionOutcome,
 }
 
-fn execution_receipts_path(root: &Path) -> PathBuf {
+pub(super) fn execution_receipts_path(root: &Path) -> PathBuf {
     root.join(".yana-ai").join("execution-receipts.jsonl")
 }
 

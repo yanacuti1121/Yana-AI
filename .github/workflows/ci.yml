@@ -56,6 +56,16 @@ jobs:
       - name: Run hook test suite
         run: bash core/tests/hooks/run-hook-tests.sh
 
+      # Neither suite was run by any workflow, and both failed on a fresh
+      # clone (they copied the gitignored flock-v1 marker from the checkout).
+      # YANA_TEST_REQUIRE_RT=1 makes a missing yana-rt a failure, not a skip.
+      - name: Run token-budget guard/reset hook tests
+        env:
+          YANA_TEST_REQUIRE_RT: "1"
+        run: |
+          bash core/tests/hooks/test-token-budget-reset.sh
+          bash core/tests/hooks/test-token-budget-guard-fallback.sh
+
       - name: Drift check
         run: bash core/scripts/drift-check.sh
 
@@ -140,6 +150,9 @@ jobs:
 
       - name: Run cutover regression
         run: bash core/tests/locking/test-flock-v1-cutover.sh
+
+      - name: Run fresh-clone bootstrap regression
+        run: bash core/tests/locking/test-flock-v1-fresh-clone.sh
 
       - name: Run cross-language matrix five times
         run: |
@@ -432,11 +445,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (node24)
 
+      # Run cargo audit directly. The rustsec/audit-check action did the same scan, then called the
+      # GitHub check-runs API to publish its own check, and that call failed now and then with a 404
+      # (the scan itself was clean) and turned this job red. Warnings (unmaintained, unsound) do not fail
+      # cargo audit; a vulnerability does. The ignore list is the one the action used.
       - name: Run cargo audit
-        uses: rustsec/audit-check@69366f33c96575abad1ee0dba8212993eecbe998 # v2.0.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          ignore: RUSTSEC-2026-0459, RUSTSEC-2026-0457, RUSTSEC-2026-0462
+        run: |
+          cargo install cargo-audit --version 0.23.0 --locked
+          cargo audit --file Cargo.lock --ignore RUSTSEC-2026-0459 --ignore RUSTSEC-2026-0457 --ignore RUSTSEC-2026-0462
 
       # Same coverage gap as cargo audit above, for the Python side: this
       # repo publishes a PyPI package (pyproject.toml) whose own

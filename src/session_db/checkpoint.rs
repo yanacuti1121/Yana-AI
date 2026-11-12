@@ -48,6 +48,8 @@ const SHADOW_NAME_HEX: usize = 16;
 
 pub struct CheckpointStore {
     git: OsString,
+    /// Arguments placed before git's own; empty outside tests (see `git::git_command`).
+    git_prefix: Vec<OsString>,
     project: PathBuf,
     shadow: PathBuf,
     /// Longest a `snapshot` may take (see `limit.rs`); `None` means no limit.
@@ -76,22 +78,31 @@ impl CheckpointStore {
         let digest = Sha256::digest(project.to_string_lossy().as_bytes());
         let name: String = digest.iter().map(|b| format!("{b:02x}")).collect::<String>()[..SHADOW_NAME_HEX].to_string();
         let shadow = dir.join(format!("{name}.git"));
-        Ok(Self { git, project, shadow, time_limit: None, deadline: std::cell::Cell::new(None) })
+        Ok(Self { git, git_prefix: Vec::new(), project, shadow, time_limit: None, deadline: std::cell::Cell::new(None) })
+    }
+
+    /// Like `open_with_git`, with `prefix` placed before every git argument: a fake git
+    /// can be run as `/bin/sh <script>` instead of being executed as a file just written.
+    #[cfg(test)]
+    pub(crate) fn open_with_git_command(root: &StateRoot, project: &Path, git: OsString, prefix: Vec<OsString>) -> Result<Self, CheckpointError> {
+        let mut store = Self::open_with_git(root, project, git)?;
+        store.git_prefix = prefix;
+        Ok(store)
     }
 
     fn cmd(&self, needs_work_tree: bool) -> Command {
-        git_command(&self.git, &self.shadow, needs_work_tree.then_some(self.project.as_path()))
+        git_command(&self.git, &self.git_prefix, &self.shadow, needs_work_tree.then_some(self.project.as_path()))
     }
 
     fn require_git(&self) -> Result<(), CheckpointError> {
         let mut probe = Command::new(&self.git);
-        probe.arg("--version");
+        probe.args(&self.git_prefix).arg("--version");
         self.run(&mut probe).map(|_| ())
     }
 
     fn ensure_shadow(&self) -> Result<(), CheckpointError> {
         if !self.shadow.join("HEAD").exists() {
-            self.run(&mut init_command(&self.git, &self.shadow))?;
+            self.run(&mut init_command(&self.git, &self.git_prefix, &self.shadow))?;
         }
         self.harden()
     }

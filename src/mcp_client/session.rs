@@ -12,6 +12,7 @@ use rmcp::transport::IntoTransport;
 use rmcp::{model::CallToolRequestParams, model::PaginatedRequestParams, ServiceExt};
 use serde_json::{Map, Value};
 use std::time::Duration;
+use super::pins::hash_definition;
 use super::process::kill_tree;
 use tokio::process::Child;
 
@@ -34,6 +35,8 @@ pub struct Limits {
 pub struct ToolInfo {
     pub name: String,
     pub description: String,
+    /// Hash of the whole definition the server sent (see `pins`), not of the clipped text above.
+    pub hash: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -102,7 +105,11 @@ impl Session {
                     page.tools
                         .into_iter()
                         .filter(|tool| valid_tool_name(&tool.name))
-                        .map(|tool| ToolInfo { name: tool.name.to_string(), description: clip(tool.description.as_deref().unwrap_or(""), MAX_DESCRIPTION_CHARS) }),
+                        .map(|tool| ToolInfo {
+                            name: tool.name.to_string(),
+                            description: clip(tool.description.as_deref().unwrap_or(""), MAX_DESCRIPTION_CHARS),
+                            hash: hash_definition(&serde_json::to_value(&tool).unwrap_or(Value::Null)),
+                        }),
                 );
                 cursor = page.next_cursor;
                 if cursor.is_none() || tools.len() >= MAX_TOOLS {

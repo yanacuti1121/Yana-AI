@@ -44,6 +44,12 @@ Quy tắc cứng: công cụ nào ghi đĩa, chạy tiến trình, hoặc gửi 
 
 **Khai báo server chỉ do người dùng.** Danh sách server nằm trong tệp cấu hình do người dùng sở hữu (đề xuất `<repo>/.yana-ai/mcp-servers.json`), mô hình không thêm hay sửa được. Mỗi mục: `name`, `command`, `args`, `env` (danh sách tên biến được chuyển qua, không phải cả môi trường), `timeout_secs`. Tiến trình con chạy với môi trường **xóa sạch** cộng đúng các biến đã liệt kê (tránh lộ khóa API của Yana cho server ngoài), thư mục làm việc là gốc kho.
 
+**Giới hạn công cụ và ghim định nghĩa (2026-10-29).** Hai lớp nằm ngoài lần duyệt từng lệnh, đều thực thi trong `mcp_call` (`src/mcp_client/gateway.rs`):
+
+- `allowed_tools` (tùy chọn, mỗi mục là một `name`): khi có, chỉ các công cụ trong danh sách được gọi. Gọi công cụ khác bị từ chối **trước khi bật server**. Không có trường này nghĩa là không giới hạn thêm. Danh sách rỗng chỉ cho phép liệt kê công cụ. Tối đa 64 tên, mỗi tên là ký tự thường dùng cho tên công cụ.
+- Ghim định nghĩa (`.yana-ai/mcp-tool-pins.json`, thuộc nhóm tệp mô hình không ghi được): lần đầu thấy một công cụ, hệ thống ghi băm SHA-256 của `name`, `title`, `description`, `inputSchema`, `outputSchema`, `annotations` (không tính `_meta`). Lần sau, nếu băm khác thì **không gọi** và báo công cụ đã đổi; lệnh liệt kê đánh dấu `[DEFINITION CHANGED]`. Hệ thống không bao giờ thay băm đã ghim: người dùng xem thay đổi rồi xóa mục đó trong tệp để chấp nhận. Tệp ghim hỏng, quá 1 MiB hoặc là symlink thì từ chối cuộc gọi, không coi là "chưa ghim gì".
+- Giới hạn đã biết: lần đầu thấy một công cụ là lúc ghim (tin ở lần đầu), nên một server độc hại ngay từ đầu không bị bắt bởi lớp này; lớp này chỉ bắt thay đổi về sau. Hai cuộc gọi chạy đồng thời có thể làm một mục mới chưa kịp ghi, mục đó sẽ được ghim ở lần gọi kế tiếp.
+
 **Mọi lời gọi đều cần quyền.** Không tin chú thích `readOnlyHint` của server (nó tự khai). Mỗi lời gọi đi qua `YanaAuthorityChain` như `browser.fetch`: người ở terminal duyệt, hoặc lease do con người cấp khớp `server/tool`. Có test: chưa có quyền thì server **không được khởi động**.
 
 **Kỷ luật tiến trình.** Hạn thời gian cứng cho khởi động, cho mỗi lời gọi và cho tổng phiên; quá hạn thì kill và trả `Timeout`. Giới hạn kích thước một thông điệp và số tool nhận về. Đóng phiên khi xong lượt, không giữ tiến trình nền.

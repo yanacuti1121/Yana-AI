@@ -35,6 +35,7 @@ mod session_context;
 mod session_db;
 mod skill_quality;
 mod spec;
+mod status;
 mod task;
 mod vault;
 mod watch;
@@ -208,6 +209,19 @@ enum Commands {
     Score {
         #[command(subcommand)]
         action: score::ScoreAction,
+    },
+    /// What is happening now and what is waiting on a person: engines running, pending approvals,
+    /// recent audit entries, halt lock (not `os status`, which is the host-level management plane)
+    /// DOCTOR_DISPATCH_EXEMPT: new in Rust with no Python canonical to defer to; read by Yana Studio,
+    /// the notch app and the terminal as `yana-rt status --json`. It only lists, so there is nothing
+    /// for a wrapper to gate.
+    Status {
+        /// Print the snapshot as JSON (schema version in the `schema` field)
+        #[arg(long)]
+        json: bool,
+        /// Project root to read (default: current directory)
+        #[arg(long)]
+        root: Option<std::path::PathBuf>,
     },
     /// Environment and dependency health checks
     Doctor {
@@ -866,6 +880,16 @@ enum AuthorityAction {
         #[arg(long)]
         json: bool,
     },
+    /// Check that the decision receipts and execution receipts agree: every
+    /// execution traces to an Allow decision with the same turn, subject and
+    /// workspace, made before it started. Also reports log lines that cannot
+    /// be read (the plain `receipts` view skips them silently). Read-only.
+    /// Exit 0 = intact, 2 = problems found, 1 = error; only 0 means intact.
+    /// This is a consistency check, not tamper-proofing.
+    Verify {
+        #[arg(long)]
+        json: bool,
+    },
     /// List durable pending approvals (Authority Hardening item #5) — a
     /// remote-client turn paused awaiting a human decision, and every
     /// decision already recorded against it.
@@ -880,7 +904,29 @@ enum AuthorityAction {
 
 // ── main ─────────────────────────────────────────────────────────────────────
 
+/// Stack size for the thread that runs the CLI. Windows gives the main thread
+/// only 1 MiB, and the unoptimized `dispatch` frame (one large match over every
+/// subcommand) overflowed it on windows-latest CI once `mcp` was in the
+/// default build and `status` was added. 8 MiB matches the Linux default.
+const CLI_STACK_BYTES: usize = 8 * 1024 * 1024;
+
 fn main() {
+    let worker = std::thread::Builder::new()
+        .name("yana-rt-main".into())
+        .stack_size(CLI_STACK_BYTES)
+        .spawn(dispatch)
+        .unwrap_or_else(|e| {
+            eprintln!("yana-rt: could not start the CLI thread: {e}");
+            std::process::exit(1);
+        });
+    // The panic hook installed in `dispatch` exits the process itself, so a
+    // join error only happens if a panic escaped before that hook was set.
+    if worker.join().is_err() {
+        std::process::exit(1);
+    }
+}
+
+fn dispatch() {
     // Exit quietly on broken pipe (e.g. `yana-rt mission dispatch | head`)
     // instead of panicking with "failed printing to stdout: Broken pipe"
     std::panic::set_hook(Box::new(|info| {
@@ -1082,6 +1128,12 @@ fn main() {
         Commands::Map { action } => map::dispatch(action),
         Commands::Fix { action } => fix::dispatch(action),
         Commands::Score { action } => score::dispatch(action),
+        Commands::Status { json, root } => {
+            if let Err(error) = status::dispatch(json, root) {
+                eprintln!("[status] {error:#}");
+                std::process::exit(2);
+            }
+        }
         Commands::Doctor { action } => doctor::dispatch(action),
         Commands::Filescan { action } => filescan::dispatch(action),
         Commands::Guard { action } => guard::dispatch(action),
@@ -1308,6 +1360,13 @@ fn main() {
                     }
                 }
             }
+            AuthorityAction::Verify { json } => match runtime::cmd_authority_verify(json) {
+                Ok(code) => std::process::exit(code),
+                Err(error) => {
+                    eprintln!("[authority] {error:#}");
+                    std::process::exit(1);
+                }
+            },
             AuthorityAction::PendingApprovals { id, json } => {
                 if let Err(error) = runtime::cmd_pending_approvals(id, json) {
                     eprintln!("[authority] {error:#}");

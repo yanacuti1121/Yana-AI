@@ -122,6 +122,33 @@ bash core/tests/skills/test-skill-triggering.sh
 
 ---
 
+## Building without reliable access to GitHub
+
+`cargo build` compiles `liteparse-pdfium-sys`, whose build script downloads pdfium from GitHub Releases with
+its own TLS stack. That has failed in CI with a certificate handshake error, and it cannot be used behind a
+proxy whose CA it does not trust. Two ways around it, both read by the build script before it downloads
+anything:
+
+```bash
+# 1. Fetch it with curl (system TLS, checked against a pinned SHA-256) into the cache the build script reads.
+bash core/scripts/prefetch-pdfium.sh
+#    Cross build? Name the target, the asset follows the target, not this machine:
+PDFIUM_TARGET=x86_64-apple-darwin bash core/scripts/prefetch-pdfium.sh
+
+# 2. Or point the build at a pdfium you extracted yourself (lib/ and include/), no network needed:
+export PDFIUM_LIB_PATH=/path/to/pdfium/lib PDFIUM_INCLUDE_PATH=/path/to/pdfium/include
+```
+
+CI runs option 1 before every job that builds the crate (a test, `tests/test_workflow_pdfium_prefetch.py`,
+fails if a job forgets). Windows is left to the build script. When the pdfium tag changes, update
+`PDFIUM_TAG` and the four SHA-256 digests in `core/scripts/prefetch-pdfium.sh` (and its copy in
+`.claude/scripts/`).
+
+*Tiếng Việt: nếu build lỗi TLS khi tải pdfium, chạy `bash core/scripts/prefetch-pdfium.sh` trước, hoặc đặt
+`PDFIUM_LIB_PATH` và `PDFIUM_INCLUDE_PATH` trỏ tới bản pdfium đã giải nén (không cần mạng).*
+
+---
+
 ## Commit Format
 
 ```

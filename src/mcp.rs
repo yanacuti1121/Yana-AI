@@ -21,7 +21,7 @@
 
 use rmcp::{
     handler::server::{router::tool::ToolRouter, wrapper::Parameters},
-    model::{CallToolResult, ContentBlock, Implementation, ServerCapabilities, ServerInfo},
+    model::{CallToolResult, ContentBlock, Implementation, ServerCapabilities, ServerConfig},
     schemars, tool, tool_handler, tool_router,
     transport::stdio,
     ErrorData as McpError, ServerHandler, ServiceExt,
@@ -120,7 +120,8 @@ impl YanaRuntime {
     }
 
     #[tool(
-        description = "Canonical destructive-command judgment using crate::guard::check_command()."
+        description = "Canonical destructive-command judgment using crate::guard::check_command().",
+        annotations(read_only_hint = true, destructive_hint = false, idempotent_hint = true, open_world_hint = false)
     )]
     fn check_command(
         &self,
@@ -133,7 +134,8 @@ impl YanaRuntime {
         Ok(ok(body.to_string()))
     }
     #[tool(
-        description = "Bounded repository tree; ignores generated directories and denies path escape."
+        description = "Bounded repository tree; ignores generated directories and denies path escape.",
+        annotations(read_only_hint = true, destructive_hint = false, idempotent_hint = true, open_world_hint = false)
     )]
     fn repo_tree(
         &self,
@@ -141,14 +143,14 @@ impl YanaRuntime {
     ) -> Result<CallToolResult, McpError> {
         observe(crate::capability::repo_tree(&self.repo_root, &p.path, p.depth).map_err(Into::into))
     }
-    #[tool(description = "Read one bounded UTF-8 repository file; denies path and symlink escape.")]
+    #[tool(description = "Read one bounded UTF-8 repository file; denies path and symlink escape.", annotations(read_only_hint = true, destructive_hint = false, idempotent_hint = true, open_world_hint = false))]
     fn read_file(
         &self,
         Parameters(p): Parameters<ReadFileParams>,
     ) -> Result<CallToolResult, McpError> {
         observe(crate::capability::read_file(&self.repo_root, &p.path).map_err(Into::into))
     }
-    #[tool(description = "Literal case-insensitive search across bounded UTF-8 repository files.")]
+    #[tool(description = "Literal case-insensitive search across bounded UTF-8 repository files.", annotations(read_only_hint = true, destructive_hint = false, idempotent_hint = true, open_world_hint = false))]
     fn search_code(
         &self,
         Parameters(p): Parameters<SearchCodeParams>,
@@ -157,40 +159,44 @@ impl YanaRuntime {
             crate::capability::search_code(&self.repo_root, &p.path, &p.query).map_err(Into::into),
         )
     }
-    #[tool(description = "Read Git branch and working-tree status with fixed argv.")]
+    #[tool(description = "Read Git branch and working-tree status with fixed argv.", annotations(read_only_hint = true, destructive_hint = false, idempotent_hint = true, open_world_hint = false))]
     fn git_status(&self) -> Result<CallToolResult, McpError> {
         observe(crate::capability::git_status(&self.repo_root).map_err(Into::into))
     }
-    #[tool(description = "Read bounded staged or unstaged Git diff with fixed argv.")]
+    #[tool(description = "Read bounded staged or unstaged Git diff with fixed argv.", annotations(read_only_hint = true, destructive_hint = false, idempotent_hint = true, open_world_hint = false))]
     fn git_diff(
         &self,
         Parameters(p): Parameters<GitDiffParams>,
     ) -> Result<CallToolResult, McpError> {
         observe(crate::capability::git_diff(&self.repo_root, p.staged).map_err(Into::into))
     }
-    #[tool(description = "Read local OS, CPU, memory, load and disk summary.")]
+    #[tool(description = "Read local OS, CPU, memory, load and disk summary.", annotations(read_only_hint = true, destructive_hint = false, idempotent_hint = true, open_world_hint = false))]
     fn host_summary(&self) -> Result<CallToolResult, McpError> {
         observe(crate::capability::host_summary(&self.repo_root).map_err(Into::into))
     }
-    #[tool(description = "Audit the agent and skill files under the repo root (removed APIs, reviewer agents with write tools, duplicate names, oversized skills, mirror drift, bad frontmatter); read-only.")]
+    #[tool(description = "Audit the agent and skill files under the repo root (removed APIs, reviewer agents with write tools, duplicate names, oversized skills, mirror drift, bad frontmatter); read-only.", annotations(read_only_hint = true, destructive_hint = false, idempotent_hint = true, open_world_hint = false))]
     fn harness_audit(&self) -> Result<CallToolResult, McpError> {
         observe(crate::capability::harness_audit(&self.repo_root).map_err(Into::into))
     }
-    #[tool(description = "List bounded local processes sorted by cpu or memory; read-only.")]
+    #[tool(description = "List bounded local processes sorted by cpu or memory; read-only.", annotations(read_only_hint = true, destructive_hint = false, idempotent_hint = true, open_world_hint = false))]
     fn list_processes(
         &self,
         Parameters(p): Parameters<ListProcessesParams>,
     ) -> Result<CallToolResult, McpError> {
         observe(crate::capability::list_processes(&p.sort, p.limit).map_err(Into::into))
     }
-    #[tool(description = "Inspect one process by PID; read-only.")]
+    #[tool(description = "One read-only snapshot of what is happening now: AI engines running, approvals waiting on a person (never the raw command), the last audit entries, and the halt lock. A source that cannot be read is null and named in 'unavailable'.", annotations(read_only_hint = true, destructive_hint = false, idempotent_hint = true, open_world_hint = false))]
+    fn status(&self) -> Result<CallToolResult, McpError> {
+        observe(serde_json::to_string(&crate::status::collect(&self.repo_root, chrono::Utc::now())).map_err(|error| error.to_string()))
+    }
+    #[tool(description = "Inspect one process by PID; read-only.", annotations(read_only_hint = true, destructive_hint = false, idempotent_hint = true, open_world_hint = false))]
     fn process_details(
         &self,
         Parameters(p): Parameters<ProcessDetailsParams>,
     ) -> Result<CallToolResult, McpError> {
         observe(crate::capability::process_details(p.pid).map_err(Into::into))
     }
-    #[tool(description = "Search the local Yana workspace graph across block titles, bodies, and metadata.")]
+    #[tool(description = "Search the local Yana workspace graph across block titles, bodies, and metadata.", annotations(read_only_hint = true, destructive_hint = false, idempotent_hint = true, open_world_hint = false))]
     fn workspace_search(
         &self,
         Parameters(p): Parameters<WorkspaceSearchParams>,
@@ -199,7 +205,7 @@ impl YanaRuntime {
             serde_json::to_string(&state.search(&p.query)).map_err(|error| error.to_string())
         }))
     }
-    #[tool(description = "Read bidirectionally linked context for one local workspace block.")]
+    #[tool(description = "Read bidirectionally linked context for one local workspace block.", annotations(read_only_hint = true, destructive_hint = false, idempotent_hint = true, open_world_hint = false))]
     fn workspace_related(
         &self,
         Parameters(p): Parameters<WorkspaceRelatedParams>,
@@ -214,7 +220,7 @@ impl YanaRuntime {
             serde_json::to_string(&related).map_err(|error| error.to_string())
         }))
     }
-    #[tool(description = "Read the local Signal/Review workspace inbox; Noise is opt-in.")]
+    #[tool(description = "Read the local Signal/Review workspace inbox; Noise is opt-in.", annotations(read_only_hint = true, destructive_hint = false, idempotent_hint = true, open_world_hint = false))]
     fn workspace_inbox(
         &self,
         Parameters(p): Parameters<WorkspaceInboxParams>,
@@ -223,7 +229,7 @@ impl YanaRuntime {
             serde_json::to_string(&state.inbox(p.include_noise)).map_err(|error| error.to_string())
         }))
     }
-    #[tool(description = "Execute one typed local workspace operation. Critical approval is CLI-only and cannot be granted over MCP.")]
+    #[tool(description = "Execute one typed local workspace operation. Critical approval is CLI-only and cannot be granted over MCP.", annotations(read_only_hint = false, open_world_hint = false))]
     fn workspace_operate(
         &self,
         Parameters(p): Parameters<WorkspaceOperationParams>,
@@ -243,7 +249,8 @@ impl YanaRuntime {
     }
 
     #[tool(
-        description = "Fetch one web page (HTML or Markdown dump) via an externally-installed Lightpanda headless browser (github.com/lightpanda-io/browser). Requires a human-granted capability lease scoped to 'browser.fetch' for this MCP session's subject — see the error message for the exact 'yana-rt lease grant' command if none exists yet."
+        description = "Fetch one web page (HTML or Markdown dump) via an externally-installed Lightpanda headless browser (github.com/lightpanda-io/browser). Requires a human-granted capability lease scoped to 'browser.fetch' for this MCP session's subject — see the error message for the exact 'yana-rt lease grant' command if none exists yet.",
+        annotations(read_only_hint = true, open_world_hint = true)
     )]
     fn browser_fetch(
         &self,
@@ -347,8 +354,8 @@ fn observe(result: Result<String, String>) -> Result<CallToolResult, McpError> {
 
 #[tool_handler]
 impl ServerHandler for YanaRuntime {
-    fn get_info(&self) -> ServerInfo {
-        ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
+    fn get_info(&self) -> ServerConfig {
+        ServerConfig::new(ServerCapabilities::builder().enable_tools().build())
             .with_server_info(Implementation::from_build_env())
             .with_instructions(
                 "Yana Program J local capability runtime: read-only repository/host tools, governed workspace operations, and the canonical command guard. Critical workspace approval is CLI-only."
@@ -371,6 +378,22 @@ pub async fn run_stdio() -> anyhow::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Clients show these hints to a person deciding what to allow, so a tool must never
+    /// ship without them, and only the one tool that writes may claim not to be read-only.
+    /// (The spec treats hints from a server as untrusted; they inform, they do not enforce.)
+    #[test]
+    fn every_tool_declares_safety_hints_and_only_workspace_operate_writes() {
+        let tools = YanaRuntime::tool_router().list_all();
+        assert_eq!(tools.len(), 16, "a new tool needs its hints decided here");
+        for tool in &tools {
+            let hints = tool.annotations.as_ref().unwrap_or_else(|| panic!("{} has no annotations", tool.name));
+            let name = tool.name.as_ref();
+            assert_eq!(hints.read_only_hint, Some(name != "workspace_operate"), "{name}: read_only_hint");
+            assert_eq!(hints.open_world_hint, Some(name == "browser_fetch"), "{name}: only browser_fetch reaches outside this machine");
+        }
+    }
+
     #[test]
     fn defaults_are_bounded() {
         assert_eq!(depth(), 2);
@@ -391,6 +414,19 @@ mod tests {
         std::fs::create_dir_all(marker.parent().unwrap()).unwrap();
         std::fs::write(&marker, yana_rt::flock_v1::PROTOCOL_VERSION).unwrap();
         dir
+    }
+
+    #[test]
+    fn the_status_tool_returns_the_snapshot_for_the_repo_root() {
+        let root = temp_repo("status-tool");
+        let result = YanaRuntime::new(root.clone()).status().unwrap();
+        assert_ne!(result.is_error, Some(true), "{result:?}");
+        let block = serde_json::to_value(&result.content[0]).unwrap();
+        let snapshot: serde_json::Value = serde_json::from_str(block["text"].as_str().unwrap()).unwrap();
+        assert_eq!(snapshot["schema"], 1);
+        assert!(snapshot["state"].is_string());
+        assert_eq!(snapshot["halted"], false);
+        std::fs::remove_dir_all(&root).ok();
     }
 
     #[test]
