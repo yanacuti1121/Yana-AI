@@ -149,6 +149,10 @@ jobs:
         working-directory: tools/yana-web
         run: npm run build:desktop
 
+      - name: Prefetch pdfium (avoids intermittent TLS failure in liteparse-pdfium-sys's own downloader)
+        if: runner.os != 'Windows'
+        run: bash core/scripts/prefetch-pdfium.sh
+
       - name: Build bundled runtime
         run: cargo build --release --features cli,pty-bridge --bin yana-rt --bin pty_bridge
 
