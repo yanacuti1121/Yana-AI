@@ -77,7 +77,7 @@ fn links_stored_in_a_checkpoint_are_skipped_on_restore() {
 
 #[test]
 fn git_runs_with_inherited_repo_variables_removed_and_config_isolated() {
-    let command = git::git_command(std::ffi::OsStr::new("git"), Path::new("/shadow"), Some(Path::new("/proj")));
+    let command = git::git_command(std::ffi::OsStr::new("git"), &[], Path::new("/shadow"), Some(Path::new("/proj")));
     let envs: Vec<_> = command.get_envs().collect();
     for var in ["GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY"] {
         assert!(envs.iter().any(|(k, v)| *k == var && v.is_none()), "{var} must be removed");

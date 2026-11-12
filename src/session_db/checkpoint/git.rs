@@ -11,7 +11,7 @@
 //!   working tree is ever built (a source-level test checks the verbs).
 
 use super::CheckpointError;
-use std::ffi::OsStr;
+use std::ffi::{OsStr, OsString};
 use std::path::Path;
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
@@ -61,8 +61,13 @@ fn isolate(command: &mut Command) {
 
 /// A git command bound to `shadow`, and to `work_tree` when the command needs
 /// to read the project's files.
-pub(super) fn git_command(git: &OsStr, shadow: &Path, work_tree: Option<&Path>) -> Command {
+///
+/// `prefix` is placed right after the program, before every git argument. It is empty
+/// except in tests, which run a fake git as `/bin/sh <script>` so that no test has to
+/// execute a file it has just written (that races with another thread's fork: ETXTBSY).
+pub(super) fn git_command(git: &OsStr, prefix: &[OsString], shadow: &Path, work_tree: Option<&Path>) -> Command {
     let mut command = Command::new(git);
+    command.args(prefix);
     isolate(&mut command);
     command.arg("--git-dir").arg(shadow);
     if let Some(tree) = work_tree {
@@ -77,8 +82,9 @@ pub(super) fn git_command(git: &OsStr, shadow: &Path, work_tree: Option<&Path>) 
 }
 
 /// `git init --bare <shadow>`: creates only the shadow repository.
-pub(super) fn init_command(git: &OsStr, shadow: &Path) -> Command {
+pub(super) fn init_command(git: &OsStr, prefix: &[OsString], shadow: &Path) -> Command {
     let mut command = Command::new(git);
+    command.args(prefix);
     isolate(&mut command);
     command.args(["init", "--bare", "--quiet"]).arg(shadow);
     command
