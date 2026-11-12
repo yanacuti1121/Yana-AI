@@ -42,7 +42,7 @@
 <table>
   <tr>
     <td align="center" width="25%"><h3>19</h3><sub>模型 provider<br>云端 13，本地 6</sub></td>
-    <td align="center" width="25%"><h3>41</h3><sub>运行时子命令<br>同一个 Rust 二进制</sub></td>
+    <td align="center" width="25%"><h3>42</h3><sub>运行时子命令<br>同一个 Rust 二进制</sub></td>
     <td align="center" width="25%"><h3>66</h3><sub>工具调用 hook<br>Pre、Post、Stop</sub></td>
     <td align="center" width="25%"><h3>290</h3><sub>核心文件<br>以 SHA-256 锁定</sub></td>
   </tr>
@@ -122,7 +122,7 @@ Skill 教 agent 如何工作。只有 capability 才能授予行动的权限。
 `已上线`表示已经发布并在使用。`开发中`表示已有真实代码但功能尚不完整。`实验性`表示需要手动开启，
 且尚未经过独立验证。
 
-`yana-rt` 有 41 个子命令，不依赖 Python。这是按源码统计、覆盖所有构建配置（包括 feature flag
+`yana-rt` 有 42 个子命令，不依赖 Python。这是按源码统计、覆盖所有构建配置（包括 feature flag
 之后的命令）的数量。
 
 ```text

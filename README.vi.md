@@ -42,7 +42,7 @@
 <table>
   <tr>
     <td align="center" width="25%"><h3>19</h3><sub>provider model<br>13 cloud, 6 local</sub></td>
-    <td align="center" width="25%"><h3>41</h3><sub>subcommand runtime<br>trong một binary Rust</sub></td>
+    <td align="center" width="25%"><h3>42</h3><sub>subcommand runtime<br>trong một binary Rust</sub></td>
     <td align="center" width="25%"><h3>66</h3><sub>hook cho tool call<br>Pre, Post và Stop</sub></td>
     <td align="center" width="25%"><h3>290</h3><sub>file lõi<br>được ghim bằng SHA-256</sub></td>
   </tr>
@@ -126,7 +126,7 @@ Skill dạy agent cách làm việc. Chỉ capability mới cấp quyền hành 
 thật nhưng chưa đủ tính năng. `Thử nghiệm` nghĩa là tùy chọn bật và chưa được kiểm chứng
 độc lập.
 
-`yana-rt` có 41 subcommand, không phụ thuộc Python. Đây là số đếm theo mã nguồn trên mọi
+`yana-rt` có 42 subcommand, không phụ thuộc Python. Đây là số đếm theo mã nguồn trên mọi
 cấu hình build, kể cả các lệnh nằm sau feature flag.
 
 ```text

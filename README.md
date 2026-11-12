@@ -43,7 +43,7 @@
 <table>
   <tr>
     <td align="center" width="25%"><h3>19</h3><sub>model providers<br>13 cloud, 6 local</sub></td>
-    <td align="center" width="25%"><h3>41</h3><sub>runtime subcommands<br>in one Rust binary</sub></td>
+    <td align="center" width="25%"><h3>42</h3><sub>runtime subcommands<br>in one Rust binary</sub></td>
     <td align="center" width="25%"><h3>66</h3><sub>tool-call hooks<br>Pre, Post and Stop</sub></td>
     <td align="center" width="25%"><h3>290</h3><sub>core files<br>pinned by SHA-256</sub></td>
   </tr>
@@ -126,7 +126,7 @@ Skills teach an agent how to work. Only a capability can grant permission to act
 `Live` means shipped and in use. `In development` means real code exists but is not
 feature-complete. `Experimental` means opt-in and not independently verified.
 
-`yana-rt` has 41 subcommands. Zero Python dependency. This is the source-defined count across feature builds, including feature-gated ones.
+`yana-rt` has 42 subcommands. Zero Python dependency. This is the source-defined count across feature builds, including feature-gated ones.
 
 ```text
 core/
