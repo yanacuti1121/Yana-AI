@@ -1,0 +1,64 @@
+# Keeps the GitLab copy (gitlab.com/yana-ai-group/Yana-AI-project) in step with this repository.
+# GitLab cannot pull from GitHub on the free plan, so GitHub pushes instead.
+#
+# Needs one repository secret, GITLAB_MIRROR_TOKEN: a GitLab project access token for
+# Yana-AI-project with the Developer role and the write_repository scope. Without the secret the
+# job reports that and stops without failing, so a missing token never turns CI red.
+#
+# Only main and tags are sent. The push is never forced: if GitLab's main has diverged the job
+# fails and a person decides what to do.
+name: Mirror to GitLab
+
+on:
+  push:
+    branches: [main]
+    tags: ["*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mirror-gitlab
+  cancel-in-progress: false
+
+env:
+  GITLAB_REMOTE: https://gitlab.com/yana-ai-group/Yana-AI-project.git
+
+jobs:
+  mirror:
+    # Forks and other copies of this repository must not push to the project's GitLab.
+    if: github.repository == 'Horonomos-laps/Yana-AI'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15 # the first push of the whole history can be slow; later pushes send only new commits
+    steps:
+      - name: Check the token
+        id: token
+        env:
+          GITLAB_MIRROR_TOKEN: ${{ secrets.GITLAB_MIRROR_TOKEN }}
+        run: |
+          if [ -z "$GITLAB_MIRROR_TOKEN" ]; then
+            echo "GITLAB_MIRROR_TOKEN is not set; nothing was mirrored."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out the full history
+        if: steps.token.outputs.present == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (node24)
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Push main and tags to GitLab
+        if: steps.token.outputs.present == 'true'
+        env:
+          GITLAB_MIRROR_TOKEN: ${{ secrets.GITLAB_MIRROR_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$GITLAB_MIRROR_TOKEN"
+          auth="$(printf 'oauth2:%s' "$GITLAB_MIRROR_TOKEN" | base64 | tr -d '\n')"
+          echo "::add-mask::$auth"
+          git -c "http.extraheader=Authorization: Basic ${auth}" push "$GITLAB_REMOTE" "refs/remotes/origin/main:refs/heads/main"
+          git -c "http.extraheader=Authorization: Basic ${auth}" push "$GITLAB_REMOTE" --tags
