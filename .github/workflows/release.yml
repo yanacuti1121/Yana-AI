@@ -135,6 +135,15 @@ jobs:
       # not in the default feature set, because it pulls in tokio and rmcp and the default set is also
       # what the WASM library builds with. Shipped binaries opt in here; the smoke test below
       # requires the subcommand to answer, so a build that forgets this flag cannot publish.
+      # build.rs downloads pdfium itself and has failed on a TLS handshake; fetch it with curl,
+      # checked against a pinned SHA-256. The asset follows the TARGET (x86_64-apple-darwin is built
+      # on an arm64 runner), and Windows is left to build.rs.
+      - name: Prefetch pdfium
+        if: runner.os != 'Windows'
+        env:
+          PDFIUM_TARGET: ${{ matrix.target }}
+        run: bash core/scripts/prefetch-pdfium.sh
+
       - name: Build
         run: cargo build --release --target ${{ matrix.target }} --features cli,mcp
 
