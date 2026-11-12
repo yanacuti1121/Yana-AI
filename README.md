@@ -40,6 +40,15 @@
   <a href="https://yana.vutam.link">Website</a>
 </p>
 
+<p align="center">
+  <sub>
+    <a href="CODE_OF_CONDUCT.md">Code of conduct</a> ·
+    <a href="CONTRIBUTING.md">Contributing</a> ·
+    <a href="LICENSE">Apache-2.0 license</a> ·
+    <a href="SECURITY.md">Security policy</a>
+  </sub>
+</p>
+
 <br>
 
 <table>
