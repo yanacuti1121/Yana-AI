@@ -17,37 +17,21 @@ fn a_limit_that_is_not_reached_changes_nothing() {
 #[cfg(unix)]
 #[test]
 fn a_stuck_git_is_stopped_at_the_limit_and_reported() {
-    use std::os::unix::fs::PermissionsExt;
     let fx = fixture();
     put(&fx.project, "a.txt", "one");
-    let fake = fx.outer.path().join("slow-git");
-    std::fs::write(&fake, "#!/bin/sh\nsleep 30\n").unwrap();
-    std::fs::set_permissions(&fake, std::fs::Permissions::from_mode(0o755)).unwrap();
-    let store = CheckpointStore::open_with_git(&fx.root, &fx.project, fake.into_os_string())
+    // The fake git runs as `/bin/sh slow-git.sh`, never as an executable file of its own: exec of a
+    // file that was just written fails with ETXTBSY ("Text file busy") whenever another test thread
+    // forks while this thread still holds the file open for writing (measured: 3-6% of execs under
+    // load; writing to a temporary name and renaming does not help). `sh` only reads the script.
+    let script = fx.outer.path().join("slow-git.sh");
+    std::fs::write(&script, "#!/bin/sh\nsleep 30\n").unwrap();
+    let store = CheckpointStore::open_with_git_command(&fx.root, &fx.project, "/bin/sh".into(), vec![script.into_os_string()])
         .unwrap()
         .with_time_limit(Duration::from_millis(300));
     let started = Instant::now();
-    // Another test thread can fork while this thread still holds the script open for writing, and
-    // exec then fails with ETXTBSY ("Text file busy") even though the script is complete. That says
-    // nothing about the time limit, so try again; any other outcome is judged as before.
-    let mut outcome = store.snapshot("x");
-    for _ in 0..TEXT_FILE_BUSY_RETRIES {
-        if !matches!(&outcome, Err(CheckpointError::Io(message)) if message.contains(TEXT_FILE_BUSY)) {
-            break;
-        }
-        std::thread::sleep(Duration::from_millis(50));
-        outcome = store.snapshot("x");
-    }
-    assert_eq!(outcome.unwrap_err(), CheckpointError::TimedOut);
+    assert_eq!(store.snapshot("x").unwrap_err(), CheckpointError::TimedOut);
     assert!(started.elapsed() < Duration::from_secs(5), "returned after {:?}", started.elapsed());
 }
-
-/// The text of `ETXTBSY` as the standard library reports it.
-#[cfg(unix)]
-const TEXT_FILE_BUSY: &str = "Text file busy";
-/// How often the stuck-git test retries after `ETXTBSY`; each try waits 50 ms.
-#[cfg(unix)]
-const TEXT_FILE_BUSY_RETRIES: usize = 20;
 
 #[test]
 fn a_timed_out_snapshot_does_not_block_the_next_one() {
