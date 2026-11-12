@@ -894,7 +894,29 @@ enum AuthorityAction {
 
 // ── main ─────────────────────────────────────────────────────────────────────
 
+/// Stack size for the thread that runs the CLI. Windows gives the main thread
+/// only 1 MiB, and the unoptimized `dispatch` frame (one large match over every
+/// subcommand) overflowed it on windows-latest CI once `mcp` was in the
+/// default build and `status` was added. 8 MiB matches the Linux default.
+const CLI_STACK_BYTES: usize = 8 * 1024 * 1024;
+
 fn main() {
+    let worker = std::thread::Builder::new()
+        .name("yana-rt-main".into())
+        .stack_size(CLI_STACK_BYTES)
+        .spawn(dispatch)
+        .unwrap_or_else(|e| {
+            eprintln!("yana-rt: could not start the CLI thread: {e}");
+            std::process::exit(1);
+        });
+    // The panic hook installed in `dispatch` exits the process itself, so a
+    // join error only happens if a panic escaped before that hook was set.
+    if worker.join().is_err() {
+        std::process::exit(1);
+    }
+}
+
+fn dispatch() {
     // Exit quietly on broken pipe (e.g. `yana-rt mission dispatch | head`)
     // instead of panicking with "failed printing to stdout: Broken pipe"
     std::panic::set_hook(Box::new(|info| {
