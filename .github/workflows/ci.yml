@@ -445,11 +445,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (node24)
 
+      # Run cargo audit directly. The rustsec/audit-check action did the same scan, then called the
+      # GitHub check-runs API to publish its own check, and that call failed now and then with a 404
+      # (the scan itself was clean) and turned this job red. Warnings (unmaintained, unsound) do not fail
+      # cargo audit; a vulnerability does. The ignore list is the one the action used.
       - name: Run cargo audit
-        uses: rustsec/audit-check@69366f33c96575abad1ee0dba8212993eecbe998 # v2.0.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          ignore: RUSTSEC-2026-0459, RUSTSEC-2026-0457, RUSTSEC-2026-0462
+        run: |
+          cargo install cargo-audit --version 0.23.0 --locked
+          cargo audit --file Cargo.lock --ignore RUSTSEC-2026-0459 --ignore RUSTSEC-2026-0457 --ignore RUSTSEC-2026-0462
 
       # Same coverage gap as cargo audit above, for the Python side: this
       # repo publishes a PyPI package (pyproject.toml) whose own
