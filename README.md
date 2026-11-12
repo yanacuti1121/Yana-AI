@@ -20,6 +20,8 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-2563eb" alt="Apache 2.0 license"></a>
 </p>
 
+[![Verified Launch on LaunchIndex](https://launchindex.io/badge/yana-ai.svg)](https://launchindex.io/tool/yana-ai)
+
 <p align="center">
   <a href="README.md"><strong>English</strong></a> ·
   <a href="README.vi.md">Tiếng Việt</a> ·
