@@ -587,7 +587,7 @@
       ]
     },
     "tests": {
-      "count": 22,
+      "count": 23,
       "actual_present": [
         "core/tests/adapters/antigravity",
         "core/tests/adapters/cursor",
