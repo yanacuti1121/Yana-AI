@@ -33,6 +33,24 @@ and prove old processes have exited. The migration helper removes only empty
 legacy directories and writes the version marker atomically. It never
 recursively deletes lock state or claims to perform portable process proof.
 
+A new checkout has no marker, because `.claude/state/` is gitignored, and
+nothing inside a session can create it once the hooks block every tool call.
+Absence of the marker cannot tell a fresh clone from an idle `mkdir-v1` install
+(`mkdir-v1` removes its lock directory on release), so the Bash bridge
+(`core/lib/locking.sh`, `_yana_lock_bootstrap_marker`) never activates flock-v1
+by itself. Activation is an explicit act: set `YANA_LOCK_AUTO_ACTIVATE=1` in the
+environment (for a disposable cloud session, in the environment settings) or
+write `flock-v1` to the marker file. With the variable set, the bridge writes
+the marker once, atomically and without replacing an existing file, and says so
+on stderr, but only when there is no maintenance gate, no marker of any content,
+nothing but regular files under `locks/`, and `.claude` and `.claude/state` are
+real directories. Without it the bridge prints how to activate. The compiled
+runtime never writes the marker itself. Setting the variable on a live
+`mkdir-v1` install, idle or not, is an operator error that skips the cutover steps
+above; set it only in the environment settings of a disposable session, never in
+a committed `settings.json`.
+`core/tests/locking/test-flock-v1-fresh-clone.sh` pins each of these cases.
+
 Rollback also starts in maintenance mode. Operators must prove externally
 that no process holds a lock FD before removing stable regular lock files.
 The helper refuses to remove them because portable FD-holder proof is not
