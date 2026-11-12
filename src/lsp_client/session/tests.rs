@@ -54,6 +54,7 @@ impl Fixture {
             args: vec![script.to_string_lossy().into_owned()],
             env: Vec::new(),
             timeout_secs: Some(timeout),
+            allowed_tools: None,
         }
     }
 

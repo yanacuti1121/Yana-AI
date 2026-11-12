@@ -33,6 +33,11 @@ pub struct ServerConfig {
     pub env: Vec<String>,
     #[serde(default)]
     pub timeout_secs: Option<u64>,
+    /// When present, ONLY these tools may be called on this server; any other call is refused
+    /// before the server is started. Absent means no limit beyond the per-call approval. An
+    /// empty list allows listing the tools and nothing else.
+    #[serde(default)]
+    pub allowed_tools: Option<Vec<String>>,
 }
 
 #[derive(Deserialize)]
@@ -63,6 +68,7 @@ fn is_loader_variable(name: &str) -> bool {
 }
 
 const MAX_TOOL_NAME_CHARS: usize = 64;
+const MAX_ALLOWED_TOOLS: usize = 64;
 /// What an approval prompt can show whole: the program and arguments, and the
 /// variable names passed on. A configuration that needs more is refused instead
 /// of being shown cut off.
@@ -104,6 +110,11 @@ pub(crate) fn validate(server: &ServerConfig) -> Result<(), CapabilityError> {
     }
     if server.env.join(", ").chars().count() > MAX_ENV_LIST_CHARS {
         return Err(invalid(format!("server '{name}': the variable names are longer than {MAX_ENV_LIST_CHARS} characters together")));
+    }
+    if let Some(allowed) = &server.allowed_tools {
+        if allowed.len() > MAX_ALLOWED_TOOLS || allowed.iter().any(|tool| !valid_tool_name(tool)) {
+            return Err(invalid(format!("server '{name}': allowed_tools lists up to {MAX_ALLOWED_TOOLS} plain tool names (letters, digits, '_', '-', '.', ':')")));
+        }
     }
     if server.timeout_secs.is_some_and(|t| t == 0 || t > MAX_TIMEOUT_SECS) {
         return Err(invalid(format!("server '{name}': timeout_secs must be 1 to {MAX_TIMEOUT_SECS}")));
