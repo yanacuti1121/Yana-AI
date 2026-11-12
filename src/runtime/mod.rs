@@ -13,6 +13,7 @@ mod outcome;
 mod pending_approval;
 mod receipt;
 mod request;
+mod verify;
 
 pub(crate) use authority::{
     AuthorityDecision, AuthorityLayer, IntentDeclaration, RuntimeAuthority, YanaAuthorityChain,
@@ -31,6 +32,7 @@ pub(crate) use pending_approval::{
 pub(crate) use receipt::cmd_authority_executions;
 pub(crate) use receipt::cmd_authority_receipts;
 pub(crate) use request::TurnRequest;
+pub(crate) use verify::cmd_authority_verify;
 
 #[cfg(test)]
 mod tests;
