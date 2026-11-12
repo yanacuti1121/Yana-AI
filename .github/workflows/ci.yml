@@ -56,6 +56,16 @@ jobs:
       - name: Run hook test suite
         run: bash core/tests/hooks/run-hook-tests.sh
 
+      # Neither suite was run by any workflow, and both failed on a fresh
+      # clone (they copied the gitignored flock-v1 marker from the checkout).
+      # YANA_TEST_REQUIRE_RT=1 makes a missing yana-rt a failure, not a skip.
+      - name: Run token-budget guard/reset hook tests
+        env:
+          YANA_TEST_REQUIRE_RT: "1"
+        run: |
+          bash core/tests/hooks/test-token-budget-reset.sh
+          bash core/tests/hooks/test-token-budget-guard-fallback.sh
+
       - name: Drift check
         run: bash core/scripts/drift-check.sh
 

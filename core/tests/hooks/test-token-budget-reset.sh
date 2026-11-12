@@ -20,22 +20,44 @@ HOOKS_DIR="$PROJECT_DIR/core/hooks"
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
+YELLOW='\033[1;33m'
 NC='\033[0m'
 
 pass() { echo -e "${GREEN}✓ PASS${NC}: $1"; TESTS_PASSED=$((TESTS_PASSED + 1)); }
 fail() { echo -e "${RED}✗ FAIL${NC}: $1"; TESTS_FAILED=$((TESTS_FAILED + 1)); }
 
+# with_lock() needs a compiled yana-rt. Use the binary built from this
+# checkout when there is one (same order as
+# test-token-budget-guard-fallback.sh; CI builds target/release and never
+# puts it on PATH), otherwise one on PATH. With neither, skip, unless
+# YANA_TEST_REQUIRE_RT=1 (set in CI) turns the skip into a failure.
+YANA_RT_BIN_CANDIDATE="$PROJECT_DIR/target/debug/yana-rt"
+if [[ ! -x "$YANA_RT_BIN_CANDIDATE" ]]; then
+  YANA_RT_BIN_CANDIDATE="$PROJECT_DIR/target/release/yana-rt"
+fi
+if [[ -x "$YANA_RT_BIN_CANDIDATE" ]]; then
+  export YANA_RT_BIN="$YANA_RT_BIN_CANDIDATE"
+elif ! command -v yana-rt >/dev/null 2>&1; then
+  if [[ "${YANA_TEST_REQUIRE_RT:-}" == "1" ]]; then
+    echo -e "${RED}✗ FAIL${NC}: no compiled yana-rt (target/debug, target/release or PATH) and YANA_TEST_REQUIRE_RT=1"
+    exit 1
+  fi
+  echo -e "${YELLOW}SKIP${NC}: no compiled yana-rt found at target/debug, target/release or on PATH."
+  echo "  Run 'cargo build --bin yana-rt' first."
+  exit 0
+fi
+
 # Isolated project dir per test — never touch the real session state files.
-# Needs core/lib/locking.sh AND the flock-v1 protocol marker locking.sh
-# checks for (.claude/state/locking-protocol-version) — without the marker,
-# with_lock() refuses to run at all ("protocol marker missing"), which is
-# a sandbox-setup gap, not a bug in the hook under test.
+# Needs core/lib/locking.sh AND the flock-v1 protocol marker
+# (.claude/state/locking-protocol-version): without it with_lock() refuses
+# to run ("protocol marker missing"). The marker is written here, not copied
+# from the checkout: .claude/state/ is gitignored, so a fresh clone has none.
 run_in_sandbox() {
   local tmp_project
   tmp_project=$(mktemp -d)
   mkdir -p "$tmp_project/core/lib" "$tmp_project/core/memory/L2_session" "$tmp_project/.claude/state"
   cp "$PROJECT_DIR/core/lib/locking.sh" "$tmp_project/core/lib/locking.sh"
-  cp "$PROJECT_DIR/.claude/state/locking-protocol-version" "$tmp_project/.claude/state/locking-protocol-version"
+  printf 'flock-v1\n' > "$tmp_project/.claude/state/locking-protocol-version"
   echo "$tmp_project"
 }
 
