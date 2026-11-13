@@ -8,11 +8,10 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
 fn bin() -> PathBuf {
-    let mut p = std::env::current_exe().unwrap();
-    p.pop();
-    p.pop(); // target/debug/deps → target
-    p.push("yana-rt");
-    p
+    // Cargo sets this for every integration test and builds the binary first. Deriving the
+    // path from current_exe() assumed the test sits in target/debug/deps, which broke when
+    // Rust 1.100 changed where test executables go (67 tests failed with NotFound).
+    PathBuf::from(env!("CARGO_BIN_EXE_yana-rt"))
 }
 
 fn tmpdir() -> tempfile::TempDir {
