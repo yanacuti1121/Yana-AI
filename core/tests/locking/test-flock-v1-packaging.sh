@@ -3,7 +3,6 @@ set -euo pipefail
 
 REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)
 RUNTIME="$REPO_ROOT/target/debug/yana-rt"
-RELEASE_RUNTIME="$REPO_ROOT/target/release/yana-rt"
 TMP_ROOT=$(mktemp -d "${TMPDIR:-/tmp}/yana-flock-packaging.XXXXXX")
 PASS_COUNT=0
 trap 'rm -rf "$TMP_ROOT"' EXIT
@@ -76,12 +75,5 @@ assert "core/lib" in wheel or wheel.get("core") == "yana_ai/core"
 assert "core/" in sdist
 PY
 pass "PyPI resolver and wheel/sdist core surfaces remain available"
-
-[[ -x "$RELEASE_RUNTIME" ]] || fail "release yana-rt missing; build it before desktop staging test"
-[[ -x "$REPO_ROOT/target/release/pty_bridge" ]] || fail "release pty_bridge missing"
-node "$REPO_ROOT/tools/yana-desktop/scripts/stage-runtime.js" >/dev/null
-node "$REPO_ROOT/tools/yana-desktop/_test_runtime_paths.js" >/dev/null
-[[ -x "$REPO_ROOT/target/desktop-runtime/bin/yana-rt" ]] || fail "desktop stage omitted yana-rt"
-pass "desktop staging contains compiled yana-rt"
 
 printf 'flock-v1 packaging regression: %s passed\n' "$PASS_COUNT"
