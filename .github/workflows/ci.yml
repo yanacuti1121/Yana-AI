@@ -514,15 +514,6 @@ jobs:
           PY
           pip-audit --requirement /tmp/runtime-requirements.txt
 
-      - name: Set up Node.js
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: '24'
-
-      - name: Run npm audit (yana-desktop production dependencies)
-        working-directory: tools/yana-desktop
-        run: npm audit --omit=dev --package-lock-only
-
   # Authority Hardening item #10: release.yml and publish.yml both read
   # .github/required-checks.json instead of hard-coding their own copy of
   # the required-check-name list (they used to carry byte-for-byte-

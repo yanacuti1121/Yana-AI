@@ -1,6 +1,6 @@
 name: Herald (Sứ Giả)
 
-# Standalone, not a job appended to release.yml/desktop.yml/publish.yml --
+# Standalone, not a job appended to release.yml/publish.yml --
 # their build/publish jobs each ship artifacts per-leg, so a job hanging
 # off `needs: build` there would run after assets are already shipped and
 # would couple this check's runtime to unrelated Rust/Electron toolchain

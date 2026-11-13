@@ -75,7 +75,7 @@ Từ công cụ dòng lệnh thành ứng dụng chat AI thực sự.
 
 - **Yana Web** → đổi tên thành **Yana AI** — chat interface kết nối thực sự đến AI (Groq, Claude, OpenRouter, Gemini, DeepSeek)
 - Giao diện React + glass-morphism
-- **Electron desktop app** (yana-desktop) — chạy như ứng dụng desktop native
+- **Electron desktop app** (yana-desktop) — chạy như ứng dụng desktop native. *Đã ngừng phát hành (13/11/2026):* bản cuối là v1.4.1 (20/08/2026), chạy macOS, Windows và Linux. Từ đây ứng dụng desktop chính thức duy nhất là **Yana 1.0.0 cho macOS** (Swift, kèm Yana Studio Electron và IDE bên trong), ở repo Yana-studio. Mã nguồn yana-desktop còn ở repo yana-web, thư mục `yana-desktop/`.
 - Multi-agent parallel execution — nhiều agent chạy song song và tổng hợp kết quả
 - Supabase auth + đồng bộ lịch sử chat
 - Vision support — đính ảnh vào chat

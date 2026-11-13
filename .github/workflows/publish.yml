@@ -71,7 +71,7 @@ on:
 
 jobs:
   # Workstream B / B7 follow-up (2026-08-16): same "release gate weaker
-  # than PR gate" fix as release.yml/desktop.yml -- see release.yml's
+  # than PR gate" fix as release.yml -- see release.yml's
   # comment on its own verify-provenance job for the full rationale.
   # Runs for any push-tag/workflow_dispatch trigger (both already scoped
   # to this workflow's own two axes by `on.push.tags` / the dispatch
@@ -121,7 +121,7 @@ jobs:
           done < <(python3 -c "import json; print('\n'.join(json.load(open('.github/required-checks.json'))['required_checks']))")
           FAILED=0
           for name in "${REQUIRED[@]}"; do
-            # --paginate: see desktop.yml's verify-provenance job for why
+            # --paginate: see release.yml's verify-provenance job for why
             # this is required, not optional, once a commit accumulates
             # more than gh api's default 30-item page of check-runs.
             conclusion=$(gh api --paginate "repos/${{ github.repository }}/commits/$SHA/check-runs" --jq ".check_runs[] | select(.name==\"$name\") | .conclusion" | head -1)

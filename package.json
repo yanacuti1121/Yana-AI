@@ -70,12 +70,7 @@
     "verify:release": "python3 core/scripts/release-gate.py",
     "postinstall": "node scripts/npm-install.js --auto",
     "deploy": "wrangler deploy",
-    "preview": "wrangler dev",
-    "electron:dev": "cd tools/yana-desktop && npm start",
-    "electron:build": "cd tools/yana-desktop && npm run build:linux && npm run build:mac && npm run build:win",
-    "electron:build:mac": "cd tools/yana-desktop && npm run build:mac",
-    "electron:build:win": "cd tools/yana-desktop && npm run build:win",
-    "electron:install": "cd tools/yana-desktop && npm install"
+    "preview": "wrangler dev"
   },
   "devDependencies": {
     "wrangler": "^4.147.0"
