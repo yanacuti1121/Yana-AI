@@ -25,6 +25,9 @@
     "@types/react": "19.2.0",
     "@types/react-dom": "19.2.0"
   },
+  "overrides": {
+    "zod": "4.6.6"
+  },
   "type": "module",
   "engines": {
     "node": ">=24"
