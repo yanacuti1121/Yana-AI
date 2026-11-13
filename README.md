@@ -3,6 +3,8 @@
     <source media="(prefers-color-scheme: dark)" srcset="docs/yana-banner-dark.svg">
     <img src="docs/yana-banner-light.svg" alt="Yana AI" width="720">
   </picture>
+  <br><br>
+  <img src="docs/yana-brand-strip.svg" alt="" width="720">
 </p>
 
 <h3 align="center">Models propose. Yana decides. Humans stay in charge.</h3>
