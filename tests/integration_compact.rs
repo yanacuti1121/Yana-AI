@@ -7,11 +7,9 @@
 use std::process::Command;
 
 fn bin() -> std::path::PathBuf {
-    let mut p = std::env::current_exe().unwrap();
-    p.pop();
-    p.pop(); // target/debug/deps → target
-    p.push("yana-rt");
-    p
+    // Cargo sets this for every integration test and builds the binary first; see the same
+    // helper in integration_runtime.rs for why current_exe() is not used.
+    std::path::PathBuf::from(env!("CARGO_BIN_EXE_yana-rt"))
 }
 
 fn tmp_git_repo(commit_count: usize) -> tempfile::TempDir {
