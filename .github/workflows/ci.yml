@@ -5,6 +5,16 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # A daily run on main. This workflow installs the latest stable Rust on every
+  # run, so a new Rust release (or any other tool that moves under us) used to
+  # show up only on the next pull request: rustc 1.100.0 broke the integration
+  # tests' binary lookup and the first red run was an unrelated SECURITY.md PR.
+  # A run on main finds it the day it happens. GitHub runs schedules on the
+  # default branch only, and the self-audit step already treats any event that
+  # is not a pull request as a full scan.
+  schedule:
+    - cron: "23 19 * * *"
+  workflow_dispatch:
 
 permissions:
   contents: read
