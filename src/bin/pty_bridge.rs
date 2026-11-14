@@ -3,8 +3,8 @@
 //! PTY output -> this process's own stdout, this process's own stdin ->
 //! PTY input. Exits with the child's own exit code once it exits.
 //!
-//! Not chat-specific — Electron's main process (`tools/yana-desktop/
-//! main.js`) decides what to spawn (a user shell for the Terminal panel, or
+//! Not chat-specific — Electron's main process (`yana-desktop/main.js` in
+//! the yana-web repository; Yana Desktop is retired, kept for reference) decides what to spawn (a user shell for the Terminal panel, or
 //! `node scripts/yana-rt-wrapper.js chat [...]` for the embedded chat pty,
 //! reusing that script's already-hardened binary-resolution logic rather
 //! than duplicating it here). This binary's only job is the OS-level PTY

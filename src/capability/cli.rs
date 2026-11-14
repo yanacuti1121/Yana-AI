@@ -2,7 +2,7 @@
 //! this repo's own `tests/integration_runtime.rs` convention already uses
 //! for `bus`/`memory`/`cost` (`Command::new(bin()).args([...])`, JSON on
 //! stdout, exit code as the outcome). This is what
-//! `tools/yana-desktop/main.js` shells out to instead of reimplementing
+//! `yana-desktop/main.js` (yana-web repository, retired) shells out to instead of reimplementing
 //! the Gate L5 path-sandbox natively in Node (AD-11's Desktop half).
 //!
 //! Deliberately not the MCP server (`src/mcp.rs`, `mcp` feature): that's
