@@ -1,0 +1,42 @@
+# A weekly health report for the parts of the repository no pull request or daily run looks at.
+#
+# ci.yml already runs every day on main with the latest stable Rust, so toolchain drift shows up
+# there. This workflow adds what that does not cover: it compiles every Python and shell file in the
+# skills trees, counts escape-sequence warnings, compares core/skills with .claude/skills, counts
+# skills that no longer match the skills lock, and lists tracked files nobody has touched for 150
+# days. See .github/scripts/weekly_health.py for the exact rules.
+#
+# Only a file that does not compile fails the run (and so sends the usual failed-run email). Every
+# other finding is information in the run summary: the repository has long-standing items there, and
+# a check that is always red gets ignored.
+name: Weekly health
+
+on:
+  schedule:
+    - cron: "17 20 * * 0" # Sunday 20:17 UTC, Monday 05:17 in Japan
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  health:
+    name: Weekly health report
+    # Forks and other copies of this repository do not need the report.
+    if: github.repository == 'Horonomos-laps/Yana-AI'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out the full history (the stale-file count reads it)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (node24)
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.0.0 (node24)
+        with:
+          python-version: '3.12'
+
+      - name: Build the report
+        run: python3 .github/scripts/weekly_health.py
