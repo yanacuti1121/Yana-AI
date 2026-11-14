@@ -33,7 +33,8 @@ test = false
 # spawns this as a plain child process and talks to it over stdin/
 # stdout, no native Node module required. Deliberately generic (spawns
 # whatever argv it's given), not chat-specific. See
-# tools/yana-desktop/main.js for the Electron side.
+# yana-desktop/main.js in the yana-web repository for the Electron side
+# (Yana Desktop is retired; that copy is kept for reference).
 [[bin]]
 name = "pty_bridge"
 path = "src/bin/pty_bridge.rs"
