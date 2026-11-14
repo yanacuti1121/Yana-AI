@@ -68,21 +68,9 @@
     "metadata:sync": "python3 core/scripts/check_counts.py --fix",
     "audit:hook-paths": "python3 core/scripts/audit_hook_execution_paths.py --check",
     "verify:release": "python3 core/scripts/release-gate.py",
-    "postinstall": "node scripts/npm-install.js --auto",
-    "deploy": "wrangler deploy",
-    "preview": "wrangler dev"
-  },
-  "devDependencies": {
-    "wrangler": "^4.158.0"
+    "postinstall": "node scripts/npm-install.js --auto"
   },
   "dependencies": {
-    "acorn": "^8.19.0",
-    "clsx": "^2.1.1",
-    "framer-motion": "^14.10.1",
-    "lucide-react": "^1.70.0",
-    "tailwind-merge": "^3.7.0"
-  },
-  "overrides": {
-    "undici": "7.30.1"
+    "acorn": "^8.19.0"
   }
 }
